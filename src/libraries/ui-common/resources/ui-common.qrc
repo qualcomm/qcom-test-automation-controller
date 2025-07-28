@@ -1,0 +1,8 @@
+<RCC>
+    <qresource prefix="/">
+        <file>NotificationBellSilent.png</file>
+        <file>NotificationBellRing.png</file>
+        <file>doubleclick.png</file>
+        <file>Warning.drawio.png</file>
+    </qresource>
+</RCC>

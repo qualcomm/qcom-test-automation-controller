@@ -1,0 +1,15 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0//EN" "http://www.w3.org/TR/REC-html40/strict.dtd">
+<html><head><meta name="qrichtext" content="1" />
+<style type="text/css">p, li { white-space: pre-wrap; }
+</style>
+</head>
+<body style=" font-family:'MS Shell Dlg 2'; font-size:8pt; font-weight:400; font-style:normal;">
+<p style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;">
+<span style=" font-size:10pt;">TAC is part of the QTAC application suite.  TAC utilizes the QTAC debug boards to provide device control through automation and host UIs. Support for QTAC host applications is provided by <a href="mailto:alpaca.hostdev@qti.qualcomm.com"><span style=" text-decoration: underline; color:#0000ff;"> QTAC host dev list </span></a> and jira support is provided by <a href="mailto:jira.alpaca.hostdev@qti.qualcomm.com"><span style=" text-decoration: underline; color:#0000ff;"> Jira QTAC host dev list </span>
+</a>
+</span>
+</p>
+<p style="-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; font-size:10pt;">
+<br />
+</p>
+<p style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"><span style=" font-size:10pt;">QTAC debug board hardware support is through <a href="mailto:alpaca.support@qti.qualcomm.com"><span style=" text-decoration: underline; color:#0000ff;"> QTAC support list </span></a><br /><br />© 2019-2025 Qualcomm Technologies, Inc.</span></p></body></html>

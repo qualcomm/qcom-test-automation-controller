@@ -1,0 +1,27 @@
+<RCC>
+    <qresource prefix="/">
+        <file>About.txt</file>
+        <file>BugWriter.png</file>
+        <file>TACConfigEditor.bmp</file>
+        <file>TACConfigEditor.ico</file>
+        <file>TACConfigEditor.png</file>
+        <file>TACConfigEditor_BS.png</file>
+        <file>entry-add.png</file>
+        <file>entry-delete.png</file>
+        <file>Save.png</file>
+        <file>Open.png</file>
+        <file>Preview.drawio.png</file>
+        <file>ManageTabs.png</file>
+        <file>new-config.png</file>
+        <file>TabsDown.png</file>
+        <file>TabsPlus.png</file>
+        <file>TabsRemove.png</file>
+        <file>TabsUp.png</file>
+        <file>TabsRename.png</file>
+        <file>script.png</file>
+        <file>scriptcheck.png</file>
+        <file>download-spinner.png</file>
+        <file>NotificationBellSilent.png</file>
+        <file>NotificationBellRing.png</file>
+    </qresource>
+</RCC>

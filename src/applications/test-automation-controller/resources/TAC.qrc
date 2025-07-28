@@ -1,0 +1,12 @@
+<RCC>
+    <qresource prefix="/">
+        <file>TAC.bmp</file>
+        <file>TAC.png</file>
+        <file>About.txt</file>
+        <file>TAC_BS.png</file>
+        <file>BugWriter.png</file>
+        <file>NotificationBellRing.png</file>
+        <file>NotificationBellSilent.png</file>
+        <file>Warning.drawio.png</file>
+    </qresource>
+</RCC>

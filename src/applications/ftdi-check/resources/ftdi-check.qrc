@@ -1,0 +1,5 @@
+<RCC>
+    <qresource prefix="/">
+        <file>ftdi-check.ico</file>
+    </qresource>
+</RCC>

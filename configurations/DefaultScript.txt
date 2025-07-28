@@ -1,0 +1,143 @@
+def powerOffTheDevice() 
+	logComment ====== powerOffTheDevice sequence start ======
+
+	battery 1
+	usb0 1
+	usb1 1
+
+	logComment ====== powerOffTheDevice sequence finish ======
+
+def powerOnTheDevice()
+	logComment ====== powerOnTheDevice sequence start ======
+
+	delay 500
+	battery 0
+	delay 900
+	usb0 0
+	usb1 0
+	delay 30
+
+	logComment ====== powerOnTheDevice sequence finish ======
+
+def powerOff()
+	logComment ====== powerOff start ======
+
+	powerOffTheDevice
+
+	pkey 0
+	volup 0
+	voldn 0
+
+	pedl 0
+
+	logComment ====== powerOff finish ======
+
+def powerOn()
+	logComment ====== powerOn start ======
+
+	powerOff
+
+	powerOnTheDevice
+
+	pkey 1
+	delay 800
+	pkey 0
+
+	logComment ====== powerOn finish ======
+
+def bootToEDL()
+	logComment ====== bootToEDL start ======
+
+	powerOffTheDevice
+
+	pkey 0
+	volup 0
+	voldn 0
+
+	pedl 1
+
+	powerOnTheDevice
+
+	pkey 1
+	delay $edl
+	pkey 0
+
+	pedl 0
+
+	logComment ====== bootToEDL finish ======
+
+def bootToSecondaryEDL()
+	logComment ====== bootToSecondaryEDL start ======
+
+	powerOffTheDevice
+
+	pkey 0
+	volup 0
+	voldn 0
+
+	sedl 1
+
+	powerOnTheDevice
+
+	pkey 1
+	delay 800
+	pkey 0
+
+	delay 1300
+
+	sedl 0
+
+	logComment ====== bootToSecondaryEDL finish ======
+
+def bootToUEFI()
+	logComment ====== bootToUEFIMenu start ======
+
+	powerOffTheDevice
+
+	// Put buttons in a set state
+	pkey 0
+	volup 1
+	voldn 0
+
+	pedl 0
+
+	powerOnTheDevice
+
+	pkey 1
+	delay $uefi
+	pkey 0
+	volup 0
+	delay 12
+	pkey 1
+	volup 1
+
+	pkey 0
+	volup 0
+
+	logComment ====== bootToUEFIMenu finish ======
+
+def bootToFastboot()
+	logComment ====== bootToFastboot start ======
+
+	powerOffTheDevice
+
+	pkey 0
+	volup 0
+	voldn 1
+
+	pedl 0
+
+	powerOnTheDevice
+
+	pkey 1
+	delay 800
+	pkey 0
+
+	delay $fastboot
+	voldn 0
+	delay 30
+	voldn 1
+
+	voldn 0
+
+	logComment ====== bootToFastboot finished ======

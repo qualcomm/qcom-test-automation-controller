@@ -1,0 +1,33 @@
+# Editor configurations
+.vs/
+.vscode/
+.idea/
+.DS_Store/
+
+# Qt build directory & files
+*.qmake.stash
+*.pro.user
+Makefile*
+build/
+moc_*
+qrc_*
+ui_*
+
+# Java compiled sources
+.mvn/
+**/target/
+*.class
+*.jar
+
+# Python build and cache directories
+**/*/build
+**/*/dist
+__pycache__/
+.pytest_cache/
+
+# Qt build directory
+__Builds/
+
+# Driver packages
+ftd2xx.lib
+*.zip

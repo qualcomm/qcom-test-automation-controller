@@ -1,0 +1,2970 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>FTDIEditorView</class>
+ <widget class="QWidget" name="FTDIEditorView">
+  <property name="enabled">
+   <bool>true</bool>
+  </property>
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>1049</width>
+    <height>738</height>
+   </rect>
+  </property>
+  <property name="sizePolicy">
+   <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+    <horstretch>0</horstretch>
+    <verstretch>0</verstretch>
+   </sizepolicy>
+  </property>
+  <property name="minimumSize">
+   <size>
+    <width>847</width>
+    <height>499</height>
+   </size>
+  </property>
+  <property name="contextMenuPolicy">
+   <enum>Qt::DefaultContextMenu</enum>
+  </property>
+  <property name="windowTitle">
+   <string>FTDITable</string>
+  </property>
+  <layout class="QVBoxLayout" name="verticalLayout">
+   <item>
+    <widget class="QTabWidget" name="_chipTabs">
+     <property name="contextMenuPolicy">
+      <enum>Qt::DefaultContextMenu</enum>
+     </property>
+     <property name="toolTip">
+      <string/>
+     </property>
+     <property name="accessibleName">
+      <string/>
+     </property>
+     <property name="currentIndex">
+      <number>0</number>
+     </property>
+     <widget class="QWidget" name="_chip1">
+      <property name="toolTip">
+       <string/>
+      </property>
+      <attribute name="title">
+       <string>Chip 1</string>
+      </attribute>
+      <layout class="QHBoxLayout" name="horizontalLayout">
+       <item>
+        <widget class="QTableWidget" name="_chip1Table">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+           <horstretch>0</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
+         </property>
+         <property name="minimumSize">
+          <size>
+           <width>0</width>
+           <height>0</height>
+          </size>
+         </property>
+         <property name="contextMenuPolicy">
+          <enum>Qt::CustomContextMenu</enum>
+         </property>
+         <property name="accessibleName">
+          <string>1</string>
+         </property>
+         <attribute name="horizontalHeaderStretchLastSection">
+          <bool>false</bool>
+         </attribute>
+         <attribute name="verticalHeaderVisible">
+          <bool>false</bool>
+         </attribute>
+         <attribute name="verticalHeaderDefaultSectionSize">
+          <number>24</number>
+         </attribute>
+         <row>
+          <property name="text">
+           <string>A</string>
+          </property>
+         </row>
+         <row>
+          <property name="text">
+           <string>A0</string>
+          </property>
+         </row>
+         <row>
+          <property name="text">
+           <string>A1</string>
+          </property>
+         </row>
+         <row>
+          <property name="text">
+           <string>A2</string>
+          </property>
+         </row>
+         <row>
+          <property name="text">
+           <string>A3</string>
+          </property>
+         </row>
+         <row>
+          <property name="text">
+           <string>A4</string>
+          </property>
+         </row>
+         <row>
+          <property name="text">
+           <string>A5</string>
+          </property>
+         </row>
+         <row>
+          <property name="text">
+           <string>A6</string>
+          </property>
+         </row>
+         <row>
+          <property name="text">
+           <string>A7</string>
+          </property>
+         </row>
+         <row>
+          <property name="text">
+           <string>B</string>
+          </property>
+         </row>
+         <row>
+          <property name="text">
+           <string>B0</string>
+          </property>
+         </row>
+         <row>
+          <property name="text">
+           <string>B1</string>
+          </property>
+         </row>
+         <row>
+          <property name="text">
+           <string>B2</string>
+          </property>
+         </row>
+         <row>
+          <property name="text">
+           <string>B3</string>
+          </property>
+         </row>
+         <row>
+          <property name="text">
+           <string>B4</string>
+          </property>
+         </row>
+         <row>
+          <property name="text">
+           <string>B5</string>
+          </property>
+         </row>
+         <row>
+          <property name="text">
+           <string>B6</string>
+          </property>
+         </row>
+         <row>
+          <property name="text">
+           <string>B7</string>
+          </property>
+         </row>
+         <row>
+          <property name="text">
+           <string>C</string>
+          </property>
+         </row>
+         <row>
+          <property name="text">
+           <string>C0</string>
+          </property>
+         </row>
+         <row>
+          <property name="text">
+           <string>C1</string>
+          </property>
+         </row>
+         <row>
+          <property name="text">
+           <string>C2</string>
+          </property>
+         </row>
+         <row>
+          <property name="text">
+           <string>C3</string>
+          </property>
+         </row>
+         <row>
+          <property name="text">
+           <string>C4</string>
+          </property>
+         </row>
+         <row>
+          <property name="text">
+           <string>C5</string>
+          </property>
+         </row>
+         <row>
+          <property name="text">
+           <string>C6</string>
+          </property>
+         </row>
+         <row>
+          <property name="text">
+           <string>C7</string>
+          </property>
+         </row>
+         <row>
+          <property name="text">
+           <string>D</string>
+          </property>
+         </row>
+         <row>
+          <property name="text">
+           <string>D0</string>
+          </property>
+         </row>
+         <row>
+          <property name="text">
+           <string>D1</string>
+          </property>
+         </row>
+         <row>
+          <property name="text">
+           <string>D2</string>
+          </property>
+         </row>
+         <row>
+          <property name="text">
+           <string>D3</string>
+          </property>
+         </row>
+         <row>
+          <property name="text">
+           <string>D4</string>
+          </property>
+         </row>
+         <row>
+          <property name="text">
+           <string>D5</string>
+          </property>
+         </row>
+         <row>
+          <property name="text">
+           <string>D6</string>
+          </property>
+         </row>
+         <row>
+          <property name="text">
+           <string>D7</string>
+          </property>
+         </row>
+         <column>
+          <property name="text">
+           <string>DBUS</string>
+          </property>
+          <property name="toolTip">
+           <string>The FTDI bus of the pin. Bus A and B are disabled by default and can be enabled by choosing D2XX as the bus function.</string>
+          </property>
+         </column>
+         <column>
+          <property name="text">
+           <string>Function</string>
+          </property>
+          <property name="toolTip">
+           <string>The bus function of the FTDI bus.</string>
+          </property>
+         </column>
+         <column>
+          <property name="text">
+           <string>Pin</string>
+          </property>
+          <property name="toolTip">
+           <string>The pin number of the pins within a bus. This column cannot be edited.</string>
+          </property>
+         </column>
+         <column>
+          <property name="text">
+           <string>Set Pin</string>
+          </property>
+          <property name="toolTip">
+           <string>The virtual pin number on the FTDI debug board. It is used for performing operations using the FTDI pins.</string>
+          </property>
+         </column>
+         <column>
+          <property name="text">
+           <string>Enabled</string>
+          </property>
+          <property name="toolTip">
+           <string>Whether the pin is active. If unchecked, the pin will not appear on the TAC UI.</string>
+          </property>
+         </column>
+         <column>
+          <property name="text">
+           <string>Input</string>
+          </property>
+          <property name="toolTip">
+           <string>Whether the GPIO pin accepts inputs. Checking the input value for a pin will make the pin input directional.</string>
+          </property>
+         </column>
+         <column>
+          <property name="text">
+           <string>Initial</string>
+          </property>
+          <property name="toolTip">
+           <string>Whether the pin needs to be updated when the TAC starts. All pins in the TAC hardware are off by default. When TAC starts, it sends commands to turn on some of the GPIO lines.</string>
+          </property>
+         </column>
+         <column>
+          <property name="text">
+           <string>Priority</string>
+          </property>
+          <property name="toolTip">
+           <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Any entry that is greater than zero will result in that pin being set to the initial value on device open.  Any value less that zero will not be set.  This is the more common case.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+          </property>
+         </column>
+         <column>
+          <property name="text">
+           <string>Invert</string>
+          </property>
+          <property name="toolTip">
+           <string>Whether the pin functionality is inverted. Some commands in the TAC are disconnect commands but are treated like normal commands. For example, the command Battery is internally a 'disconnect battery' command. So, when the Battery LED is On, it means Disconnect Battery is Off.</string>
+          </property>
+         </column>
+         <column>
+          <property name="text">
+           <string>Label</string>
+          </property>
+          <property name="toolTip">
+           <string>The label for the pin to be represented in the TAC GUI (maximum 20 characters).</string>
+          </property>
+         </column>
+         <column>
+          <property name="text">
+           <string>Tooltip</string>
+          </property>
+          <property name="toolTip">
+           <string>The tooltip for the pin label in the TAC GUI (no character limit).</string>
+          </property>
+         </column>
+         <column>
+          <property name="text">
+           <string>Command</string>
+          </property>
+          <property name="toolTip">
+           <string>The TAC command for the operation with no spaces.</string>
+          </property>
+         </column>
+         <column>
+          <property name="text">
+           <string>Group</string>
+          </property>
+          <property name="toolTip">
+           <string>The default action that is assigned to this pin. This column cannot be edited.</string>
+          </property>
+         </column>
+         <column>
+          <property name="text">
+           <string>Tab</string>
+          </property>
+          <property name="toolTip">
+           <string>The name of the tab where the button should appear.</string>
+          </property>
+         </column>
+         <column>
+          <property name="text">
+           <string>Cell Location (col, row)</string>
+          </property>
+          <property name="toolTip">
+           <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;The location in the form of &amp;lt;column, row&amp;gt; for the pin in the TAC UI. A value of &amp;quot;-1,-1&amp;quot; a will hide the pin.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+          </property>
+         </column>
+         <item row="0" column="0">
+          <property name="text">
+           <string>A</string>
+          </property>
+          <property name="flags">
+           <set>ItemIsSelectable|ItemIsEnabled</set>
+          </property>
+         </item>
+         <item row="0" column="2">
+          <property name="text">
+           <string/>
+          </property>
+          <property name="flags">
+           <set>ItemIsSelectable|ItemIsEnabled</set>
+          </property>
+         </item>
+         <item row="0" column="4">
+          <property name="text">
+           <string/>
+          </property>
+          <property name="flags">
+           <set>ItemIsSelectable|ItemIsEnabled</set>
+          </property>
+         </item>
+         <item row="0" column="6">
+          <property name="text">
+           <string/>
+          </property>
+          <property name="flags">
+           <set>ItemIsSelectable|ItemIsEnabled</set>
+          </property>
+         </item>
+         <item row="0" column="7">
+          <property name="text">
+           <string/>
+          </property>
+          <property name="flags">
+           <set>ItemIsSelectable|ItemIsEnabled</set>
+          </property>
+         </item>
+         <item row="0" column="8">
+          <property name="text">
+           <string/>
+          </property>
+          <property name="flags">
+           <set>ItemIsSelectable|ItemIsEnabled</set>
+          </property>
+         </item>
+         <item row="0" column="9">
+          <property name="text">
+           <string/>
+          </property>
+          <property name="flags">
+           <set>ItemIsSelectable</set>
+          </property>
+         </item>
+         <item row="0" column="10">
+          <property name="text">
+           <string/>
+          </property>
+          <property name="flags">
+           <set>ItemIsSelectable|ItemIsEnabled</set>
+          </property>
+         </item>
+         <item row="0" column="11">
+          <property name="text">
+           <string/>
+          </property>
+          <property name="flags">
+           <set>ItemIsSelectable|ItemIsEnabled</set>
+          </property>
+         </item>
+         <item row="0" column="12">
+          <property name="text">
+           <string/>
+          </property>
+          <property name="flags">
+           <set>ItemIsSelectable|ItemIsEnabled</set>
+          </property>
+         </item>
+         <item row="0" column="13">
+          <property name="text">
+           <string/>
+          </property>
+          <property name="flags">
+           <set>ItemIsSelectable|ItemIsEnabled</set>
+          </property>
+         </item>
+         <item row="0" column="14">
+          <property name="text">
+           <string/>
+          </property>
+          <property name="flags">
+           <set>ItemIsSelectable|ItemIsEnabled</set>
+          </property>
+         </item>
+         <item row="1" column="0">
+          <property name="text">
+           <string/>
+          </property>
+          <property name="flags">
+           <set>ItemIsSelectable|ItemIsEnabled</set>
+          </property>
+         </item>
+         <item row="1" column="2">
+          <property name="text">
+           <string>0</string>
+          </property>
+         </item>
+         <item row="1" column="3">
+          <property name="text">
+           <string/>
+          </property>
+         </item>
+         <item row="2" column="0">
+          <property name="text">
+           <string/>
+          </property>
+          <property name="flags">
+           <set>ItemIsSelectable|ItemIsEnabled</set>
+          </property>
+         </item>
+         <item row="2" column="2">
+          <property name="text">
+           <string>1</string>
+          </property>
+         </item>
+         <item row="2" column="3">
+          <property name="text">
+           <string/>
+          </property>
+         </item>
+         <item row="3" column="0">
+          <property name="text">
+           <string/>
+          </property>
+          <property name="flags">
+           <set>ItemIsSelectable|ItemIsEnabled</set>
+          </property>
+         </item>
+         <item row="3" column="2">
+          <property name="text">
+           <string>2</string>
+          </property>
+         </item>
+         <item row="3" column="3">
+          <property name="text">
+           <string/>
+          </property>
+         </item>
+         <item row="4" column="0">
+          <property name="text">
+           <string/>
+          </property>
+          <property name="flags">
+           <set>ItemIsSelectable|ItemIsEnabled</set>
+          </property>
+         </item>
+         <item row="4" column="2">
+          <property name="text">
+           <string>3</string>
+          </property>
+         </item>
+         <item row="4" column="3">
+          <property name="text">
+           <string/>
+          </property>
+         </item>
+         <item row="5" column="0">
+          <property name="text">
+           <string/>
+          </property>
+          <property name="flags">
+           <set>ItemIsSelectable|ItemIsEnabled</set>
+          </property>
+         </item>
+         <item row="5" column="2">
+          <property name="text">
+           <string>4</string>
+          </property>
+         </item>
+         <item row="5" column="3">
+          <property name="text">
+           <string/>
+          </property>
+         </item>
+         <item row="6" column="0">
+          <property name="text">
+           <string/>
+          </property>
+          <property name="flags">
+           <set>ItemIsSelectable|ItemIsEnabled</set>
+          </property>
+         </item>
+         <item row="6" column="2">
+          <property name="text">
+           <string>5</string>
+          </property>
+         </item>
+         <item row="6" column="3">
+          <property name="text">
+           <string/>
+          </property>
+         </item>
+         <item row="7" column="0">
+          <property name="text">
+           <string/>
+          </property>
+          <property name="flags">
+           <set>ItemIsSelectable|ItemIsEnabled</set>
+          </property>
+         </item>
+         <item row="7" column="2">
+          <property name="text">
+           <string>6</string>
+          </property>
+         </item>
+         <item row="7" column="3">
+          <property name="text">
+           <string/>
+          </property>
+         </item>
+         <item row="8" column="0">
+          <property name="text">
+           <string/>
+          </property>
+          <property name="flags">
+           <set>ItemIsSelectable|ItemIsEnabled</set>
+          </property>
+         </item>
+         <item row="8" column="2">
+          <property name="text">
+           <string>7</string>
+          </property>
+         </item>
+         <item row="8" column="3">
+          <property name="text">
+           <string/>
+          </property>
+         </item>
+         <item row="9" column="0">
+          <property name="text">
+           <string>B</string>
+          </property>
+          <property name="flags">
+           <set>ItemIsSelectable|ItemIsEnabled</set>
+          </property>
+         </item>
+         <item row="9" column="1">
+          <property name="text">
+           <string/>
+          </property>
+          <property name="flags">
+           <set>ItemIsSelectable|ItemIsEnabled</set>
+          </property>
+         </item>
+         <item row="9" column="2">
+          <property name="text">
+           <string/>
+          </property>
+          <property name="flags">
+           <set>ItemIsSelectable|ItemIsEnabled</set>
+          </property>
+         </item>
+         <item row="9" column="4">
+          <property name="text">
+           <string/>
+          </property>
+          <property name="flags">
+           <set>ItemIsSelectable|ItemIsEnabled</set>
+          </property>
+         </item>
+         <item row="9" column="6">
+          <property name="text">
+           <string/>
+          </property>
+          <property name="flags">
+           <set>ItemIsSelectable|ItemIsEnabled</set>
+          </property>
+         </item>
+         <item row="9" column="7">
+          <property name="text">
+           <string/>
+          </property>
+          <property name="flags">
+           <set>ItemIsSelectable|ItemIsEnabled</set>
+          </property>
+         </item>
+         <item row="9" column="8">
+          <property name="text">
+           <string/>
+          </property>
+          <property name="flags">
+           <set>ItemIsSelectable|ItemIsEnabled</set>
+          </property>
+         </item>
+         <item row="9" column="9">
+          <property name="text">
+           <string/>
+          </property>
+          <property name="flags">
+           <set>ItemIsSelectable|ItemIsEnabled</set>
+          </property>
+         </item>
+         <item row="9" column="10">
+          <property name="text">
+           <string/>
+          </property>
+          <property name="flags">
+           <set>ItemIsSelectable|ItemIsEnabled</set>
+          </property>
+         </item>
+         <item row="9" column="11">
+          <property name="text">
+           <string/>
+          </property>
+          <property name="flags">
+           <set>ItemIsSelectable|ItemIsEnabled</set>
+          </property>
+         </item>
+         <item row="9" column="12">
+          <property name="text">
+           <string/>
+          </property>
+          <property name="flags">
+           <set>ItemIsSelectable|ItemIsEnabled</set>
+          </property>
+         </item>
+         <item row="9" column="13">
+          <property name="text">
+           <string/>
+          </property>
+          <property name="flags">
+           <set>ItemIsSelectable|ItemIsEnabled</set>
+          </property>
+         </item>
+         <item row="9" column="14">
+          <property name="text">
+           <string/>
+          </property>
+          <property name="flags">
+           <set>ItemIsSelectable|ItemIsEnabled</set>
+          </property>
+         </item>
+         <item row="10" column="0">
+          <property name="text">
+           <string/>
+          </property>
+          <property name="flags">
+           <set>ItemIsSelectable|ItemIsEnabled</set>
+          </property>
+         </item>
+         <item row="10" column="2">
+          <property name="text">
+           <string>0</string>
+          </property>
+         </item>
+         <item row="10" column="3">
+          <property name="text">
+           <string/>
+          </property>
+         </item>
+         <item row="11" column="0">
+          <property name="text">
+           <string/>
+          </property>
+          <property name="flags">
+           <set>ItemIsSelectable|ItemIsEnabled</set>
+          </property>
+         </item>
+         <item row="11" column="2">
+          <property name="text">
+           <string>1</string>
+          </property>
+         </item>
+         <item row="11" column="3">
+          <property name="text">
+           <string/>
+          </property>
+         </item>
+         <item row="12" column="0">
+          <property name="text">
+           <string/>
+          </property>
+          <property name="flags">
+           <set>ItemIsSelectable|ItemIsEnabled</set>
+          </property>
+         </item>
+         <item row="12" column="2">
+          <property name="text">
+           <string>2</string>
+          </property>
+         </item>
+         <item row="12" column="3">
+          <property name="text">
+           <string/>
+          </property>
+         </item>
+         <item row="13" column="0">
+          <property name="text">
+           <string/>
+          </property>
+          <property name="flags">
+           <set>ItemIsSelectable|ItemIsEnabled</set>
+          </property>
+         </item>
+         <item row="13" column="2">
+          <property name="text">
+           <string>3</string>
+          </property>
+         </item>
+         <item row="13" column="3">
+          <property name="text">
+           <string/>
+          </property>
+         </item>
+         <item row="14" column="0">
+          <property name="text">
+           <string/>
+          </property>
+          <property name="flags">
+           <set>ItemIsSelectable|ItemIsEnabled</set>
+          </property>
+         </item>
+         <item row="14" column="2">
+          <property name="text">
+           <string>4</string>
+          </property>
+         </item>
+         <item row="14" column="3">
+          <property name="text">
+           <string/>
+          </property>
+         </item>
+         <item row="15" column="0">
+          <property name="text">
+           <string/>
+          </property>
+          <property name="flags">
+           <set>ItemIsSelectable|ItemIsEnabled</set>
+          </property>
+         </item>
+         <item row="15" column="2">
+          <property name="text">
+           <string>5</string>
+          </property>
+         </item>
+         <item row="15" column="3">
+          <property name="text">
+           <string/>
+          </property>
+         </item>
+         <item row="16" column="0">
+          <property name="text">
+           <string/>
+          </property>
+          <property name="flags">
+           <set>ItemIsSelectable|ItemIsEnabled</set>
+          </property>
+         </item>
+         <item row="16" column="2">
+          <property name="text">
+           <string>6</string>
+          </property>
+         </item>
+         <item row="16" column="3">
+          <property name="text">
+           <string/>
+          </property>
+         </item>
+         <item row="17" column="0">
+          <property name="text">
+           <string/>
+          </property>
+          <property name="flags">
+           <set>ItemIsSelectable|ItemIsEnabled</set>
+          </property>
+         </item>
+         <item row="17" column="2">
+          <property name="text">
+           <string>7</string>
+          </property>
+         </item>
+         <item row="17" column="3">
+          <property name="text">
+           <string/>
+          </property>
+         </item>
+         <item row="18" column="0">
+          <property name="text">
+           <string>C</string>
+          </property>
+          <property name="flags">
+           <set>ItemIsSelectable|ItemIsEnabled</set>
+          </property>
+         </item>
+         <item row="18" column="1">
+          <property name="text">
+           <string/>
+          </property>
+          <property name="flags">
+           <set>ItemIsSelectable|ItemIsEnabled</set>
+          </property>
+         </item>
+         <item row="18" column="2">
+          <property name="text">
+           <string/>
+          </property>
+          <property name="flags">
+           <set>ItemIsSelectable|ItemIsEnabled</set>
+          </property>
+         </item>
+         <item row="18" column="4">
+          <property name="text">
+           <string/>
+          </property>
+          <property name="flags">
+           <set>ItemIsSelectable|ItemIsEnabled</set>
+          </property>
+         </item>
+         <item row="18" column="6">
+          <property name="text">
+           <string/>
+          </property>
+          <property name="flags">
+           <set>ItemIsSelectable|ItemIsEnabled</set>
+          </property>
+         </item>
+         <item row="18" column="7">
+          <property name="text">
+           <string/>
+          </property>
+          <property name="flags">
+           <set>ItemIsSelectable|ItemIsEnabled</set>
+          </property>
+         </item>
+         <item row="18" column="8">
+          <property name="text">
+           <string/>
+          </property>
+          <property name="flags">
+           <set>ItemIsSelectable|ItemIsEnabled</set>
+          </property>
+         </item>
+         <item row="18" column="9">
+          <property name="text">
+           <string/>
+          </property>
+          <property name="flags">
+           <set>ItemIsSelectable|ItemIsEnabled</set>
+          </property>
+         </item>
+         <item row="18" column="10">
+          <property name="text">
+           <string/>
+          </property>
+          <property name="flags">
+           <set>ItemIsSelectable|ItemIsEnabled</set>
+          </property>
+         </item>
+         <item row="18" column="11">
+          <property name="text">
+           <string/>
+          </property>
+          <property name="flags">
+           <set>ItemIsSelectable|ItemIsEnabled</set>
+          </property>
+         </item>
+         <item row="18" column="12">
+          <property name="text">
+           <string/>
+          </property>
+          <property name="flags">
+           <set>ItemIsSelectable|ItemIsEnabled</set>
+          </property>
+         </item>
+         <item row="18" column="13">
+          <property name="text">
+           <string/>
+          </property>
+          <property name="flags">
+           <set>ItemIsSelectable|ItemIsEnabled</set>
+          </property>
+         </item>
+         <item row="18" column="14">
+          <property name="text">
+           <string/>
+          </property>
+          <property name="flags">
+           <set>ItemIsSelectable|ItemIsEnabled</set>
+          </property>
+         </item>
+         <item row="19" column="0">
+          <property name="text">
+           <string/>
+          </property>
+          <property name="flags">
+           <set>ItemIsSelectable|ItemIsEnabled</set>
+          </property>
+         </item>
+         <item row="19" column="2">
+          <property name="text">
+           <string>0</string>
+          </property>
+         </item>
+         <item row="19" column="3">
+          <property name="text">
+           <string/>
+          </property>
+         </item>
+         <item row="20" column="0">
+          <property name="text">
+           <string/>
+          </property>
+          <property name="flags">
+           <set>ItemIsSelectable|ItemIsEnabled</set>
+          </property>
+         </item>
+         <item row="20" column="2">
+          <property name="text">
+           <string>1</string>
+          </property>
+         </item>
+         <item row="20" column="3">
+          <property name="text">
+           <string/>
+          </property>
+         </item>
+         <item row="21" column="0">
+          <property name="text">
+           <string/>
+          </property>
+          <property name="flags">
+           <set>ItemIsSelectable|ItemIsEnabled</set>
+          </property>
+         </item>
+         <item row="21" column="2">
+          <property name="text">
+           <string>2</string>
+          </property>
+         </item>
+         <item row="21" column="3">
+          <property name="text">
+           <string/>
+          </property>
+         </item>
+         <item row="22" column="0">
+          <property name="text">
+           <string/>
+          </property>
+          <property name="flags">
+           <set>ItemIsSelectable|ItemIsEnabled</set>
+          </property>
+         </item>
+         <item row="22" column="2">
+          <property name="text">
+           <string>3</string>
+          </property>
+         </item>
+         <item row="22" column="3">
+          <property name="text">
+           <string/>
+          </property>
+         </item>
+         <item row="23" column="0">
+          <property name="text">
+           <string/>
+          </property>
+          <property name="flags">
+           <set>ItemIsSelectable|ItemIsEnabled</set>
+          </property>
+         </item>
+         <item row="23" column="2">
+          <property name="text">
+           <string>4</string>
+          </property>
+         </item>
+         <item row="23" column="3">
+          <property name="text">
+           <string/>
+          </property>
+         </item>
+         <item row="24" column="0">
+          <property name="text">
+           <string/>
+          </property>
+          <property name="flags">
+           <set>ItemIsSelectable|ItemIsEnabled</set>
+          </property>
+         </item>
+         <item row="24" column="2">
+          <property name="text">
+           <string>5</string>
+          </property>
+         </item>
+         <item row="24" column="3">
+          <property name="text">
+           <string/>
+          </property>
+         </item>
+         <item row="25" column="0">
+          <property name="text">
+           <string/>
+          </property>
+          <property name="flags">
+           <set>ItemIsSelectable|ItemIsEnabled</set>
+          </property>
+         </item>
+         <item row="25" column="2">
+          <property name="text">
+           <string>6</string>
+          </property>
+         </item>
+         <item row="25" column="3">
+          <property name="text">
+           <string/>
+          </property>
+         </item>
+         <item row="26" column="0">
+          <property name="text">
+           <string/>
+          </property>
+          <property name="flags">
+           <set>ItemIsSelectable|ItemIsEnabled</set>
+          </property>
+         </item>
+         <item row="26" column="2">
+          <property name="text">
+           <string>7</string>
+          </property>
+         </item>
+         <item row="26" column="3">
+          <property name="text">
+           <string/>
+          </property>
+         </item>
+         <item row="27" column="0">
+          <property name="text">
+           <string>D</string>
+          </property>
+          <property name="flags">
+           <set>ItemIsSelectable|ItemIsEnabled</set>
+          </property>
+         </item>
+         <item row="27" column="1">
+          <property name="text">
+           <string/>
+          </property>
+          <property name="flags">
+           <set>ItemIsSelectable|ItemIsEnabled</set>
+          </property>
+         </item>
+         <item row="27" column="2">
+          <property name="text">
+           <string/>
+          </property>
+          <property name="flags">
+           <set>ItemIsSelectable</set>
+          </property>
+         </item>
+         <item row="27" column="4">
+          <property name="text">
+           <string/>
+          </property>
+          <property name="flags">
+           <set>ItemIsSelectable|ItemIsEnabled</set>
+          </property>
+         </item>
+         <item row="27" column="6">
+          <property name="text">
+           <string/>
+          </property>
+          <property name="flags">
+           <set>ItemIsSelectable|ItemIsEnabled</set>
+          </property>
+         </item>
+         <item row="27" column="7">
+          <property name="text">
+           <string/>
+          </property>
+          <property name="flags">
+           <set>ItemIsSelectable|ItemIsEnabled</set>
+          </property>
+         </item>
+         <item row="27" column="8">
+          <property name="text">
+           <string/>
+          </property>
+          <property name="flags">
+           <set>ItemIsSelectable|ItemIsEnabled</set>
+          </property>
+         </item>
+         <item row="27" column="9">
+          <property name="text">
+           <string/>
+          </property>
+          <property name="flags">
+           <set>ItemIsSelectable|ItemIsEnabled</set>
+          </property>
+         </item>
+         <item row="27" column="10">
+          <property name="text">
+           <string/>
+          </property>
+          <property name="flags">
+           <set>ItemIsSelectable|ItemIsEnabled</set>
+          </property>
+         </item>
+         <item row="27" column="11">
+          <property name="text">
+           <string/>
+          </property>
+          <property name="flags">
+           <set>ItemIsSelectable|ItemIsEnabled</set>
+          </property>
+         </item>
+         <item row="27" column="12">
+          <property name="text">
+           <string/>
+          </property>
+          <property name="flags">
+           <set>ItemIsSelectable|ItemIsEnabled</set>
+          </property>
+         </item>
+         <item row="27" column="13">
+          <property name="text">
+           <string/>
+          </property>
+          <property name="flags">
+           <set>ItemIsSelectable|ItemIsEnabled</set>
+          </property>
+         </item>
+         <item row="27" column="14">
+          <property name="text">
+           <string/>
+          </property>
+          <property name="flags">
+           <set>ItemIsSelectable|ItemIsEnabled</set>
+          </property>
+         </item>
+         <item row="28" column="0">
+          <property name="text">
+           <string/>
+          </property>
+          <property name="flags">
+           <set>ItemIsSelectable|ItemIsEnabled</set>
+          </property>
+         </item>
+         <item row="28" column="2">
+          <property name="text">
+           <string>0</string>
+          </property>
+         </item>
+         <item row="28" column="3">
+          <property name="text">
+           <string/>
+          </property>
+         </item>
+         <item row="29" column="0">
+          <property name="text">
+           <string/>
+          </property>
+          <property name="flags">
+           <set>ItemIsSelectable|ItemIsEnabled</set>
+          </property>
+         </item>
+         <item row="29" column="2">
+          <property name="text">
+           <string>1</string>
+          </property>
+         </item>
+         <item row="29" column="3">
+          <property name="text">
+           <string/>
+          </property>
+         </item>
+         <item row="30" column="0">
+          <property name="text">
+           <string/>
+          </property>
+          <property name="flags">
+           <set>ItemIsSelectable|ItemIsEnabled</set>
+          </property>
+         </item>
+         <item row="30" column="2">
+          <property name="text">
+           <string>2</string>
+          </property>
+         </item>
+         <item row="30" column="3">
+          <property name="text">
+           <string/>
+          </property>
+         </item>
+         <item row="31" column="0">
+          <property name="text">
+           <string/>
+          </property>
+          <property name="flags">
+           <set>ItemIsSelectable|ItemIsEnabled</set>
+          </property>
+         </item>
+         <item row="31" column="2">
+          <property name="text">
+           <string>3</string>
+          </property>
+         </item>
+         <item row="31" column="3">
+          <property name="text">
+           <string/>
+          </property>
+         </item>
+         <item row="32" column="0">
+          <property name="text">
+           <string/>
+          </property>
+          <property name="flags">
+           <set>ItemIsSelectable|ItemIsEnabled</set>
+          </property>
+         </item>
+         <item row="32" column="2">
+          <property name="text">
+           <string>4</string>
+          </property>
+         </item>
+         <item row="32" column="3">
+          <property name="text">
+           <string/>
+          </property>
+         </item>
+         <item row="33" column="0">
+          <property name="text">
+           <string/>
+          </property>
+          <property name="flags">
+           <set>ItemIsSelectable|ItemIsEnabled</set>
+          </property>
+         </item>
+         <item row="33" column="2">
+          <property name="text">
+           <string>5</string>
+          </property>
+         </item>
+         <item row="33" column="3">
+          <property name="text">
+           <string/>
+          </property>
+         </item>
+         <item row="34" column="0">
+          <property name="text">
+           <string/>
+          </property>
+          <property name="flags">
+           <set>ItemIsSelectable|ItemIsEnabled</set>
+          </property>
+         </item>
+         <item row="34" column="2">
+          <property name="text">
+           <string>6</string>
+          </property>
+         </item>
+         <item row="34" column="3">
+          <property name="text">
+           <string/>
+          </property>
+         </item>
+         <item row="35" column="0">
+          <property name="text">
+           <string/>
+          </property>
+          <property name="flags">
+           <set>ItemIsSelectable|ItemIsEnabled</set>
+          </property>
+         </item>
+         <item row="35" column="2">
+          <property name="text">
+           <string>7</string>
+          </property>
+         </item>
+         <item row="35" column="3">
+          <property name="text">
+           <string/>
+          </property>
+         </item>
+        </widget>
+       </item>
+      </layout>
+     </widget>
+     <widget class="QWidget" name="_chip2">
+      <property name="toolTip">
+       <string/>
+      </property>
+      <attribute name="title">
+       <string>Chip 2</string>
+      </attribute>
+      <layout class="QHBoxLayout" name="horizontalLayout_2">
+       <item>
+        <widget class="QTableWidget" name="_chip2Table">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+           <horstretch>0</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
+         </property>
+         <property name="minimumSize">
+          <size>
+           <width>0</width>
+           <height>0</height>
+          </size>
+         </property>
+         <property name="contextMenuPolicy">
+          <enum>Qt::CustomContextMenu</enum>
+         </property>
+         <property name="accessibleName">
+          <string>2</string>
+         </property>
+         <attribute name="verticalHeaderVisible">
+          <bool>false</bool>
+         </attribute>
+         <attribute name="verticalHeaderDefaultSectionSize">
+          <number>24</number>
+         </attribute>
+         <row>
+          <property name="text">
+           <string>A</string>
+          </property>
+         </row>
+         <row>
+          <property name="text">
+           <string>A0</string>
+          </property>
+         </row>
+         <row>
+          <property name="text">
+           <string>A1</string>
+          </property>
+         </row>
+         <row>
+          <property name="text">
+           <string>A2</string>
+          </property>
+         </row>
+         <row>
+          <property name="text">
+           <string>A3</string>
+          </property>
+         </row>
+         <row>
+          <property name="text">
+           <string>A4</string>
+          </property>
+         </row>
+         <row>
+          <property name="text">
+           <string>A5</string>
+          </property>
+         </row>
+         <row>
+          <property name="text">
+           <string>A6</string>
+          </property>
+         </row>
+         <row>
+          <property name="text">
+           <string>A7</string>
+          </property>
+         </row>
+         <row>
+          <property name="text">
+           <string>B</string>
+          </property>
+         </row>
+         <row>
+          <property name="text">
+           <string>B0</string>
+          </property>
+         </row>
+         <row>
+          <property name="text">
+           <string>B1</string>
+          </property>
+         </row>
+         <row>
+          <property name="text">
+           <string>B2</string>
+          </property>
+         </row>
+         <row>
+          <property name="text">
+           <string>B3</string>
+          </property>
+         </row>
+         <row>
+          <property name="text">
+           <string>B4</string>
+          </property>
+         </row>
+         <row>
+          <property name="text">
+           <string>B5</string>
+          </property>
+         </row>
+         <row>
+          <property name="text">
+           <string>B6</string>
+          </property>
+         </row>
+         <row>
+          <property name="text">
+           <string>B7</string>
+          </property>
+         </row>
+         <row>
+          <property name="text">
+           <string>C</string>
+          </property>
+         </row>
+         <row>
+          <property name="text">
+           <string>C0</string>
+          </property>
+         </row>
+         <row>
+          <property name="text">
+           <string>C1</string>
+          </property>
+         </row>
+         <row>
+          <property name="text">
+           <string>C2</string>
+          </property>
+         </row>
+         <row>
+          <property name="text">
+           <string>C3</string>
+          </property>
+         </row>
+         <row>
+          <property name="text">
+           <string>C4</string>
+          </property>
+         </row>
+         <row>
+          <property name="text">
+           <string>C5</string>
+          </property>
+         </row>
+         <row>
+          <property name="text">
+           <string>C6</string>
+          </property>
+         </row>
+         <row>
+          <property name="text">
+           <string>C7</string>
+          </property>
+         </row>
+         <row>
+          <property name="text">
+           <string>D</string>
+          </property>
+         </row>
+         <row>
+          <property name="text">
+           <string>D0</string>
+          </property>
+         </row>
+         <row>
+          <property name="text">
+           <string>D1</string>
+          </property>
+         </row>
+         <row>
+          <property name="text">
+           <string>D2</string>
+          </property>
+         </row>
+         <row>
+          <property name="text">
+           <string>D3</string>
+          </property>
+         </row>
+         <row>
+          <property name="text">
+           <string>D4</string>
+          </property>
+         </row>
+         <row>
+          <property name="text">
+           <string>D5</string>
+          </property>
+         </row>
+         <row>
+          <property name="text">
+           <string>D6</string>
+          </property>
+         </row>
+         <row>
+          <property name="text">
+           <string>D7</string>
+          </property>
+         </row>
+         <column>
+          <property name="text">
+           <string>DBUS</string>
+          </property>
+          <property name="toolTip">
+           <string>The FTDI bus of the pin. Bus A and B are disabled by default and can be enabled by choosing D2XX as the bus function.</string>
+          </property>
+         </column>
+         <column>
+          <property name="text">
+           <string>Function</string>
+          </property>
+          <property name="toolTip">
+           <string>The bus function of the bus.</string>
+          </property>
+         </column>
+         <column>
+          <property name="text">
+           <string>Pin</string>
+          </property>
+          <property name="toolTip">
+           <string>The pin number of the pins within a bus. This column cannot be edited.</string>
+          </property>
+         </column>
+         <column>
+          <property name="text">
+           <string>Set Pin</string>
+          </property>
+          <property name="toolTip">
+           <string>The virtual pin number on the FTDI debug board.</string>
+          </property>
+         </column>
+         <column>
+          <property name="text">
+           <string>Enabled</string>
+          </property>
+          <property name="toolTip">
+           <string>Whether the pin is active. If unchecked, the pin will not appear on the TAC UI.</string>
+          </property>
+         </column>
+         <column>
+          <property name="text">
+           <string>Input</string>
+          </property>
+          <property name="toolTip">
+           <string>Whether the GPIO pin accepts inputs. Checking the input value for a pin will make the pin input directional.</string>
+          </property>
+         </column>
+         <column>
+          <property name="text">
+           <string>Initial</string>
+          </property>
+          <property name="toolTip">
+           <string>Whether the pin needs to be updated when the TAC starts. All pins in the TAC hardware are off by default. When TAC starts, it sends commands to turn on some of the GPIO lines.</string>
+          </property>
+         </column>
+         <column>
+          <property name="text">
+           <string>Priority</string>
+          </property>
+          <property name="toolTip">
+           <string>The priority decides the order of the commands to be sent to the TAC hardware. For a pin that has its 'initial' turned on, this is the priority with which the command will be sent. For the pin that does not have the initial turned on, a priority is not required.</string>
+          </property>
+         </column>
+         <column>
+          <property name="text">
+           <string>Invert</string>
+          </property>
+          <property name="toolTip">
+           <string>Whether the pin functionality is inverted. Some commands in the TAC are disconnect commands but are treated like normal commands. For example, the command Battery is internally a 'disconnect battery' command. So, when the Battery LED is On, it means Disconnect Battery is Off.</string>
+          </property>
+         </column>
+         <column>
+          <property name="text">
+           <string>Label</string>
+          </property>
+          <property name="toolTip">
+           <string>The label for the pin to be represented in the TAC GUI (maximum 20 characters).</string>
+          </property>
+         </column>
+         <column>
+          <property name="text">
+           <string>Tooltip</string>
+          </property>
+          <property name="toolTip">
+           <string>The tooltip for the pin label in the TAC UI (no character limit).</string>
+          </property>
+         </column>
+         <column>
+          <property name="text">
+           <string>Command</string>
+          </property>
+          <property name="toolTip">
+           <string>The TAC command for the operation with no spaces.</string>
+          </property>
+         </column>
+         <column>
+          <property name="text">
+           <string>Group</string>
+          </property>
+          <property name="toolTip">
+           <string>The default action that is assigned to this pin. This column cannot be edited.</string>
+          </property>
+         </column>
+         <column>
+          <property name="text">
+           <string>Tab</string>
+          </property>
+          <property name="toolTip">
+           <string>The name of the tab where the button should appear.</string>
+          </property>
+         </column>
+         <column>
+          <property name="text">
+           <string>Cell Location (col,row)</string>
+          </property>
+          <property name="toolTip">
+           <string>The location in the form of &lt;column, row&gt; for the pin in the TAC GUI. -1,-1 as cell location will hide the pin</string>
+          </property>
+         </column>
+         <item row="0" column="0">
+          <property name="text">
+           <string>A</string>
+          </property>
+          <property name="flags">
+           <set>ItemIsSelectable|ItemIsEnabled</set>
+          </property>
+         </item>
+         <item row="1" column="2">
+          <property name="text">
+           <string/>
+          </property>
+         </item>
+         <item row="2" column="2">
+          <property name="text">
+           <string/>
+          </property>
+         </item>
+         <item row="3" column="2">
+          <property name="text">
+           <string/>
+          </property>
+         </item>
+         <item row="4" column="2">
+          <property name="text">
+           <string/>
+          </property>
+         </item>
+         <item row="5" column="2">
+          <property name="text">
+           <string/>
+          </property>
+         </item>
+         <item row="6" column="2">
+          <property name="text">
+           <string/>
+          </property>
+         </item>
+         <item row="7" column="2">
+          <property name="text">
+           <string/>
+          </property>
+         </item>
+         <item row="8" column="2">
+          <property name="text">
+           <string/>
+          </property>
+         </item>
+         <item row="9" column="0">
+          <property name="text">
+           <string>B</string>
+          </property>
+          <property name="flags">
+           <set>ItemIsSelectable|ItemIsEnabled</set>
+          </property>
+         </item>
+         <item row="10" column="2">
+          <property name="text">
+           <string/>
+          </property>
+         </item>
+         <item row="11" column="2">
+          <property name="text">
+           <string/>
+          </property>
+         </item>
+         <item row="12" column="2">
+          <property name="text">
+           <string/>
+          </property>
+         </item>
+         <item row="13" column="2">
+          <property name="text">
+           <string/>
+          </property>
+         </item>
+         <item row="14" column="2">
+          <property name="text">
+           <string/>
+          </property>
+         </item>
+         <item row="15" column="2">
+          <property name="text">
+           <string/>
+          </property>
+         </item>
+         <item row="16" column="2">
+          <property name="text">
+           <string/>
+          </property>
+         </item>
+         <item row="17" column="2">
+          <property name="text">
+           <string/>
+          </property>
+         </item>
+         <item row="18" column="0">
+          <property name="text">
+           <string>C</string>
+          </property>
+          <property name="flags">
+           <set>ItemIsSelectable|ItemIsEnabled</set>
+          </property>
+         </item>
+         <item row="19" column="2">
+          <property name="text">
+           <string/>
+          </property>
+         </item>
+         <item row="20" column="2">
+          <property name="text">
+           <string/>
+          </property>
+         </item>
+         <item row="21" column="2">
+          <property name="text">
+           <string/>
+          </property>
+         </item>
+         <item row="22" column="2">
+          <property name="text">
+           <string/>
+          </property>
+         </item>
+         <item row="23" column="2">
+          <property name="text">
+           <string/>
+          </property>
+         </item>
+         <item row="24" column="2">
+          <property name="text">
+           <string/>
+          </property>
+         </item>
+         <item row="25" column="2">
+          <property name="text">
+           <string/>
+          </property>
+         </item>
+         <item row="26" column="2">
+          <property name="text">
+           <string/>
+          </property>
+         </item>
+         <item row="27" column="0">
+          <property name="text">
+           <string>D</string>
+          </property>
+          <property name="flags">
+           <set>ItemIsSelectable|ItemIsEnabled</set>
+          </property>
+         </item>
+         <item row="28" column="2">
+          <property name="text">
+           <string/>
+          </property>
+         </item>
+         <item row="29" column="2">
+          <property name="text">
+           <string/>
+          </property>
+         </item>
+         <item row="30" column="2">
+          <property name="text">
+           <string/>
+          </property>
+         </item>
+         <item row="31" column="2">
+          <property name="text">
+           <string/>
+          </property>
+         </item>
+         <item row="32" column="2">
+          <property name="text">
+           <string/>
+          </property>
+         </item>
+         <item row="33" column="2">
+          <property name="text">
+           <string/>
+          </property>
+         </item>
+         <item row="34" column="2">
+          <property name="text">
+           <string/>
+          </property>
+         </item>
+         <item row="35" column="2">
+          <property name="text">
+           <string/>
+          </property>
+         </item>
+        </widget>
+       </item>
+      </layout>
+     </widget>
+     <widget class="QWidget" name="_chip3">
+      <property name="toolTip">
+       <string/>
+      </property>
+      <attribute name="title">
+       <string>Chip 3</string>
+      </attribute>
+      <layout class="QHBoxLayout" name="horizontalLayout_3">
+       <item>
+        <widget class="QTableWidget" name="_chip3Table">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+           <horstretch>0</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
+         </property>
+         <property name="minimumSize">
+          <size>
+           <width>0</width>
+           <height>0</height>
+          </size>
+         </property>
+         <property name="contextMenuPolicy">
+          <enum>Qt::CustomContextMenu</enum>
+         </property>
+         <property name="accessibleName">
+          <string>3</string>
+         </property>
+         <attribute name="verticalHeaderVisible">
+          <bool>false</bool>
+         </attribute>
+         <attribute name="verticalHeaderDefaultSectionSize">
+          <number>24</number>
+         </attribute>
+         <row>
+          <property name="text">
+           <string>A</string>
+          </property>
+         </row>
+         <row>
+          <property name="text">
+           <string>A0</string>
+          </property>
+         </row>
+         <row>
+          <property name="text">
+           <string>A1</string>
+          </property>
+         </row>
+         <row>
+          <property name="text">
+           <string>A2</string>
+          </property>
+         </row>
+         <row>
+          <property name="text">
+           <string>A3</string>
+          </property>
+         </row>
+         <row>
+          <property name="text">
+           <string>A4</string>
+          </property>
+         </row>
+         <row>
+          <property name="text">
+           <string>A5</string>
+          </property>
+         </row>
+         <row>
+          <property name="text">
+           <string>A6</string>
+          </property>
+         </row>
+         <row>
+          <property name="text">
+           <string>A7</string>
+          </property>
+         </row>
+         <row>
+          <property name="text">
+           <string>B</string>
+          </property>
+         </row>
+         <row>
+          <property name="text">
+           <string>B0</string>
+          </property>
+         </row>
+         <row>
+          <property name="text">
+           <string>B1</string>
+          </property>
+         </row>
+         <row>
+          <property name="text">
+           <string>B2</string>
+          </property>
+         </row>
+         <row>
+          <property name="text">
+           <string>B3</string>
+          </property>
+         </row>
+         <row>
+          <property name="text">
+           <string>B4</string>
+          </property>
+         </row>
+         <row>
+          <property name="text">
+           <string>B5</string>
+          </property>
+         </row>
+         <row>
+          <property name="text">
+           <string>B6</string>
+          </property>
+         </row>
+         <row>
+          <property name="text">
+           <string>B7</string>
+          </property>
+         </row>
+         <row>
+          <property name="text">
+           <string>C</string>
+          </property>
+         </row>
+         <row>
+          <property name="text">
+           <string>C0</string>
+          </property>
+         </row>
+         <row>
+          <property name="text">
+           <string>C1</string>
+          </property>
+         </row>
+         <row>
+          <property name="text">
+           <string>C2</string>
+          </property>
+         </row>
+         <row>
+          <property name="text">
+           <string>C3</string>
+          </property>
+         </row>
+         <row>
+          <property name="text">
+           <string>C4</string>
+          </property>
+         </row>
+         <row>
+          <property name="text">
+           <string>C5</string>
+          </property>
+         </row>
+         <row>
+          <property name="text">
+           <string>C6</string>
+          </property>
+         </row>
+         <row>
+          <property name="text">
+           <string>C7</string>
+          </property>
+         </row>
+         <row>
+          <property name="text">
+           <string>D</string>
+          </property>
+         </row>
+         <row>
+          <property name="text">
+           <string>D0</string>
+          </property>
+         </row>
+         <row>
+          <property name="text">
+           <string>D1</string>
+          </property>
+         </row>
+         <row>
+          <property name="text">
+           <string>D2</string>
+          </property>
+         </row>
+         <row>
+          <property name="text">
+           <string>D3</string>
+          </property>
+         </row>
+         <row>
+          <property name="text">
+           <string>D4</string>
+          </property>
+         </row>
+         <row>
+          <property name="text">
+           <string>D5</string>
+          </property>
+         </row>
+         <row>
+          <property name="text">
+           <string>D6</string>
+          </property>
+         </row>
+         <row>
+          <property name="text">
+           <string>D7</string>
+          </property>
+         </row>
+         <column>
+          <property name="text">
+           <string>DBUS</string>
+          </property>
+          <property name="toolTip">
+           <string>The FTDI bus of the pin. Bus A and B are disabled by default and can be enabled by choosing D2XX as the bus function.</string>
+          </property>
+         </column>
+         <column>
+          <property name="text">
+           <string>Function</string>
+          </property>
+          <property name="toolTip">
+           <string>The bus function of the bus.</string>
+          </property>
+         </column>
+         <column>
+          <property name="text">
+           <string>Pin</string>
+          </property>
+          <property name="toolTip">
+           <string>The pin number of the pins within a bus. This column cannot be edited.</string>
+          </property>
+         </column>
+         <column>
+          <property name="text">
+           <string>Set Pin</string>
+          </property>
+          <property name="toolTip">
+           <string>The virtual pin number on the FTDI debug board.</string>
+          </property>
+         </column>
+         <column>
+          <property name="text">
+           <string>Enabled</string>
+          </property>
+          <property name="toolTip">
+           <string>Whether the pin is active. If unchecked, the pin will not appear on the TAC UI.</string>
+          </property>
+         </column>
+         <column>
+          <property name="text">
+           <string>Input</string>
+          </property>
+          <property name="toolTip">
+           <string>Whether the GPIO pin accepts inputs. Checking the input value for a pin will make the pin input directional.</string>
+          </property>
+         </column>
+         <column>
+          <property name="text">
+           <string>Initial</string>
+          </property>
+          <property name="toolTip">
+           <string>Whether the pin needs to be updated when the TAC starts. All pins in the TAC hardware are off by default. When TAC starts, it sends commands to turn on some of the GPIO lines.</string>
+          </property>
+         </column>
+         <column>
+          <property name="text">
+           <string>Priority</string>
+          </property>
+          <property name="toolTip">
+           <string>The priority decides the order of the commands to be sent to the TAC hardware. For a pin that has its 'initial' turned on, this is the priority with which the command will be sent. For the pin that does not have the initial turned on, a priority is not required.</string>
+          </property>
+         </column>
+         <column>
+          <property name="text">
+           <string>Invert</string>
+          </property>
+          <property name="toolTip">
+           <string>Whether the pin functionality is inverted. Some commands in the TAC are disconnect commands but are treated like normal commands. For example, the command Battery is internally a 'disconnect battery' command. So, when the Battery LED is On, it means Disconnect Battery is Off.</string>
+          </property>
+         </column>
+         <column>
+          <property name="text">
+           <string>Label</string>
+          </property>
+          <property name="toolTip">
+           <string>The label for the pin to be represented in the TAC GUI (maximum 20 characters).</string>
+          </property>
+         </column>
+         <column>
+          <property name="text">
+           <string>Tooltip</string>
+          </property>
+          <property name="toolTip">
+           <string>The tooltip for the pin label in the TAC GUI (no character limit).</string>
+          </property>
+         </column>
+         <column>
+          <property name="text">
+           <string>Command</string>
+          </property>
+          <property name="toolTip">
+           <string>The TAC command for the operation with no spaces.</string>
+          </property>
+         </column>
+         <column>
+          <property name="text">
+           <string>Group</string>
+          </property>
+          <property name="toolTip">
+           <string>The default action that is assigned to this pin. This column cannot be edited.</string>
+          </property>
+         </column>
+         <column>
+          <property name="text">
+           <string>Tab</string>
+          </property>
+          <property name="toolTip">
+           <string>The name of the tab where the button should appear.</string>
+          </property>
+         </column>
+         <column>
+          <property name="text">
+           <string>Cell Location (col,row)</string>
+          </property>
+          <property name="toolTip">
+           <string>The location in the form of &lt;column, row&gt; for the pin in the TAC GUI. -1,-1 as cell location will hide the pin</string>
+          </property>
+         </column>
+         <item row="0" column="0">
+          <property name="text">
+           <string>A</string>
+          </property>
+          <property name="flags">
+           <set>ItemIsSelectable|ItemIsEnabled</set>
+          </property>
+         </item>
+         <item row="1" column="2">
+          <property name="text">
+           <string/>
+          </property>
+         </item>
+         <item row="2" column="2">
+          <property name="text">
+           <string/>
+          </property>
+         </item>
+         <item row="3" column="2">
+          <property name="text">
+           <string/>
+          </property>
+         </item>
+         <item row="4" column="2">
+          <property name="text">
+           <string/>
+          </property>
+         </item>
+         <item row="5" column="2">
+          <property name="text">
+           <string/>
+          </property>
+         </item>
+         <item row="6" column="2">
+          <property name="text">
+           <string/>
+          </property>
+         </item>
+         <item row="7" column="2">
+          <property name="text">
+           <string/>
+          </property>
+         </item>
+         <item row="8" column="2">
+          <property name="text">
+           <string/>
+          </property>
+         </item>
+         <item row="9" column="0">
+          <property name="text">
+           <string>B</string>
+          </property>
+          <property name="flags">
+           <set>ItemIsSelectable|ItemIsEnabled</set>
+          </property>
+         </item>
+         <item row="10" column="2">
+          <property name="text">
+           <string/>
+          </property>
+         </item>
+         <item row="11" column="2">
+          <property name="text">
+           <string/>
+          </property>
+         </item>
+         <item row="12" column="2">
+          <property name="text">
+           <string/>
+          </property>
+         </item>
+         <item row="13" column="2">
+          <property name="text">
+           <string/>
+          </property>
+         </item>
+         <item row="14" column="2">
+          <property name="text">
+           <string/>
+          </property>
+         </item>
+         <item row="15" column="2">
+          <property name="text">
+           <string/>
+          </property>
+         </item>
+         <item row="16" column="2">
+          <property name="text">
+           <string/>
+          </property>
+         </item>
+         <item row="17" column="2">
+          <property name="text">
+           <string/>
+          </property>
+         </item>
+         <item row="18" column="0">
+          <property name="text">
+           <string>C</string>
+          </property>
+          <property name="flags">
+           <set>ItemIsSelectable|ItemIsEnabled</set>
+          </property>
+         </item>
+         <item row="19" column="2">
+          <property name="text">
+           <string/>
+          </property>
+         </item>
+         <item row="20" column="2">
+          <property name="text">
+           <string/>
+          </property>
+         </item>
+         <item row="21" column="2">
+          <property name="text">
+           <string/>
+          </property>
+         </item>
+         <item row="22" column="2">
+          <property name="text">
+           <string/>
+          </property>
+         </item>
+         <item row="23" column="2">
+          <property name="text">
+           <string/>
+          </property>
+         </item>
+         <item row="24" column="2">
+          <property name="text">
+           <string/>
+          </property>
+         </item>
+         <item row="25" column="2">
+          <property name="text">
+           <string/>
+          </property>
+         </item>
+         <item row="26" column="2">
+          <property name="text">
+           <string/>
+          </property>
+         </item>
+         <item row="27" column="0">
+          <property name="text">
+           <string>D</string>
+          </property>
+          <property name="flags">
+           <set>ItemIsSelectable|ItemIsEnabled</set>
+          </property>
+         </item>
+         <item row="28" column="2">
+          <property name="text">
+           <string/>
+          </property>
+         </item>
+         <item row="29" column="2">
+          <property name="text">
+           <string/>
+          </property>
+         </item>
+         <item row="30" column="2">
+          <property name="text">
+           <string/>
+          </property>
+         </item>
+         <item row="31" column="2">
+          <property name="text">
+           <string/>
+          </property>
+         </item>
+         <item row="32" column="2">
+          <property name="text">
+           <string/>
+          </property>
+         </item>
+         <item row="33" column="2">
+          <property name="text">
+           <string/>
+          </property>
+         </item>
+         <item row="34" column="2">
+          <property name="text">
+           <string/>
+          </property>
+         </item>
+         <item row="35" column="2">
+          <property name="text">
+           <string/>
+          </property>
+         </item>
+        </widget>
+       </item>
+      </layout>
+     </widget>
+     <widget class="QWidget" name="_chip4">
+      <property name="toolTip">
+       <string/>
+      </property>
+      <attribute name="title">
+       <string>Chip 4</string>
+      </attribute>
+      <layout class="QHBoxLayout" name="horizontalLayout_4">
+       <item>
+        <widget class="QTableWidget" name="_chip4Table">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+           <horstretch>0</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
+         </property>
+         <property name="minimumSize">
+          <size>
+           <width>0</width>
+           <height>0</height>
+          </size>
+         </property>
+         <property name="contextMenuPolicy">
+          <enum>Qt::CustomContextMenu</enum>
+         </property>
+         <property name="accessibleName">
+          <string>4</string>
+         </property>
+         <attribute name="verticalHeaderVisible">
+          <bool>false</bool>
+         </attribute>
+         <attribute name="verticalHeaderDefaultSectionSize">
+          <number>24</number>
+         </attribute>
+         <row>
+          <property name="text">
+           <string>A</string>
+          </property>
+         </row>
+         <row>
+          <property name="text">
+           <string>A0</string>
+          </property>
+         </row>
+         <row>
+          <property name="text">
+           <string>A1</string>
+          </property>
+         </row>
+         <row>
+          <property name="text">
+           <string>A2</string>
+          </property>
+         </row>
+         <row>
+          <property name="text">
+           <string>A3</string>
+          </property>
+         </row>
+         <row>
+          <property name="text">
+           <string>A4</string>
+          </property>
+         </row>
+         <row>
+          <property name="text">
+           <string>A5</string>
+          </property>
+         </row>
+         <row>
+          <property name="text">
+           <string>A6</string>
+          </property>
+         </row>
+         <row>
+          <property name="text">
+           <string>A7</string>
+          </property>
+         </row>
+         <row>
+          <property name="text">
+           <string>B</string>
+          </property>
+         </row>
+         <row>
+          <property name="text">
+           <string>B0</string>
+          </property>
+         </row>
+         <row>
+          <property name="text">
+           <string>B1</string>
+          </property>
+         </row>
+         <row>
+          <property name="text">
+           <string>B2</string>
+          </property>
+         </row>
+         <row>
+          <property name="text">
+           <string>B3</string>
+          </property>
+         </row>
+         <row>
+          <property name="text">
+           <string>B4</string>
+          </property>
+         </row>
+         <row>
+          <property name="text">
+           <string>B5</string>
+          </property>
+         </row>
+         <row>
+          <property name="text">
+           <string>B6</string>
+          </property>
+         </row>
+         <row>
+          <property name="text">
+           <string>B7</string>
+          </property>
+         </row>
+         <row>
+          <property name="text">
+           <string>C</string>
+          </property>
+         </row>
+         <row>
+          <property name="text">
+           <string>C0</string>
+          </property>
+         </row>
+         <row>
+          <property name="text">
+           <string>C1</string>
+          </property>
+         </row>
+         <row>
+          <property name="text">
+           <string>C2</string>
+          </property>
+         </row>
+         <row>
+          <property name="text">
+           <string>C3</string>
+          </property>
+         </row>
+         <row>
+          <property name="text">
+           <string>C4</string>
+          </property>
+         </row>
+         <row>
+          <property name="text">
+           <string>C5</string>
+          </property>
+         </row>
+         <row>
+          <property name="text">
+           <string>C6</string>
+          </property>
+         </row>
+         <row>
+          <property name="text">
+           <string>C7</string>
+          </property>
+         </row>
+         <row>
+          <property name="text">
+           <string>D</string>
+          </property>
+         </row>
+         <row>
+          <property name="text">
+           <string>D0</string>
+          </property>
+         </row>
+         <row>
+          <property name="text">
+           <string>D1</string>
+          </property>
+         </row>
+         <row>
+          <property name="text">
+           <string>D2</string>
+          </property>
+         </row>
+         <row>
+          <property name="text">
+           <string>D3</string>
+          </property>
+         </row>
+         <row>
+          <property name="text">
+           <string>D4</string>
+          </property>
+         </row>
+         <row>
+          <property name="text">
+           <string>D5</string>
+          </property>
+         </row>
+         <row>
+          <property name="text">
+           <string>D6</string>
+          </property>
+         </row>
+         <row>
+          <property name="text">
+           <string>D7</string>
+          </property>
+         </row>
+         <column>
+          <property name="text">
+           <string>DBUS</string>
+          </property>
+          <property name="toolTip">
+           <string>The FTDI bus of the pin. Bus A and B are disabled by default and can be enabled by choosing D2XX as the bus function.</string>
+          </property>
+         </column>
+         <column>
+          <property name="text">
+           <string>Function</string>
+          </property>
+          <property name="toolTip">
+           <string>The bus function of the bus.</string>
+          </property>
+         </column>
+         <column>
+          <property name="text">
+           <string>Pin</string>
+          </property>
+          <property name="toolTip">
+           <string>The pin number of the pins within a bus. This column cannot be edited.</string>
+          </property>
+         </column>
+         <column>
+          <property name="text">
+           <string>Set Pin</string>
+          </property>
+          <property name="toolTip">
+           <string>The virtual pin number on the FTDI debug board.</string>
+          </property>
+         </column>
+         <column>
+          <property name="text">
+           <string>Enabled</string>
+          </property>
+          <property name="toolTip">
+           <string>Whether the pin is active. If unchecked, the pin will not appear on the TAC UI.</string>
+          </property>
+         </column>
+         <column>
+          <property name="text">
+           <string>Input</string>
+          </property>
+          <property name="toolTip">
+           <string>Whether the GPIO pin accepts inputs. Checking the input value for a pin will make the pin input directional.</string>
+          </property>
+         </column>
+         <column>
+          <property name="text">
+           <string>Initial</string>
+          </property>
+          <property name="toolTip">
+           <string>Whether the pin needs to be updated when the TAC starts. All pins in the TAC hardware are off by default. When TAC starts, it sends commands to turn on some of the GPIO lines.</string>
+          </property>
+         </column>
+         <column>
+          <property name="text">
+           <string>Priority</string>
+          </property>
+          <property name="toolTip">
+           <string>The priority decides the order of the commands to be sent to the TAC hardware. For a pin that has its 'initial' turned on, this is the priority with which the command will be sent. For the pin that does not have the initial turned on, a priority is not required.</string>
+          </property>
+         </column>
+         <column>
+          <property name="text">
+           <string>Invert</string>
+          </property>
+          <property name="toolTip">
+           <string>Whether the pin functionality is inverted. Some commands in the TAC are disconnect commands but are treated like normal commands. For example, the command Battery is internally a 'disconnect battery' command. So, when the Battery LED is On, it means Disconnect Battery is Off.</string>
+          </property>
+         </column>
+         <column>
+          <property name="text">
+           <string>Label</string>
+          </property>
+          <property name="toolTip">
+           <string>The label for the pin to be represented in the TAC GUI (maximum 20 characters).</string>
+          </property>
+         </column>
+         <column>
+          <property name="text">
+           <string>Tooltip</string>
+          </property>
+          <property name="toolTip">
+           <string>The tooltip for the pin label in the TAC GUI (no character limit).</string>
+          </property>
+         </column>
+         <column>
+          <property name="text">
+           <string>Command</string>
+          </property>
+          <property name="toolTip">
+           <string>The TAC command for the operation with no spaces.</string>
+          </property>
+         </column>
+         <column>
+          <property name="text">
+           <string>Group</string>
+          </property>
+          <property name="toolTip">
+           <string>The default action that is assigned to this pin. This column cannot be edited.</string>
+          </property>
+         </column>
+         <column>
+          <property name="text">
+           <string>Tab</string>
+          </property>
+          <property name="toolTip">
+           <string>The name of the tab where the button should appear.</string>
+          </property>
+         </column>
+         <column>
+          <property name="text">
+           <string>Cell Location (col, row)</string>
+          </property>
+          <property name="toolTip">
+           <string>The location in the form of &lt;column, row&gt; for the pin in the TAC GUI. -1,-1 as cell location will hide the pin.</string>
+          </property>
+         </column>
+         <item row="0" column="0">
+          <property name="text">
+           <string>A</string>
+          </property>
+          <property name="flags">
+           <set>ItemIsSelectable|ItemIsEnabled</set>
+          </property>
+         </item>
+         <item row="1" column="2">
+          <property name="text">
+           <string/>
+          </property>
+         </item>
+         <item row="2" column="2">
+          <property name="text">
+           <string/>
+          </property>
+         </item>
+         <item row="3" column="2">
+          <property name="text">
+           <string/>
+          </property>
+         </item>
+         <item row="4" column="2">
+          <property name="text">
+           <string/>
+          </property>
+         </item>
+         <item row="5" column="2">
+          <property name="text">
+           <string/>
+          </property>
+         </item>
+         <item row="6" column="2">
+          <property name="text">
+           <string/>
+          </property>
+         </item>
+         <item row="7" column="2">
+          <property name="text">
+           <string/>
+          </property>
+         </item>
+         <item row="8" column="2">
+          <property name="text">
+           <string/>
+          </property>
+         </item>
+         <item row="9" column="0">
+          <property name="text">
+           <string>B</string>
+          </property>
+          <property name="flags">
+           <set>ItemIsSelectable|ItemIsEnabled</set>
+          </property>
+         </item>
+         <item row="10" column="2">
+          <property name="text">
+           <string/>
+          </property>
+         </item>
+         <item row="11" column="2">
+          <property name="text">
+           <string/>
+          </property>
+         </item>
+         <item row="12" column="2">
+          <property name="text">
+           <string/>
+          </property>
+         </item>
+         <item row="13" column="2">
+          <property name="text">
+           <string/>
+          </property>
+         </item>
+         <item row="14" column="2">
+          <property name="text">
+           <string/>
+          </property>
+         </item>
+         <item row="15" column="2">
+          <property name="text">
+           <string/>
+          </property>
+         </item>
+         <item row="16" column="2">
+          <property name="text">
+           <string/>
+          </property>
+         </item>
+         <item row="17" column="2">
+          <property name="text">
+           <string/>
+          </property>
+         </item>
+         <item row="18" column="0">
+          <property name="text">
+           <string>C</string>
+          </property>
+          <property name="flags">
+           <set>ItemIsSelectable|ItemIsEnabled</set>
+          </property>
+         </item>
+         <item row="19" column="2">
+          <property name="text">
+           <string/>
+          </property>
+         </item>
+         <item row="20" column="2">
+          <property name="text">
+           <string/>
+          </property>
+         </item>
+         <item row="21" column="2">
+          <property name="text">
+           <string/>
+          </property>
+         </item>
+         <item row="22" column="2">
+          <property name="text">
+           <string/>
+          </property>
+         </item>
+         <item row="23" column="2">
+          <property name="text">
+           <string/>
+          </property>
+         </item>
+         <item row="24" column="2">
+          <property name="text">
+           <string/>
+          </property>
+         </item>
+         <item row="25" column="2">
+          <property name="text">
+           <string/>
+          </property>
+         </item>
+         <item row="26" column="2">
+          <property name="text">
+           <string/>
+          </property>
+         </item>
+         <item row="27" column="0">
+          <property name="text">
+           <string>D</string>
+          </property>
+          <property name="flags">
+           <set>ItemIsSelectable|ItemIsEnabled</set>
+          </property>
+         </item>
+         <item row="28" column="2">
+          <property name="text">
+           <string/>
+          </property>
+         </item>
+         <item row="29" column="2">
+          <property name="text">
+           <string/>
+          </property>
+         </item>
+         <item row="30" column="2">
+          <property name="text">
+           <string/>
+          </property>
+         </item>
+         <item row="31" column="2">
+          <property name="text">
+           <string/>
+          </property>
+         </item>
+         <item row="32" column="2">
+          <property name="text">
+           <string/>
+          </property>
+         </item>
+         <item row="33" column="2">
+          <property name="text">
+           <string/>
+          </property>
+         </item>
+         <item row="34" column="2">
+          <property name="text">
+           <string/>
+          </property>
+         </item>
+         <item row="35" column="2">
+          <property name="text">
+           <string/>
+          </property>
+         </item>
+        </widget>
+       </item>
+      </layout>
+     </widget>
+    </widget>
+   </item>
+  </layout>
+ </widget>
+ <resources/>
+ <connections/>
+</ui>

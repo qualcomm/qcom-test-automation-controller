@@ -1,0 +1,215 @@
+// Confidential and Proprietary Qualcomm Technologies, Inc.
+
+// NO PUBLIC DISCLOSURE PERMITTED:  Please report postings of this software on public servers or websites
+// to: DocCtrlAgent@qualcomm.com.
+
+// RESTRICTED USE AND DISCLOSURE:
+// This software contains confidential and proprietary information and is not to be used, copied, reproduced, modified
+// or distributed, in whole or in part, nor its contents revealed in any manner, without the express written permission
+// of Qualcomm Technologies, Inc.
+
+// Qualcomm is a trademark of QUALCOMM Incorporated, registered in the United States and other countries. All
+// QUALCOMM Incorporated trademarks are used with permission.
+
+// This software may be subject to U.S. and international export, re-export, or transfer laws.  Diversion contrary to U.S.
+// and international law is strictly prohibited.
+
+// Qualcomm Technologies, Inc.
+// 5775 Morehouse Drive
+// San Diego, CA 92121 U.S.A.
+// Copyright 2024 Qualcomm Technologies, Inc.
+// All rights reserved.
+// Qualcomm Technologies Confidential and Proprietary
+
+/*
+	Author: Biswajit Roy (biswroy@qti.qualcomm.com)
+*/
+
+#include "ui_NotificationWidget.h"
+#include "NotificationWidget.h"
+#include "ColorConversion.h"
+
+// Qt
+#include <QLabel>
+#include <QStatusBar>
+
+const QSize kNotificationIconSize(10,10);
+const quint32 kNoticeTime(100);
+const QString kProgressStyle("QProgressBar::chunk {background-color: %1; width: 1px;}");
+const QByteArray kOperationMsg("Operation in progress...");
+
+NotificationWidget::NotificationWidget(QWidget *parent)
+	: QWidget{parent},
+	_ui(new Ui::NotificationWidgetClass)
+{
+	_ui->setupUi(this);
+
+	_notificationWindow = new HoverAwareQWindow(this);
+
+	QIcon notificationIcon;
+	notificationIcon.addFile(QString::fromUtf8(":/NotificationBellSilent.png"), kNotificationIconSize, QIcon::Normal, QIcon::Off);
+	_ui->_notificationBtn->setIcon(notificationIcon);
+
+	_ui->_progressBar->hide();
+
+	connect(this, &NotificationWidget::notificationAdded, this, &NotificationWidget::onNotificationAdded);
+	connect(this, &NotificationWidget::progress, this, &NotificationWidget::onProgressUpdated);
+	connect(_ui->_notificationBtn, &QPushButton::clicked, this, &NotificationWidget::onNotificationButtonClicked);
+	connect(&_timer, &QTimer::timeout, this, &NotificationWidget::onTimerTimeout);
+
+	_timer.setTimerType(Qt::PreciseTimer);
+	_timer.setInterval(kNoticeTime);
+	_timer.setSingleShot(true);
+}
+
+NotificationWidget::~NotificationWidget()
+{
+	if (_notificationWindow != Q_NULLPTR)
+		delete _notificationWindow;
+
+	if (_ui != Q_NULLPTR)
+		delete _ui;
+}
+
+void NotificationWidget::setSilent(bool status)
+{
+	_silent = status;
+}
+
+bool NotificationWidget::isSilent()
+{
+	return _silent;
+}
+
+void NotificationWidget::insertNotification(const QString &message, const NotificationLevel notificationLevel)
+{
+	if (_notificationWindow != Q_NULLPTR)
+		_notificationWindow->insertNotification(message, notificationLevel);
+
+	QIcon notificationIcon;
+	notificationIcon.addFile(QString::fromUtf8(":/NotificationBellRing.png"), kNotificationIconSize, QIcon::Normal, QIcon::Off);
+	_ui->_notificationBtn->setIcon(notificationIcon);
+
+	emit notificationAdded(message, notificationLevel);
+}
+
+void NotificationWidget::onNotificationAdded(const QString &message, const NotificationLevel notificationLevel)
+{
+	makeNotificationLabel(message, notificationLevel);
+	_ui->_notificationBtn->setToolTip("Click to see notifications");
+	_ui->_notificationBtn->setEnabled(true);
+}
+
+void NotificationWidget::onNotificationCleared()
+{
+	QIcon notificationIcon;
+	notificationIcon.addFile(QString::fromUtf8(":/NotificationBellSilent.png"), kNotificationIconSize, QIcon::Normal, QIcon::Off);
+
+	_ui->_notificationBtn->setIcon(notificationIcon);
+	_ui->_notificationBtn->setToolTip("You do not have new notifications");
+	_ui->_notificationBtn->setEnabled(false);
+}
+
+void NotificationWidget::onNotificationButtonClicked()
+{
+	QWidget* wgt = qobject_cast<QWidget*>(sender()->parent()->parent()->parent());
+
+	if (wgt != Q_NULLPTR)
+	{
+		_notificationWindow->setWindowLocation(wgt->size(), wgt->pos());
+		connect(_notificationWindow, &HoverAwareQWindow::clearAll, this, &NotificationWidget::onNotificationCleared);
+	}
+}
+
+void NotificationWidget::onProgressUpdated(const quint8 newValue, NotificationLevel level)
+{
+	QColor barColor =  QColor(53, 161, 84);
+
+	QString style = kProgressStyle.arg(barColor.name());
+	_ui->_progressBar->setStyleSheet(style);
+
+	if (newValue != kProgressActive)
+	{
+		_ui->_progressBar->setRange(kProgressActive, kProgressMax);
+
+		switch (level)
+		{
+		case eInfoNotification:
+		{
+			quint8 originalValue = _ui->_progressBar->value();
+
+			_ui->_progressBar->setValue(originalValue + newValue);
+			break;
+		}
+		case eErrorNotification:
+		{
+			barColor = QColor(201, 60, 65);
+
+			QString style = kProgressStyle.arg(barColor.name());
+			_ui->_progressBar->setStyleSheet(style);
+
+			_ui->_progressBar->setValue(kProgressMax);
+			break;
+		}
+		case eDebugNotification:
+		case eWarnNotification:
+			break;
+		}
+
+		_timer.start();
+	}
+	else
+	{
+		// In case of indeterminate progress...
+		_ui->_progressBar->setRange(kProgressActive, kProgressActive);
+		_ui->_progressBar->setValue(kProgressActive);
+	}	
+
+	QStatusBar* statusbar = qobject_cast<QStatusBar*>(parent());
+	if (statusbar != Q_NULLPTR)
+		statusbar->showMessage(kOperationMsg);
+
+	_ui->_progressBar->show();
+}
+
+void NotificationWidget::onTimerTimeout()
+{
+	_ui->_progressBar->hide();
+	_ui->_progressBar->setValue(0);
+
+	QStatusBar* statusbar = qobject_cast<QStatusBar*>(parent());
+
+	if (statusbar != Q_NULLPTR)
+		statusbar->clearMessage();
+}
+
+void NotificationWidget::makeNotificationLabel(const QString& message, const NotificationLevel notificationLevel)
+{
+	QLabel* popup = new QLabel(this);
+	popup->setWindowFlags(Qt::Popup);
+	popup->setText(message);
+
+	QPalette qPalette = popup->palette();
+	QColor labelColor = ColorConversion::getLabelColor(notificationLevel);
+	qPalette.setBrush(QPalette::Window, labelColor);
+	popup->setPalette(qPalette);
+
+	popup->setFrameStyle(QLabel::Raised | QLabel::Panel);
+	popup->setAlignment(Qt::AlignLeft | Qt::AlignVCenter);
+	popup->setWordWrap(true);
+	popup->setFixedSize(kNotificationLabelWidth, kNotificationLabelHeight);
+	popup->setFocusPolicy(Qt::NoFocus);
+
+	QPoint notificationWgtPos{0,0};
+
+	QSize windowSize = this->window()->size();
+	QPoint windowLoc = this->window()->pos();
+
+	notificationWgtPos.setX(windowSize.width() + windowLoc.x() - kNotificationLabelWidth);
+	notificationWgtPos.setY(windowSize.height() + windowLoc.y() - kNotificationLabelHeight - 10);
+
+	popup->move(notificationWgtPos);
+	popup->show();
+
+	QTimer::singleShot(kNoticeTime, popup, &QLabel::hide);
+}
