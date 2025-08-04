@@ -12,6 +12,7 @@ build/
 moc_*
 qrc_*
 ui_*
+*.rc
 
 # Java compiled sources
 .mvn/

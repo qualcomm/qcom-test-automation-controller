@@ -46,11 +46,9 @@ DEFINES += QCOMMONCONSOLE_LIBRARY
 
 INCLUDEPATH += $$SERIAL
 INCLUDEPATH += $$FTDIINC
-INCLUDEPATH += $$LIBUSBINC
 
 DEPENDPATH += $$SERIAL
 DEPENDPATH += $$ALPACALIB
-DEPENDPATH += $$LIBUSBINC
 
 win32 {
 	DEFINES += FTD2XX_STATIC
@@ -69,15 +67,11 @@ HEADERS += \
 	AppCore.h \
 	BasicColor.h \
 	Button.h \
-	ByteCountFormatter.h \
-	CSV.h \
 	CharBit.h \
 	CommandGroup.h \
 	CommandLineParser.h \
 	ConsoleApplicationEnhancements.h \
 	ConsoleInterface.h \
-	CountingStream.h \
-	DataPoints.h \
 	DateCheckFailEvent.h \
 	DebugBoardType.h \
 	DriveThread.h \
@@ -91,8 +85,6 @@ HEADERS += \
 	FramePackage.h \
 	Hexify.h \
 	KeyState.h \
-	LibUsbEngine.h \
-	LibUsbInitializer.h \
 	LicenseFailEvent.h \
 	LicenseManager.h \
 	LogInterface.h \
@@ -101,10 +93,8 @@ HEADERS += \
 	PlatformConfiguration.h \
 	PlatformConfigurationException.h \
 	PlatformID.h \
-	PluginInterface.h \
 	PreferencesBase.h \
 	PreferencesBase.h \
-	ProcessUtilities.h \
 	ProtocolInterface.h \
 	QCommonConsole.h \
 	QCommonConsoleGlobal.h \
@@ -121,7 +111,6 @@ HEADERS += \
 	SerialPort.h \
 	StringProof.h \
 	StringUtilities.h \
-	SubSystemInterface.h \
 	SystemInformation.h \
 	SystemUsername.h \
 	TACCommand.h \
@@ -151,11 +140,9 @@ SOURCES += \
 	AppCore.cpp \
 	BasicColor.cpp \
 	Button.cpp \
-	CSV.cpp \
 	CharBit.cpp \
 	CommandLineParser.cpp \
 	ConsoleApplicationEnhancements.cpp \
-	CountingStream.cpp \
 	DebugBoardType.cpp \
 	DriveThread.cpp \
 	EncryptedString.cpp \
@@ -163,15 +150,12 @@ SOURCES += \
 	FTDIDevice.cpp \
 	FTDIPlatformConfiguration.cpp \
 	FrameCoder.cpp \
-	LibUsbEngine.cpp \
-	LibUsbInitializer.cpp \
 	LicenseFailEvent.cpp \
 	LicenseManager.cpp \
 	PlatformConfiguration.cpp \
 	PlatformConfigurationException.cpp \
 	PlatformID.cpp \
 	PreferencesBase.cpp \
-	ProcessUtilities.cpp \
 	ProtocolInterface.cpp \
 	QCommonConsole.cpp \
 	QualcommChartColor.cpp \

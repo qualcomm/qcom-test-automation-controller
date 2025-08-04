@@ -91,7 +91,6 @@ win32 {
 }
 
 linux {
-		LIBS += -lusb
 		LIBS += -ldl
 }
 

@@ -23,8 +23,6 @@ DEFINES += QT_DISABLE_DEPRECATED_UP_TO=0x060600    # disables all the APIs depre
 
 QCOMMONCONSOLE = "$$PWD"
 TACDEV = "$$PWD/../TACDev"
-LIBUSBINC = "$$PWD/../../libusb/libusb"
-LIBUSBLIB = "$$PWD/../../libusb/build/v142/x64/Release/lib"
 
 CONFIG += skip_target_version_ext
 
