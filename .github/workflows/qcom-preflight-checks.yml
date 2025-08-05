@@ -1,9 +1,18 @@
 name: Qualcomm Preflight Checks
 on:
   pull_request_target:
-    branches: [ "main" ]
+    branches:
+    - main
+    - develop
+    - feature/*
+    - docs/*
+
   push:
-    branches: [ "main" ]
+    branches:
+    - main
+    - develop
+    - feature/*
+    - docs/*
   workflow_dispatch:
 
 permissions:
