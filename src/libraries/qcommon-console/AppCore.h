@@ -39,9 +39,6 @@
 */
 
 // QCommon
-class LicenseManager;
-class TelematicsManager;
-
 #include "QCommonConsoleGlobal.h"
 #include "PreferencesBase.h"
 #include "ThreadedLog.h"
@@ -117,8 +114,6 @@ private:
 	bool						_internalBuild{false};
 	QByteArray					_appName;
 	QByteArray					_appVersion;
-	// LicenseManager*				_licenseManager{Q_NULLPTR};
-	// TelematicsManager*			_telematicsManager{Q_NULLPTR};
 
 	PreferencesBase*			_preferences{Q_NULLPTR};
 	ThreadedLog					_appThreadedLog;
