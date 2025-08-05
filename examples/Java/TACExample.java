@@ -1,3 +1,6 @@
+// Copyright (c) Qualcomm Technologies, Inc. and/or its subsidiaries.
+// SPDX-License-Identifier: BSD-3-Clause-Clear
+
 /**
  * Example program to demonstrate the TAC API and some basic TAC operations
  * @author Biswajit Roy < biswroy@qti.qualcomm.com >

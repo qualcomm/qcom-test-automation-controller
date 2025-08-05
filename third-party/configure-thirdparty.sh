@@ -1,5 +1,9 @@
 #!/bin/bash
 
+# Copyright (c) Qualcomm Technologies, Inc. and/or its subsidiaries.
+# SPDX-License-Identifier: BSD-3-Clause-Clear
+# Author: Biswajit Roy <biswroy@qti.qualcomm.com>
+
 # Exit immediately if a command exits with a non-zero status
 set -e
 

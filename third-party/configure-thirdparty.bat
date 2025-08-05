@@ -1,3 +1,7 @@
+REM Copyright (c) Qualcomm Technologies, Inc. and/or its subsidiaries.
+REM SPDX-License-Identifier: BSD-3-Clause-Clear
+REM Author: Biswajit Roy biswroy@qti.qualcomm.com
+
 @echo off
 setlocal
 
