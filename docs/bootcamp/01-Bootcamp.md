@@ -21,8 +21,6 @@ Execute the `setup.sh` if the OS is Linux and `setup.bat` if the OS is Windows.
 > Sample example scripts are available at: `C:\QTAC\Examples`
 
 🔴 **Please use the API provided under the `XPlatform` sub-directory.
-The `COM` sub-directory contains the QTAC COM API for legacy reasons and
-is unsupported now.**
 
 ## Testing the setup
 
