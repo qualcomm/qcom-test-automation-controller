@@ -94,12 +94,6 @@ AppCore::~AppCore()
 {
 	ThreadedLog nullLog(Q_NULLPTR);
 
-	// _licenseManager->release();
-	// _licenseManager = Q_NULLPTR;
-
-	// _telematicsManager->release();
-	// _telematicsManager = Q_NULLPTR;
-
     if (_runThreadedLog.isNull() == false)
     {
         _runThreadedLog->close();
@@ -135,16 +129,6 @@ void AppCore::setPreferences
 	_appVersion = _preferences->appVersion();
 
 	setAppLogging(_preferences->loggingActive());
-
-	// _licenseManager = LicenseManager::getInstance(*this);
-	// if (_licenseManager->valid() == false)
-	// {
-	//     _licenseManager = Q_NULLPTR;
-	// }
-
-	// _telematicsManager = TelematicsManager::getInstance(*this);
-	// if (_telematicsManager)
-	//     _telematicsManager->initialize(kProductID);
 }
 
 quint32 AppCore::daysSinceInstall()
@@ -270,35 +254,12 @@ bool AppCore::checkLicense
 	Q_UNUSED(productID)
 	Q_UNUSED(featureID)
 
-	// if (_licenseManager != Q_NULLPTR)
-	// {
-	//     if (_licenseManager->checkLicence(productID, featureID) == false)
-	//     {
-	//         eLimeReturnCode lastReturnCode = _licenseManager->lastLimeError();
-	//         if (lastReturnCode != LIME_LICENSE_UNAVAILABLE)
-	//         {
-	//             QByteArray message = licenseCheckFailed() + "\n";
-	//             writeToAppLog(message);
-	//         }
-	//     }
-	//     else
-	//     {
-	//         result = true;
-	//     }
-	// }
-	// else
-	// {
-	//     QByteArray message = licenseManagerFailed() + "\n";
-	//     writeToAppLog(message);
-	// }
-
 	return result;
 }
 
 bool AppCore::isLicenseManagerValid()
 {
 	return true;
-	// return _licenseManager != Q_NULLPTR;
 }
 
 void AppCore::postStartEvent()

@@ -89,7 +89,6 @@ HEADERS += \
 	Hexify.h \
 	KeyState.h \
 	LicenseFailEvent.h \
-	LicenseManager.h \
 	Notification.h \
 	PinID.h \
 	PlatformConfiguration.h \
@@ -153,7 +152,6 @@ SOURCES += \
 	FTDIPlatformConfiguration.cpp \
 	FrameCoder.cpp \
 	LicenseFailEvent.cpp \
-	LicenseManager.cpp \
 	PlatformConfiguration.cpp \
 	PlatformConfigurationException.cpp \
 	PlatformID.cpp \

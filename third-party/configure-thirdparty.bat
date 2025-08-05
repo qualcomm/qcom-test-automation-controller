@@ -35,6 +35,13 @@ REM Author: Biswajit Roy biswroy@qti.qualcomm.com
 @echo off
 setlocal
 
+REM Check if the current directory is 'third-party' and navigate up if so
+for %%i in ("%cd%") do set "CURRENT_DIR_NAME=%%~nxi"
+if /I "%CURRENT_DIR_NAME%"=="third-party" (
+    echo Current directory is "third-party". Navigating up to the project root.
+    pushd ..
+)
+
 REM Set paths relative to project root
 set "ROOT_DIR=%cd%"
 set "THIRD_PARTY_DIR=%ROOT_DIR%\third-party"
@@ -96,3 +103,8 @@ REM Clean up
 rmdir /S /Q "%TEMP_DIR%"
 
 echo FTDI D2XX driver setup complete.
+
+REM Pop back to original directory if we changed it
+popd 2>nul
+
+endlocal
