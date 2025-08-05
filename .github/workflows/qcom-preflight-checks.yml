@@ -21,7 +21,7 @@ permissions:
 
 jobs:
   qcom-preflight-checks:
-    uses: Biswajee/qcom-reusable-workflows/.github/workflows/qcom-preflight-checks-reusable-workflow.yml@feature/pr-check-proposal
+    uses: qualcomm/qcom-reusable-workflows/.github/workflows/qcom-preflight-checks-reusable-workflow.yml@v1.1.4
     with:
         # ✅ Preflight Checkers
         repolinter: true                   # default: true
