@@ -101,7 +101,9 @@
             "skip-paths-matching": {
               "patterns": [
                 "test*",
-                "docs*"
+                "docs*",
+                "ftd2xx.h",
+                "WinTypes.h"
               ]
             },
             "lineCount": 60,
