@@ -1,16 +1,5 @@
-# Qualcomm is a trademark of QUALCOMM Incorporated, registered in the United States and other countries. All
-# QUALCOMM Incorporated trademarks are used with permission.
-
-# This software may be subject to U.S. and international export, re-export, or transfer laws.  Diversion contrary to U.S.
-# and international law is strictly prohibited.
-
-# Qualcomm Technologies, Inc.
-# 5775 Morehouse Drive
-# San Diego, CA 92121 U.S.A.
-# Copyright © 2013-2024 Qualcomm Technologies, Inc.
-# All rights reserved.
-# Qualcomm Technologies Confidential and Proprietary
-#
+# Copyright (c) Qualcomm Technologies, Inc. and/or its subsidiaries.
+# SPDX-License-Identifier: BSD-3-Clause-Clear
 include($$PWD/../qcommon-console/version.pri)
 
 DEFINES += QT_DEPRECATED_WARNINGS

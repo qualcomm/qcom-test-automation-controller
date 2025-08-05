@@ -1,5 +1,9 @@
+// Copyright (c) Qualcomm Technologies, Inc. and/or its subsidiaries.
+// SPDX-License-Identifier: BSD-3-Clause-Clear
+
+// Author: Biswajit Roy <biswroy@qti.qualcomm.com>
+
 // TacExample.cpp : This file contains the 'main' function. Program execution begins and ends there.
-//
 
 // QTAC
 #include "TACDev.h"

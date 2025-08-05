@@ -87,7 +87,6 @@ HEADERS += \
 	KeyState.h \
 	LicenseFailEvent.h \
 	LicenseManager.h \
-	LogInterface.h \
 	Notification.h \
 	PinID.h \
 	PlatformConfiguration.h \
