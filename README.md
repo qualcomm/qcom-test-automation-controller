@@ -22,7 +22,7 @@ source, please review [software install guide](#software-install-guide)
 Use the below command to clone the project source:
 
 ```bash
-git clone https://github.qualcomm.com/ProdTools/qcom-test-automation-controller.git
+git clone https://github.com/qualcomm/qcom-test-automation-controller.git
 ```
 
 ### Setup third-party libraries
@@ -91,7 +91,7 @@ The following steps will help you compile QTAC from source using via command lin
 | :-- | :-- | :-- |
 | Operating System | Windows, Debian | Windows 10 & above<br>Ubuntu 22.04 & above |
 | Software development | [Visual Studio 2022 Build Tools (Community)](https://visualstudio.microsoft.com/downloads/#build-tools-for-visual-studio-2022) (Windows)<br>GCC (Linux) |  MSVC 2022 (Windows)<br>GCC-11, G++-11, GLIBC-2.35 (Linux) |
-| Software development | [Qt Open-source](https://www.qt.io/download-open-source) | 6.9.0 and above |
+| Software development | [Qt Open-source](https://www.qt.io/download-qt-installer-oss) | 6.9.0 and above |
 
 Please review the usage policies, license terms, and conditions of the above software before use.
 
