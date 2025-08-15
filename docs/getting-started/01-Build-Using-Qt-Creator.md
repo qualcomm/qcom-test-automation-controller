@@ -17,7 +17,7 @@ Required additional libraries:
 ## Clone repository
 Use the below command to clone the project source:
 ```bash
-git clone https://github.qualcomm.com/ProdTools/qcom-test-automation-controller.git
+git clone https://github.com/qualcomm/qcom-test-automation-controller.git
 ```
 
 ## Configure Qt 6.9.0
@@ -34,12 +34,12 @@ The numbers on the image refers to some of the areas you need to review before b
 ## Setup third-party libraries
 QTAC uses FTDI libraries to control FT4232H chip on the debug board. You can find out more about the FTDI D2XX libraries
 [here](https://ftdichip.com/drivers/d2xx-drivers/). You can either manually download and setup the `ftd2xx.lib` or use
-the scripts at [third-party](./third-party/) to automatically download and setup libraries. This is necessary to build from source.
+the scripts at [third-party](../../third-party/) to automatically download and setup libraries. This is necessary to build from source.
 
 ## Open project
 Now you're set to build the project using Qt Creator.
 
-Open the [qtac-workspace.pro](./qtac-workspace.pro) inside Qt Creator. This sets up the project structure for you in the editor.
+Open the [qtac-workspace.pro](../../qtac-workspace.pro) inside Qt Creator. This sets up the project structure for you in the editor.
 You do not need to manually configure Qt dependencies or open sub-projects.
 
 ![Load Qt project](../resources/qt-creator-open-project.png)
