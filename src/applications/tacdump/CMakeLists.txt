@@ -30,20 +30,21 @@
 # OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN
 # IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-# Author: msimpson
+# Author: Biswajit Roy <biswroy@qti.qualcomm.com>
+
+QT += core serialport network
 
 include(../../libraries/qcommon-console/Common.pri)
 
-QT = core
+TARGET = TACDump
+TEMPLATE = app
 
-CONFIG += cmdline
-
-TARGET = DevList
+CONFIG += console
+CONFIG -= app_bundle
 
 DESTDIR = $$BINPATH
 
 INCLUDEPATH += $$QCOMMONCONSOLE
-
 DEPENDPATH += $$QCOMMONCONSOLE
 
 win32 {
@@ -61,13 +62,17 @@ linux {
 		PRE_TARGETDEPS += $$STATIC_LIBPATH/libQCommon-console.a
 	}
 }
-
-
 SOURCES += \
-        main.cpp
+       main.cpp
+
+win32 {
+    LIBS += -lSetupAPI -lWinusb
+}
 
 CONFIG(debug, debug|release) {
-	LIBS += -L$$STATIC_LIBPATH -lQCommon-consoled
+	LIBS += -L$$STATIC_LIBPATH -lQCommon-consoled -lftd2xx
 } else {
-	LIBS += -L$$STATIC_LIBPATH -lQCommon-console
+	LIBS += -L$$STATIC_LIBPATH -lQCommon-console -lftd2xx
 }
+
+#LIBS += -L$$ALPACALIB -lftd2xx

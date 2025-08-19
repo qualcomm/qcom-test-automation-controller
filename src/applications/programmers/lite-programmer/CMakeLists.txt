@@ -30,107 +30,51 @@
 # OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN
 # IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-# Author: msimpson
+# Author: Biswajit Roy <biswroy@qti.qualcomm.com>
 
-include(../../libraries/qcommon/Common.pri)
+include(../../../../src/libraries/qcommon-console/Common.pri)
 
-QT += core gui widgets serialport network
+QT += core serialport
 
-VERSION = $$TAC_VERSION
-
-TARGET = TAC
-TEMPLATE = app
-RC_ICONS = $$PWD/resources/TAC.ico
+TARGET = LITEProgrammer
 
 DESTDIR = $$BINPATH
 
-INCLUDEPATH += $$QCOMMON
-INCLUDEPATH += $$QCOMMONCONSOLE
-INCLUDEPATH += $$LIBUI
+CONFIG += cmdline
 
-DEPENDPATH += $$QCOMMON
+INCLUDEPATH += $$QCOMMONCONSOLE
+INCLUDEPATH += $$FTDIINC
+
 DEPENDPATH += $$QCOMMONCONSOLE
-DEPENDPATH += $$LIBUI
+INCLUDEPATH += $$FTDIINC
 
 win32 {
 	CONFIG(debug, debug|release) {
-	PRE_TARGETDEPS += $$STATIC_LIBPATH/QCommond.lib
-	PRE_TARGETDEPS += $$STATIC_LIBPATH/qcommon-consoled.lib
-		PRE_TARGETDEPS += $$STATIC_LIBPATH/UId.lib
+		PRE_TARGETDEPS += $$STATIC_LIBPATH/qcommon-consoled.lib
 	} else {
-	PRE_TARGETDEPS += $$STATIC_LIBPATH/QCommon.lib
-	PRE_TARGETDEPS += $$STATIC_LIBPATH/qcommon-console.lib
-		PRE_TARGETDEPS += $$STATIC_LIBPATH/UI.lib
+		PRE_TARGETDEPS += $$STATIC_LIBPATH/qcommon-console.lib
 	}
 }
 
 linux {
 	CONFIG(debug, debug|release) {
-	PRE_TARGETDEPS += $$STATIC_LIBPATH/libQCommond.a
-	PRE_TARGETDEPS += $$STATIC_LIBPATH/libQCommon-consoled.a
-		PRE_TARGETDEPS += $$STATIC_LIBPATH/libUId.a
+		PRE_TARGETDEPS += $$STATIC_LIBPATH/libQCommon-consoled.a
 	} else {
-	PRE_TARGETDEPS += $$STATIC_LIBPATH/libQCommon.a
-	PRE_TARGETDEPS += $$STATIC_LIBPATH/libQCommon-console.a
-		PRE_TARGETDEPS += $$STATIC_LIBPATH/libUI.a
+		PRE_TARGETDEPS += $$STATIC_LIBPATH/libQCommon-console.a
 	}
 }
 
 SOURCES += \
-	main.cpp \
-	PreferencesDialog.cpp \
-	TACApplication.cpp \
-	TACDeviceSelection.cpp \
-	TACWindow.cpp
-
-HEADERS += \
-	PreferencesDialog.h \
-	TACApplication.h \
-	TACDeviceSelection.h \
-	TACWindow.h
-
-FORMS += \
-	PreferencesDialog.ui \
-	TACDeviceSelection.ui \
-	TACWindow.ui
-
+        ProgrammerCommandLine.cpp \
+        main.cpp
 
 CONFIG(debug, debug|release) {
-        LIBS += -L$$STATIC_LIBPATH -lUId -lQCommond -lQCommon-consoled
+	LIBS += -L$$STATIC_LIBPATH -lQCommon-consoled
 } else {
-        LIBS += -L$$STATIC_LIBPATH -lUI -lQCommon -lQCommon-console
+	LIBS += -L$$STATIC_LIBPATH -lQCommon-console
 }
 
 LIBS += -L$$STATIC_LIBPATH -lftd2xx
 
-win32 {
-	LIBS += -lSetupAPI -lWinusb -lOle32 -lAdvapi32 -lShell32 -lWtsapi32
-}
-
-unix {
-	DISTFILES += \
-		../LinuxDeploy/TAC.desktop
-
-	LIBS += -rdynamic
-	linux {
-		LIBS += -L/usr/local/lib
-
-		LIBS += -lrt
-		LIBS += -ldl
-		LIBS += -luuid
-	}
-	mac {
-		QMAKE_LFLAGS += -F/System/Library/Frameworks/CoreFoundation.framework
-		QMAKE_LFLAGS += -F/System/Library/Frameworks/IOKit.framework
-		QMAKE_LFLAGS += -framework Carbon
-		ICON = $$PWD/resources/qxdm.icns
-		LIBS += -framework CoreFoundation
-		LIBS += -framework IOKit
-		LIBS += -lobjc
-
-		QMAKE_POST_LINK = $$PWD/debug_plugin.sh $$TARGET $$BINPATH
-	}
-}
-
-RESOURCES += \
-	resources/TAC.qrc
+HEADERS += \
+	ProgrammerCommandLine.h

@@ -32,22 +32,79 @@
 
 # Author: Biswajit Roy <biswroy@qti.qualcomm.com>
 
-TEMPLATE = subdirs
-CONFIG += ordered
+include(Common.pri)
 
-SUBDIRS += \
-    devlist tacdump ftdi-check updatedevicelist \
-    device-catalog test-automation-controller tac-configuration-editor \
-    programmers
+QT += gui widgets xml serialport concurrent network
 
-# configure application locations
-devlist.subdir = devlist
-tacdump.subdir = tacdump
-ftdi-check.subdir = ftdi-check
-updatedevicelist.subdir = updatedevicelist
+CONFIG(debug, debug|release) {
+    TARGET = QCommond
+} else {
+    TARGET = QCommon
+}
 
-device-catalog.subdir = device-catalog
-test-automation-controller.subdir = test-automation-controller
-tac-configuration-editor.subdir = tac-configuration-editor
+TEMPLATE = lib
+CONFIG += staticlib
+DESTDIR = $$STATIC_LIBPATH
+DEFINES += QCOMMON_LIBRARY
 
-programmers.subdir = programmers
+INCLUDEPATH += $$QCOMMONCONSOLE
+DEPENDPATH += $$QCOMMONCONSOLE
+
+win32 {
+		CONFIG(debug, debug|release) {
+			PRE_TARGETDEPS += $$STATIC_LIBPATH/qcommon-consoled.lib
+		} else {
+			PRE_TARGETDEPS += $$STATIC_LIBPATH/qcommon-console.lib
+		}
+}
+
+linux {
+		CONFIG(debug, debug|release) {
+			PRE_TARGETDEPS += $$STATIC_LIBPATH/libQCommon-consoled.a
+		} else {
+			PRE_TARGETDEPS += $$STATIC_LIBPATH/libQCommon-console.a
+		}
+}
+
+SOURCES += \
+    AboutDialog.cpp \
+    AlpacaApplication.cpp \
+    ApplicationEnhancements.cpp \
+	ColorSwatch.cpp \
+    HappinessDialog.cpp \
+    IntFilteredEditor.cpp \
+    LEDWidget.cpp \
+    PainterEffects.cpp \
+	PinLED.cpp \
+    ProgressDialog.cpp \
+    QCommon.cpp \
+	StyledLabel.cpp \
+    TableCheckBox.cpp \
+	TableComboBox.cpp
+
+HEADERS += \
+    AboutDialog.h \
+    AlpacaApplication.h \
+    ApplicationEnhancements.h \
+	ColorSwatch.h \
+	CustomComboBox.h \
+    HappinessDialog.h \
+    IntFilteredEditor.h \
+    LEDWidget.h \
+    PainterEffects.h \
+	PinLED.h \
+	ProgressDialog.h \
+    QCommon.h \
+    QCommonGlobal.h \
+	StyledLabel.h \
+    TableCheckBox.h \
+	TableComboBox.h
+
+FORMS += \
+	AboutDialog.ui \
+    HappinessDialog.ui \
+    PinLED.ui \
+    ProgressDialog.ui
+
+RESOURCES += \
+    QCommon.qrc

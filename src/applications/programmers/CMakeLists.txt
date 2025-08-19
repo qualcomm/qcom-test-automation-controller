@@ -32,15 +32,7 @@
 
 # Author: Biswajit Roy <biswroy@qti.qualcomm.com>
 
-TEMPLATE = subdirs
-CONFIG += ordered
+cmake_minimum_required(VERSION 3.10)
+project("programmers" LANGUAGES CXX)
 
-SUBDIRS += libraries applications interfaces
-
-libraries.subdir = src/libraries
-applications.subdir = src/applications
-interfaces.subdir = interfaces
-
-applications.depends = libraries
-interfaces.depends = libraries
-examples.depends = libraries interfaces
+add_subdirectory(lite-programmer)

@@ -6,7 +6,7 @@
 
 # Qt build directory & files
 *.qmake.stash
-*.pro.user
+*.txt.user
 Makefile*
 build/
 moc_*

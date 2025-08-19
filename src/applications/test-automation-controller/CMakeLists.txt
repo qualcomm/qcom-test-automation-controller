@@ -30,85 +30,107 @@
 # OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN
 # IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-# Author: msimpson, biswroy
+# Author: Biswajit Roy <biswroy@qti.qualcomm.com>
 
-include(../qcommon/Common.pri)
+include(../../libraries/qcommon/Common.pri)
 
-QT += core gui widgets serialport
+QT += core gui widgets serialport network
 
-TEMPLATE = lib
-CONFIG += staticlib
-DESTDIR = $$STATIC_LIBPATH
+VERSION = $$TAC_VERSION
+
+TARGET = TAC
+TEMPLATE = app
+RC_ICONS = $$PWD/resources/TAC.ico
+
+DESTDIR = $$BINPATH
 
 INCLUDEPATH += $$QCOMMON
 INCLUDEPATH += $$QCOMMONCONSOLE
+INCLUDEPATH += $$LIBUI
 
 DEPENDPATH += $$QCOMMON
 DEPENDPATH += $$QCOMMONCONSOLE
-DEPENDPATH += $$LIBEPM
-
-CONFIG(debug, debug|release) {
-	TARGET = UId
-} else {
-	TARGET = UI
-}
+DEPENDPATH += $$LIBUI
 
 win32 {
 	CONFIG(debug, debug|release) {
-	        PRE_TARGETDEPS += $$STATIC_LIBPATH/qcommond.lib
-		PRE_TARGETDEPS += $$STATIC_LIBPATH/qcommon-consoled.lib
+	PRE_TARGETDEPS += $$STATIC_LIBPATH/QCommond.lib
+	PRE_TARGETDEPS += $$STATIC_LIBPATH/qcommon-consoled.lib
+		PRE_TARGETDEPS += $$STATIC_LIBPATH/UId.lib
 	} else {
-	        PRE_TARGETDEPS += $$STATIC_LIBPATH/qcommon.lib
-		PRE_TARGETDEPS += $$STATIC_LIBPATH/qcommon-console.lib
+	PRE_TARGETDEPS += $$STATIC_LIBPATH/QCommon.lib
+	PRE_TARGETDEPS += $$STATIC_LIBPATH/qcommon-console.lib
+		PRE_TARGETDEPS += $$STATIC_LIBPATH/UI.lib
 	}
 }
 
 linux {
-
 	CONFIG(debug, debug|release) {
-	        PRE_TARGETDEPS += $$STATIC_LIBPATH/libQCommond.a
-		PRE_TARGETDEPS += $$STATIC_LIBPATH/libQCommon-consoled.a
+	PRE_TARGETDEPS += $$STATIC_LIBPATH/libQCommond.a
+	PRE_TARGETDEPS += $$STATIC_LIBPATH/libQCommon-consoled.a
+		PRE_TARGETDEPS += $$STATIC_LIBPATH/libUId.a
 	} else {
-	        PRE_TARGETDEPS += $$STATIC_LIBPATH/libQCommon.a
-		PRE_TARGETDEPS += $$STATIC_LIBPATH/libQCommon-console.a
+	PRE_TARGETDEPS += $$STATIC_LIBPATH/libQCommon.a
+	PRE_TARGETDEPS += $$STATIC_LIBPATH/libQCommon-console.a
+		PRE_TARGETDEPS += $$STATIC_LIBPATH/libUI.a
 	}
 }
 
 SOURCES += \
-	ColorConversion.cpp \
-	CommandButton.cpp \
-	CustomValidator.cpp \
-	HoverAwareQWindow.cpp \
-	I2CWidget.cpp \
-	NotificationWidget.cpp \
-	TACFrame.cpp \
-	TerminalWidget.cpp \
-	UserWidget.cpp \
-	UILib.cpp \
-	VariableInput.cpp
+	main.cpp \
+	PreferencesDialog.cpp \
+	TACApplication.cpp \
+	TACDeviceSelection.cpp \
+	TACWindow.cpp
 
 HEADERS += \
-	ColorConversion.h \
-	CommandButton.h \
-	CustomValidator.h \
-	HoverAwareQWindow.h \
-	I2CWidget.h \
-	NotificationWidget.h \
-	TACFrame.h \
-	TerminalWidget.h \
-	UserWidget.h \
-	UILib.h \
-	UIGlobalLib.h \
-	VariableInput.h
-
-RESOURCES += \
-	resources/ui-common.qrc
+	PreferencesDialog.h \
+	TACApplication.h \
+	TACDeviceSelection.h \
+	TACWindow.h
 
 FORMS += \
-	HoverAwareQWindow.ui \
-	I2CWidget.ui \
-	NotificationWidget.ui \
-	TACFrame.ui \
-	TerminalWidget.ui \
-	UserWidget.ui \
-	VariableInput.ui
+	PreferencesDialog.ui \
+	TACDeviceSelection.ui \
+	TACWindow.ui
+
+
+CONFIG(debug, debug|release) {
+        LIBS += -L$$STATIC_LIBPATH -lUId -lQCommond -lQCommon-consoled
+} else {
+        LIBS += -L$$STATIC_LIBPATH -lUI -lQCommon -lQCommon-console
+}
+
+LIBS += -L$$STATIC_LIBPATH -lftd2xx
+
+win32 {
+	LIBS += -lSetupAPI -lWinusb -lOle32 -lAdvapi32 -lShell32 -lWtsapi32
+}
+
+unix {
+	DISTFILES += \
+		../LinuxDeploy/TAC.desktop
+
+	LIBS += -rdynamic
+	linux {
+		LIBS += -L/usr/local/lib
+
+		LIBS += -lrt
+		LIBS += -ldl
+		LIBS += -luuid
+	}
+	mac {
+		QMAKE_LFLAGS += -F/System/Library/Frameworks/CoreFoundation.framework
+		QMAKE_LFLAGS += -F/System/Library/Frameworks/IOKit.framework
+		QMAKE_LFLAGS += -framework Carbon
+		ICON = $$PWD/resources/qxdm.icns
+		LIBS += -framework CoreFoundation
+		LIBS += -framework IOKit
+		LIBS += -lobjc
+
+		QMAKE_POST_LINK = $$PWD/debug_plugin.sh $$TARGET $$BINPATH
+	}
+}
+
+RESOURCES += \
+	resources/TAC.qrc

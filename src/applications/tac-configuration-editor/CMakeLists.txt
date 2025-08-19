@@ -30,7 +30,7 @@
 # OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN
 # IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-# Author: msimpson, biswroy
+# Author: Biswajit Roy <biswroy@qti.qualcomm.com>
 
 include(../../libraries/qcommon/Common.pri)
 

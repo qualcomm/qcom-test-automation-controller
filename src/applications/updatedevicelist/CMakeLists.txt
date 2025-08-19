@@ -30,13 +30,13 @@
 # OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN
 # IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-# Author: msimpson
-
-QT += core serialport network
+# Author: Biswajit Roy <biswroy@qti.qualcomm.com>
 
 include(../../libraries/qcommon-console/Common.pri)
 
-TARGET = TACDump
+QT += core serialport network xml
+
+TARGET = UpdateDeviceList
 TEMPLATE = app
 
 CONFIG += console
@@ -50,7 +50,8 @@ DEPENDPATH += $$QCOMMONCONSOLE
 win32 {
 	CONFIG(debug, debug|release) {
 		PRE_TARGETDEPS += $$STATIC_LIBPATH/qcommon-consoled.lib
-	} else {
+	}
+	else {
 		PRE_TARGETDEPS += $$STATIC_LIBPATH/qcommon-console.lib
 	}
 }
@@ -58,21 +59,29 @@ win32 {
 linux {
 	CONFIG(debug, debug|release) {
 		PRE_TARGETDEPS += $$STATIC_LIBPATH/libQCommon-consoled.a
-	} else {
+	}
+	else {
 		PRE_TARGETDEPS += $$STATIC_LIBPATH/libQCommon-console.a
 	}
 }
-SOURCES += \
-       main.cpp
 
-win32 {
-    LIBS += -lSetupAPI -lWinusb
+HEADERS += \
+	FTDITemplateCompiler.h \
+	UDLCommandLine.h \
+	UpdateDeviceList.h
+
+SOURCES += \
+	FTDITemplateCompiler.cpp \
+	UDLCommandLine.cpp \
+	UpdateDeviceList.cpp \
+	main.cpp
+
+linux {
+	LIBS += -ldl
 }
 
 CONFIG(debug, debug|release) {
-	LIBS += -L$$STATIC_LIBPATH -lQCommon-consoled -lftd2xx
+	LIBS += -L$$STATIC_LIBPATH -lQCommon-consoled
 } else {
-	LIBS += -L$$STATIC_LIBPATH -lQCommon-console -lftd2xx
+	LIBS += -L$$STATIC_LIBPATH -lQCommon-console
 }
-
-#LIBS += -L$$ALPACALIB -lftd2xx

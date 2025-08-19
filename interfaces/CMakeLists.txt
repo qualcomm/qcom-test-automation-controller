@@ -30,51 +30,6 @@
 # OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN
 # IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-# Author: msimpson
+# Author: Biswajit Roy <biswroy@qti.qualcomm.com>
 
-include(../../../../src/libraries/qcommon-console/Common.pri)
-
-QT += core serialport
-
-TARGET = LITEProgrammer
-
-DESTDIR = $$BINPATH
-
-CONFIG += cmdline
-
-INCLUDEPATH += $$QCOMMONCONSOLE
-INCLUDEPATH += $$FTDIINC
-
-DEPENDPATH += $$QCOMMONCONSOLE
-INCLUDEPATH += $$FTDIINC
-
-win32 {
-	CONFIG(debug, debug|release) {
-		PRE_TARGETDEPS += $$STATIC_LIBPATH/qcommon-consoled.lib
-	} else {
-		PRE_TARGETDEPS += $$STATIC_LIBPATH/qcommon-console.lib
-	}
-}
-
-linux {
-	CONFIG(debug, debug|release) {
-		PRE_TARGETDEPS += $$STATIC_LIBPATH/libQCommon-consoled.a
-	} else {
-		PRE_TARGETDEPS += $$STATIC_LIBPATH/libQCommon-console.a
-	}
-}
-
-SOURCES += \
-        ProgrammerCommandLine.cpp \
-        main.cpp
-
-CONFIG(debug, debug|release) {
-	LIBS += -L$$STATIC_LIBPATH -lQCommon-consoled
-} else {
-	LIBS += -L$$STATIC_LIBPATH -lQCommon-console
-}
-
-LIBS += -L$$STATIC_LIBPATH -lftd2xx
-
-HEADERS += \
-	ProgrammerCommandLine.h
+add_subdirectory(C++/TACDev)

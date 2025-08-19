@@ -1,21 +1,21 @@
-# Copyright (c) Qualcomm Technologies, Inc. and/or its subsidiaries. 
-#  
+# Copyright (c) Qualcomm Technologies, Inc. and/or its subsidiaries.
+#
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted (subject to the limitations in the
 # disclaimer below) provided that the following conditions are met:
-#  
+#
 # 	* Redistributions of source code must retain the above copyright
 # 	  notice, this list of conditions and the following disclaimer.
-#  
+#
 # 	* Redistributions in binary form must reproduce the above
 # 	  copyright notice, this list of conditions and the following
 # 	  disclaimer in the documentation and/or other materials provided
 # 	  with the distribution.
-#  
+#
 # 	* Neither the name of Qualcomm Technologies, Inc. nor the names of its
 # 	  contributors may be used to endorse or promote products derived
 # 	  from this software without specific prior written permission.
-#  
+#
 # NO EXPRESS OR IMPLIED LICENSES TO ANY PARTY'S PATENT RIGHTS ARE
 # GRANTED BY THIS LICENSE. THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT
 # HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED
@@ -30,81 +30,10 @@
 # OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN
 # IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-# Author: msimpson
+# Author: Biswajit Roy <biswroy@qti.qualcomm.com>
 
-include(Common.pri)
+project("Qualcomm Test Automation Controller (QTAC)" LANGUAGES CXX)
 
-QT += gui widgets xml serialport concurrent network
-
-CONFIG(debug, debug|release) {
-    TARGET = QCommond
-} else {
-    TARGET = QCommon
-}
-
-TEMPLATE = lib
-CONFIG += staticlib
-DESTDIR = $$STATIC_LIBPATH
-DEFINES += QCOMMON_LIBRARY
-
-INCLUDEPATH += $$QCOMMONCONSOLE
-DEPENDPATH += $$QCOMMONCONSOLE
-
-win32 {
-		CONFIG(debug, debug|release) {
-			PRE_TARGETDEPS += $$STATIC_LIBPATH/qcommon-consoled.lib
-		} else {
-			PRE_TARGETDEPS += $$STATIC_LIBPATH/qcommon-console.lib
-		}
-}
-
-linux {
-		CONFIG(debug, debug|release) {
-			PRE_TARGETDEPS += $$STATIC_LIBPATH/libQCommon-consoled.a
-		} else {
-			PRE_TARGETDEPS += $$STATIC_LIBPATH/libQCommon-console.a
-		}
-}
-
-SOURCES += \
-    AboutDialog.cpp \
-    AlpacaApplication.cpp \
-    ApplicationEnhancements.cpp \
-	ColorSwatch.cpp \
-    HappinessDialog.cpp \
-    IntFilteredEditor.cpp \
-    LEDWidget.cpp \
-    PainterEffects.cpp \
-	PinLED.cpp \
-    ProgressDialog.cpp \
-    QCommon.cpp \
-	StyledLabel.cpp \
-    TableCheckBox.cpp \
-	TableComboBox.cpp
-
-HEADERS += \
-    AboutDialog.h \
-    AlpacaApplication.h \
-    ApplicationEnhancements.h \
-	ColorSwatch.h \
-	CustomComboBox.h \
-    HappinessDialog.h \
-    IntFilteredEditor.h \
-    LEDWidget.h \
-    PainterEffects.h \
-	PinLED.h \
-	ProgressDialog.h \
-    QCommon.h \
-    QCommonGlobal.h \
-	StyledLabel.h \
-    TableCheckBox.h \
-	TableComboBox.h
-
-FORMS += \
-	AboutDialog.ui \
-    HappinessDialog.ui \
-    PinLED.ui \
-    ProgressDialog.ui
-
-RESOURCES += \
-    QCommon.qrc
+add_subdirectory(src/libraries)
+add_subdirectory(src/applications)
+add_subdirectory(interfaces)

@@ -30,11 +30,11 @@
 # OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN
 # IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-# Author: msimpson, biswroy
+# Author: Biswajit Roy <biswroy@qti.qualcomm.com>
 
 include(Common.pri)
 
-QT += xml serialport concurrent network
+find_package(Qt6 REQUIRED COMPONENTS Core Xml SerialPort Concurrent Network)
 
 CONFIG(debug, debug|release) {
         TARGET = QCommon-consoled

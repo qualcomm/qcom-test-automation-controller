@@ -109,12 +109,6 @@ unix: {
 	QMAKE_CXXFLAGS_WARN_ON += -Wno-reorder -Wno-unused-parameter -Wno-overloaded-virtual -Wno-unused-function -Wno-unused-variable -Wno-date-time
 }
 
-unix:mac {
-#for xcode 7, use this one.
-   #QMAKE_CXXFLAGS_WARN_ON += -Wno-unused-private-field -Wno-inconsistent-missing-override
-QMAKE_CXXFLAGS_WARN_ON += -Wno-unused-private-field
-}
-
 QMAKE_TARGET_COMPANY="Qualcomm, Inc."
 QMAKE_TARGET_COPYRIGHT="2025 Qualcomm, Inc."
 QMAKE_TARGET_DESCRIPTION="Qualcomm Test Automation Controller Application Suite"

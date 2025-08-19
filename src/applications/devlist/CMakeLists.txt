@@ -30,29 +30,21 @@
 # OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN
 # IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-# Author: msimpson
+# Author: Biswajit Roy <biswroy@qti.qualcomm.com>
 
-include(../../../src/libraries/qcommon-console/Common.pri)
+include(../../libraries/qcommon-console/Common.pri)
 
-QT += core serialport network
+QT = core
 
-TEMPLATE = lib
-CONFIG += dll
-DESTDIR = $$STATIC_LIBPATH
+CONFIG += cmdline
 
-DEFINES += TACDEV_LIBRARY
+TARGET = DevList
+
+DESTDIR = $$BINPATH
 
 INCLUDEPATH += $$QCOMMONCONSOLE
 
 DEPENDPATH += $$QCOMMONCONSOLE
-
-CONFIG(debug, debug|release) {
-	TARGET = TACDevd
-} else {
-	TARGET = TACDev
-}
-
-DLLDESTDIR = $$BINPATH
 
 win32 {
 	CONFIG(debug, debug|release) {
@@ -70,22 +62,12 @@ linux {
 	}
 }
 
-SOURCES += \
-	TACDevCore.cpp \
-	TACDev.cpp
 
-HEADERS += \
-	TACDevCore.h \
-	TACDev.h
+SOURCES += \
+        main.cpp
 
 CONFIG(debug, debug|release) {
 	LIBS += -L$$STATIC_LIBPATH -lQCommon-consoled
 } else {
 	LIBS += -L$$STATIC_LIBPATH -lQCommon-console
-}
-
-LIBS += -L$$STATIC_LIBPATH -lftd2xx
-
-win32 {
-	LIBS += -lSetupAPI -lWinusb -lOle32 -lAdvapi32 -lShell32 -lWtsapi32
 }
