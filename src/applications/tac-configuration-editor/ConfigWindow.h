@@ -92,7 +92,6 @@ private slots:
 	void on__actionRefresh_triggered(bool checked);
 	void on__actionWhatsThis_triggered();
 
-	void on__actionPINEExport_triggered();
 	void on__pineVersion_textChanged(const QString &arg1);
 
 	void on__usbDescriptor_editingFinished();

@@ -38,6 +38,7 @@ __pycache__/
 __Builds/
 
 # Driver packages
+third-party/
 ftd2xx.lib
 *.zip
 

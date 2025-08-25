@@ -81,7 +81,7 @@ qtac_add_application(
 if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/resources")
     file(GLOB_RECURSE RESOURCE_FILES "${CMAKE_CURRENT_SOURCE_DIR}/resources/*")
     if(RESOURCE_FILES)
-        qt6_add_resources(tac-configuration-editor "tac-config-editor-resources"
+        qt6_add_resources(TACConfigEditor "tac-config-editor-resources"
             PREFIX "/"
             BASE "${CMAKE_CURRENT_SOURCE_DIR}"
             FILES ${RESOURCE_FILES}

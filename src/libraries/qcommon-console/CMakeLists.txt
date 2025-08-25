@@ -118,7 +118,6 @@ set(HEADER_FILES
     CharBit.h
     CommandGroup.h
     CommandLineParser.h
-    CommDevice.h
     CommListModel.h
     ConsoleApplicationEnhancements.h
     ConsoleInterface.h

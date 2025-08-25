@@ -40,6 +40,9 @@ include(cmake/ApplicationVersions.cmake)
 include(cmake/GenerateVersionHeader.cmake)
 include(cmake/QTACApplicationHelpers.cmake)
 
+# Third-party dependencies
+include(cmake/ConfigureFTDI.cmake)
+
 # Project definition
 project(qtac-workspace
     VERSION ${QTAC_CORE_VERSION}
@@ -157,22 +160,47 @@ generate_version_header(
 # Add generated include directory to the global include path
 include_directories(${CMAKE_BINARY_DIR}/include)
 
-# Build directories
-set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
-set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
-set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
+# Build directories - structured as __Builds/x64/Platform/Configuration
+if(WIN32)
+    set(PLATFORM_NAME "Windows")
+elseif(UNIX AND NOT APPLE)
+    set(PLATFORM_NAME "Linux")
+else()
+    set(PLATFORM_NAME "Unknown")
+endif()
 
-# For multi-config generators
+# Set base build directory
+set(BASE_BUILD_DIR "${CMAKE_SOURCE_DIR}/__Builds/x64/${PLATFORM_NAME}")
+
+# Set output directories based on build type
+if(CMAKE_BUILD_TYPE STREQUAL "Debug")
+    set(BUILD_TYPE_DIR "${BASE_BUILD_DIR}/Debug")
+else()
+    set(BUILD_TYPE_DIR "${BASE_BUILD_DIR}/Release")
+endif()
+
+# Set output directories
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${BUILD_TYPE_DIR}/bin)
+set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${BUILD_TYPE_DIR}/lib)
+set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${BUILD_TYPE_DIR}/lib)
+
+# For multi-config generators (Visual Studio)
 foreach(CONFIG ${CMAKE_CONFIGURATION_TYPES})
     string(TOUPPER ${CONFIG} CONFIG_UPPER)
-    set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_${CONFIG_UPPER} ${CMAKE_BINARY_DIR}/${CONFIG}/bin)
-    set(CMAKE_LIBRARY_OUTPUT_DIRECTORY_${CONFIG_UPPER} ${CMAKE_BINARY_DIR}/${CONFIG}/lib)
-    set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY_${CONFIG_UPPER} ${CMAKE_BINARY_DIR}/${CONFIG}/lib)
+    if(CONFIG STREQUAL "Debug")
+        set(CONFIG_BUILD_DIR "${BASE_BUILD_DIR}/Debug")
+    else()
+        set(CONFIG_BUILD_DIR "${BASE_BUILD_DIR}/Release")
+    endif()
+    
+    set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_${CONFIG_UPPER} ${CONFIG_BUILD_DIR}/bin)
+    set(CMAKE_LIBRARY_OUTPUT_DIRECTORY_${CONFIG_UPPER} ${CONFIG_BUILD_DIR}/lib)
+    set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY_${CONFIG_UPPER} ${CONFIG_BUILD_DIR}/lib)
 endforeach()
 
-# Third-party dependencies
-include(cmake/ConfigureThirdParty.cmake)
-include(cmake/FindFTDI.cmake)
+# Create additional directories for build artifacts
+file(MAKE_DIRECTORY ${BUILD_TYPE_DIR}/moc)
+file(MAKE_DIRECTORY ${BUILD_TYPE_DIR}/ui)
 
 # Add subdirectories in dependency order
 add_subdirectory(src/libraries)
