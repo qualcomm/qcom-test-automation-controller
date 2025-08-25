@@ -32,56 +32,61 @@
 
 # Author: Biswajit Roy <biswroy@qti.qualcomm.com>
 
-include(../../libraries/qcommon-console/Common.pri)
+# Find Qt components
+find_package(Qt6 REQUIRED COMPONENTS Core)
 
-QT += core serialport network xml
+# Define the executable
+add_executable(UpdateDeviceList
+    main.cpp
+    FTDITemplateCompiler.cpp
+    UDLCommandLine.cpp
+    UpdateDeviceList.cpp
+)
 
-TARGET = UpdateDeviceList
-TEMPLATE = app
+# Add headers
+target_sources(UpdateDeviceList PRIVATE
+    FTDITemplateCompiler.h
+    UDLCommandLine.h
+    UpdateDeviceList.h
+)
 
-CONFIG += console
-CONFIG -= app_bundle
+# Set target properties
+set_target_properties(UpdateDeviceList PROPERTIES
+    OUTPUT_NAME UpdateDeviceList
+    RUNTIME_OUTPUT_DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}
+)
 
-DESTDIR = $$BINPATH
+# Link Qt libraries
+target_link_libraries(UpdateDeviceList PRIVATE
+    Qt6::Core
+)
 
-INCLUDEPATH += $$QCOMMONCONSOLE
-DEPENDPATH += $$QCOMMONCONSOLE
+# Link to project libraries
+if(CMAKE_BUILD_TYPE STREQUAL "Debug")
+    target_link_libraries(UpdateDeviceList PRIVATE
+        QCommon-consoled
+    )
+else()
+    target_link_libraries(UpdateDeviceList PRIVATE
+        QCommon-console
+    )
+endif()
 
-win32 {
-	CONFIG(debug, debug|release) {
-		PRE_TARGETDEPS += $$STATIC_LIBPATH/qcommon-consoled.lib
-	}
-	else {
-		PRE_TARGETDEPS += $$STATIC_LIBPATH/qcommon-console.lib
-	}
-}
+# Include directories
+target_include_directories(UpdateDeviceList PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}
+    ${CMAKE_CURRENT_SOURCE_DIR}/../../libraries/qcommon-console
+)
 
-linux {
-	CONFIG(debug, debug|release) {
-		PRE_TARGETDEPS += $$STATIC_LIBPATH/libQCommon-consoled.a
-	}
-	else {
-		PRE_TARGETDEPS += $$STATIC_LIBPATH/libQCommon-console.a
-	}
-}
+# Platform-specific configurations
+if(UNIX AND NOT APPLE)
+    # Linux-specific libraries
+    target_link_libraries(UpdateDeviceList PRIVATE
+        dl
+    )
+endif()
 
-HEADERS += \
-	FTDITemplateCompiler.h \
-	UDLCommandLine.h \
-	UpdateDeviceList.h
-
-SOURCES += \
-	FTDITemplateCompiler.cpp \
-	UDLCommandLine.cpp \
-	UpdateDeviceList.cpp \
-	main.cpp
-
-linux {
-	LIBS += -ldl
-}
-
-CONFIG(debug, debug|release) {
-	LIBS += -L$$STATIC_LIBPATH -lQCommon-consoled
-} else {
-	LIBS += -L$$STATIC_LIBPATH -lQCommon-console
-}
+# Install target
+install(TARGETS UpdateDeviceList
+    RUNTIME DESTINATION bin
+)

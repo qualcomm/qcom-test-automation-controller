@@ -32,42 +32,44 @@
 
 # Author: Biswajit Roy <biswroy@qti.qualcomm.com>
 
-include(../../libraries/qcommon-console/Common.pri)
 
-QT = core
+# Find Qt components
+find_package(Qt6 REQUIRED COMPONENTS Core)
 
-CONFIG += cmdline
+# Define the executable
+add_executable(devlist
+    main.cpp
+)
 
-TARGET = DevList
+# Set target properties
+set_target_properties(devlist PROPERTIES
+    OUTPUT_NAME devlist
+    RUNTIME_OUTPUT_DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}
+)
 
-DESTDIR = $$BINPATH
+# Link Qt libraries
+target_link_libraries(devlist PRIVATE
+    Qt6::Core
+)
 
-INCLUDEPATH += $$QCOMMONCONSOLE
+# Link to project libraries
+if(CMAKE_BUILD_TYPE STREQUAL "Debug")
+    target_link_libraries(devlist PRIVATE
+        QCommon-consoled
+    )
+else()
+    target_link_libraries(devlist PRIVATE
+        QCommon-console
+    )
+endif()
 
-DEPENDPATH += $$QCOMMONCONSOLE
+# Include directories
+target_include_directories(devlist PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}
+    ${CMAKE_CURRENT_SOURCE_DIR}/../../libraries/qcommon-console
+)
 
-win32 {
-	CONFIG(debug, debug|release) {
-		PRE_TARGETDEPS += $$STATIC_LIBPATH/qcommon-consoled.lib
-	} else {
-		PRE_TARGETDEPS += $$STATIC_LIBPATH/qcommon-console.lib
-	}
-}
-
-linux {
-	CONFIG(debug, debug|release) {
-		PRE_TARGETDEPS += $$STATIC_LIBPATH/libQCommon-consoled.a
-	} else {
-		PRE_TARGETDEPS += $$STATIC_LIBPATH/libQCommon-console.a
-	}
-}
-
-
-SOURCES += \
-        main.cpp
-
-CONFIG(debug, debug|release) {
-	LIBS += -L$$STATIC_LIBPATH -lQCommon-consoled
-} else {
-	LIBS += -L$$STATIC_LIBPATH -lQCommon-console
-}
+# Install target
+install(TARGETS devlist
+    RUNTIME DESTINATION bin
+)

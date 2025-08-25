@@ -32,47 +32,58 @@
 
 # Author: Biswajit Roy <biswroy@qti.qualcomm.com>
 
-QT += core serialport network
 
-include(../../libraries/qcommon-console/Common.pri)
+# Find Qt components
+find_package(Qt6 REQUIRED COMPONENTS Core)
 
-TARGET = TACDump
-TEMPLATE = app
+# Define the executable
+add_executable(tacdump
+    main.cpp
+)
 
-CONFIG += console
-CONFIG -= app_bundle
+# Set target properties
+set_target_properties(tacdump PROPERTIES
+    OUTPUT_NAME tacdump
+    RUNTIME_OUTPUT_DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}
+)
 
-DESTDIR = $$BINPATH
+# Link Qt libraries
+target_link_libraries(tacdump PRIVATE
+    Qt6::Core
+)
 
-INCLUDEPATH += $$QCOMMONCONSOLE
-DEPENDPATH += $$QCOMMONCONSOLE
+# Link to project libraries
+if(CMAKE_BUILD_TYPE STREQUAL "Debug")
+    target_link_libraries(tacdump PRIVATE
+        QCommon-consoled
+    )
+else()
+    target_link_libraries(tacdump PRIVATE
+        QCommon-console
+    )
+endif()
 
-win32 {
-	CONFIG(debug, debug|release) {
-		PRE_TARGETDEPS += $$STATIC_LIBPATH/qcommon-consoled.lib
-	} else {
-		PRE_TARGETDEPS += $$STATIC_LIBPATH/qcommon-console.lib
-	}
-}
+# Link FTDI library if found
+if(FTDI_FOUND)
+    target_link_libraries(tacdump PRIVATE FTDI::ftd2xx)
+endif()
 
-linux {
-	CONFIG(debug, debug|release) {
-		PRE_TARGETDEPS += $$STATIC_LIBPATH/libQCommon-consoled.a
-	} else {
-		PRE_TARGETDEPS += $$STATIC_LIBPATH/libQCommon-console.a
-	}
-}
-SOURCES += \
-       main.cpp
+# Include directories
+target_include_directories(tacdump PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}
+    ${CMAKE_CURRENT_SOURCE_DIR}/../../libraries/qcommon-console
+)
 
-win32 {
-    LIBS += -lSetupAPI -lWinusb
-}
+# Platform-specific configurations
+if(WIN32)
+    # Add Windows-specific system libraries
+    target_link_libraries(tacdump PRIVATE
+        SetupAPI
+        Winusb
+    )
+endif()
 
-CONFIG(debug, debug|release) {
-	LIBS += -L$$STATIC_LIBPATH -lQCommon-consoled -lftd2xx
-} else {
-	LIBS += -L$$STATIC_LIBPATH -lQCommon-console -lftd2xx
-}
-
-#LIBS += -L$$ALPACALIB -lftd2xx
+# Install target
+install(TARGETS tacdump
+    RUNTIME DESTINATION bin
+)

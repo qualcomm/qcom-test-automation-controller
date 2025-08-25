@@ -29,13 +29,9 @@
 # IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
 # OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN
 # IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
 # Author: Biswajit Roy <biswroy@qti.qualcomm.com>
 
-
-cmake_minimum_required(VERSION 3.10)
-project("libraries" LANGUAGES CXX)
-
-# configure library locations
 add_subdirectory(qcommon-console)
 add_subdirectory(qcommon)
 add_subdirectory(ui-common)

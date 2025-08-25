@@ -32,49 +32,55 @@
 
 # Author: Biswajit Roy <biswroy@qti.qualcomm.com>
 
-include(../../../../src/libraries/qcommon-console/Common.pri)
 
-QT += core serialport
+# Find Qt components
+find_package(Qt6 REQUIRED COMPONENTS Core)
 
-TARGET = LITEProgrammer
+# Define the executable
+add_executable(lite-programmer
+    main.cpp
+    ProgrammerCommandLine.cpp
+)
 
-DESTDIR = $$BINPATH
+# Add headers
+target_sources(lite-programmer PRIVATE
+    ProgrammerCommandLine.h
+)
 
-CONFIG += cmdline
+# Set target properties
+set_target_properties(lite-programmer PROPERTIES
+    OUTPUT_NAME lite-programmer
+    RUNTIME_OUTPUT_DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}
+)
 
-INCLUDEPATH += $$QCOMMONCONSOLE
-INCLUDEPATH += $$FTDIINC
+# Link Qt libraries
+target_link_libraries(lite-programmer PRIVATE
+    Qt6::Core
+)
 
-DEPENDPATH += $$QCOMMONCONSOLE
-INCLUDEPATH += $$FTDIINC
+# Link to project libraries
+if(CMAKE_BUILD_TYPE STREQUAL "Debug")
+    target_link_libraries(lite-programmer PRIVATE
+        QCommon-consoled
+    )
+else()
+    target_link_libraries(lite-programmer PRIVATE
+        QCommon-console
+    )
+endif()
 
-win32 {
-	CONFIG(debug, debug|release) {
-		PRE_TARGETDEPS += $$STATIC_LIBPATH/qcommon-consoled.lib
-	} else {
-		PRE_TARGETDEPS += $$STATIC_LIBPATH/qcommon-console.lib
-	}
-}
+# Link FTDI library if found
+if(FTDI_FOUND)
+    target_link_libraries(lite-programmer PRIVATE FTDI::ftd2xx)
+endif()
 
-linux {
-	CONFIG(debug, debug|release) {
-		PRE_TARGETDEPS += $$STATIC_LIBPATH/libQCommon-consoled.a
-	} else {
-		PRE_TARGETDEPS += $$STATIC_LIBPATH/libQCommon-console.a
-	}
-}
+# Include directories
+target_include_directories(lite-programmer PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}
+    ${CMAKE_CURRENT_SOURCE_DIR}/../../../libraries/qcommon-console
+)
 
-SOURCES += \
-        ProgrammerCommandLine.cpp \
-        main.cpp
-
-CONFIG(debug, debug|release) {
-	LIBS += -L$$STATIC_LIBPATH -lQCommon-consoled
-} else {
-	LIBS += -L$$STATIC_LIBPATH -lQCommon-console
-}
-
-LIBS += -L$$STATIC_LIBPATH -lftd2xx
-
-HEADERS += \
-	ProgrammerCommandLine.h
+# Install target
+install(TARGETS lite-programmer
+    RUNTIME DESTINATION bin
+)

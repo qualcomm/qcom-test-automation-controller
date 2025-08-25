@@ -32,34 +32,30 @@
 
 # Author: Biswajit Roy <biswroy@qti.qualcomm.com>
 
-qtac_add_application(
-    TARGET TAC
-    OUTPUT_NAME TAC
-    VERSION ${PROJECT_VERSION}
-    WIN32_EXECUTABLE
-    SOURCES
-        main.cpp
-        PreferencesDialog.cpp
-        TACApplication.cpp
-        TACDeviceSelection.cpp
-        TACWindow.cpp
-        TAC.rc
-    HEADERS
-        PreferencesDialog.h
-        TACApplication.h
-        TACAutomationInterface.h
-        TACDeviceSelection.h
-        TACWindow.h
-    UI_FILES
-        PreferencesDialog.ui
-        TACDeviceSelection.ui
-        TACWindow.ui
-    RESOURCES
-        resources/TAC.qrc
-    QT_COMPONENTS
-        Core Gui Widgets
-    LIBRARIES
-        UI QCommon QCommon-console
-    SYSTEM_LIBRARIES
-        Advapi32 Shell32 Wtsapi32
-)
+# Core library versions
+set(QTAC_CORE_VERSION "6.9.1")
+set(QCOMMON_CONSOLE_VERSION "3.0.1")
+set(QCOMMON_VERSION "2.0.0")
+set(UI_COMMON_VERSION "2.0.0")
+
+# Shared component versions
+set(ALPACA_VERSION "5.5.2")
+set(TAC_VERSION "7.0.1")
+set(TAC_LIB_VERSION "3.0.1")
+set(EPM_SERVER_VERSION "2.0.0")
+
+# Utility versions
+set(EEPROM_COMMAND_VERSION "2.0.0")
+set(QCOMMONCOMMAND_VERSION "2.0.0")
+
+# Export all core versions as cache variables for use in other CMake files
+set(QTAC_CORE_VERSION "${QTAC_CORE_VERSION}" CACHE STRING "QTAC Core Version")
+set(QCOMMON_CONSOLE_VERSION "${QCOMMON_CONSOLE_VERSION}" CACHE STRING "QCommon Console Library Version")
+set(QCOMMON_VERSION "${QCOMMON_VERSION}" CACHE STRING "QCommon Library Version")
+set(UI_COMMON_VERSION "${UI_COMMON_VERSION}" CACHE STRING "UI Common Library Version")
+set(ALPACA_VERSION "${ALPACA_VERSION}" CACHE STRING "Alpaca Version")
+set(TAC_VERSION "${TAC_VERSION}" CACHE STRING "TAC Version")
+set(TAC_LIB_VERSION "${TAC_LIB_VERSION}" CACHE STRING "TAC Library Version")
+set(EPM_SERVER_VERSION "${EPM_SERVER_VERSION}" CACHE STRING "EPM Server Version")
+set(EEPROM_COMMAND_VERSION "${EEPROM_COMMAND_VERSION}" CACHE STRING "EEPROM Command Version")
+set(QCOMMONCOMMAND_VERSION "${QCOMMONCOMMAND_VERSION}" CACHE STRING "QCommon Command Version")

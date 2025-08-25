@@ -1,3 +1,4 @@
+#!/bin/bash
 # Copyright (c) Qualcomm Technologies, Inc. and/or its subsidiaries. 
 #  
 # Redistribution and use in source and binary forms, with or without
@@ -32,34 +33,27 @@
 
 # Author: Biswajit Roy <biswroy@qti.qualcomm.com>
 
-qtac_add_application(
-    TARGET TAC
-    OUTPUT_NAME TAC
-    VERSION ${PROJECT_VERSION}
-    WIN32_EXECUTABLE
-    SOURCES
-        main.cpp
-        PreferencesDialog.cpp
-        TACApplication.cpp
-        TACDeviceSelection.cpp
-        TACWindow.cpp
-        TAC.rc
-    HEADERS
-        PreferencesDialog.h
-        TACApplication.h
-        TACAutomationInterface.h
-        TACDeviceSelection.h
-        TACWindow.h
-    UI_FILES
-        PreferencesDialog.ui
-        TACDeviceSelection.ui
-        TACWindow.ui
-    RESOURCES
-        resources/TAC.qrc
-    QT_COMPONENTS
-        Core Gui Widgets
-    LIBRARIES
-        UI QCommon QCommon-console
-    SYSTEM_LIBRARIES
-        Advapi32 Shell32 Wtsapi32
-)
+
+set -e
+
+# Set default build type if not specified
+BUILD_TYPE=${1:-Release}
+
+echo "Building QTAC Workspace with CMake..."
+echo "Build Type: $BUILD_TYPE"
+
+# Create build directory
+mkdir -p build
+cd build
+
+# Configure with CMake
+echo "Configuring project..."
+cmake -DCMAKE_BUILD_TYPE=$BUILD_TYPE ..
+
+# Build the project
+echo "Building project..."
+cmake --build . --config $BUILD_TYPE --parallel $(nproc 2>/dev/null || sysctl -n hw.ncpu 2>/dev/null || echo 4)
+
+echo "Build completed successfully!"
+echo "Binaries are located in: build/bin/"
+echo "Libraries are located in: build/lib/"

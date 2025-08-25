@@ -32,83 +32,118 @@
 
 # Author: Biswajit Roy <biswroy@qti.qualcomm.com>
 
-include(../qcommon/Common.pri)
+# Find Qt components
+find_package(Qt6 REQUIRED COMPONENTS Core Gui Widgets SerialPort)
 
-QT += core gui widgets serialport
+# Define the library target
+if(CMAKE_BUILD_TYPE STREQUAL "Debug")
+    set(TARGET_NAME UId)
+else()
+    set(TARGET_NAME UI)
+endif()
 
-TEMPLATE = lib
-CONFIG += staticlib
-DESTDIR = $$STATIC_LIBPATH
+add_library(${TARGET_NAME} STATIC
+    # Source files
+    ColorConversion.cpp
+    CommandButton.cpp
+    CustomValidator.cpp
+    HoverAwareQWindow.cpp
+    I2CWidget.cpp
+    NotificationWidget.cpp
+    TACFrame.cpp
+    TerminalWidget.cpp
+    UserWidget.cpp
+    UILib.cpp
+    VariableInput.cpp
+)
 
-INCLUDEPATH += $$QCOMMON
-INCLUDEPATH += $$QCOMMONCONSOLE
+# Add headers
+target_sources(${TARGET_NAME} PRIVATE
+    ColorConversion.h
+    CommandButton.h
+    CustomValidator.h
+    HoverAwareQWindow.h
+    I2CWidget.h
+    NotificationWidget.h
+    TACFrame.h
+    TerminalWidget.h
+    UserWidget.h
+    UILib.h
+    UIGlobalLib.h
+    VariableInput.h
+)
 
-DEPENDPATH += $$QCOMMON
-DEPENDPATH += $$QCOMMONCONSOLE
-DEPENDPATH += $$LIBEPM
+# Process UI files if they exist
+set(UI_FILES
+    HoverAwareQWindow.ui
+    I2CWidget.ui
+    NotificationWidget.ui
+    TACFrame.ui
+    TerminalWidget.ui
+    UserWidget.ui
+    VariableInput.ui
+)
 
-CONFIG(debug, debug|release) {
-	TARGET = UId
-} else {
-	TARGET = UI
-}
+# Filter UI files to only include existing ones
+set(EXISTING_UI_FILES)
+foreach(ui_file ${UI_FILES})
+    if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/${ui_file}")
+        list(APPEND EXISTING_UI_FILES ${ui_file})
+    endif()
+endforeach()
 
-win32 {
-	CONFIG(debug, debug|release) {
-	        PRE_TARGETDEPS += $$STATIC_LIBPATH/qcommond.lib
-		PRE_TARGETDEPS += $$STATIC_LIBPATH/qcommon-consoled.lib
-	} else {
-	        PRE_TARGETDEPS += $$STATIC_LIBPATH/qcommon.lib
-		PRE_TARGETDEPS += $$STATIC_LIBPATH/qcommon-console.lib
-	}
-}
+# Add UI resources if any exist
+if(EXISTING_UI_FILES)
+    qt6_add_resources(${TARGET_NAME} "ui-common-ui"
+        PREFIX "/ui"
+        FILES ${EXISTING_UI_FILES}
+    )
+endif()
 
-linux {
+# Add resources if they exist
+if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/resources/ui-common.qrc")
+    qt6_add_resources(${TARGET_NAME} "ui-common-resources"
+        PREFIX "/"
+        FILES
+            resources/ui-common.qrc
+    )
+endif()
 
-	CONFIG(debug, debug|release) {
-	        PRE_TARGETDEPS += $$STATIC_LIBPATH/libQCommond.a
-		PRE_TARGETDEPS += $$STATIC_LIBPATH/libQCommon-consoled.a
-	} else {
-	        PRE_TARGETDEPS += $$STATIC_LIBPATH/libQCommon.a
-		PRE_TARGETDEPS += $$STATIC_LIBPATH/libQCommon-console.a
-	}
-}
+# Set target properties
+set_target_properties(${TARGET_NAME} PROPERTIES
+    OUTPUT_NAME ${TARGET_NAME}
+    ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_ARCHIVE_OUTPUT_DIRECTORY}
+    AUTOMOC ON
+    AUTORCC ON
+    AUTOUIC ON
+)
 
-SOURCES += \
-	ColorConversion.cpp \
-	CommandButton.cpp \
-	CustomValidator.cpp \
-	HoverAwareQWindow.cpp \
-	I2CWidget.cpp \
-	NotificationWidget.cpp \
-	TACFrame.cpp \
-	TerminalWidget.cpp \
-	UserWidget.cpp \
-	UILib.cpp \
-	VariableInput.cpp
+# Link Qt libraries
+target_link_libraries(${TARGET_NAME} PUBLIC
+    Qt6::Core
+    Qt6::Gui
+    Qt6::Widgets
+    Qt6::SerialPort
+)
 
-HEADERS += \
-	ColorConversion.h \
-	CommandButton.h \
-	CustomValidator.h \
-	HoverAwareQWindow.h \
-	I2CWidget.h \
-	NotificationWidget.h \
-	TACFrame.h \
-	TerminalWidget.h \
-	UserWidget.h \
-	UILib.h \
-	UIGlobalLib.h \
-	VariableInput.h
+# Link to other libraries
+if(CMAKE_BUILD_TYPE STREQUAL "Debug")
+    target_link_libraries(${TARGET_NAME} PUBLIC 
+        QCommond
+        QCommon-consoled
+    )
+else()
+    target_link_libraries(${TARGET_NAME} PUBLIC 
+        QCommon
+        QCommon-console
+    )
+endif()
 
-RESOURCES += \
-	resources/ui-common.qrc
+# Include directories - PUBLIC so dependent targets inherit them
+target_include_directories(${TARGET_NAME} PUBLIC
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+    $<INSTALL_INTERFACE:include/ui-common>
+)
 
-FORMS += \
-	HoverAwareQWindow.ui \
-	I2CWidget.ui \
-	NotificationWidget.ui \
-	TACFrame.ui \
-	TerminalWidget.ui \
-	UserWidget.ui \
-	VariableInput.ui
+# Export target for use by other parts of the project
+set_target_properties(${TARGET_NAME} PROPERTIES EXPORT_NAME UICommon)

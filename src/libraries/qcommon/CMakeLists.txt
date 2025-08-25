@@ -32,79 +32,99 @@
 
 # Author: Biswajit Roy <biswroy@qti.qualcomm.com>
 
-include(Common.pri)
+# Find Qt components
+find_package(Qt6 REQUIRED COMPONENTS Core Gui Widgets Xml SerialPort Concurrent Network)
 
-QT += gui widgets xml serialport concurrent network
+# Define the library target
+if(CMAKE_BUILD_TYPE STREQUAL "Debug")
+    set(TARGET_NAME QCommond)
+else()
+    set(TARGET_NAME QCommon)
+endif()
 
-CONFIG(debug, debug|release) {
-    TARGET = QCommond
-} else {
-    TARGET = QCommon
-}
+add_library(${TARGET_NAME} STATIC
+    # Source files
+    AboutDialog.cpp
+    AlpacaApplication.cpp
+    ApplicationEnhancements.cpp
+    ColorSwatch.cpp
+    HappinessDialog.cpp
+    IntFilteredEditor.cpp
+    LEDWidget.cpp
+    PainterEffects.cpp
+    PinLED.cpp
+    ProgressDialog.cpp
+    QCommon.cpp
+    StyledLabel.cpp
+    TableCheckBox.cpp
+    TableComboBox.cpp
+)
 
-TEMPLATE = lib
-CONFIG += staticlib
-DESTDIR = $$STATIC_LIBPATH
-DEFINES += QCOMMON_LIBRARY
+# Add headers
+target_sources(${TARGET_NAME} PRIVATE
+    AboutDialog.h
+    AlpacaApplication.h
+    ApplicationEnhancements.h
+    ColorSwatch.h
+    CustomComboBox.h
+    HappinessDialog.h
+    IntFilteredEditor.h
+    LEDWidget.h
+    PainterEffects.h
+    PinLED.h
+    ProgressDialog.h
+    QCommon.h
+    QCommonGlobal.h
+    StyledLabel.h
+    TableCheckBox.h
+    TableComboBox.h
+)
 
-INCLUDEPATH += $$QCOMMONCONSOLE
-DEPENDPATH += $$QCOMMONCONSOLE
+# Add resources if they exist - integrate directly into the library
+if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/QCommon.qrc")
+    target_sources(${TARGET_NAME} PRIVATE QCommon.qrc)
+endif()
 
-win32 {
-		CONFIG(debug, debug|release) {
-			PRE_TARGETDEPS += $$STATIC_LIBPATH/qcommon-consoled.lib
-		} else {
-			PRE_TARGETDEPS += $$STATIC_LIBPATH/qcommon-console.lib
-		}
-}
+# UI files will be processed automatically by AUTOUIC
+# No need for explicit qt6_add_ui() call when AUTOUIC is enabled
 
-linux {
-		CONFIG(debug, debug|release) {
-			PRE_TARGETDEPS += $$STATIC_LIBPATH/libQCommon-consoled.a
-		} else {
-			PRE_TARGETDEPS += $$STATIC_LIBPATH/libQCommon-console.a
-		}
-}
+# Enable Qt MOC processing for Qt classes
+set_target_properties(${TARGET_NAME} PROPERTIES
+    OUTPUT_NAME ${TARGET_NAME}
+    ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_ARCHIVE_OUTPUT_DIRECTORY}
+    AUTOMOC ON
+    AUTORCC ON
+    AUTOUIC ON
+)
 
-SOURCES += \
-    AboutDialog.cpp \
-    AlpacaApplication.cpp \
-    ApplicationEnhancements.cpp \
-	ColorSwatch.cpp \
-    HappinessDialog.cpp \
-    IntFilteredEditor.cpp \
-    LEDWidget.cpp \
-    PainterEffects.cpp \
-	PinLED.cpp \
-    ProgressDialog.cpp \
-    QCommon.cpp \
-	StyledLabel.cpp \
-    TableCheckBox.cpp \
-	TableComboBox.cpp
+# Add compile definitions
+target_compile_definitions(${TARGET_NAME} PRIVATE
+    QCOMMON_LIBRARY
+)
 
-HEADERS += \
-    AboutDialog.h \
-    AlpacaApplication.h \
-    ApplicationEnhancements.h \
-	ColorSwatch.h \
-	CustomComboBox.h \
-    HappinessDialog.h \
-    IntFilteredEditor.h \
-    LEDWidget.h \
-    PainterEffects.h \
-	PinLED.h \
-	ProgressDialog.h \
-    QCommon.h \
-    QCommonGlobal.h \
-	StyledLabel.h \
-    TableCheckBox.h \
-	TableComboBox.h
+# Link Qt libraries
+target_link_libraries(${TARGET_NAME} PUBLIC
+    Qt6::Core
+    Qt6::Gui
+    Qt6::Widgets
+    Qt6::Xml
+    Qt6::SerialPort
+    Qt6::Concurrent
+    Qt6::Network
+)
 
-FORMS += \
-	AboutDialog.ui \
-    HappinessDialog.ui \
-    PinLED.ui \
-    ProgressDialog.ui
+# Link to qcommon-console library
+if(CMAKE_BUILD_TYPE STREQUAL "Debug")
+    target_link_libraries(${TARGET_NAME} PUBLIC QCommon-consoled)
+else()
+    target_link_libraries(${TARGET_NAME} PUBLIC QCommon-console)
+endif()
 
-RESOURCES += \
-    QCommon.qrc
+# Include directories - PUBLIC so dependent targets inherit them
+target_include_directories(${TARGET_NAME} PUBLIC
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+    $<INSTALL_INTERFACE:include/qcommon>
+)
+
+# Export target for use by other parts of the project
+set_target_properties(${TARGET_NAME} PROPERTIES EXPORT_NAME QCommon)

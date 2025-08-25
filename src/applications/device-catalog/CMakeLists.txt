@@ -32,80 +32,29 @@
 
 # Author: Biswajit Roy <biswroy@qti.qualcomm.com>
 
-include(../../libraries/qcommon/Common.pri)
 
-QT += core gui widgets serialport
-
-TARGET = DeviceCatalog
-TEMPLATE = app
-RC_ICONS = $$PWD/resources/device-catalog.ico
-
-VERSION = $$DEVICE_CATALOG_VERSION    # major.minor.patch
-
-DESTDIR = $$BINPATH
-
-INCLUDEPATH += $$QCOMMON
-INCLUDEPATH += $$QCOMMONCONSOLE
-INCLUDEPATH += $$LIBUI
-
-DEPENDPATH += $$QCOMMON
-DEPENDPATH += $$QCOMMONCONSOLE
-DEPENDPATH += $$LIBUI
-
-win32 {
-	CONFIG(debug, debug|release) {
-		PRE_TARGETDEPS += $$STATIC_LIBPATH/QCommond.lib
-		PRE_TARGETDEPS += $$STATIC_LIBPATH/qcommon-consoled.lib
-		PRE_TARGETDEPS += $$STATIC_LIBPATH/UId.lib
-	} else {
-		PRE_TARGETDEPS += $$STATIC_LIBPATH/QCommon.lib
-		PRE_TARGETDEPS += $$STATIC_LIBPATH/qcommon-console.lib
-		PRE_TARGETDEPS += $$STATIC_LIBPATH/UI.lib
-	}
-}
-
-linux {
-	CONFIG(debug, debug|release) {
-		PRE_TARGETDEPS += $$STATIC_LIBPATH/libQCommon-consoled.a
-		PRE_TARGETDEPS += $$STATIC_LIBPATH/libQCommond.a
-		PRE_TARGETDEPS += $$STATIC_LIBPATH/libUId.a
-	} else {
-		PRE_TARGETDEPS += $$STATIC_LIBPATH/libQCommon-console.a
-		PRE_TARGETDEPS += $$STATIC_LIBPATH/libQCommon.a
-		PRE_TARGETDEPS += $$STATIC_LIBPATH/libUI.a
-	}
-}
-
-SOURCES += \
-	DeviceCatalogApplication.cpp \
-	DeviceSelectionDialog.cpp \
-	main.cpp \
-	DeviceCatalog.cpp
-
-HEADERS += \
-	DeviceCatalog.h \
-	DeviceCatalogApplication.h \
-	DeviceSelectionDialog.h
-
-FORMS += \
-	DeviceCatalog.ui \
-	DeviceSelectionDialog.ui
-
-CONFIG(debug, debug|release) {
-		LIBS += -L$$STATIC_LIBPATH -lQCommond -lQCommon-consoled -lUId
-} else {
-		LIBS += -L$$STATIC_LIBPATH -lQCommon -lQCommon-console -lUI
-}
-
-win32 {
-		LIBS += -lSetupAPI -lWinusb -lOle32
-}
-
-linux {
-		LIBS += -ldl
-}
-
-LIBS += -L$$STATIC_LIBPATH -lftd2xx
-
-RESOURCES += \
-	DeviceCatalog.qrc
+qtac_add_application(
+    TARGET DeviceCatalog
+    OUTPUT_NAME DeviceCatalog
+    VERSION 2.0.0
+    WIN32_EXECUTABLE
+    SOURCES
+        main.cpp
+        DeviceCatalog.cpp
+        DeviceCatalogApplication.cpp
+        DeviceSelectionDialog.cpp
+        DeviceCatalog.rc
+    HEADERS
+        DeviceCatalog.h
+        DeviceCatalogApplication.h
+        DeviceSelectionDialog.h
+    UI_FILES
+        DeviceCatalog.ui
+        DeviceSelectionDialog.ui
+    RESOURCES
+        DeviceCatalog.qrc
+    QT_COMPONENTS
+        Core Gui Widgets
+    LIBRARIES
+        UI QCommon QCommon-console
+)

@@ -32,156 +32,223 @@
 
 # Author: Biswajit Roy <biswroy@qti.qualcomm.com>
 
-include(Common.pri)
+# Find Qt components
+find_package(Qt6 REQUIRED COMPONENTS Core Gui Xml SerialPort Concurrent Network)
 
-find_package(Qt6 REQUIRED COMPONENTS Core Xml SerialPort Concurrent Network)
+# Define the library target
+if(CMAKE_BUILD_TYPE STREQUAL "Debug")
+    set(TARGET_NAME QCommon-consoled)
+else()
+    set(TARGET_NAME QCommon-console)
+endif()
 
-CONFIG(debug, debug|release) {
-        TARGET = QCommon-consoled
-} else {
-        TARGET = QCommon-console
-}
+add_library(${TARGET_NAME} STATIC
+    # Core files
+    AlpacaDefines.cpp
+    AlpacaDevice.cpp
+    AlpacaScript.cpp
+    AlpacaSettings.cpp
+    AlpacaSharedLibrary.cpp
+    AppCore.cpp
+    BasicColor.cpp
+    Button.cpp
+    CharBit.cpp
+    CommandLineParser.cpp
+    ConsoleApplicationEnhancements.cpp
+    DebugBoardType.cpp
+    DriveThread.cpp
+    EncryptedString.cpp
+    FTDIChipset.cpp
+    FTDIDevice.cpp
+    FTDIPlatformConfiguration.cpp
+    FrameCoder.cpp
+    LicenseFailEvent.cpp
+    PlatformConfiguration.cpp
+    PlatformConfigurationException.cpp
+    PlatformID.cpp
+    PreferencesBase.cpp
+    ProtocolInterface.cpp
+    QCommonConsole.cpp
+    QualcommChartColor.cpp
+    QuitAppEvent.cpp
+    RecentFiles.cpp
+    SMTPClient.cpp
+    ScriptVariable.cpp
+    SerialPort.cpp
+    StringProof.cpp
+    StringUtilities.cpp
+    SystemInformationWin.cpp
+    SystemUsername.cpp
+    TACCommand.cpp
+    TACCommands.cpp
+    TACPreferences.cpp
+    Tabs.cpp
+    ThreadedLog.cpp
+    TickCount.cpp
+    USBDescriptors.cpp
+    mymemcpy.cpp
+    
+    # Private implementation files
+    private/TACDriveThread.cpp
+    private/TACLiteCoder.cpp
+    private/TACLiteCommand.cpp
+    private/TACLiteDriveThread.cpp
+    private/TACLiteProtocol.cpp
+    
+    # Additional source files found in directory
+    CommListModel.cpp
+    CountingStream.cpp
+    CSV.cpp
+    KeyState.cpp
+    ProcessUtilities.cpp
 
-TEMPLATE = lib
-CONFIG += staticlib
-DESTDIR = $$STATIC_LIBPATH
-DEFINES += QCOMMONCONSOLE_LIBRARY
+)
 
-INCLUDEPATH += $$SERIAL
-INCLUDEPATH += $$FTDIINC
+# Add headers - only include existing files
+set(HEADER_FILES
+    AlpacaDefines.h
+    AlpacaDevice.h
+    AlpacaScript.h
+    AlpacaSettings.h
+    AlpacaSharedLibrary.h
+    AppCore.h
+    BasicColor.h
+    Button.h
+    ByteCountFormatter.h
+    CharBit.h
+    CommandGroup.h
+    CommandLineParser.h
+    CommDevice.h
+    CommListModel.h
+    ConsoleApplicationEnhancements.h
+    ConsoleInterface.h
+    CountingStream.h
+    CSV.h
+    DataPoints.h
+    DateCheckFailEvent.h
+    DebugBoardType.h
+    DriveThread.h
+    EncryptedString.h
+    ErrorParameter.h
+    FrameCoder.h
+    FramePackage.h
+    ftd2xx.h
+    FTDIChipset.h
+    FTDIDevice.h
+    FTDIPinSet.h
+    FTDIPlatformConfiguration.h
+    Hexify.h
+    KeyState.h
+    KingFisherCoder.h
+    LicenseFailEvent.h
+    mymemcpy.h
+    Notification.h
+    PinEntry.h
+    PinID.h
+    PlatformConfiguration.h
+    PlatformConfigurationException.h
+    PlatformID.h
+    PreferencesBase.h
+    PrintEfEr.h
+    ProcessUtilities.h
+    ProtocolInterface.h
+    QCommonConsole.h
+    QCommonConsoleGlobal.h
+    QShrinkFile.h
+    QualcommChartColor.h
+    QualcommColors.h
+    QuitAppEvent.h
+    Range.h
+    RangedContainer.h
+    ReceiveInterface.h
+    RecentFiles.h
+    ScriptVariable.h
+    SendInterface.h
+    SerialPort.h
+    SMTPClient.h
+    StringProof.h
+    StringUtilities.h
+    SystemInformation.h
+    SystemUsername.h
+    Tabs.h
+    TACCommand.h
+    TacCommandHashes.h
+    TACCommands.h
+    TACDefines.h
+    TacException.h
+    TACPreferences.h
+    ThreadedLog.h
+    Throttle.h
+    TickCount.h
+    USBDescriptors.h
+    version.h
+    WinTypes.h
+    private/TACDriveThread.h
+    private/TACLiteCoder.h
+    private/TACLiteCommand.h
+    private/TACLiteDriveThread.h
+    private/TACLiteProtocol.h
+)
 
-DEPENDPATH += $$SERIAL
-DEPENDPATH += $$ALPACALIB
+# Filter headers to only include existing ones
+set(EXISTING_HEADERS)
+foreach(header_file ${HEADER_FILES})
+    if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/${header_file}")
+        list(APPEND EXISTING_HEADERS ${header_file})
+    endif()
+endforeach()
 
-win32 {
-	DEFINES += FTD2XX_STATIC
-}
+# Add existing headers to target
+if(EXISTING_HEADERS)
+    target_sources(${TARGET_NAME} PRIVATE ${EXISTING_HEADERS})
+endif()
 
-linux {
-	INCLUDEPATH += $$LINUXFTDI
-}
+# Add resources directly to the target sources
+if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/resources/qcommon-console.qrc")
+    target_sources(${TARGET_NAME} PRIVATE resources/qcommon-console.qrc)
+endif()
 
-HEADERS += \
-	AlpacaDefines.h \
-	AlpacaDevice.h \
-	AlpacaScript.h \
-	AlpacaSettings.h \
-	AlpacaSharedLibrary.h \
-	AppCore.h \
-	BasicColor.h \
-	Button.h \
-	CharBit.h \
-	CommandGroup.h \
-	CommandLineParser.h \
-	ConsoleApplicationEnhancements.h \
-	ConsoleInterface.h \
-	DateCheckFailEvent.h \
-	DebugBoardType.h \
-	DriveThread.h \
-	EncryptedString.h \
-	ErrorParameter.h \
-	FTDIChipset.h \
-	FTDIDevice.h \
-	FTDIPinSet.h \
-	FTDIPlatformConfiguration.h \
-	FrameCoder.h \
-	FramePackage.h \
-	Hexify.h \
-	KeyState.h \
-	LicenseFailEvent.h \
-	Notification.h \
-	PinID.h \
-	PlatformConfiguration.h \
-	PlatformConfigurationException.h \
-	PlatformID.h \
-	PreferencesBase.h \
-	PreferencesBase.h \
-	ProtocolInterface.h \
-	QCommonConsole.h \
-	QCommonConsoleGlobal.h \
-	QualcommChartColor.h \
-	QualcommColors.h \
-	QuitAppEvent.h \
-	Range.h \
-	RangedContainer.h \
-	ReceiveInterface.h \
-	RecentFiles.h \
-	SMTPClient.h \
-	ScriptVariable.h \
-	SendInterface.h \
-	SerialPort.h \
-	StringProof.h \
-	StringUtilities.h \
-	SystemInformation.h \
-	SystemUsername.h \
-	TACCommand.h \
-	TACCommands.h \
-	TACPreferences.h \
-	Tabs.h \
-	TacCommandHashes.h \
-	TacException.h \
-	ThreadedLog.h \
-	Throttle.h \
-	TickCount.h \
-	USBDescriptors.h \
-	mymemcpy.h \
-	private/TACDriveThread.h \
-	private/TACLiteCoder.h \
-	private/TACLiteCommand.h \
-	private/TACLiteDriveThread.h \
-	private/TACLiteProtocol.h \
-	version.h
+# Enable Qt MOC processing for Qt classes
+set_target_properties(${TARGET_NAME} PROPERTIES
+    OUTPUT_NAME ${TARGET_NAME}
+    ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_ARCHIVE_OUTPUT_DIRECTORY}
+    AUTOMOC ON
+    AUTORCC ON
+)
 
-SOURCES += \
-	AlpacaDefines.cpp \
-	AlpacaDevice.cpp \
-	AlpacaScript.cpp \
-	AlpacaSettings.cpp \
-	AlpacaSharedLibrary.cpp \
-	AppCore.cpp \
-	BasicColor.cpp \
-	Button.cpp \
-	CharBit.cpp \
-	CommandLineParser.cpp \
-	ConsoleApplicationEnhancements.cpp \
-	DebugBoardType.cpp \
-	DriveThread.cpp \
-	EncryptedString.cpp \
-	FTDIChipset.cpp \
-	FTDIDevice.cpp \
-	FTDIPlatformConfiguration.cpp \
-	FrameCoder.cpp \
-	LicenseFailEvent.cpp \
-	PlatformConfiguration.cpp \
-	PlatformConfigurationException.cpp \
-	PlatformID.cpp \
-	PreferencesBase.cpp \
-	ProtocolInterface.cpp \
-	QCommonConsole.cpp \
-	QualcommChartColor.cpp \
-	QuitAppEvent.cpp \
-	RecentFiles.cpp \
-	SMTPClient.cpp \
-	ScriptVariable.cpp \
-	SerialPort.cpp \
-	StringProof.cpp \
-	StringUtilities.cpp \
-	SystemInformationWin.cpp \
-	SystemUsername.cpp \
-	TACCommand.cpp \
-	TACCommands.cpp \
-	TACPreferences.cpp \
-	Tabs.cpp \
-	ThreadedLog.cpp \
-	TickCount.cpp \
-	USBDescriptors.cpp \
-	mymemcpy.cpp \
-	private/TACDriveThread.cpp \
-	private/TACLiteCoder.cpp \
-	private/TACLiteCommand.cpp \
-	private/TACLiteDriveThread.cpp \
-	private/TACLiteProtocol.cpp
+# Add compile definitions
+target_compile_definitions(${TARGET_NAME} PRIVATE
+    QCOMMONCONSOLE_LIBRARY
+)
 
+# Link Qt libraries
+target_link_libraries(${TARGET_NAME} PUBLIC
+    Qt6::Core
+    Qt6::Gui
+    Qt6::Xml
+    Qt6::SerialPort
+    Qt6::Concurrent
+    Qt6::Network
+)
 
-RESOURCES += \
-	resources/qcommon-console.qrc
+# Link FTDI library if found
+if(FTDI_FOUND)
+    target_link_libraries(${TARGET_NAME} PUBLIC FTDI::ftd2xx)
+endif()
+
+# Include directories - PUBLIC so dependent targets inherit them
+target_include_directories(${TARGET_NAME} PUBLIC
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/private>
+    $<INSTALL_INTERFACE:include/qcommon-console>
+)
+
+# Platform-specific configurations
+if(WIN32)
+    target_compile_definitions(${TARGET_NAME} PRIVATE FTD2XX_STATIC)
+elseif(UNIX AND NOT APPLE)
+    # Linux-specific include paths would be added here if needed
+endif()
+
+# Export target for use by other parts of the project
+set_target_properties(${TARGET_NAME} PROPERTIES EXPORT_NAME QCommonConsole)

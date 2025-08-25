@@ -23,17 +23,19 @@ Use the below command to clone the project source:
 
 ```bash
 git clone https://github.com/qualcomm/qcom-test-automation-controller.git
+mkdir build && cd build
+cmake -DCMAKE_BUILD_TYPE=Release ..
+cmake --build . --config Release --parallel
 ```
 
 ### Setup third-party libraries
 
-QTAC uses FTDI libraries to control FT4232H chip on the debug board. You can find out more about the FTDI D2XX libraries
-[here](https://ftdichip.com/drivers/d2xx-drivers/). You may either download and setup the `ftd2xx` library or use
-the scripts at [third-party](./third-party/) to automatically download and setup libraries. This step is required to build from source.
+QTAC uses FTDI libraries to control FT4232H chip on the debug board. The CMake build system **automatically downloads and configures** the FTDI D2XX libraries during the build process. No manual setup is required.
+
+If automatic download fails, you can manually download from the [FTDI website](https://ftdichip.com/drivers/d2xx-drivers/) and place the files in the appropriate build directories.
+
 
 #### Compile QTAC for Windows
-
-The following steps will help you compile QTAC from source using via command line.
 
 1. Start Qt 6.9.0 command line
 2. Change to the project root directory
@@ -41,47 +43,15 @@ The following steps will help you compile QTAC from source using via command lin
    install directory and look for `vcvars64.bat`. Copy the path to this script > Example: C:\Program Files (x86)\Microsoft Visual Studio\2022\BuildTools\VC\Auxiliary\Build\vcvars64.bat
 4. Paste this path inside Qt 6.9.0 command line
 5. Change command-line working directory to the project root
-6. Execute below commands to get the necessary compile executables for applicable use-cases
-
-   **Debug version**
-
-   ```shell
-   %QTJOM% clean
-   qmake6 qtac-workspace.pro -spec win32-msvc "CONFIG+=debug" "CONFIG+=qml_debug" && %QTJOM% qmake_all
-   %QTJOM%
-   ```
-
-   **Release version**
-
-   ```shell
-   %QTJOM% clean
-   qmake6 qtac-workspace.pro -spec win32-msvc "CONFIG+=qtquickcompiler" && %QTJOM% qmake_all
-   %QTJOM%
-   ```
+6. Execute [build.bat](./build.bat). Add `debug` argument for debug build, `release` argument for release build
 
 #### Compile QTAC for Linux
 
-1. Start a bash terminal. Make sure the [environment variables](#configure-environment-variables) are configured correctly
+1. Start a bash terminal with [environment variables](#configure-environment-variables) configured
 2. Change to the project root directory
 3. Make sure **GNU Make 4.3 or above** is accessible on the path by executing: `which make && make --version`
 4. Change terminal working directory to the project root
-5. Execute below commands to get the necessary compile executables for applicable use-cases
-
-   **Debug version**
-
-   ```shell
-   make clean
-   $QTBIN/qmake6 qtac-workspace.pro -spec linux-g++ CONFIG+=debug CONFIG+=qml_debug && /usr/bin/make qmake_all
-   make -j12
-   ```
-
-   **Release version**
-
-   ```shell
-   make clean
-   $QTBIN/qmake6 qtac-workspace.pro -spec linux-g++ CONFIG+=qtquickcompiler && /usr/bin/make qmake_all
-   make -j12
-   ```
+5. Execute [build.bat](./build.bat). Add `debug` argument for debug build, `release` argument for release build
 
 ## Software install guide
 
@@ -91,7 +61,8 @@ The following steps will help you compile QTAC from source using via command lin
 | :-- | :-- | :-- |
 | Operating System | Windows, Debian | Windows 10 & above<br>Ubuntu 22.04 & above |
 | Software development | [Visual Studio 2022 Build Tools (Community)](https://visualstudio.microsoft.com/downloads/#build-tools-for-visual-studio-2022) (Windows)<br>GCC (Linux) |  MSVC 2022 (Windows)<br>GCC-11, G++-11, GLIBC-2.35 (Linux) |
-| Software development | [Qt Open-source](https://www.qt.io/download-qt-installer-oss) | 6.9.0 and above |
+| Software development | CMake | 3.16 and above |
+| Software development | [Qt Open-source](https://www.qt.io/download-open-source) | 6.9.0 and above |
 
 Please review the usage policies, license terms, and conditions of the above software before use.
 
@@ -111,14 +82,12 @@ With the development tools installed on your system, please set up the following
 
 - `QTDIR`: `C:\Qt\<version>`
 - `QTBIN`: `C:\Qt\<version>\msvc2022_64`
-- `QTJOM`: `C:\Qt\Tools\QtCreator\bin\jom\jom.exe` (Windows ony)
 
 **On Windows**:
 
 ```cmd
 setx QTDIR C:\Qt\<version>
 setx QTBIN %QTDIR%\msvc2022_64
-setx QTJOM C:/Qt/Tools/QtCreator/bin/jom/jom.exe
 ```
 
 **On Linux**:
@@ -131,19 +100,29 @@ export QTDIR=/path/to/Qt/directory/<version>
 export QTBIN=$QTDIR/gcc_64/bin
 ```
 
+## Version Management
+
+QTAC uses a centralized version management system that follows CMake best practices. All component versions are managed in dedicated CMake files:
+
+- **Core Libraries**: `cmake/CoreLibraryVersions.cmake`
+- **Applications**: `cmake/ApplicationVersions.cmake`
+
+Version headers are automatically generated during the CMake configuration phase and made available to all targets.
+
 ## Repository structure
 
 QTAC repository has the following sub-directories:
 
 1. `.github`: GitHub CI/CD build pipelines
-2. `configurations`: Platform specific pin configurations to control devices
-3. `docs`: API documentation and guide
-4. `examples`: Example scripts to demonstrate the use of device-control automation APIs
-5. `interfaces`: Device control APIs for C++, Python, C# and Java
-6. `src`: Source files containing core libraries, CLI and UI applications
+2. `cmake`: CMake version management and third-party setup scripts
+3. `configurations`: Platform specific pin configurations to control devices
+4. `docs`: API documentation and guide
+5. `examples`: Example scripts to demonstrate the use of device-control automation APIs
+6. `interfaces`: Device control APIs for C++, Python, C# and Java
+7. `src`: Source files containing core libraries, CLI and UI applications
    - `applications`: CLI and UI applications
    - `libraries`: Core libraries referenced by other libraries, CLI & UI applications
-7. `third-party`: Contains automation scripts to install external project dependencies
+8. `third-party`: Contains automation scripts to install external project dependencies
 
 ## Application dependency architecture
 

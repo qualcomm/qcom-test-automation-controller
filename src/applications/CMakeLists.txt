@@ -32,17 +32,11 @@
 
 # Author: Biswajit Roy <biswroy@qti.qualcomm.com>
 
-cmake_minimum_required(VERSION 3.10)
-project("applications" LANGUAGES CXX)
-
-# configure application locations
 add_subdirectory(devlist)
 add_subdirectory(tacdump)
 add_subdirectory(ftdi-check)
 add_subdirectory(updatedevicelist)
-
 add_subdirectory(device-catalog)
 add_subdirectory(test-automation-controller)
 add_subdirectory(tac-configuration-editor)
-
 add_subdirectory(programmers)

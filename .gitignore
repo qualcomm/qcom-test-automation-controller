@@ -6,13 +6,21 @@
 
 # Qt build directory & files
 *.qmake.stash
-*.txt.user
+*.pro.user
 Makefile*
 build/
+.qt/
 moc_*
 qrc_*
 ui_*
-*.rc
+*.vcxproj
+*.vcxproj.filters
+*.stamp
+*.stamp.depend
+*.cmake
+*.log
+*.vcxproj.FileListAbsolute.txt
+*.qrc
 
 # Java compiled sources
 .mvn/
@@ -32,3 +40,6 @@ __Builds/
 # Driver packages
 ftd2xx.lib
 *.zip
+
+# Allow exceptions for cmake files we maintain
+!**/cmake/*

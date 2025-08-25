@@ -32,60 +32,64 @@
 
 # Author: Biswajit Roy <biswroy@qti.qualcomm.com>
 
-include(../../libraries/qcommon-console/Common.pri)
+find_package(Qt6 REQUIRED COMPONENTS Core)
 
-VERSION = $$ALPACA_VERSION
+add_executable(ftdi-check
+    main.cpp
+    FTDICheckApplication.cpp
+    FTDICheckCommandLine.cpp
+)
 
-TARGET = FTDICheck
+target_sources(ftdi-check PRIVATE
+    FTDICheckApplication.h
+    FTDICheckCommandLine.h
+)
 
-TEMPLATE = app
-CONFIG += console
-CONFIG -= app_bundle
-DESTDIR = $$BINPATH
+set_target_properties(ftdi-check PROPERTIES
+    OUTPUT_NAME ftdi-check
+    RUNTIME_OUTPUT_DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}
+)
 
-RC_ICONS = $$PWD/resources/ftdi-check.ico
+set_target_properties(ftdi-check PROPERTIES
+    VERSION 3.0.0
+)
 
-# for version info
-INCLUDEPATH += $$QCOMMONCONSOLE
-DEPENDPATH += $$QCOMMONCONSOLE
+target_link_libraries(ftdi-check PRIVATE
+    Qt6::Core
+)
 
-win32 {
-	CONFIG(debug, debug|release) {
-		PRE_TARGETDEPS += $$STATIC_LIBPATH/qcommon-consoled.lib
-	}
-	else {
-		PRE_TARGETDEPS += $$STATIC_LIBPATH/qcommon-console.lib
-	}
-}
+if(CMAKE_BUILD_TYPE STREQUAL "Debug")
+    target_link_libraries(ftdi-check PRIVATE
+        QCommon-consoled
+    )
+else()
+    target_link_libraries(ftdi-check PRIVATE
+        QCommon-console
+    )
+endif()
 
-linux {
-	CONFIG(debug, debug|release) {
-		PRE_TARGETDEPS += $$STATIC_LIBPATH/libQCommon-consoled.a
-	}
-	else {
-		PRE_TARGETDEPS += $$STATIC_LIBPATH/libQCommon-console.a
-	}
-}
+target_include_directories(ftdi-check PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}
+    ${CMAKE_CURRENT_SOURCE_DIR}/../../libraries/qcommon-console
+)
 
-SOURCES += \
-	FTDICheckApplication.cpp \
-	FTDICheckCommandLine.cpp \
-	main.cpp
+if(WIN32)
+    target_link_libraries(ftdi-check PRIVATE
+        SetupAPI
+        Winusb
+        Ole32
+        Advapi32
+        Shell32
+        Wtsapi32
+        Version
+        Psapi
+    )
+elseif(UNIX AND NOT APPLE)
+    target_link_libraries(ftdi-check PRIVATE
+        dl
+    )
+endif()
 
-HEADERS += \
-	FTDICheckApplication.h \
-	FTDICheckCommandLine.h
-
-CONFIG(debug, debug|release) {
-	LIBS += -L$$STATIC_LIBPATH -lQCommon-consoled
-} else {
-	LIBS += -L$$STATIC_LIBPATH -lQCommon-console
-}
-
-win32 {
-	LIBS += -lSetupAPI -lWinusb -lOle32 -lAdvapi32 -lShell32 -lWtsapi32 -lVersion -lPsapi
-}
-
-linux {
-	LIBS += -ldl
-}
+install(TARGETS ftdi-check
+    RUNTIME DESTINATION bin
+)

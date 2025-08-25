@@ -32,7 +32,6 @@
 
 # Author: Biswajit Roy <biswroy@qti.qualcomm.com>
 
-
 # Find Qt components
 find_package(Qt6 REQUIRED COMPONENTS Core SerialPort)
 
@@ -59,6 +58,9 @@ set_target_properties(${TARGET_NAME} PROPERTIES
     OUTPUT_NAME ${TARGET_NAME}
     LIBRARY_OUTPUT_DIRECTORY ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}
     RUNTIME_OUTPUT_DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}
+    AUTOMOC ON
+    AUTORCC ON
+    AUTOUIC ON
 )
 
 # Add compile definitions
@@ -70,7 +72,6 @@ target_compile_definitions(${TARGET_NAME} PRIVATE
 target_link_libraries(${TARGET_NAME} PUBLIC
     Qt6::Core
     Qt6::SerialPort
-    Qt6::Network
 )
 
 # Link to project libraries
@@ -91,8 +92,8 @@ endif()
 
 # Include directories
 target_include_directories(${TARGET_NAME} PUBLIC
-    ${CMAKE_CURRENT_SOURCE_DIR}
-    ${CMAKE_CURRENT_SOURCE_DIR}/../../../src/libraries/qcommon-console
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+    $<INSTALL_INTERFACE:include/TACDev>
 )
 
 # Platform-specific configurations
@@ -112,13 +113,6 @@ elseif(UNIX AND NOT APPLE)
         rt
         dl
         uuid
-    )
-elseif(APPLE)
-    # macOS-specific configurations
-    target_link_libraries(${TARGET_NAME} PUBLIC
-        "-framework CoreFoundation"
-        "-framework IOKit"
-        objc
     )
 endif()
 

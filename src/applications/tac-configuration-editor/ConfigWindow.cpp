@@ -45,7 +45,6 @@
 #include "ConfigEditorApplication.h"
 #include "FTDIEditorView.h"
 #include "ManageTabsDialog.h"
-#include "PineCommandLine.h"
 #include "TACPreviewWindow.h"
 
 // libTAC
@@ -662,11 +661,6 @@ void ConfigWindow::on__actionWhatsThis_triggered()
 	QWhatsThis::enterWhatsThisMode();
 }
 
-void ConfigWindow::on__actionPINEExport_triggered()
-{
-	PineCommandLine pineCmd;
-	pineCmd.invokeCli();
-}
 
 void ConfigWindow::on__pineVersion_textChanged(const QString &pineVersionString)
 {
@@ -736,4 +730,3 @@ void ConfigWindow::on__actionDefaultScriptAndVariables_triggered()
 		_codeEditor = new CodeEditor(platformConfig);
 	}
 }
-
