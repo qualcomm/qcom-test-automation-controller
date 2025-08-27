@@ -1,4 +1,8 @@
-qt_add_library(ui-common
+include(${CMAKE_CURRENT_SOURCE_DIR}/../qcommon/Common.cmake)
+
+set(LIBRARY_NAME UI)
+
+qt_add_library(${LIBRARY_NAME} STATIC
     ColorConversion.cpp ColorConversion.h
     CommandButton.cpp CommandButton.h
     CustomValidator.cpp CustomValidator.h
@@ -12,97 +16,42 @@ qt_add_library(ui-common
     UserWidget.cpp UserWidget.h UserWidget.ui
     VariableInput.cpp VariableInput.h VariableInput.ui
 )
-target_include_directories(ui-common PUBLIC
+
+set_target_properties(${LIBRARY_NAME} PROPERTIES
+    VERSION ALPACA_VERSION
+)
+
+target_include_directories(${LIBRARY_NAME} PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}
     ../qcommon-console
-    ../qcommon/../../../__Builds//ui/QCommon
+    ../qcommon
 )
 
-target_compile_definitions(ui-common PUBLIC
+target_compile_definitions(${LIBRARY_NAME} PUBLIC
     QTAC_STATIC
     QT_DEPRECATED_WARNINGS
-    QT_DISABLE_DEPRECATED_BEFORE=0x060000
+    QT_DISABLE_DEPRECATED_UP_TO=0x060600
+    $<$<CONFIG:Debug>:DEBUG;_DEBUG>
+    $<$<NOT:$<CONFIG:Debug>>:NDEBUG;_NDEBUG>
 )
 
-target_link_libraries(ui-common PUBLIC
-    Qt::Core
-    Qt::Gui
-    Qt::SerialPort
-    Qt::Widgets
+target_link_libraries(${LIBRARY_NAME} PUBLIC
+    Qt6::Core
+    Qt6::Gui
+    Qt6::Widgets
 )
 
-
-# Resources:
-set(ui-common_resource_files
-    "resources/NotificationBellRing.png"
-    "resources/NotificationBellSilent.png"
-    "resources/Warning.drawio.png"
-    "resources/doubleclick.png"
+qt_add_resources(${LIBRARY_NAME}
+    resources/UI.qrc
 )
 
-qt_add_resources(ui-common "ui-common"
-    PREFIX
-        "/"
-    BASE
-        "resources"
-    FILES
-        ${ui-common_resource_files}
+set_target_properties(${LIBRARY_NAME} PROPERTIES
+    WIN32_EXECUTABLE TRUE
 )
 
-if(CMAKE_BUILD_TYPE STREQUAL Debug)
-    target_compile_definitions(ui-common PUBLIC
-        DEBUG
-        _DEBUG
-    )
-endif()
-
-if(NOT CMAKE_BUILD_TYPE STREQUAL Debug)
-    target_compile_definitions(ui-common PUBLIC
-        NDEBUG
-        _NDEBUG
-    )
-endif()
-
-if(WIN32)
-    target_compile_options(ui-common
-        /Zi
-    )
-endif()
-
-if((CONFIG(x32)) AND (WIN32))
-    target_compile_definitions(ui-common PUBLIC
-        _WIN32
-    )
-endif()
-
-if((CONFIG(x32)) AND (LINUX))
-    target_compile_definitions(ui-common PUBLIC
-        __i386__
-    )
-endif()
-
-if((NOT (CONFIG(x32))) AND (LINUX))
-    target_compile_definitions(ui-common PUBLIC
-        __X86_64__
-    )
-endif()
-
-if(UNIX)
-    target_compile_options(ui-common
-        -Werror
-        -Wno-comment
-        -Wno-conversion-null
-        -Wno-reorder
-        -Wno-unknown-pragmas
-        -Wno-unused-function
-        -Wno-unused-result
-        -Wno-write-strings
-        -std=c++0x
-    )
-endif()
-
-install(TARGETS ui-common
-    LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+install(TARGETS ${LIBRARY_NAME}
+    # TODO: Might change this
+    BUNDLE DESTINATION ${CMAKE_INSTALL_LIBDIR}
     FRAMEWORK DESTINATION ${CMAKE_INSTALL_LIBDIR}
     RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
 )

@@ -30,58 +30,17 @@
 # OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN
 # IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-# Author: msimpson
+# Maintainer: Biswajit Roy (biswroy@qti.qualcomm.com)
+# Original author: Michael Simpson (msimpson@qti.qualcomm.com)
 
-include(../../libraries/qcommon-console/Common.pri)
+set(ALPACA_VERSION "5.5.2")
+set(BUG_WRITER_VERSION "2.0.0")
+set(DEVICE_CATALOG_VERSION "2.0.0")
+set(EPM_SERVER_VERSION "2.0.0")
 
-QT += core serialport network xml
+set(UPDATE_DEVICE_LIST_VERSION 1.0.0)
+set(FTDI_CHECK_VERSION "3.0.0")
+set(FW_UPDATE_VERSION "3.0.0")
 
-TARGET = UpdateDeviceList
-TEMPLATE = app
-
-CONFIG += console
-CONFIG -= app_bundle
-
-DESTDIR = $$BINPATH
-
-INCLUDEPATH += $$QCOMMONCONSOLE
-DEPENDPATH += $$QCOMMONCONSOLE
-
-win32 {
-	CONFIG(debug, debug|release) {
-		PRE_TARGETDEPS += $$STATIC_LIBPATH/qcommon-consoled.lib
-	}
-	else {
-		PRE_TARGETDEPS += $$STATIC_LIBPATH/qcommon-console.lib
-	}
-}
-
-linux {
-	CONFIG(debug, debug|release) {
-		PRE_TARGETDEPS += $$STATIC_LIBPATH/libQCommon-consoled.a
-	}
-	else {
-		PRE_TARGETDEPS += $$STATIC_LIBPATH/libQCommon-console.a
-	}
-}
-
-HEADERS += \
-	FTDITemplateCompiler.h \
-	UDLCommandLine.h \
-	UpdateDeviceList.h
-
-SOURCES += \
-	FTDITemplateCompiler.cpp \
-	UDLCommandLine.cpp \
-	UpdateDeviceList.cpp \
-	main.cpp
-
-linux {
-	LIBS += -ldl
-}
-
-CONFIG(debug, debug|release) {
-	LIBS += -L$$STATIC_LIBPATH -lQCommon-consoled
-} else {
-	LIBS += -L$$STATIC_LIBPATH -lQCommon-console
-}
+set(QCOMMONCOMMAND_VERSION "2.0.0")
+set(EEPROM_COMMAND "2.0.0")

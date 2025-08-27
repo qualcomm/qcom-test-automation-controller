@@ -12,17 +12,20 @@ qt_add_executable(TACConfigEditor WIN32 MACOSX_BUNDLE
     TabEditorDialog.cpp TabEditorDialog.h TabEditorDialog.ui
     main.cpp
 )
+
 target_include_directories(TACConfigEditor PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}
-    ../../libraries/qcommon/../../../__Builds//ui/QCommon
-    ../qcommon-console
-    ../ui-common
+    ../../libraries/qcommon
+    ../../libraries/qcommon-console
+    ../../libraries/ui-common
 )
 
 target_compile_definitions(TACConfigEditor PRIVATE
     QTAC_STATIC
     QT_DEPRECATED_WARNINGS
-    QT_DISABLE_DEPRECATED_BEFORE=0x060000
+    QT_DISABLE_DEPRECATED_UP_TO=0x060600
+    $<$<CONFIG:Debug>:DEBUG;_DEBUG>
+    $<$<NOT:$<CONFIG:Debug>>:NDEBUG;_NDEBUG>
 )
 
 target_link_libraries(TACConfigEditor PRIVATE
@@ -33,48 +36,44 @@ target_link_libraries(TACConfigEditor PRIVATE
     Qt::Widgets
     Qt::Xml
     ftd2xx
-)
-
-
-# Resources:
-set(TACConfigEditor_resource_files
-    "resources/About.txt"
-    "resources/BugWriter.png"
-    "resources/ManageTabs.png"
-    "resources/NotificationBellRing.png"
-    "resources/NotificationBellSilent.png"
-    "resources/Open.png"
-    "resources/Preview.drawio.png"
-    "resources/Save.png"
-    "resources/TACConfigEditor.bmp"
-    "resources/TACConfigEditor.ico"
-    "resources/TACConfigEditor.png"
-    "resources/TACConfigEditor_BS.png"
-    "resources/TabsDown.png"
-    "resources/TabsPlus.png"
-    "resources/TabsRemove.png"
-    "resources/TabsRename.png"
-    "resources/TabsUp.png"
-    "resources/download-spinner.png"
-    "resources/entry-add.png"
-    "resources/entry-delete.png"
-    "resources/new-config.png"
-    "resources/script.png"
-    "resources/scriptcheck.png"
+    $<$<CONFIG:Debug>:QcommonConsoled;QCommond;UId>
+    $<$<NOT:$<CONFIG:Debug>>:QCommon;QCommonConsole;UI>
 )
 
 qt_add_resources(TACConfigEditor "TACConfigEditor"
-    PREFIX
-        "/"
-    BASE
-        "resources"
-    FILES
-        ${TACConfigEditor_resource_files}
+    PREFIX "/"
+    BASE "resources"
+    FILES ${TACConfigEditor_resource_files}
+)
+
+set(TACConfigEditor_resource_files
+    "About.txt"
+    "BugWriter.png"
+    "ManageTabs.png"
+    "NotificationBellRing.png"
+    "NotificationBellSilent.png"
+    "Open.png"
+    "Preview.drawio.png"
+    "Save.png"
+    "TACConfigEditor.bmp"
+    "TACConfigEditor.ico"
+    "TACConfigEditor.png"
+    "TabsDown.png"
+    "TabsPlus.png"
+    "TabsRemove.png"
+    "TabsRename.png"
+    "TabsUp.png"
+    "download-spinner.png"
+    "entry-add.png"
+    "entry-delete.png"
+    "new-config.png"
+    "script.png"
+    "scriptcheck.png"
 )
 
 if(WIN32)
-    target_compile_options(TACConfigEditor
-        /Zi
+    target_compile_options(TACConfigEditor PRIVATE
+        $<$<AND:$<CXX_COMPILER_ID:MSVC>,$<CONFIG:Debug>>:/Zi>
     )
 endif()
 
@@ -87,41 +86,11 @@ if(LINUX)
     )
 endif()
 
-if(CMAKE_BUILD_TYPE STREQUAL Debug)
-    target_compile_definitions(TACConfigEditor PRIVATE
-        DEBUG
-        _DEBUG
-    )
-
-    target_link_libraries(TACConfigEditor PRIVATE
-        # Remove: L${CMAKE_CURRENT_SOURCE_DIR}/../../../__Builds//lib
-        QCommon-consoled
-        QCommond
-        UId
-    )
-endif()
-
-if(NOT CMAKE_BUILD_TYPE STREQUAL Debug)
-    target_compile_definitions(TACConfigEditor PRIVATE
-        NDEBUG
-        _NDEBUG
-    )
-
-    target_link_libraries(TACConfigEditor PRIVATE
-        # Remove: L${CMAKE_CURRENT_SOURCE_DIR}/../../../__Builds//lib
-        QCommon
-        QCommon-console
-        UI
-    )
-endif()
-
 if(UNIX)
     target_link_libraries(TACConfigEditor PRIVATE
         # Remove: rdynamic
     )
-
-    target_compile_options(TACConfigEditor
-        -Werror
+    target_compile_options(TACConfigEditor PRIVATE
         -Wno-comment
         -Wno-conversion-null
         -Wno-reorder
@@ -129,7 +98,6 @@ if(UNIX)
         -Wno-unused-function
         -Wno-unused-result
         -Wno-write-strings
-        -std=c++0x
     )
 endif()
 
@@ -141,24 +109,6 @@ if(APPLE)
     )
 endif()
 
-if((CONFIG(x32)) AND (WIN32))
-    target_compile_definitions(TACConfigEditor PRIVATE
-        _WIN32
-    )
-endif()
-
-if((CONFIG(x32)) AND (LINUX))
-    target_compile_definitions(TACConfigEditor PRIVATE
-        __i386__
-    )
-endif()
-
-if((NOT (CONFIG(x32))) AND (LINUX))
-    target_compile_definitions(TACConfigEditor PRIVATE
-        __X86_64__
-    )
-endif()
-
 install(TARGETS TACConfigEditor
     BUNDLE DESTINATION .
     RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
@@ -166,7 +116,7 @@ install(TARGETS TACConfigEditor
 
 qt_generate_deploy_app_script(
     TARGET TACConfigEditor
-    FILENAME_VARIABLE deploy_script
+    OUTPUT_SCRIPT deploy_script
     NO_UNSUPPORTED_PLATFORM_ERROR
 )
 install(SCRIPT ${deploy_script})

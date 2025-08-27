@@ -38,7 +38,7 @@
 
 #include "AlpacaScript.h"
 
-// qcommon-console
+// QCommonConsole
 #include "AppCore.h"
 #include "ConsoleApplicationEnhancements.h"
 #include "ScriptVariable.h"

@@ -39,7 +39,7 @@
 			Michael Simpson (msimpson@qti.qualcomm.com)
 */
 
-// qcommon-console
+// QCommonConsole
 #include "QCommonConsoleGlobal.h"
 #include "Button.h"
 #include "PinEntry.h"

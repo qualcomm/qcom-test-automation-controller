@@ -40,7 +40,7 @@
 #include "TACDriveThread.h"
 
 
-// qcommon-console
+// QCommonConsole
 #include "AlpacaDevice.h"
 #include "AppCore.h"
 #include "StringUtilities.h"

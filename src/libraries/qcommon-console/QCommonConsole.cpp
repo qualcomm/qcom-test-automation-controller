@@ -32,7 +32,7 @@
 	IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
-// Author: msimpson
+// Author: msimpson, biswroy
 
 #include "QCommonConsole.h"
 
@@ -43,7 +43,5 @@
 
 void InitializeQCommonConsole()
 {
-	Q_INIT_RESOURCE(qcommon_console);
-
 	PlatformContainer::initialize();
 }

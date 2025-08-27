@@ -4,40 +4,41 @@ qt_add_executable(DeviceCatalog WIN32 MACOSX_BUNDLE
     DeviceSelectionDialog.cpp DeviceSelectionDialog.h DeviceSelectionDialog.ui
     main.cpp
 )
+
 target_include_directories(DeviceCatalog PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}
-    ../../libraries/qcommon/../../../__Builds//ui/QCommon
-    ../qcommon-console
-    ../ui-common
+    ../../../libraries/qcommon-console
+    ../../../libraries/qcommon
+    ../../../libraries/ui-common
 )
 
 target_compile_definitions(DeviceCatalog PRIVATE
     QTAC_STATIC
     QT_DEPRECATED_WARNINGS
-    QT_DISABLE_DEPRECATED_BEFORE=0x060000
+    QT_DISABLE_DEPRECATED_UP_TO=0x060600
+    $<$<CONFIG:Debug>:DEBUG;_DEBUG>
+    $<$<NOT:$<CONFIG:Debug>>:NDEBUG;_NDEBUG>
 )
 
 target_link_libraries(DeviceCatalog PRIVATE
-    # Remove: L${CMAKE_CURRENT_SOURCE_DIR}/../../../__Builds//lib
     Qt::Core
     Qt::Gui
     Qt::SerialPort
     Qt::Widgets
     ftd2xx
-)
-
-
-# Resources:
-set(DeviceCatalog_resource_files
-    "resources/device-catalog.ico"
-    "resources/device-catalog.png"
+    $<$<CONFIG:Debug>:QCommonConsoled;QCommond;UId>
+    $<$<NOT:$<CONFIG:Debug>>:QCommon;QCommonConsole;UI>
 )
 
 qt_add_resources(DeviceCatalog "DeviceCatalog"
-    PREFIX
-        "/"
-    FILES
-        ${DeviceCatalog_resource_files}
+    PREFIX "/"
+    BASE "resources"
+    FILES ${DeviceCatalog_resource_files}
+)
+
+set(DeviceCatalog_resource_files
+    "device-catalog.ico"
+    "device-catalog.png"
 )
 
 if(WIN32)
@@ -47,66 +48,17 @@ if(WIN32)
         Winusb
     )
 
-    target_compile_options(DeviceCatalog
-        /Zi
+    target_compile_options(DeviceCatalog PRIVATE
+        $<$<AND:$<CXX_COMPILER_ID:MSVC>,$<CONFIG:Debug>>:/Zi>
     )
 endif()
 
 if(LINUX)
-    target_link_libraries(DeviceCatalog PRIVATE
-        dl
-    )
-endif()
-
-if(CMAKE_BUILD_TYPE STREQUAL Debug)
-    target_compile_definitions(DeviceCatalog PRIVATE
-        DEBUG
-        _DEBUG
-    )
-
-    target_link_libraries(DeviceCatalog PRIVATE
-        # Remove: L${CMAKE_CURRENT_SOURCE_DIR}/../../../__Builds//lib
-        QCommon-consoled
-        QCommond
-        UId
-    )
-endif()
-
-if(NOT CMAKE_BUILD_TYPE STREQUAL Debug)
-    target_compile_definitions(DeviceCatalog PRIVATE
-        NDEBUG
-        _NDEBUG
-    )
-
-    target_link_libraries(DeviceCatalog PRIVATE
-        # Remove: L${CMAKE_CURRENT_SOURCE_DIR}/../../../__Builds//lib
-        QCommon
-        QCommon-console
-        UI
-    )
-endif()
-
-if((CONFIG(x32)) AND (WIN32))
-    target_compile_definitions(DeviceCatalog PRIVATE
-        _WIN32
-    )
-endif()
-
-if((CONFIG(x32)) AND (LINUX))
-    target_compile_definitions(DeviceCatalog PRIVATE
-        __i386__
-    )
-endif()
-
-if((NOT (CONFIG(x32))) AND (LINUX))
-    target_compile_definitions(DeviceCatalog PRIVATE
-        __X86_64__
-    )
+    target_link_libraries(DeviceCatalog PRIVATE dl)
 endif()
 
 if(UNIX)
-    target_compile_options(DeviceCatalog
-        -Werror
+    target_compile_options(DeviceCatalog PRIVATE
         -Wno-comment
         -Wno-conversion-null
         -Wno-reorder
@@ -114,7 +66,6 @@ if(UNIX)
         -Wno-unused-function
         -Wno-unused-result
         -Wno-write-strings
-        -std=c++0x
     )
 endif()
 
@@ -125,7 +76,7 @@ install(TARGETS DeviceCatalog
 
 qt_generate_deploy_app_script(
     TARGET DeviceCatalog
-    FILENAME_VARIABLE deploy_script
+    OUTPUT_SCRIPT deploy_script
     NO_UNSUPPORTED_PLATFORM_ERROR
 )
 install(SCRIPT ${deploy_script})

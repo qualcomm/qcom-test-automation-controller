@@ -5,6 +5,7 @@ qt_add_executable(TAC WIN32 MACOSX_BUNDLE
     TACWindow.cpp TACWindow.h TACWindow.ui
     main.cpp
 )
+
 target_include_directories(TAC PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}
     ../../libraries/qcommon/../../../__Builds//ui/QCommon
@@ -15,7 +16,9 @@ target_include_directories(TAC PRIVATE
 target_compile_definitions(TAC PRIVATE
     QTAC_STATIC
     QT_DEPRECATED_WARNINGS
-    QT_DISABLE_DEPRECATED_BEFORE=0x060000
+    QT_DISABLE_DEPRECATED_UP_TO=0x060600
+    $<$<CONFIG:Debug>:DEBUG;_DEBUG>
+    $<$<NOT:$<CONFIG:Debug>>:NDEBUG;_NDEBUG>
 )
 
 target_link_libraries(TAC PRIVATE
@@ -25,28 +28,24 @@ target_link_libraries(TAC PRIVATE
     Qt::SerialPort
     Qt::Widgets
     ftd2xx
-)
-
-
-# Resources:
-set(TAC_resource_files
-    "resources/About.txt"
-    "resources/BugWriter.png"
-    "resources/NotificationBellRing.png"
-    "resources/NotificationBellSilent.png"
-    "resources/TAC.bmp"
-    "resources/TAC.png"
-    "resources/TAC_BS.png"
-    "resources/Warning.drawio.png"
+    $<$<CONFIG:Debug>:QcommonConsoled;QCommond;UId>
+    $<$<NOT:$<CONFIG:Debug>>:QCommon;QCommon-console;UI>
 )
 
 qt_add_resources(TAC "TAC"
-    PREFIX
-        "/"
-    BASE
-        "resources"
-    FILES
-        ${TAC_resource_files}
+    PREFIX "/"
+    BASE "resources"
+    FILES ${TAC_resource_files}
+)
+
+set(TAC_resource_files
+    "About.txt"
+    "BugWriter.png"
+    "NotificationBellRing.png"
+    "NotificationBellSilent.png"
+    "TAC.bmp"
+    "TAC.png"
+    "Warning.drawio.png"
 )
 
 if(WIN32)
@@ -59,8 +58,8 @@ if(WIN32)
         Wtsapi32
     )
 
-    target_compile_options(TAC
-        /Zi
+    target_compile_options(TAC PRIVATE
+        $<$<AND:$<CXX_COMPILER_ID:MSVC>,$<CONFIG:Debug>>:/Zi>
     )
 endif()
 
@@ -73,41 +72,11 @@ if(LINUX)
     )
 endif()
 
-if(CMAKE_BUILD_TYPE STREQUAL Debug)
-    target_compile_definitions(TAC PRIVATE
-        DEBUG
-        _DEBUG
-    )
-
-    target_link_libraries(TAC PRIVATE
-        # Remove: L${CMAKE_CURRENT_SOURCE_DIR}/../../../__Builds//lib
-        QCommon-consoled
-        QCommond
-        UId
-    )
-endif()
-
-if(NOT CMAKE_BUILD_TYPE STREQUAL Debug)
-    target_compile_definitions(TAC PRIVATE
-        NDEBUG
-        _NDEBUG
-    )
-
-    target_link_libraries(TAC PRIVATE
-        # Remove: L${CMAKE_CURRENT_SOURCE_DIR}/../../../__Builds//lib
-        QCommon
-        QCommon-console
-        UI
-    )
-endif()
-
 if(UNIX)
     target_link_libraries(TAC PRIVATE
         # Remove: rdynamic
     )
-
-    target_compile_options(TAC
-        -Werror
+    target_compile_options(TAC PRIVATE
         -Wno-comment
         -Wno-conversion-null
         -Wno-reorder
@@ -115,7 +84,6 @@ if(UNIX)
         -Wno-unused-function
         -Wno-unused-result
         -Wno-write-strings
-        -std=c++0x
     )
 endif()
 
@@ -127,24 +95,6 @@ if(APPLE)
     )
 endif()
 
-if((CONFIG(x32)) AND (WIN32))
-    target_compile_definitions(TAC PRIVATE
-        _WIN32
-    )
-endif()
-
-if((CONFIG(x32)) AND (LINUX))
-    target_compile_definitions(TAC PRIVATE
-        __i386__
-    )
-endif()
-
-if((NOT (CONFIG(x32))) AND (LINUX))
-    target_compile_definitions(TAC PRIVATE
-        __X86_64__
-    )
-endif()
-
 install(TARGETS TAC
     BUNDLE DESTINATION .
     RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
@@ -152,7 +102,7 @@ install(TARGETS TAC
 
 qt_generate_deploy_app_script(
     TARGET TAC
-    FILENAME_VARIABLE deploy_script
+    OUTPUT_SCRIPT deploy_script
     NO_UNSUPPORTED_PLATFORM_ERROR
 )
 install(SCRIPT ${deploy_script})

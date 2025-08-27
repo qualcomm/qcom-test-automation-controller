@@ -2,47 +2,27 @@ qt_add_library(TACDev
     TACDev.cpp TACDev.h
     TACDevCore.cpp TACDevCore.h
 )
+
 target_include_directories(TACDev PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}
-    ../../../src/libraries/qcommon-console/../../../__Builds//ui/QCommon
+    ../../../libraries/qcommon-console
 )
 
 target_compile_definitions(TACDev PUBLIC
     QTAC_STATIC
     QT_DISABLE_DEPRECATED_UP_TO=0x060600
     TACDEV_LIBRARY
+    $<$<CONFIG:Debug>:DEBUG;_DEBUG>
+    $<$<NOT:$<CONFIG:Debug>>:NDEBUG;_NDEBUG>
 )
 
 target_link_libraries(TACDev PUBLIC
-    # Remove: L${CMAKE_CURRENT_SOURCE_DIR}/../../../__Builds//lib
     Qt::Core
     Qt::SerialPort
     ftd2xx
+    $<$<CONFIG:Debug>:QCommonConsoled>
+    $<$<NOT:$<CONFIG:Debug>>:QCommonConsole>
 )
-
-if(CMAKE_BUILD_TYPE STREQUAL Debug)
-    target_compile_definitions(TACDev PUBLIC
-        DEBUG
-        _DEBUG
-    )
-
-    target_link_libraries(TACDev PUBLIC
-        # Remove: L${CMAKE_CURRENT_SOURCE_DIR}/../../../__Builds//lib
-        QCommon-consoled
-    )
-endif()
-
-if(NOT CMAKE_BUILD_TYPE STREQUAL Debug)
-    target_compile_definitions(TACDev PUBLIC
-        NDEBUG
-        _NDEBUG
-    )
-
-    target_link_libraries(TACDev PUBLIC
-        # Remove: L${CMAKE_CURRENT_SOURCE_DIR}/../../../__Builds//lib
-        QCommon-console
-    )
-endif()
 
 if(WIN32)
     target_link_libraries(TACDev PUBLIC
@@ -53,35 +33,14 @@ if(WIN32)
         Winusb
         Wtsapi32
     )
-endif()
 
-if(CMAKE_BUILD_TYPE STREQUAL Debug AND WIN32)
-    target_compile_options(TACDev
-        /Zi
-    )
-endif()
-
-if((CONFIG(x32)) AND (WIN32))
-    target_compile_definitions(TACDev PUBLIC
-        _WIN32
-    )
-endif()
-
-if((CONFIG(x32)) AND (LINUX))
-    target_compile_definitions(TACDev PUBLIC
-        __i386__
-    )
-endif()
-
-if((NOT (CONFIG(x32))) AND (LINUX))
-    target_compile_definitions(TACDev PUBLIC
-        __X86_64__
+    target_compile_options(TACDev PRIVATE
+        $<$<AND:$<CXX_COMPILER_ID:MSVC>,$<CONFIG:Debug>>:/Zi>
     )
 endif()
 
 if(UNIX)
-    target_compile_options(TACDev
-        -Werror
+    target_compile_options(TACDev PRIVATE
         -Wno-comment
         -Wno-conversion-null
         -Wno-reorder
@@ -89,7 +48,6 @@ if(UNIX)
         -Wno-unused-function
         -Wno-unused-result
         -Wno-write-strings
-        -std=c++0x
     )
 endif()
 

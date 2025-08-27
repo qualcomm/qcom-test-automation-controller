@@ -1,4 +1,8 @@
-qt_add_library(qcommon-console
+include(${CMAKE_CURRENT_SOURCE_DIR}/Common.cmake)
+
+set(LIBRARY_NAME QCommonConsole)
+
+qt_add_library(${LIBRARY_NAME} STATIC
     AlpacaDefines.cpp AlpacaDefines.h
     AlpacaDevice.cpp AlpacaDevice.h
     AlpacaScript.cpp AlpacaScript.h
@@ -23,8 +27,6 @@ qt_add_library(qcommon-console
     FTDIPlatformConfiguration.cpp FTDIPlatformConfiguration.h
     FrameCoder.cpp FrameCoder.h
     FramePackage.h
-    Hexify.h
-    KeyState.h
     LicenseFailEvent.cpp LicenseFailEvent.h
     Notification.h
     PinID.h
@@ -69,98 +71,31 @@ qt_add_library(qcommon-console
     private/TACLiteProtocol.cpp private/TACLiteProtocol.h
     version.h
 )
-target_include_directories(qcommon-console PUBLIC
-    ../../../__Builds//ui/QCommon
+
+set_target_properties(${LIBRARY_NAME} PROPERTIES
+    VERSION ALPACA_VERSION
 )
 
-target_compile_definitions(qcommon-console PUBLIC
+QCommonConsoleSettings(${LIBRARY_NAME})
+
+target_compile_definitions(${LIBRARY_NAME} PUBLIC
     QCOMMONCONSOLE_LIBRARY
     QTAC_STATIC
     QT_DISABLE_DEPRECATED_UP_TO=0x060600
+    $<$<CONFIG:Debug>:DEBUG;_DEBUG>
+    $<$<NOT:$<CONFIG:Debug>>:NDEBUG;_NDEBUG>
+    $<$<PLATFORM_ID:Windows>:FTD2XX_STATIC>
 )
 
-target_link_libraries(qcommon-console PUBLIC
-    Qt::Concurrent
-    Qt::Core
-    Qt::SerialPort
-    Qt::Xml
+target_link_libraries(${LIBRARY_NAME} PUBLIC
+    Qt6::Concurrent
+    Qt6::Core
+    Qt6::Network
+    Qt6::SerialPort
+    Qt6::Xml
+    ftd2xx
 )
 
-
-# Resources:
-set(qcommon-console_resource_files
-    "resources/about.txt"
-)
-
-qt_add_resources(qcommon-console "qcommon-console"
-    PREFIX
-        "/"
-    BASE
-        "resources"
-    FILES
-        ${qcommon-console_resource_files}
-)
-
-if(CMAKE_BUILD_TYPE STREQUAL Debug)
-    target_compile_definitions(qcommon-console PUBLIC
-        DEBUG
-        _DEBUG
-    )
-endif()
-
-if(NOT CMAKE_BUILD_TYPE STREQUAL Debug)
-    target_compile_definitions(qcommon-console PUBLIC
-        NDEBUG
-        _NDEBUG
-    )
-endif()
-
-if(WIN32)
-    target_compile_definitions(qcommon-console PUBLIC
-        FTD2XX_STATIC
-    )
-endif()
-
-if((CONFIG(x32)) AND (WIN32))
-    target_compile_definitions(qcommon-console PUBLIC
-        _WIN32
-    )
-endif()
-
-if((CONFIG(x32)) AND (LINUX))
-    target_compile_definitions(qcommon-console PUBLIC
-        __i386__
-    )
-endif()
-
-if((NOT (CONFIG(x32))) AND (LINUX))
-    target_compile_definitions(qcommon-console PUBLIC
-        __X86_64__
-    )
-endif()
-
-if(CMAKE_BUILD_TYPE STREQUAL Debug AND WIN32)
-    target_compile_options(qcommon-console
-        /Zi
-    )
-endif()
-
-if(UNIX)
-    target_compile_options(qcommon-console
-        -Werror
-        -Wno-comment
-        -Wno-conversion-null
-        -Wno-reorder
-        -Wno-unknown-pragmas
-        -Wno-unused-function
-        -Wno-unused-result
-        -Wno-write-strings
-        -std=c++0x
-    )
-endif()
-
-install(TARGETS qcommon-console
-    LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
-    FRAMEWORK DESTINATION ${CMAKE_INSTALL_LIBDIR}
-    RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
+qt_add_resources(${LIBRARY_NAME}
+    resources/QCommonConsole.qrc
 )

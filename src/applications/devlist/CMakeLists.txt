@@ -1,71 +1,31 @@
 qt_add_executable(DevList
     main.cpp
 )
+
 target_include_directories(DevList PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}
-    ../../libraries/qcommon-console/../../../__Builds//ui/QCommon
+    ../../libraries/qcommon-console
 )
 
 target_compile_definitions(DevList PRIVATE
     QTAC_STATIC
     QT_DISABLE_DEPRECATED_UP_TO=0x060600
+    $<$<CONFIG:Debug>:DEBUG;_DEBUG>
+    $<$<NOT:$<CONFIG:Debug>>:NDEBUG;_NDEBUG>
 )
 
 target_link_libraries(DevList PRIVATE
     Qt::Core
+    $<$<CONFIG:Debug>:QCommonConsoled>
+    $<$<NOT:$<CONFIG:Debug>>:QCommonConsole>
 )
 
-if(CMAKE_BUILD_TYPE STREQUAL Debug AND WIN32)
-    target_compile_options(DevList
-        /Zi
-    )
-endif()
-
-if(CMAKE_BUILD_TYPE STREQUAL Debug)
-    target_compile_definitions(DevList PRIVATE
-        DEBUG
-        _DEBUG
-    )
-
-    target_link_libraries(DevList PRIVATE
-        # Remove: L${CMAKE_CURRENT_SOURCE_DIR}/../../../__Builds//lib
-        QCommon-consoled
-    )
-endif()
-
-if(NOT CMAKE_BUILD_TYPE STREQUAL Debug)
-    target_compile_definitions(DevList PRIVATE
-        NDEBUG
-        _NDEBUG
-    )
-
-    target_link_libraries(DevList PRIVATE
-        # Remove: L${CMAKE_CURRENT_SOURCE_DIR}/../../../__Builds//lib
-        QCommon-console
-    )
-endif()
-
-if((CONFIG(x32)) AND (WIN32))
-    target_compile_definitions(DevList PRIVATE
-        _WIN32
-    )
-endif()
-
-if((CONFIG(x32)) AND (LINUX))
-    target_compile_definitions(DevList PRIVATE
-        __i386__
-    )
-endif()
-
-if((NOT (CONFIG(x32))) AND (LINUX))
-    target_compile_definitions(DevList PRIVATE
-        __X86_64__
-    )
-endif()
+target_compile_options(DevList PRIVATE
+    $<$<AND:$<CXX_COMPILER_ID:MSVC>,$<CONFIG:Debug>>:/Zi>
+)
 
 if(UNIX)
-    target_compile_options(DevList
-        -Werror
+    target_compile_options(DevList PRIVATE
         -Wno-comment
         -Wno-conversion-null
         -Wno-reorder
@@ -73,7 +33,6 @@ if(UNIX)
         -Wno-unused-function
         -Wno-unused-result
         -Wno-write-strings
-        -std=c++0x
     )
 endif()
 
@@ -84,7 +43,7 @@ install(TARGETS DevList
 
 qt_generate_deploy_app_script(
     TARGET DevList
-    FILENAME_VARIABLE deploy_script
+    OUTPUT_SCRIPT deploy_script
     NO_UNSUPPORTED_PLATFORM_ERROR
 )
 install(SCRIPT ${deploy_script})

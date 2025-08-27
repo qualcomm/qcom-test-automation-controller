@@ -7,7 +7,6 @@ find_package(QT NAMES Qt6 REQUIRED COMPONENTS Core)
 
 qt_standard_project_setup()
 
-
 add_subdirectory(qcommon-console)
 add_subdirectory(qcommon)
 add_subdirectory(ui-common)

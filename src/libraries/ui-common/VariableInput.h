@@ -39,7 +39,7 @@
 
 #include "ui_VariableInput.h"
 
-// qcommon-console
+// QCommonConsole
 #include "ScriptVariable.h"
 
 // Qt
