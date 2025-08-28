@@ -43,5 +43,6 @@
 
 void InitializeQCommonConsole()
 {
+	Q_INIT_RESOURCE(QCCResource);
 	PlatformContainer::initialize();
 }

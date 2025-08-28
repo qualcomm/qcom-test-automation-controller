@@ -40,8 +40,10 @@ else()
     set(LIBRARY_NAME QCommon)
 endif()
 
+set(CMAKE_AUTORCC ON)
+
 qt_add_resources(QCOMMON_RESOURCES
-    resources/QCommon.qrc
+    resources/QCResource.qrc
 )
 
 qt_add_library(${LIBRARY_NAME} STATIC

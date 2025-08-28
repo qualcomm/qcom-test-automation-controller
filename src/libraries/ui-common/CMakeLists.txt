@@ -10,6 +10,8 @@ qt_add_resources(UI_RESOURCES
     resources/UI.qrc
 )
 
+set(CMAKE_AUTORCC ON)
+
 qt_add_library(${LIBRARY_NAME} STATIC
     ColorConversion.cpp ColorConversion.h
     CommandButton.cpp CommandButton.h

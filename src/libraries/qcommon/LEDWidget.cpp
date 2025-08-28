@@ -62,10 +62,10 @@ LEDWidget::LEDWidget
 
 	if (LEDWidget::_initialized == false)
 	{
-		LEDWidget::_ledOff = new QPixmap(":/resources/LedOff.png");
-		LEDWidget::_greenLED = new QPixmap(":/resources/GreenLed.png");
-		LEDWidget::_redLED = new QPixmap(":/resources/RedLed.png");
-		LEDWidget::_blueLED = new QPixmap(":/resources/BlueLed.png");
+		LEDWidget::_ledOff = new QPixmap(":/LedOff.png");
+		LEDWidget::_greenLED = new QPixmap(":/GreenLed.png");
+		LEDWidget::_redLED = new QPixmap(":/RedLed.png");
+		LEDWidget::_blueLED = new QPixmap(":/BlueLed.png");
 	}
 
 	setLedColor(LedColor::eOff);

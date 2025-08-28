@@ -41,7 +41,7 @@ else()
 endif()
 
 qt_add_resources(QCOMMONCONSOLE_RESOURCES
-    resources/QCommonConsole.qrc
+    resources/QCCResource.qrc
 )
 
 qt_add_library(${LIBRARY_NAME} STATIC
