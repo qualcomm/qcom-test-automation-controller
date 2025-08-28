@@ -231,9 +231,9 @@ void DeviceCatalog::invokeProgrammer(const DebugBoardType type)
 void DeviceCatalog::invokeLiteProgrammer(const QString& serialNumber, const PlatformID platformId)
 {
 #ifdef Q_OS_LINUX
-	QString program = "/opt/qcom/QTAC/bin/lite-programmer";
+	QString program = "/opt/qcom/QTAC/bin/LITEProgrammer";
 #else
-	QString program = "lite-programmer";
+	QString program = "LITEProgrammer";
 #endif
 	QStringList arguments; //-p platformid=18 serial=FT6G3Z6Y
 	arguments << "-p";

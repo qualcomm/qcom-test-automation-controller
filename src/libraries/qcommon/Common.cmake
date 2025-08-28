@@ -1,21 +1,21 @@
 # Copyright (c) Qualcomm Technologies, Inc. and/or its subsidiaries. 
-#  
+#
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted (subject to the limitations in the
 # disclaimer below) provided that the following conditions are met:
-#  
-# 	* Redistributions of source code must retain the above copyright
-# 	  notice, this list of conditions and the following disclaimer.
-#  
-# 	* Redistributions in binary form must reproduce the above
-# 	  copyright notice, this list of conditions and the following
-# 	  disclaimer in the documentation and/or other materials provided
-# 	  with the distribution.
-#  
-# 	* Neither the name of Qualcomm Technologies, Inc. nor the names of its
-# 	  contributors may be used to endorse or promote products derived
-# 	  from this software without specific prior written permission.
-#  
+#     
+#     * Redistributions of source code must retain the above copyright
+#         notice, this list of conditions and the following disclaimer.
+#     
+#     * Redistributions in binary form must reproduce the above
+#         copyright notice, this list of conditions and the following
+#         disclaimer in the documentation and/or other materials provided
+#         with the distribution.
+#     
+#     * Neither the name of Qualcomm Technologies, Inc. nor the names of its
+#         contributors may be used to endorse or promote products derived
+#         from this software without specific prior written permission.
+#     
 # NO EXPRESS OR IMPLIED LICENSES TO ANY PARTY'S PATENT RIGHTS ARE
 # GRANTED BY THIS LICENSE. THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT
 # HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED
@@ -30,14 +30,16 @@
 # OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN
 # IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
+# Author: Biswajit Roy (biswroy@qti.qualcomm.com)
+
 include(${CMAKE_SOURCE_DIR}/src/libraries/qcommon-console/version.cmake)
 
 # Set path variables
-set(QCOMMON ${CMAKE_CURRENT_SOURCE_DIR})
-set(QCOMMONCONSOLE ${CMAKE_CURRENT_SOURCE_DIR}/../qcommon-console)
-set(LIBUI ${CMAKE_CURRENT_SOURCE_DIR}/../ui-common)
-set(TACDEV ${CMAKE_CURRENT_SOURCE_DIR}/../../../interfaces/C++/TACDev)
-set(TACLOC ${CMAKE_CURRENT_SOURCE_DIR}/../TAC)
+set(QCOMMON ${CMAKE_SOURCE_DIR}/src/libraries/qcommon)
+set(QCOMMONCONSOLE ${CMAKE_SOURCE_DIR}/src/libraries/qcommon-console)
+set(LIBUI ${CMAKE_SOURCE_DIR}/src/libraries/ui-common)
+set(TACDEV ${CMAKE_SOURCE_DIR}/interfaces/C++/TACDev)
+set(TACLOC ${CMAKE_SOURCE_DIR}/src/applications/TAC)
 
 # Common compile definitions
 set(QCOMMON_DEFINITIONS
@@ -113,7 +115,7 @@ else()
 endif()
 
 # Build paths
-set(BUILDROOT ${CMAKE_CURRENT_SOURCE_DIR}/../../../__Builds/${CONFIGURATION})
+set(BUILDROOT ${CMAKE_SOURCE_DIR}/__Builds/${CONFIGURATION})
 set(BINPATH ${BUILDROOT}/bin)
 set(STATIC_LIBPATH ${BUILDROOT}/lib)
 

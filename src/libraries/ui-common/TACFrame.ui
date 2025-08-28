@@ -67,7 +67,7 @@
              <string/>
             </property>
             <property name="pixmap">
-             <pixmap resource="resources/ui-common.qrc">:/Warning.drawio.png</pixmap>
+             <pixmap resource="resources/UI.qrc">:/Warning.drawio.png</pixmap>
             </property>
            </widget>
           </item>
@@ -860,7 +860,7 @@
  </widget>
  <layoutdefault spacing="6" margin="11"/>
  <resources>
-  <include location="resources/ui-common.qrc"/>
+  <include location="resources/UI.qrc"/>
  </resources>
  <connections/>
 </ui>

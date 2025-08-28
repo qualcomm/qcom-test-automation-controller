@@ -37,7 +37,7 @@
 */
 
 
-// lite-programmer
+// LITEProgrammer
 #include "ProgrammerCommandLine.h"
 
 // QCommonConsole
