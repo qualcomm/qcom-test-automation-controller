@@ -42,6 +42,12 @@ qt_add_executable(${APP_NAME}
     main.cpp
 )
 
+if(WIN32)
+    target_sources(${APP_NAME} PRIVATE resources/FTDICheck.rc)
+elseif(UNIX AND NOT APPLE)
+    install(FILES resources/FTDICheck.desktop DESTINATION share/applications)
+endif()
+
 target_include_directories(${APP_NAME} PRIVATE
     ${CMAKE_SOURCE_DIR}/src/libraries/qcommon-console
 )

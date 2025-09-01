@@ -57,6 +57,14 @@ qt_add_executable(${APP_NAME} WIN32
     ${TAC_EDITOR_RESOURCES}
 )
 
+if(WIN32)
+    set_target_properties(${APP_NAME} PROPERTIES WIN32_EXECUTABLE TRUE)
+    target_sources(${APP_NAME} PRIVATE resources/TACConfigEditor.rc)
+elseif(UNIX AND NOT APPLE)
+    install(FILES resources/TACConfigEditor.desktop DESTINATION share/applications)
+    install(FILES resources/TACConfigEditor.png DESTINATION share/icons/hicolor/48x48/apps RENAME tac-config-editor.png)
+endif()
+
 target_include_directories(${APP_NAME} PRIVATE
     ${CMAKE_SOURCE_DIR}/src/libraries/qcommon-console
     ${CMAKE_SOURCE_DIR}/src/libraries/qcommon

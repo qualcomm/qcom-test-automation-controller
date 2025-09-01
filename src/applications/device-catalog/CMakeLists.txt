@@ -49,6 +49,14 @@ qt_add_executable(${APP_NAME} WIN32
     ${DC_RESOURCES}
 )
 
+if(WIN32)
+    set_target_properties(${APP_NAME} PROPERTIES WIN32_EXECUTABLE TRUE)
+    target_sources(${APP_NAME} PRIVATE resources/DeviceCatalog.rc)
+elseif(UNIX AND NOT APPLE)
+    install(FILES resources/DeviceCatalog.desktop DESTINATION share/applications)
+    install(FILES resources/device-catalog.png DESTINATION share/icons/hicolor/48x48/apps RENAME device-catalog.png)
+endif()
+
 target_include_directories(${APP_NAME} PRIVATE
     ${CMAKE_SOURCE_DIR}/src/libraries/qcommon-console
     ${CMAKE_SOURCE_DIR}/src/libraries/qcommon
