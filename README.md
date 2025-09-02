@@ -33,55 +33,13 @@ the scripts at [third-party](./third-party/) to automatically download and setup
 
 #### Compile QTAC for Windows
 
-The following steps will help you compile QTAC from source using via command line.
-
-1. Start Qt 6.9.0 command line
-2. Change to the project root directory
-3. Navigate to your [Visual Studio 2022 Build Tools](https://visualstudio.microsoft.com/downloads/#build-tools-for-visual-studio-2022)
-   install directory and look for `vcvars64.bat`. Copy the path to this script > Example: C:\Program Files (x86)\Microsoft Visual Studio\2022\BuildTools\VC\Auxiliary\Build\vcvars64.bat
-4. Paste this path inside Qt 6.9.0 command line
-5. Change command-line working directory to the project root
-6. Execute below commands to get the necessary compile executables for applicable use-cases
-
-   **Debug version**
-
-   ```shell
-   %QTJOM% clean
-   qmake6 qtac-workspace.pro -spec win32-msvc "CONFIG+=debug" "CONFIG+=qml_debug" && %QTJOM% qmake_all
-   %QTJOM%
-   ```
-
-   **Release version**
-
-   ```shell
-   %QTJOM% clean
-   qmake6 qtac-workspace.pro -spec win32-msvc "CONFIG+=qtquickcompiler" && %QTJOM% qmake_all
-   %QTJOM%
-   ```
+Execute the [build.bat](./build.bat) to generate the executables for `debug` as well as `release`.
+Please find the output files at __Builds/x64/<Debug>/<Release>.
 
 #### Compile QTAC for Linux
 
-1. Start a bash terminal. Make sure the [environment variables](#configure-environment-variables) are configured correctly
-2. Change to the project root directory
-3. Make sure **GNU Make 4.3 or above** is accessible on the path by executing: `which make && make --version`
-4. Change terminal working directory to the project root
-5. Execute below commands to get the necessary compile executables for applicable use-cases
-
-   **Debug version**
-
-   ```shell
-   make clean
-   $QTBIN/qmake6 qtac-workspace.pro -spec linux-g++ CONFIG+=debug CONFIG+=qml_debug && /usr/bin/make qmake_all
-   make -j12
-   ```
-
-   **Release version**
-
-   ```shell
-   make clean
-   $QTBIN/qmake6 qtac-workspace.pro -spec linux-g++ CONFIG+=qtquickcompiler && /usr/bin/make qmake_all
-   make -j12
-   ```
+Execute the [build.bat](./build.sh) to generate the executables for `debug` as well as `release`.
+Please find the output files at __Builds/x64/<Debug>/<Release>.
 
 ## Software install guide
 
@@ -109,16 +67,12 @@ Required additional libraries:
 
 With the development tools installed on your system, please set up the following environment variables:
 
-- `QTDIR`: `C:\Qt\<version>`
-- `QTBIN`: `C:\Qt\<version>\msvc2022_64`
-- `QTJOM`: `C:\Qt\Tools\QtCreator\bin\jom\jom.exe` (Windows ony)
+- `QTBIN`: `C:\Qt\<version>\msvc2022_64\bin`
 
 **On Windows**:
 
 ```cmd
-setx QTDIR C:\Qt\<version>
-setx QTBIN %QTDIR%\msvc2022_64
-setx QTJOM C:/Qt/Tools/QtCreator/bin/jom/jom.exe
+setx QTBIN C:\Qt\<version>\msvc2022_64\bin
 ```
 
 **On Linux**:
@@ -127,8 +81,7 @@ Start a bash terminal at the project root and ensure [make](https://www.gnu.org/
 Then, execute the below commands.
 
 ```bash
-export QTDIR=/path/to/Qt/directory/<version>
-export QTBIN=$QTDIR/gcc_64/bin
+export QTBIN=$/path/to/Qt/directory/<version>/gcc_64/bin
 ```
 
 ## Repository structure
