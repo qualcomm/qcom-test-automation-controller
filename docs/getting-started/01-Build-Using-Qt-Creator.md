@@ -33,8 +33,7 @@ The numbers on the image refers to some of the areas you need to review before b
 
 ## Setup third-party libraries
 QTAC uses FTDI libraries to control FT4232H chip on the debug board. You can find out more about the FTDI D2XX libraries
-[here](https://ftdichip.com/drivers/d2xx-drivers/). You can either manually download and setup the `ftd2xx.lib` or use
-the scripts at [third-party](../../third-party/) to automatically download and setup libraries. This is necessary to build from source.
+[here](https://ftdichip.com/drivers/d2xx-drivers/). The CMake scripts take care of setting up the libraries and no manual step is required. 
 
 ## Open project
 Now you're set to build the project using Qt Creator.
