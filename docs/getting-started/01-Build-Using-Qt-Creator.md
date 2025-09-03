@@ -39,13 +39,13 @@ the scripts at [third-party](../../third-party/) to automatically download and s
 ## Open project
 Now you're set to build the project using Qt Creator.
 
-Open the [qtac-workspace.pro](../../qtac-workspace.pro) inside Qt Creator. This sets up the project structure for you in the editor.
+Open the [CMakeLists.txt](../../CMakeLists.txt) inside Qt Creator. This sets up the project structure for you in the editor.
 You do not need to manually configure Qt dependencies or open sub-projects.
 
 ![Load Qt project](../resources/qt-creator-open-project.png)
 
 ## Load project
-![Load Qt project pro](../resources/qt-creator-open-project-pro.png)
+![Load Qt project](../resources/qt-creator-open-project-cmake.png)
 
 ## Configure project
 ![Configure Qt project](../resources/qt-creator-configure-project.png)
