@@ -38,7 +38,7 @@
 
 #include "USBDescriptors.h"
 
-// qcommon-console
+// QCommonConsole
 #include "ConsoleApplicationEnhancements.h"
 #include "Range.h"
 

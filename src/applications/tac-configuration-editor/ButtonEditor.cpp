@@ -40,7 +40,7 @@
 #include "ButtonEditor.h"
 #include "CustomValidator.h"
 
-// qcommon-console
+// QCommonConsole
 #include "PlatformConfigurationException.h"
 #include "StringUtilities.h"
 

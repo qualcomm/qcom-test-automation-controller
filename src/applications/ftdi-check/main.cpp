@@ -39,7 +39,7 @@
 #include "FTDICheckCommandLine.h"
 #include "FTDICheckApplication.h"
 
-// qcommon-console
+// QCommonConsole
 #include "AppCore.h"
 #include "PreferencesBase.h"
 #include "QCommonConsole.h"

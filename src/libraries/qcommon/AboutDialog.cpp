@@ -40,7 +40,7 @@
 #include "ui_AboutDialog.h"
 #include "AboutDialog.h"
 
-// qcommon-console
+// QCommonConsole
 #include "AlpacaDefines.h"
 #include "AppCore.h"
 #include "StringProof.h"

@@ -37,10 +37,10 @@
 */
 
 
-// lite-programmer
+// LITEProgrammer
 #include "ProgrammerCommandLine.h"
 
-// qcommon-console
+// QCommonConsole
 #include "FTDIDevice.h"
 #include "Range.h"
 #include "QCommonConsole.h"

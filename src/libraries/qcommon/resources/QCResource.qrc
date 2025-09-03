@@ -1,0 +1,16 @@
+<RCC>
+    <qresource prefix="/">
+        <file>BlueLed.png</file>
+        <file>GreenLed.png</file>
+        <file>LedOff.png</file>
+        <file>RedLed.png</file>
+        <file>ChartKey.png</file>
+        <file>QTAC.ico</file>
+        <file>QTAC-lg.png</file>
+        <file>DissatisfiedStar.png</file>
+        <file>HappyStar.png</file>
+        <file>LoveStar.png</file>
+        <file>Satisfied.png</file>
+        <file>Unhappy.png</file>
+    </qresource>
+</RCC>

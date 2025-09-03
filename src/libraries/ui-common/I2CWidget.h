@@ -42,7 +42,7 @@ namespace Ui {
 	class I2CWidget;
 }
 
-// qcommon-console
+// QCommonConsole
 #include "AlpacaDevice.h"
 
 // Qt

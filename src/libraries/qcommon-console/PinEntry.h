@@ -41,7 +41,7 @@
 */
 
 
-// qcommon-console
+// QCommonConsole
 #include "CommandGroup.h"
 #include "PinID.h"
 #include "StringUtilities.h"

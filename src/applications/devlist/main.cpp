@@ -37,7 +37,7 @@
 */
 
 
-// qcommon-console
+// QCommonConsole
 #include "ConsoleApplicationEnhancements.h"
 #include "USBDescriptors.h"
 

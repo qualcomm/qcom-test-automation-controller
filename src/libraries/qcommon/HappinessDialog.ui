@@ -118,7 +118,7 @@
          <string/>
         </property>
         <property name="pixmap">
-         <pixmap resource="QCommon.qrc">:/resources/DissatisfiedStar.png</pixmap>
+         <pixmap resource="QCommon.qrc">:/DissatisfiedStar.png</pixmap>
         </property>
        </widget>
       </item>
@@ -149,7 +149,7 @@
          <string/>
         </property>
         <property name="pixmap">
-         <pixmap resource="QCommon.qrc">:/resources/Unhappy.png</pixmap>
+         <pixmap resource="QCommon.qrc">:/Unhappy.png</pixmap>
         </property>
        </widget>
       </item>
@@ -180,7 +180,7 @@
          <string/>
         </property>
         <property name="pixmap">
-         <pixmap resource="QCommon.qrc">:/resources/Satisfied.png</pixmap>
+         <pixmap resource="QCommon.qrc">:/Satisfied.png</pixmap>
         </property>
        </widget>
       </item>
@@ -217,7 +217,7 @@
          <string/>
         </property>
         <property name="pixmap">
-         <pixmap resource="QCommon.qrc">:/resources/HappyStar.png</pixmap>
+         <pixmap resource="QCommon.qrc">:/HappyStar.png</pixmap>
         </property>
        </widget>
       </item>
@@ -242,7 +242,7 @@
          <string/>
         </property>
         <property name="pixmap">
-         <pixmap resource="QCommon.qrc">:/resources/LoveStar.png</pixmap>
+         <pixmap resource="QCommon.qrc">:/LoveStar.png</pixmap>
         </property>
        </widget>
       </item>

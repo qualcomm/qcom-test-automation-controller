@@ -43,7 +43,6 @@
 
 void InitializeQCommon()
 {
-	Q_INIT_RESOURCE(QCommon);
-
+	Q_INIT_RESOURCE(QCResource);
 	InitializeQCommonConsole();
 }

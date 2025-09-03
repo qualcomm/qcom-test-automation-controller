@@ -41,7 +41,7 @@
 // QCommon
 #include "CommandLineParser.h"
 
-const QString kAppName{"lite-programmer"};
+const QString kAppName{"LITEProgrammer"};
 
 class ProgrammerCommandLine :
 	public CommandLineParser

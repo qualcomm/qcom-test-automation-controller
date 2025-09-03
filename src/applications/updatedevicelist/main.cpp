@@ -42,7 +42,7 @@
 #include "UDLCommandLine.h"
 #include "UpdateDeviceList.h"
 
-// qcommon-console
+// QCommonConsole
 #include "AppCore.h"
 #include "PreferencesBase.h"
 #include "QCommonConsole.h"

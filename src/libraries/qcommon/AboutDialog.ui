@@ -32,7 +32,7 @@
         <string/>
        </property>
        <property name="pixmap">
-        <pixmap resource="QCommon.qrc">:/resources/Alpaca_BS.png</pixmap>
+        <pixmap resource="QCommon.qrc">:/QTAC-lg.png</pixmap>
        </property>
       </widget>
      </item>

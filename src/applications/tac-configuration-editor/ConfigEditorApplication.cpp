@@ -96,7 +96,7 @@ void ConfigEditorApplication::showAboutDialog()
 	aboutDialog.setAppName(kTACConfigEditorApp);
 	aboutDialog.setAppVersion(kTACConfigEditorVersion.toLatin1());
 
-	QPixmap pixMap = QPixmap(QString::fromUtf8(":/TACConfigEditor_BS.png"));
+	QPixmap pixMap = QPixmap(QString::fromUtf8(":/TACConfigEditor.png"));
 	aboutDialog.setBackSplash(pixMap);
 
 	aboutDialog.exec();

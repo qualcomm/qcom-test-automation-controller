@@ -41,7 +41,7 @@
 #include <QStandardPaths>
 #include <QString>
 
-// qcommon-console
+// QCommonConsole
 #include "PreferencesBase.h"
 
 class QCOMMONCONSOLE_EXPORT TACPreferences :

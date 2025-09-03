@@ -158,7 +158,7 @@ void TACApplication::showAboutDialog()
 
 	aboutDialog.setAppName(kAppName);
 	aboutDialog.setAppVersion(kAppVersion.toLatin1());
-	QPixmap pixMap = QPixmap(QString::fromUtf8(":/TAC_BS.png"));
+	QPixmap pixMap = QPixmap(QString::fromUtf8(":/TAC.png"));
 	aboutDialog.setBackSplash(pixMap);
 
 	aboutDialog.exec();

@@ -1,0 +1,6 @@
+<RCC>
+    <qresource prefix="/">
+        <file>device-catalog.ico</file>
+        <file>device-catalog.png</file>
+    </qresource>
+</RCC>

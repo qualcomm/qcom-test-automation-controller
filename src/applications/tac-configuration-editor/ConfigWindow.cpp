@@ -59,7 +59,7 @@
 #include "PlatformID.h"
 #include "SystemInformation.h"
 
-// qcommon-console
+// QCommonConsole
 #include "ConsoleApplicationEnhancements.h"
 #include "CustomValidator.h"
 
