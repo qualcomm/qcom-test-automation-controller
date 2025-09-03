@@ -35,7 +35,7 @@
 @echo off
 
 if "%QTBIN%"=="" (
-    echo Set QTBIN first
+    echo Set QTBIN to the bin directory of the Qt installed location
     exit /b 1
 )
 
