@@ -34,12 +34,12 @@ the scripts at [third-party](./third-party/) to automatically download and setup
 #### Compile QTAC for Windows
 
 Execute the [build.bat](./build.bat) to generate the executables for `debug` as well as `release`.
-Please find the output files at __Builds/x64/<Debug>/<Release>.
+Please find the output files at __Builds/x64/\<Debug>/\<Release>.
 
 #### Compile QTAC for Linux
 
 Execute the [build.bat](./build.sh) to generate the executables for `debug` as well as `release`.
-Please find the output files at __Builds/x64/<Debug>/<Release>.
+Please find the output files at __Builds/x64/\<Debug>/\<Release>.
 
 ## Software install guide
 
@@ -48,7 +48,7 @@ Please find the output files at __Builds/x64/<Debug>/<Release>.
 | Category | Software | Minimum version
 | :-- | :-- | :-- |
 | Operating System | Windows, Debian | Windows 10 & above<br>Ubuntu 22.04 & above |
-| Software development | [Visual Studio 2022 Build Tools (Community)](https://visualstudio.microsoft.com/downloads/#build-tools-for-visual-studio-2022) (Windows)<br>GCC (Linux) |  MSVC 2022 (Windows)<br>GCC-11, G++-11, GLIBC-2.35 (Linux) |
+| Software development | [Visual Studio Compiler 2022](https://visualstudio.microsoft.com/downloads/#build-tools-for-visual-studio-2022) (Windows)<br>GCC (Linux) |  MSVC 2022 (Windows)<br>GCC-11, G++-11, GLIBC-2.35 (Linux) |
 | Software development | [Qt Open-source](https://www.qt.io/download-qt-installer-oss) | 6.9.0 and above |
 
 Please review the usage policies, license terms, and conditions of the above software before use.
