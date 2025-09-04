@@ -25,21 +25,22 @@ Use the below command to clone the project source:
 git clone https://github.com/qualcomm/qcom-test-automation-controller.git
 ```
 
-### Setup third-party libraries
+### Compile QTAC for Windows
 
-QTAC uses FTDI libraries to control FT4232H chip on the debug board. You can find out more about the FTDI D2XX libraries
-[here](https://ftdichip.com/drivers/d2xx-drivers/). You may either download and setup the `ftd2xx` library or use
-the scripts at [third-party](./third-party/) to automatically download and setup libraries. This step is required to build from source.
+Execute the [build.bat](./build.bat) to generate the executables on Windows.
+- Debug build will be available at `__Builds/x64/<Debug>`
+- Release build will be available at `__Builds/x64/<Release>`
 
-#### Compile QTAC for Windows
+### Compile QTAC for Linux
 
-Execute the [build.bat](./build.bat) to generate the executables for `debug` as well as `release`.
-Please find the output files at __Builds/x64/\<Debug>/\<Release>.
+Execute the [build.sh](./build.sh) to generate the executables on Linux.
+- Debug build will be available at `__Builds/x64/<Debug>`
+- Release build will be available at `__Builds/x64/<Release>`
 
-#### Compile QTAC for Linux
 
-Execute the [build.bat](./build.sh) to generate the executables for `debug` as well as `release`.
-Please find the output files at __Builds/x64/\<Debug>/\<Release>.
+**Note on FTDI libraries**
+> QTAC uses FTDI libraries to control FT4232H chip on the debug board. Find out more about the FTDI D2XX libraries
+[here](https://ftdichip.com/drivers/d2xx-drivers/). FTDI libraries are installed _automatically_ during the cmake configuration step.
 
 ## Software install guide
 
