@@ -150,5 +150,5 @@ and conditions before contributing.
 
 ## Using Qt Creator for development
 
-If you're interested in compiling thr project using Qt Creator, please refer the
+If you're interested in compiling the project using Qt Creator, please refer the
 [01-Build-Using-Qt-Creator](./docs/getting-started/01-Build-Using-Qt-Creator.md) guide.
