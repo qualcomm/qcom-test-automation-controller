@@ -11,18 +11,50 @@ jobs:
         qt_version: ['6.8.3', '6.9.2']
         build_type: [Debug, Release]
         qwt_version: ['6.3.0'] 
+
     steps:
     - uses: actions/checkout@v4
+
     - name: Install Qt ${{ matrix.qt_version }} on ${{ matrix.os }}
-      uses: jurplel/install-qt-action@v4
+      run: |
+        QT_INSTALL_DIR="$HOME/Qt/${{ matrix.qt_version }}"
+        if [ -d "$QT_INSTALL_DIR" ]; then
+          echo "Qt ${{ matrix.qt_version }} is already installed. Skipping download."
+        else
+          QT_INSTALLER_NAME="qt-unified-linux-x64.run"
+          wget -q "https://download.qt.io/official_releases/online_installers/${QT_INSTALLER_NAME}"
+          chmod +x ${QT_INSTALLER_NAME}
+          
+          QT_SCRIPT_FILE="qt_install_script.qs"
+          QT_ARCH_NAME="gcc_64"
+          echo "function Controller() {" > $QT_SCRIPT_FILE
+          echo "  installer.setValue('ComponentList', '" >> $QT_SCRIPT_FILE
+          echo "qt.qt6.${{ matrix.qt_version }}.widgets," >> $QT_SCRIPT_FILE
+          echo "qt.qt6.${{ matrix.qt_version }}.qtserialport," >> $QT_SCRIPT_FILE
+          echo "qt.qt6.${{ matrix.qt_version }}.qtmultimedia" >> $QT_SCRIPT_FILE
+          echo "  ');" >> $QT_SCRIPT_FILE
+          echo "  installer.installationFinished.connect(function() { console.log('Installation finished!'); });" >> $QT_SCRIPT_FILE
+          echo "}" >> $QT_SCRIPT_FILE
+          ./${QT_INSTALLER_NAME} --root "${QT_INSTALL_DIR}" --script "$QT_SCRIPT_FILE"
+        fi
+
+    - name: Set environment variables for Qt on Linux
+      run: |
+        QT_ROOT_DIR="$HOME/Qt/${{ matrix.qt_version }}/${{ matrix.qt_version }}/gcc_64"
+        echo "QT_ROOT_DIR=$QT_ROOT_DIR" >> $GITHUB_ENV
+        echo "$QT_ROOT_DIR/bin" >> $GITHUB_PATH
+
+    - name: Cache Qt installation on Linux
+      uses: actions/cache@v4
       with:
-        version: ${{ matrix.qt_version }}
-        modules: 'widgets qtserialport qtmultimedia'
-        cache: true
+        path: ${{ env.QT_ROOT_DIR }}
+        key: ${{ runner.os }}-qt-${{ matrix.qt_version }}
+
     - name: Install Qwt build dependencies
       run: |
         sudo apt-get update
         sudo apt-get install -y wget
+    
     - name: Download and build Qwt ${{ matrix.qwt_version }} from source
       run: |
         wget https://sourceforge.net/projects/qwt/files/qwt/${{ matrix.qwt_version }}/qwt-${{ matrix.qwt_version }}.tar.bz2
@@ -41,7 +73,6 @@ jobs:
 
   build-windows:
     runs-on: windows-2022
-    
     strategy:
       matrix:
         qt_version: ['6.8.3', '6.9.2']
@@ -50,19 +81,44 @@ jobs:
 
     steps:
     - uses: actions/checkout@v4
-    
+
     - name: Install Qt ${{ matrix.qt_version }} for MSVC
-      uses: jurplel/install-qt-action@v4
+      shell: powershell
+      run: |
+        $env:QT_INSTALL_DIR = "C:\Qt"
+        if (Test-Path "$env:QT_INSTALL_DIR") {
+          Write-Output "Qt already installed. Skipping."
+        } else {
+          $INSTALLER_NAME = "qt-unified-windows-x64-online.exe"
+          Invoke-WebRequest "https://download.qt.io/official_releases/online_installers/${INSTALLER_NAME}" -OutFile $INSTALLER_NAME
+          
+          $QT_SCRIPT_FILE = "qt_install_script.qs"
+          $QT_ARCH_NAME = "win64_msvc2022_64"
+          @"
+          function Controller() {
+            installer.setValue('ComponentList', 'qt.qt6.${{ matrix.qt_version }}.widgets_${QT_ARCH_NAME},qt.qt6.${{ matrix.qt_version }}.qtserialport_${QT_ARCH_NAME},qt.qt6.${{ matrix.qt_version }}.qtmultimedia_${QT_ARCH_NAME}');
+            installer.installationFinished.connect(function() { console.log('Installation finished!'); });
+          }
+          "@ | Out-File $QT_SCRIPT_FILE
+            .\${INSTALLER_NAME} --root "$env:QT_INSTALL_DIR" --script "$QT_SCRIPT_FILE"
+          }
+
+    - name: Set environment variables for Qt on Windows
+      shell: powershell
+      run: |
+        $env:QT_ROOT_DIR = (Get-ChildItem "C:\Qt\${{ matrix.qt_version }}" -Filter "msvc*" | Select-Object -First 1).FullName
+        Write-Output "QT_ROOT_DIR=$env:QT_ROOT_DIR" >> $env:GITHUB_ENV
+        Write-Output "$env:QT_ROOT_DIR\bin" >> $env:GITHUB_PATH
+        
+    - name: Cache Qt installation on Windows
+      uses: actions/cache@v4
       with:
-        version: ${{ matrix.qt_version }}
-        target: 'desktop'
-        arch: 'win64_msvc2022_64'
-        modules: 'widgets qtserialport qtmultimedia'
-        cache: true
+        path: ${{ env.QT_ROOT_DIR }}
+        key: ${{ runner.os }}-qt-${{ matrix.qt_version }}
 
     - name: Download and build Qwt ${{ matrix.qwt_version }} from source
       run: |
-        choco install wget
+        choco install wget 7zip -y
         wget https://sourceforge.net/projects/qwt/files/qwt/${{ matrix.qwt_version }}/qwt-${{ matrix.qwt_version }}.zip -P %TEMP%
         7z x %TEMP%\qwt-${{ matrix.qwt_version }}.zip -o"%TEMP%\qwt"
         cd %TEMP%\qwt\qwt-${{ matrix.qwt_version }}
@@ -77,6 +133,6 @@ jobs:
         mkdir build
         cd build
         cmake .. -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} -DCMAKE_PREFIX_PATH="c:\qwt"
-      
+    
     - name: Build with ${{ matrix.build_type }}
       run: cmake --build build --config ${{ matrix.build_type }}
