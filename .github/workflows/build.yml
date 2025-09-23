@@ -1,0 +1,82 @@
+name: CMake Build
+
+on: [push, pull_request]
+
+jobs:
+  build-linux:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-22.04, ubuntu-latest]
+        qt_version: ['6.8.3', '6.9.2']
+        build_type: [Debug, Release]
+        qwt_version: ['6.3.0'] 
+    steps:
+    - uses: actions/checkout@v4
+    - name: Install Qt ${{ matrix.qt_version }} on ${{ matrix.os }}
+      uses: jurplel/install-qt-action@v4
+      with:
+        version: ${{ matrix.qt_version }}
+        modules: 'widgets qtserialport qtmultimedia'
+        cache: true
+    - name: Install Qwt build dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y wget
+    - name: Download and build Qwt ${{ matrix.qwt_version }} from source
+      run: |
+        wget https://sourceforge.net/projects/qwt/files/qwt/${{ matrix.qwt_version }}/qwt-${{ matrix.qwt_version }}.tar.bz2
+        tar xjf qwt-${{ matrix.qwt_version }}.tar.bz2
+        cd qwt-${{ matrix.qwt_version }}
+        $(which qmake) qwt.pro
+        make
+        sudo make install
+    - name: Configure CMake for ${{ matrix.build_type }}
+      run: |
+        mkdir build
+        cd build
+        cmake .. -DCMAKE_BUILD_TYPE=${{ matrix.build_type }}
+    - name: Build with ${{ matrix.build_type }}
+      run: cmake --build build --config ${{ matrix.build_type }}
+
+  build-windows:
+    runs-on: windows-2022
+    
+    strategy:
+      matrix:
+        qt_version: ['6.8.3', '6.9.2']
+        build_type: [Debug, Release]
+        qwt_version: ['6.3.0'] 
+
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Install Qt ${{ matrix.qt_version }} for MSVC
+      uses: jurplel/install-qt-action@v4
+      with:
+        version: ${{ matrix.qt_version }}
+        target: 'desktop'
+        arch: 'win64_msvc2022_64'
+        modules: 'widgets qtserialport qtmultimedia'
+        cache: true
+
+    - name: Download and build Qwt ${{ matrix.qwt_version }} from source
+      run: |
+        choco install wget
+        wget https://sourceforge.net/projects/qwt/files/qwt/${{ matrix.qwt_version }}/qwt-${{ matrix.qwt_version }}.zip -P %TEMP%
+        7z x %TEMP%\qwt-${{ matrix.qwt_version }}.zip -o"%TEMP%\qwt"
+        cd %TEMP%\qwt\qwt-${{ matrix.qwt_version }}
+        qmake qwt.pro
+        msbuild qwt.sln /p:Configuration=Release
+        mkdir c:\qwt
+        xcopy /s /i %TEMP%\qwt\qwt-${{ matrix.qwt_version }}\lib c:\qwt\lib
+        xcopy /s /i %TEMP%\qwt\qwt-${{ matrix.qwt_version }}\include c:\qwt\include
+
+    - name: Configure CMake for ${{ matrix.build_type }}
+      run: |
+        mkdir build
+        cd build
+        cmake .. -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} -DCMAKE_PREFIX_PATH="c:\qwt"
+      
+    - name: Build with ${{ matrix.build_type }}
+      run: cmake --build build --config ${{ matrix.build_type }}
