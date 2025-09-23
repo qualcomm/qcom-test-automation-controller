@@ -649,5 +649,14 @@
             "tooltip": "Configurable UEFI timing in ms",
             "type": 1
         }
+        {
+            "cellLocation": "0,1",
+            "default_value": "1000",
+            "label": "Fastboot delay (ms)",
+            "name": "fastboot",
+            "tooltip": "Configurable fastboot delay",
+            "type": 1
+        }
+
     ]
 }
