@@ -717,7 +717,7 @@
             "cellLocation": "0,0",
             "default_value": "0",
             "label": "Hold GPIOs longer for boot(ms)",
-            "name": "Optional_GPIO_Hold_time",
+            "name": "Optional_GPIO_Hold_Time",
             "tooltip": "Add optional hold for bootup",
             "type": 1
         }
