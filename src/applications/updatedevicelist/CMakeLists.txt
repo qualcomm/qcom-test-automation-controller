@@ -43,10 +43,6 @@ qt_add_executable(${APP_NAME}
     main.cpp
 )
 
-set_target_properties(${APP_NAME} PROPERTIES
-    VERSION UPDATE_DEVICE_LIST_VERSION
-)
-
 target_include_directories(${APP_NAME} PRIVATE
     ${CMAKE_SOURCE_DIR}/src/libraries/qcommon-console
     ${CMAKE_SOURCE_DIR}/src/libraries/qcommon
