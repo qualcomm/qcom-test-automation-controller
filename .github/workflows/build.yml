@@ -19,7 +19,7 @@ jobs:
       run: |
         set -e -x
         sudo apt-get update
-        sudo apt-get install -y wget libxcb-cursor0 libpcre2-16-0 libusb-0-1-4 libxkbcommon-x11-0 libxcb-xkb1 libxcb-icccm4 libxcb-shape0 libxcb-keysyms1 libgl1 libegl-dev libxcb-xinerama0
+        sudo apt-get install -y wget libxcb-cursor0 libpcre2-16-0 libusb-0.1-4 libxkbcommon-x11-0 libxcb-xkb1 libxcb-icccm4 libxcb-shape0 libxcb-keysyms1 libgl1 libegl-dev libxcb-xinerama0
 
     - name: Install Qt ${{ matrix.qt_version }} on ${{ matrix.os }}
       run: |
