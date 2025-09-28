@@ -17,7 +17,7 @@ jobs:
     - name: Install dependencies
       run: |
         sudo apt-get update
-        sudo apt-get install -y python3-pip wget libxkbcommon-x11-0 x11-common libxcb-xinerama0-dev build-essential libgl1-mesa-dev mesa-common-dev
+        sudo apt-get install -y python3-pip wget libxkbcommon-x11-0 x11-common libxcb-xinerama0-dev build-essential libgl1-mesa-dev mesa-common-dev uuid-dev
 
     - name: Install aqtinstall
       run: pip install aqtinstall
@@ -63,11 +63,9 @@ jobs:
     - name: Install Qt ${{ matrix.qt_version }} for MSVC
       shell: pwsh
       run: |
-        # Install Qt with required modules
-        aqt install-qt windows desktop ${{ matrix.qt_version }} win64_msvc2022_64 -m qtserialport qtmultimedia
+        aqt install-qt windows desktop ${{ matrix.qt_version }} win64_msvc2022_64 --outputdir "C:\Qt" -m qtserialport qtmultimedia
 
-        # Set environment variables
-        $qtRoot = "$HOME\Qt\${{ matrix.qt_version }}\msvc2022_64"
+        $qtRoot = "C:\Qt\${{ matrix.qt_version }}\msvc2022_64"
         echo "QT_ROOT_DIR=$qtRoot" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
         echo "$qtRoot\bin" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
 
@@ -82,7 +80,8 @@ jobs:
       run: |
         mkdir build
         cd build
-        cmake .. -DCMAKE_BUILD_TYPE=${{ matrix.build_type }}
+        cmake .. -DCMAKE_BUILD_TYPE=${{ matrix.build_type }}`
+                 -DCMAKE_PREFIX_PATH="$env:QT_ROOT_DIR\lib\cmake"
 
     - name: Build with ${{ matrix.build_type }}
       shell: pwsh
