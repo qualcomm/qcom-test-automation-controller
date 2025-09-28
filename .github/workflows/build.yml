@@ -18,7 +18,7 @@ jobs:
     - name: Install dependencies
       run: |
         sudo apt-get update
-        sudo apt-get install -y python3-pip wget libxkbcommon-x11-0 x11-common libxcb-xinerama0-dev
+        sudo apt-get install -y python3-pip wget libxkbcommon-x11-0 x11-common libxcb-xinerama0-dev build-essential libgl1-mesa-dev mesa-common-dev
 
     - name: Install aqtinstall
       run: pip install aqtinstall
@@ -94,18 +94,10 @@ jobs:
       run: |
         choco install 7zip -y
 
-        # Use SourceForge direct mirror to avoid HTML redirect
-        $qwtZipUrl = "https://downloads.sourceforge.net/project/qwt/qwt/${{ matrix.qwt_version }}/qwt-${{ matrix.qwt_version }}.zip"
+        $qwtZipUrl = "https://cyfuture.dl.sourceforge.net/project/qwt/qwt/${{ matrix.qwt_version }}/qwt-${{ matrix.qwt_version }}.zip?viasf=1"
         $qwtZipPath = "$env:TEMP\qwt.zip"
         Invoke-WebRequest $qwtZipUrl -OutFile $qwtZipPath
 
-        # Validate archive size
-        if ((Get-Item $qwtZipPath).Length -lt 100000) {
-          Write-Error "Downloaded file is too small — likely not a valid archive."
-          exit 1
-        }
-
-        # Extract and build
         7z x $qwtZipPath -o"$env:TEMP\qwt"
         cd "$env:TEMP\qwt\qwt-${{ matrix.qwt_version }}"
         qmake qwt.pro
