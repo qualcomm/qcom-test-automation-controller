@@ -19,7 +19,7 @@ jobs:
       run: |
         set -e -x
         sudo apt-get update
-        sudo apt-get install -y wget
+        sudo apt-get install -y wget libxkbcommon-x11-0 x11-common libxcb-xinerama0-dev
 
     - name: Install Qt ${{ matrix.qt_version }} on ${{ matrix.os }}
       run: |
@@ -84,25 +84,28 @@ jobs:
     - uses: actions/checkout@v4
 
     - name: Install Qt ${{ matrix.qt_version }} for MSVC
-      shell: powershell
+      shell: pwsh
       run: |
         $env:QT_INSTALL_DIR = "C:\Qt"
         if (Test-Path "$env:QT_INSTALL_DIR") {
           Write-Output "Qt already installed. Skipping."
-        } else {
-          $INSTALLER_NAME = "qt-unified-windows-x64-online.exe"
-          Invoke-WebRequest "https://download.qt.io/official_releases/online_installers/${INSTALLER_NAME}" -OutFile $INSTALLER_NAME
+        }
+        else {
+          $INSTALLER_NAME = "qt-online-installer-windows-x64-online.exe"
+          Invoke-WebRequest "https://download.qt.io/official_releases/online_installers/$INSTALLER_NAME" -OutFile $INSTALLER_NAME
           
           $QT_SCRIPT_FILE = "qt_install_script.qs"
           $QT_ARCH_NAME = "win64_msvc2022_64"
-          @"
+
+          $script = @'
           function Controller() {
-            installer.setValue('ComponentList', 'qt.qt6.${{ matrix.qt_version }}.widgets_${QT_ARCH_NAME},qt.qt6.${{ matrix.qt_version }}.qtserialport_${QT_ARCH_NAME},qt.qt6.${{ matrix.qt_version }}.qtmultimedia_${QT_ARCH_NAME}');
+            installer.setValue('ComponentList', 'qt.qt6.${{ matrix.qt_version }}.widgets_' + '$QT_ARCH_NAME' + ',qt.qt6.${{ matrix.qt_version }}.qtserialport_' + '$QT_ARCH_NAME' + ',qt.qt6.${{ matrix.qt_version }}.qtmultimedia_' + '$QT_ARCH_NAME');
             installer.installationFinished.connect(function() { console.log('Installation finished!'); });
           }
-          "@ | Out-File $QT_SCRIPT_FILE
-            .\${INSTALLER_NAME} --root "$env:QT_INSTALL_DIR" --script "$QT_SCRIPT_FILE"
-          }
+          '@
+          $script | Set-Content $QT_SCRIPT_FILE -Encoding utf8
+          .\${INSTALLER_NAME} --root "$env:QT_INSTALL_DIR" --script "$QT_SCRIPT_FILE"
+        }
 
     - name: Set environment variables for Qt on Windows
       shell: powershell
