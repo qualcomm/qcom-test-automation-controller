@@ -15,13 +15,19 @@ jobs:
     steps:
     - uses: actions/checkout@v4
 
+    - name: Install dependencies
+      run: |
+        set -e -x
+        sudo apt-get update
+        sudo apt-get install -y wget
+
     - name: Install Qt ${{ matrix.qt_version }} on ${{ matrix.os }}
       run: |
         QT_INSTALL_DIR="$HOME/Qt/${{ matrix.qt_version }}"
         if [ -d "$QT_INSTALL_DIR" ]; then
           echo "Qt ${{ matrix.qt_version }} is already installed. Skipping download."
         else
-          QT_INSTALLER_NAME="qt-unified-linux-x64.run"
+          QT_INSTALLER_NAME="qt-online-installer-linux-x64-online.run"
           wget -q "https://download.qt.io/official_releases/online_installers/${QT_INSTALLER_NAME}"
           chmod +x ${QT_INSTALLER_NAME}
           
@@ -50,11 +56,6 @@ jobs:
         path: ${{ env.QT_ROOT_DIR }}
         key: ${{ runner.os }}-qt-${{ matrix.qt_version }}
 
-    - name: Install Qwt build dependencies
-      run: |
-        sudo apt-get update
-        sudo apt-get install -y wget
-    
     - name: Download and build Qwt ${{ matrix.qwt_version }} from source
       run: |
         wget https://sourceforge.net/projects/qwt/files/qwt/${{ matrix.qwt_version }}/qwt-${{ matrix.qwt_version }}.tar.bz2
