@@ -8,9 +8,8 @@ jobs:
     strategy:
       matrix:
         os: [ubuntu-22.04, ubuntu-latest]
-        qt_version: ['6.8.3', '6.9.2']
+        qt_version: ['6.9.2', '6.10.0']
         build_type: [Debug, Release]
-        qwt_version: ['6.3.0']
 
     steps:
     - uses: actions/checkout@v4
@@ -38,16 +37,6 @@ jobs:
         path: ${{ env.QT_ROOT_DIR }}
         key: ${{ runner.os }}-qt-${{ matrix.qt_version }}
 
-    - name: Download and build Qwt ${{ matrix.qwt_version }} from source
-      run: |
-        set -e -x
-        wget https://sourceforge.net/projects/qwt/files/qwt/${{ matrix.qwt_version }}/qwt-${{ matrix.qwt_version }}.tar.bz2
-        tar -xjf qwt-${{ matrix.qwt_version }}.tar.bz2
-        cd qwt-${{ matrix.qwt_version }}
-        "${QT_ROOT_DIR}/bin/qmake" qwt.pro qwt.pro
-        make -j$(nproc)
-        sudo make install
-
     - name: Configure CMake for ${{ matrix.build_type }}
       run: |
         mkdir build
@@ -61,9 +50,8 @@ jobs:
     runs-on: windows-2022
     strategy:
       matrix:
-        qt_version: ['6.8.3', '6.9.2']
+        qt_version: ['6.9.2', '6.10.0']
         build_type: [Debug, Release]
-        qwt_version: ['6.3.0']
 
     steps:
     - uses: actions/checkout@v4
@@ -89,31 +77,12 @@ jobs:
         path: ${{ env.QT_ROOT_DIR }}
         key: ${{ runner.os }}-qt-${{ matrix.qt_version }}
 
-    - name: Download and build Qwt ${{ matrix.qwt_version }} from source
-      shell: pwsh
-      run: |
-        choco install 7zip -y
-
-        $qwtZipUrl = "https://cyfuture.dl.sourceforge.net/project/qwt/qwt/${{ matrix.qwt_version }}/qwt-${{ matrix.qwt_version }}.zip?viasf=1"
-        $qwtZipPath = "$env:TEMP\qwt.zip"
-        Invoke-WebRequest $qwtZipUrl -OutFile $qwtZipPath
-
-        7z x $qwtZipPath -o"$env:TEMP\qwt"
-        cd "$env:TEMP\qwt\qwt-${{ matrix.qwt_version }}"
-        qmake qwt.pro
-        msbuild qwt.sln /p:Configuration=Release
-
-        # Install to C:\qwt
-        mkdir C:\qwt
-        xcopy /s /i lib C:\qwt\lib
-        xcopy /s /i include C:\qwt\include
-
     - name: Configure CMake for ${{ matrix.build_type }}
       shell: pwsh
       run: |
         mkdir build
         cd build
-        cmake .. -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} -DCMAKE_PREFIX_PATH="C:\qwt"
+        cmake .. -DCMAKE_BUILD_TYPE=${{ matrix.build_type }}"
 
     - name: Build with ${{ matrix.build_type }}
       shell: pwsh
