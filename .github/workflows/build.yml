@@ -23,6 +23,7 @@ jobs:
 
     - name: Install Qt ${{ matrix.qt_version }} on ${{ matrix.os }}
       run: |
+        QT_DEBUG_PLUGINS=1
         QT_INSTALL_DIR="$HOME/Qt/${{ matrix.qt_version }}"
         if [ -d "$QT_INSTALL_DIR" ]; then
           echo "Qt ${{ matrix.qt_version }} is already installed. Skipping download."
@@ -30,7 +31,8 @@ jobs:
           QT_INSTALLER_NAME="qt-online-installer-linux-x64-online.run"
           wget -q "https://download.qt.io/official_releases/online_installers/${QT_INSTALLER_NAME}"
           chmod +x ${QT_INSTALLER_NAME}
-          
+          ldd ./${QT_INSTALLER_NAME}
+
           QT_SCRIPT_FILE="qt_install_script.qs"
           QT_ARCH_NAME="gcc_64"
           echo "function Controller() {" > $QT_SCRIPT_FILE
