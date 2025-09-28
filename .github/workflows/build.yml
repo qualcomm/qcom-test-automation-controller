@@ -80,8 +80,7 @@ jobs:
       run: |
         mkdir build
         cd build
-        cmake .. -DCMAKE_BUILD_TYPE=${{ matrix.build_type }}`
-                 -DCMAKE_PREFIX_PATH="$env:QT_ROOT_DIR\lib\cmake"
+        cmake .. -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} -DCMAKE_PREFIX_PATH="$env:QT_ROOT_DIR\lib\cmake"
 
     - name: Build with ${{ matrix.build_type }}
       shell: pwsh
