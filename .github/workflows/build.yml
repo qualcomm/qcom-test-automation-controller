@@ -82,7 +82,7 @@ jobs:
       run: |
         mkdir build
         cd build
-        cmake .. -DCMAKE_BUILD_TYPE=${{ matrix.build_type }}"
+        cmake .. -DCMAKE_BUILD_TYPE=${{ matrix.build_type }}
 
     - name: Build with ${{ matrix.build_type }}
       shell: pwsh
