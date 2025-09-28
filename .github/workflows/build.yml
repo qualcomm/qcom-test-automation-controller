@@ -23,7 +23,7 @@ jobs:
 
     - name: Install Qt ${{ matrix.qt_version }} on ${{ matrix.os }}
       run: |
-        QT_DEBUG_PLUGINS=1
+        export QT_DEBUG_PLUGINS=1
         QT_INSTALL_DIR="$HOME/Qt/${{ matrix.qt_version }}"
         if [ -d "$QT_INSTALL_DIR" ]; then
           echo "Qt ${{ matrix.qt_version }} is already installed. Skipping download."
