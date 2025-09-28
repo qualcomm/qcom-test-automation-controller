@@ -1,0 +1,87 @@
+name: CMake Build
+
+on: [push, pull_request]
+
+jobs:
+  build-linux:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-22.04, ubuntu-latest]
+        qt_version: ['6.9.2', '6.10.0']
+        build_type: [Debug, Release]
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Install dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y python3-pip wget libxkbcommon-x11-0 x11-common libxcb-xinerama0-dev build-essential libgl1-mesa-dev mesa-common-dev uuid-dev
+
+    - name: Install aqtinstall
+      run: pip install aqtinstall
+
+    - name: Install Qt ${{ matrix.qt_version }} on ${{ matrix.os }}
+      run: |
+        # Install base Qt first
+        aqt install-qt linux desktop ${{ matrix.qt_version }} linux_gcc_64
+        # Then install required modules
+        aqt install-qt linux desktop ${{ matrix.qt_version }} linux_gcc_64 -m qtmultimedia qtserialport
+        echo "QT_ROOT_DIR=$HOME/work/qcom-test-automation-controller/qcom-test-automation-controller/${{ matrix.qt_version }}/gcc_64" >> $GITHUB_ENV
+        echo "$HOME/work/qcom-test-automation-controller/qcom-test-automation-controller/${{ matrix.qt_version }}/gcc_64/bin" >> $GITHUB_PATH
+
+    - name: Cache Qt installation on Linux
+      uses: actions/cache@v4
+      with:
+        path: ${{ env.QT_ROOT_DIR }}
+        key: ${{ runner.os }}-qt-${{ matrix.qt_version }}
+
+    - name: Configure CMake for ${{ matrix.build_type }}
+      run: |
+        mkdir build
+        cd build
+        cmake .. -DCMAKE_BUILD_TYPE=${{ matrix.build_type }}
+
+    - name: Build with ${{ matrix.build_type }}
+      run: cmake --build build --config ${{ matrix.build_type }}
+
+  build-windows:
+    runs-on: windows-2022
+    strategy:
+      matrix:
+        qt_version: ['6.9.2', '6.10.0']
+        build_type: [Debug, Release]
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Install Python dependencies
+      shell: pwsh
+      run: pip install aqtinstall
+
+    - name: Install Qt ${{ matrix.qt_version }} for MSVC
+      shell: pwsh
+      run: |
+        aqt install-qt windows desktop ${{ matrix.qt_version }} win64_msvc2022_64 --outputdir "C:\Qt" -m qtserialport qtmultimedia
+
+        $qtRoot = "C:\Qt\${{ matrix.qt_version }}\msvc2022_64"
+        echo "QT_ROOT_DIR=$qtRoot" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+        echo "$qtRoot\bin" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
+
+    - name: Cache Qt installation on Windows
+      uses: actions/cache@v4
+      with:
+        path: ${{ env.QT_ROOT_DIR }}
+        key: ${{ runner.os }}-qt-${{ matrix.qt_version }}
+
+    - name: Configure CMake for ${{ matrix.build_type }}
+      shell: pwsh
+      run: |
+        mkdir build
+        cd build
+        cmake .. -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} -DCMAKE_PREFIX_PATH="$env:QT_ROOT_DIR\lib\cmake"
+
+    - name: Build with ${{ matrix.build_type }}
+      shell: pwsh
+      run: cmake --build build --config ${{ matrix.build_type }}
