@@ -42,7 +42,7 @@ jobs:
       run: |
         set -e -x
         wget https://sourceforge.net/projects/qwt/files/qwt/${{ matrix.qwt_version }}/qwt-${{ matrix.qwt_version }}.tar.bz2
-        tar -xzf qwt-${{ matrix.qwt_version }}.tar.bz2
+        tar -xjf qwt-${{ matrix.qwt_version }}.tar.bz2
         cd qwt-${{ matrix.qwt_version }}
         "${QT_ROOT_DIR}/bin/qmake" qwt.pro qwt.pro
         make -j$(nproc)
