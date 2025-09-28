@@ -29,8 +29,8 @@ jobs:
         aqt install-qt linux desktop ${{ matrix.qt_version }} linux_gcc_64
         # Then install required modules
         aqt install-qt linux desktop ${{ matrix.qt_version }} linux_gcc_64 -m qtmultimedia qtserialport
-        echo "QT_ROOT_DIR=$HOME/Qt/${{ matrix.qt_version }}/gcc_64" >> $GITHUB_ENV
-        echo "$HOME/Qt/${{ matrix.qt_version }}/gcc_64/bin" >> $GITHUB_PATH
+        echo "QT_ROOT_DIR=$HOME/work/qcom-test-automation-controller/qcom-test-automation-controller/${{ matrix.qt_version }}/gcc_64" >> $GITHUB_ENV
+        echo "$HOME/work/qcom-test-automation-controller/qcom-test-automation-controller/${{ matrix.qt_version }}/gcc_64/bin" >> $GITHUB_PATH
 
     - name: Cache Qt installation on Linux
       uses: actions/cache@v4
@@ -93,11 +93,25 @@ jobs:
       shell: pwsh
       run: |
         choco install 7zip -y
-        Invoke-WebRequest "https://sourceforge.net/projects/qwt/files/qwt/${{ matrix.qwt_version }}/qwt-${{ matrix.qwt_version }}.zip" -OutFile "$env:TEMP\qwt.zip"
-        7z x "$env:TEMP\qwt.zip" -o"$env:TEMP\qwt"
+
+        # Use SourceForge direct mirror to avoid HTML redirect
+        $qwtZipUrl = "https://downloads.sourceforge.net/project/qwt/qwt/${{ matrix.qwt_version }}/qwt-${{ matrix.qwt_version }}.zip"
+        $qwtZipPath = "$env:TEMP\qwt.zip"
+        Invoke-WebRequest $qwtZipUrl -OutFile $qwtZipPath
+
+        # Validate archive size
+        if ((Get-Item $qwtZipPath).Length -lt 100000) {
+          Write-Error "Downloaded file is too small — likely not a valid archive."
+          exit 1
+        }
+
+        # Extract and build
+        7z x $qwtZipPath -o"$env:TEMP\qwt"
         cd "$env:TEMP\qwt\qwt-${{ matrix.qwt_version }}"
         qmake qwt.pro
         msbuild qwt.sln /p:Configuration=Release
+
+        # Install to C:\qwt
         mkdir C:\qwt
         xcopy /s /i lib C:\qwt\lib
         xcopy /s /i include C:\qwt\include
