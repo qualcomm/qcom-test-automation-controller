@@ -26,9 +26,9 @@ jobs:
     - name: Install Qt ${{ matrix.qt_version }} on ${{ matrix.os }}
       run: |
         # Install base Qt first
-        aqt install-qt linux desktop ${{ matrix.qt_version }} gcc_64
+        aqt install-qt linux desktop ${{ matrix.qt_version }} linux_gcc_64
         # Then install required modules
-        aqt install-qt linux desktop ${{ matrix.qt_version }} gcc_64 -m qtmultimedia qtserialport
+        aqt install-qt linux desktop ${{ matrix.qt_version }} linux_gcc_64 -m qtmultimedia qtserialport
         echo "QT_ROOT_DIR=$HOME/Qt/${{ matrix.qt_version }}/gcc_64" >> $GITHUB_ENV
         echo "$HOME/Qt/${{ matrix.qt_version }}/gcc_64/bin" >> $GITHUB_PATH
 
