@@ -81,8 +81,8 @@ target_link_libraries(${APP_NAME} PRIVATE
     Qt6::SerialPort
     Qt6::Widgets
     ftd2xx
-    $<$<CONFIG:Debug>:QCommonConsoled;QCommond;UId>
-    $<$<NOT:$<CONFIG:Debug>>:QCommon;QCommonConsole;UI>
+    $<$<CONFIG:Debug>:UId;QCommond;QCommonConsoled>
+    $<$<NOT:$<CONFIG:Debug>>:UI;QCommon;QCommonConsole>
 )
 
 if(WIN32)
