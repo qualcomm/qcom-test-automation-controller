@@ -28,19 +28,23 @@ git clone https://github.com/qualcomm/qcom-test-automation-controller.git
 ### Compile QTAC for Windows
 
 Execute the [build.bat](./build.bat) to generate the executables on Windows.
-- Debug build will be available at `__Builds/x64/<Debug>`
-- Release build will be available at `__Builds/x64/<Release>`
+- Debug build will be available at `__Builds/x64/Debug`
+- Release build will be available at `__Builds/x64/Release`
 
 ### Compile QTAC for Linux
 
 Execute the [build.sh](./build.sh) to generate the executables on Linux.
-- Debug build will be available at `__Builds/x64/<Debug>`
-- Release build will be available at `__Builds/x64/<Release>`
+- Debug build will be available at `__Builds/x64/Debug`
+- Release build will be available at `__Builds/x64/Release`
 
-
-**Note on FTDI libraries**
+> [!NOTE]
 > QTAC uses FTDI libraries to control FT4232H chip on the debug board. Find out more about the FTDI D2XX libraries
 [here](https://ftdichip.com/drivers/d2xx-drivers/). FTDI libraries are installed _automatically_ during the cmake configuration step.
+
+> [!NOTE]
+> Installation using Qt Online Installer will require users to create a Qt account. To get started quickly on Linux, users can execute below bash commands on Linux.
+> Below method updates setup packages and may impact other applications.
+> `sudo apt install qt6-base-dev qt6-serialport-dev`
 
 ## Software install guide
 
@@ -50,21 +54,19 @@ Execute the [build.sh](./build.sh) to generate the executables on Linux.
 | :-- | :-- | :-- |
 | Operating System | Windows, Debian | Windows 10 & above<br>Ubuntu 22.04 & above |
 | Software development | [Visual Studio Compiler 2022](https://visualstudio.microsoft.com/downloads/#build-tools-for-visual-studio-2022) (Windows)<br>GCC (Linux) |  MSVC 2022 (Windows)<br>GCC-11, G++-11, GLIBC-2.35 (Linux) |
-| Software development | [Qt Open-source](https://www.qt.io/download-qt-installer-oss) | 6.9.0 and above |
+| Software development | [Qt Open-source](https://www.qt.io/download-qt-installer-oss) | 6.9.0 and above. Download and execute `./qt-online-installer-linux-x64-4.10.0.run` from bash on Linux |
 
 Please review the usage policies, license terms, and conditions of the above software before use.
 
 ### Configure Qt installation
 
-QTAC requires Qt6 and MSVC2022 64-bit. Please review below custom install configuration in Qt
-to optimize download time.
+QTAC requires Qt 6.9+ and MSVC 2022 64-bit. Choose below additional dependencies during Qt installation:
+1. Qt Serial Port
 
-Required additional libraries:
+If Qt is already installed, run the [Qt Maintenance tool](https://doc.qt.io/qt-6/get-and-install-qt.html#using-qt-maintenance-tool)
+to install additional dependencies.
 
-1. Qt Serial Bus
-2. Qt Serial Port
-
-### Configure environment variables
+### Configure environment
 
 With the development tools installed on your system, please set up the following environment variables:
 
@@ -79,11 +81,27 @@ setx QTBIN C:\Qt\<version>\msvc2022_64\bin
 **On Linux**:
 
 Start a bash terminal at the project root and ensure [make](https://www.gnu.org/software/make/) is available in the environment.
-Then, execute the below commands.
+Then, execute the below commands. If you're frequently working with Qt, consider adding below path to `.bashrc`.
 
 ```bash
-export QTBIN=$/path/to/Qt/directory/<version>/gcc_64/bin
+export QTBIN=/path/to/Qt/directory/<version>/gcc_64/bin
 ```
+
+**Linux dependencies**:
+
+Following packages are required on Linux to execute QTAC applications.
+| Name | Library | Notes | Configuration options | Install command |
+| ---- | ----| ---- | ---- | ---- |
+| xcb-cursor0 | libxcb-cursor0 | Utility library for XCB for cursor | auto-detected | `sudo apt install -y libxcb-cursor0` |
+| libpcre2-16-0 | libpcre2-16-0 | New perl compatible regular expression library | auto-detected | `sudo apt install -y libpcre2-16-0` |
+| libxkbcommon-x11 | libxkbcommon-x11-0 | Library to create keymaps with the XKB X11 protocol | auto-detected | `sudo apt install -y libxkbcommon-x11-0` |
+| libxcb-xkb | libxcb-xkb1 | X C Binding, XKEYBOARD extension | auto-detected | `sudo apt install -y libxcb-xkb1` |
+| libxcb-icccm | libxcb-icccm4 | Utility libraries for X C Binding -- icccm | auto-detected | `sudo apt install -y libxcb-icccm4` |
+| libxcb-shape0 | libxcb-shape0 | The shape extension for the X C Binding | auto-detected | `sudo apt -y install libxcb-shape0` |
+| libxcb-keysyms | libxcb-keysyms1 | Utility libraries for X C Binding -- keysyms | auto-detected | `sudo apt install -y libxcb-keysyms1` |
+| libgl1 | libgl1 | Vendor neutral GL dispatch library -- legacy GL support | auto-detected | `sudo apt -y install libgl1` |
+| libegl-dev | libegl-dev | Vendor-neutral dispatch layer for arbitrating OpenGL API | auto-detected | `sudo apt -y install libegl-dev` |
+| libxcb-xinerama0 | libxcb-xinerama0 | The xinerama extension for the X C Binding | auto-detected | `sudo apt-get install --reinstall libxcb-xinerama0` |
 
 ## Repository structure
 
@@ -103,6 +121,19 @@ QTAC repository has the following sub-directories:
 
 Applications and library in QTAC has the following overall dependency architecture
 ![App dependency](./docs/resources/app-dependency.drawio.png)
+
+**Brief description on the tools generated by QTAC**:
+
+1. **Test Automation Controller (TAC)**: Control Qualcomm devices remotely using UI
+2. **TAC Configuration Editor**: Design configurable TAC UI based on GPIO use-cases to be used by TAC for device control
+3. **Device Catalog**: Program debug board and view list of supported Qualcomm platforms
+4. **TACDump**: Command line utility to list connected debug boards (aka. TAC devices)
+5. **DevList**: Command line utility to view list of supported Qualcomm platforms
+6. **FTDICheck**: Windows utility to auto install required FTDI drivers
+7. **LITEProgrammer**: Command line utility to program FTDI debug boards
+8. **UpdateDeviceList**: Command line utility to update the catalog of supported platforms used by TAC. Run this application if you're creating a new configuration using **TAC Configuration Editor**.
+
+Other generated files may include libraries, example applications.
 
 ## Qualcomm device control using QTAC
 
