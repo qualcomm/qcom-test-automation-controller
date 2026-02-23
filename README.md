@@ -3,7 +3,7 @@
 ## Introduction
 
 QTAC is a software suite that enables users to control Qualcomm devices remotely.
-The device to be controlled must be attached to a Qualcomm approved debug board. The device to be tested, is
+The device to be controlled must be attached to a Qualcomm approved debug board. The device to be tested is
 connected to a host using a USB cable.
 
 ![QTAC Software Suite](./docs/resources/qtac-sw-suite.png)
@@ -14,7 +14,7 @@ Download the QTAC release from the [releases](https://github.com/qualcomm/qcom-t
 
 ## Build from source
 
-Please review the following guide to build the project from source. For one time setup instructions to build from
+Please review the following guide to build the project from source. For one-time setup instructions to build from
 source, please review [software install guide](#software-install-guide)
 
 ### Clone repository
@@ -42,8 +42,8 @@ Execute the [build.sh](./build.sh) to generate the executables on Linux.
 [here](https://ftdichip.com/drivers/d2xx-drivers/). FTDI libraries are installed _automatically_ during the cmake configuration step.
 
 > [!NOTE]
-> Installation using Qt Online Installer will require users to create a Qt account. To get started quickly on Linux, users can execute below bash commands on Linux.
-> Below method updates setup packages and may impact other applications.
+> Installation using Qt Online Installer will require users to create a Qt account. To get started quickly on Linux, users can execute below bash commands.
+> The below method updates setup packages and may impact other applications.
 > `sudo apt install qt6-base-dev qt6-serialport-dev`
 
 ## Software install guide
@@ -68,7 +68,7 @@ to install additional dependencies.
 
 ### Configure environment
 
-With the development tools installed on your system, please set up the following environment variables:
+With the development tools installed on your system, please set up the following environment variable:
 
 - `QTBIN`: `C:\Qt\<version>\msvc2022_64\bin`
 
@@ -80,8 +80,8 @@ setx QTBIN C:\Qt\<version>\msvc2022_64\bin
 
 **On Linux**:
 
-Start a bash terminal at the project root and ensure [make](https://www.gnu.org/software/make/) is available in the environment.
-Then, execute the below commands. If you're frequently working with Qt, consider adding below path to `.bashrc`.
+Start a bash terminal at the project root and ensure that [make](https://www.gnu.org/software/make/) is available in the environment.
+Then, execute the below commands. If you're frequently working with Qt, consider adding the below path to `.bashrc`.
 
 ```bash
 export QTBIN=/path/to/Qt/directory/<version>/gcc_64/bin
@@ -149,13 +149,13 @@ If you've questions, suggestions or issues with setup, please do reach out to us
 [discord](https://discord.com/invite/qualcommdevelopernetwork).
 
 You will have to install the [required drivers](#install-drivers) correctly. The one-time driver installation
-step is taken care if you install a release package.
+step is taken care of if you install a release package.
 
 ![QTAC Hardware Software Setup](./docs/resources/qtac-setup-overview.drawio.png)
 
 ### Install drivers
 
-The one-time driver installation step is taken care if you install a release package. If you choose
+The one-time driver installation step is taken care of if you install a release package. If you choose
 to [build from source](#build-from-source), configure below drivers:
 
 1. [FTDI D2XX drivers](https://ftdichip.com/drivers/d2xx-drivers/): to interact with the debug board
@@ -176,7 +176,7 @@ Please review the [SECURITY.md](./.github/SECURITY.md) before reporting vulnerab
 
 ## Contributor's License Agreement
 
-Please review the Qualcomm product [license](./LICENSE), [code of conduct](./CODE-OF-CONDUCT.md) & terms
+Please review the Qualcomm product [license](./LICENSE), [code of conduct](./CODE-OF-CONDUCT.md) and terms
 and conditions before contributing.
 
 ## Using Qt Creator for development
