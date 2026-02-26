@@ -1,36 +1,25 @@
-﻿/*
-	Copyright (c) Qualcomm Technologies, Inc. and/or its subsidiaries. 
-	 
-	Redistribution and use in source and binary forms, with or without
-	modification, are permitted (subject to the limitations in the
-	disclaimer below) provided that the following conditions are met:
-	 
-		* Redistributions of source code must retain the above copyright
-		  notice, this list of conditions and the following disclaimer.
-	 
-		* Redistributions in binary form must reproduce the above
-		  copyright notice, this list of conditions and the following
-		  disclaimer in the documentation and/or other materials provided
-		  with the distribution.
-	 
-		* Neither the name of Qualcomm Technologies, Inc. nor the names of its
-		  contributors may be used to endorse or promote products derived
-		  from this software without specific prior written permission.
-	 
-	NO EXPRESS OR IMPLIED LICENSES TO ANY PARTY'S PATENT RIGHTS ARE
-	GRANTED BY THIS LICENSE. THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT
-	HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED
-	WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
-	MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED.
-	IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR
-	ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
-	DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE
-	GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
-	INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER
-	IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-	OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN
-	IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-*/
+﻿// Confidential and Proprietary Qualcomm Technologies, Inc.
+
+// NO PUBLIC DISCLOSURE PERMITTED:  Please report postings of this software on public servers or websites
+// to: DocCtrlAgent@qualcomm.com.
+
+// RESTRICTED USE AND DISCLOSURE:
+// This software contains confidential and proprietary information and is not to be used, copied, reproduced, modified
+// or distributed, in whole or in part, nor its contents revealed in any manner, without the express written permission
+// of Qualcomm Technologies, Inc.
+
+// Qualcomm is a trademark of QUALCOMM Incorporated, registered in the United States and other countries. All
+// QUALCOMM Incorporated trademarks are used with permission.
+
+// This software may be subject to U.S. and international export, re-export, or transfer laws.  Diversion contrary to U.S.
+// and international law is strictly prohibited.
+
+// Qualcomm Technologies, Inc.
+// 5775 Morehouse Drive
+// San Diego, CA 92121 U.S.A.
+// Copyright 2021 Qualcomm Technologies, Inc.
+// All rights reserved.
+// Qualcomm Technologies Confidential and Proprietary
 
 /*
 	Author: Michael Simpson (msimpson@qti.qualcomm.com)
@@ -44,6 +33,18 @@
 #include "RangedContainer.h"
 #include "USBDescriptors.h"
 
+const PlatformID MICRO_EPM_BOARD_ID_SPMV4{1};
+const PlatformID MICRO_EPM_BOARD_ID_EPMV4{2};
+const PlatformID MICRO_EPM_BOARD_ID_ALPACA{3};
+const PlatformID MICRO_EPM_BOARD_ID_MICROEPM_TAC{4};
+const PlatformID MICRO_EPM_BOARD_ID_ALPACA_V2{5};
+const PlatformID MICRO_EPM_BOARD_ID_ALPACA_V3{6};
+const PlatformID MICRO_EPM_BOARD_ID_ALPACA_V3P1{7};
+const PlatformID EPM_BOARD_ID_MTP_V3P2{8};
+const PlatformID EPM_BOARD_ID_QRD_V1P0{9};
+const PlatformID EPM_BOARD_ID_IDP_V1P0{10};
+const PlatformID EPM_BOARD_ID_DONGLE_V3P0{11};
+const PlatformID EPM_BOARD_ID_MTP_V3P3{12};
 
 PlatformIDs PlatformContainer::_platformIds;
 
@@ -68,12 +69,29 @@ void PlatformContainer::initialize()
 {
 	if (_platformIds.isEmpty())
 	{
+		_platformIds.insert(MICRO_EPM_BOARD_ID_SPMV4, PlatformEntry(new _PlatformEntry(MICRO_EPM_BOARD_ID_SPMV4, ePSOC, "SPM V4")));
+		_platformIds.insert(MICRO_EPM_BOARD_ID_EPMV4, PlatformEntry(new _PlatformEntry(MICRO_EPM_BOARD_ID_EPMV4, ePSOC, "EPM V4")));
+		_platformIds.insert(MICRO_EPM_BOARD_ID_ALPACA, PlatformEntry(new _PlatformEntry(MICRO_EPM_BOARD_ID_ALPACA, ePSOC, "Alpaca V1")));
+		_platformIds.insert(MICRO_EPM_BOARD_ID_MICROEPM_TAC, PlatformEntry(new _PlatformEntry(MICRO_EPM_BOARD_ID_MICROEPM_TAC, ePSOC, "MicroEPM TAC")));
+		_platformIds.insert(MICRO_EPM_BOARD_ID_ALPACA_V2, PlatformEntry(new _PlatformEntry(MICRO_EPM_BOARD_ID_ALPACA_V2, ePSOC, "Alpaca V2")));
+		_platformIds.insert(MICRO_EPM_BOARD_ID_ALPACA_V3, PlatformEntry(new _PlatformEntry(MICRO_EPM_BOARD_ID_ALPACA_V3, ePSOC, "Alpaca V3.0")));
+		_platformIds.insert(MICRO_EPM_BOARD_ID_ALPACA_V3P1, PlatformEntry(new _PlatformEntry(MICRO_EPM_BOARD_ID_ALPACA_V3P1, ePSOC, "Alpaca V3.1")));
+		_platformIds.insert(EPM_BOARD_ID_MTP_V3P2, PlatformEntry(new _PlatformEntry(EPM_BOARD_ID_MTP_V3P2, ePSOC, "MTP V3.2")));
+		_platformIds.insert(EPM_BOARD_ID_QRD_V1P0, PlatformEntry(new _PlatformEntry(EPM_BOARD_ID_QRD_V1P0, ePSOC, "QRD V1.0")));
+		_platformIds.insert(EPM_BOARD_ID_IDP_V1P0, PlatformEntry(new _PlatformEntry(EPM_BOARD_ID_IDP_V1P0, ePSOC, "IDP V1.0")));
+		_platformIds.insert(EPM_BOARD_ID_DONGLE_V3P0, PlatformEntry(new _PlatformEntry(EPM_BOARD_ID_DONGLE_V3P0, ePSOC, "Dongle V3.0")));
+		_platformIds.insert(EPM_BOARD_ID_MTP_V3P3, PlatformEntry(new _PlatformEntry(EPM_BOARD_ID_MTP_V3P3, ePSOC, "MTP V3.3")));
+
 		PlatformEntry ftdiEntry(new _PlatformEntry(ALPACA_LITE_ID, eFTDI, "ALPACA LITE (FTDI)"));
 		ftdiEntry->_usbDescriptor = "ALPACA-LITE MTP DEBUG BOARD";
 		ftdiEntry->_pinSets[0].setFlag(eC);
 		ftdiEntry->_pinSets[0].setFlag(eD);
 
 		_platformIds.insert(ALPACA_LITE_ID, ftdiEntry);
+
+		PlatformEntry pic32cxEntry(new _PlatformEntry(ALPACA_PIC32CX_ID, ePIC32CXAuto, "Default Automotive (PIC32CX)"));
+
+		_platformIds.insert(ALPACA_PIC32CX_ID, pic32cxEntry);
 
 		initializeDynamic();
 	}
@@ -160,7 +178,7 @@ PlatformID PlatformContainer::fromUSBDescriptor
 	const QByteArray& usbDescriptor
 )
 {
-	PlatformID result{ALPACA_LITE_ID};
+	PlatformID result{MICRO_EPM_BOARD_ID_UNKNOWN};
 	QByteArray descriptor{usbDescriptor.toLower()};
 
 	for (const auto& platformEntry: RangedContainer(_platformIds))

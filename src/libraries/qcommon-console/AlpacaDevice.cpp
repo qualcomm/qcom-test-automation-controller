@@ -1,36 +1,25 @@
-/*
-	Copyright (c) Qualcomm Technologies, Inc. and/or its subsidiaries. 
-	 
-	Redistribution and use in source and binary forms, with or without
-	modification, are permitted (subject to the limitations in the
-	disclaimer below) provided that the following conditions are met:
-	 
-		* Redistributions of source code must retain the above copyright
-		  notice, this list of conditions and the following disclaimer.
-	 
-		* Redistributions in binary form must reproduce the above
-		  copyright notice, this list of conditions and the following
-		  disclaimer in the documentation and/or other materials provided
-		  with the distribution.
-	 
-		* Neither the name of Qualcomm Technologies, Inc. nor the names of its
-		  contributors may be used to endorse or promote products derived
-		  from this software without specific prior written permission.
-	 
-	NO EXPRESS OR IMPLIED LICENSES TO ANY PARTY'S PATENT RIGHTS ARE
-	GRANTED BY THIS LICENSE. THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT
-	HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED
-	WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
-	MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED.
-	IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR
-	ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
-	DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE
-	GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
-	INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER
-	IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-	OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN
-	IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-*/
+// Confidential and Proprietary Qualcomm Technologies, Inc.
+
+// NO PUBLIC DISCLOSURE PERMITTED:  Please report postings of this software on public servers or websites
+// to: DocCtrlAgent@qualcomm.com.
+
+// RESTRICTED USE AND DISCLOSURE:
+// This software contains confidential and proprietary information and is not to be used, copied, reproduced, modified
+// or distributed, in whole or in part, nor its contents revealed in any manner, without the express written permission
+// of Qualcomm Technologies, Inc.
+
+// Qualcomm is a trademark of QUALCOMM Incorporated, registered in the United States and other countries. All
+// QUALCOMM Incorporated trademarks are used with permission.
+
+// This software may be subject to U.S. and international export, re-export, or transfer laws.  Diversion contrary to U.S.
+// and international law is strictly prohibited.
+
+// Qualcomm Technologies, Inc.
+// 5775 Morehouse Drive
+// San Diego, CA 92121 U.S.A.
+// Copyright 2022-2024 Qualcomm Technologies, Inc.
+// All rights reserved.
+// Qualcomm Technologies Confidential and Proprietary
 
 /*
 	Author: Michael Simpson (msimpson@qti.qualcomm.com)
@@ -38,8 +27,10 @@
 */
 
 #include "AlpacaDevice.h"
-#include "TacException.h"
+#include "TACException.h"
 #include "FTDIDevice.h"
+#include "PSOCDevice.h"
+#include "PIC32CXDevice.h"
 
 
 // QCommon
@@ -49,6 +40,7 @@
 const QByteArray kSendCommandError("sendCommand error: Attempted operation on inactive device");
 const QByteArray kSetPinError("setPinState error: Attempted operation on inactive device");
 const QByteArray kQuickCommandError("quickCommand error: Attempted operation on inactive device");
+const QByteArray kCommandStatusError("commandQueueStatus error: Attempted operation on inactive device");
 
 
 QMutex _AlpacaDevice::_mutex;
@@ -88,7 +80,9 @@ quint32 _AlpacaDevice::updateAlpacaDevices()
 
 	QMutexLocker lock(&_mutex);
 
+	PSOCDevice::updateAlpacaDevices();
 	FTDIDevice::updateAlpacaDevices();
+	PIC32CXDevice::updateAlpacaDevices();
 
 	return _AlpacaDevice::_alpacaDevices.count();
 }
@@ -249,12 +243,12 @@ quint32 _AlpacaDevice::commandCount()
 	return _commandList.count();
 }
 
-TacCommand _AlpacaDevice::commandEntry
+TACCommand _AlpacaDevice::commandEntry
 (
 	quint32 commandIndex
 )
 {
-	TacCommand result;
+	TACCommand result;
 
 	if (commandIndex < static_cast<quint32>(_commandList.size()))
 	{
@@ -264,14 +258,14 @@ TacCommand _AlpacaDevice::commandEntry
 	return result;
 }
 
-TacCommands _AlpacaDevice::commandList()
+TACCommands _AlpacaDevice::commandList()
 {
 	if (_commandList.isEmpty())
 	{
 		for (const auto& commandEntry: std::as_const(_commands))
 			_commandList.push_back(commandEntry);
 
-		auto sortLambda = [] (const TacCommand& ce1, const TacCommand& ce2) -> bool
+		auto sortLambda = [] (const TACCommand& ce1, const TACCommand& ce2) -> bool
 		{
 			return ce1._command < ce2._command;
 		};
@@ -358,7 +352,7 @@ bool _AlpacaDevice::updateScriptVariableValue(const QByteArray &scriptVariable, 
 	else
 	{
 		AppCore::writeToApplicationLogLine("[updateScriptVariableValue()]: The variable with name: '" + scriptVariable + "' was not found.");
-		throw TacException(TAC_SCRIPT_VARIABLE_NOT_FOUND, QString("Script variable %1 not Found.").arg(scriptVariable));
+		throw TACException(TAC_SCRIPT_VARIABLE_NOT_FOUND, QString("Script variable %1 not Found.").arg(scriptVariable));
 	}
 	return result;
 }
@@ -374,8 +368,8 @@ bool _AlpacaDevice::getCommandState
 		result = _commands[command]._currentState;
 	else
 	{
-		AppCore::writeToApplicationLogLine("getCommandState " + command + " is not found in QTAC Script.");
-		throw TacException(TAC_COMMAND_NOT_FOUND, QString("Command %1 not Found.").arg(command.data()));
+		AppCore::writeToApplicationLogLine("getCommandState " + command + " is not found in Alpaca Script.");
+		throw TACException(TAC_COMMAND_NOT_FOUND, QString("Command %1 not Found.").arg(command.data()));
 	}
 
 	return result;
@@ -409,16 +403,16 @@ bool _AlpacaDevice::sendCommand
 
 		if (result == false)
 		{
-			AppCore::writeToApplicationLogLine(command + " is not found in QTAC Script.");
+			AppCore::writeToApplicationLogLine(command + " is not found in Alpaca Script.");
 
-			throw TacException(TAC_COMMAND_NOT_FOUND, QString("sendCommand error: Command %1 not found.").arg(command.data()));
+			throw TACException(TAC_COMMAND_NOT_FOUND, QString("sendCommand error: Command %1 not found.").arg(command.data()));
 		}
 		else
 		{
 			if (active() == false)
 			{
 				AppCore::writeToApplicationLogLine(QString("_AlpacaDevice::sendCommand(%1, %2) failed. Operation on inactive device").arg(command).arg(state));
-				throw TacException(TAC_DEVICE_INACTIVE, kSendCommandError);
+				throw TACException(TAC_DEVICE_INACTIVE, kSendCommandError);
 			}
 		}
 	}
@@ -448,7 +442,7 @@ bool _AlpacaDevice::quickCommand
 			}
 			else
 			{
-				AppCore::writeToApplicationLogLine(command + " is not found in QTAC Script. Quick Command not executed");
+				AppCore::writeToApplicationLogLine(command + " is not found in Alpaca Script. Quick Command not executed");
 				AppCore::writeToApplicationLogLine("Available Commands");
 				QStringList availableCommands = _alpacaScript.availableCommands();
 				for (const auto& scriptCommand: availableCommands)
@@ -460,8 +454,27 @@ bool _AlpacaDevice::quickCommand
 		else
 		{
 			AppCore::writeToApplicationLogLine(QString("_AlpacaDevice::quickCommand(%1) failed. Operation on inactive device").arg(command));
-			throw TacException(TAC_DEVICE_INACTIVE, kQuickCommandError);
+			throw TACException(TAC_DEVICE_INACTIVE, kQuickCommandError);
 		}
+	}
+
+	return result;
+}
+
+bool _AlpacaDevice::isCommandQueueClear()
+{
+	bool result{false};
+
+
+	if (_driveThread != Q_NULLPTR)
+	{
+		if (active() == true)
+			result = _driveThread->waitForCompletionStatus();
+	}
+	else
+	{
+		AppCore::writeToApplicationLogLine("_AlpacaDevice::isCommandQueueClear() failed. Operation on inactive device");
+		throw TACException(TAC_DEVICE_INACTIVE, kCommandStatusError);
 	}
 
 	return result;
@@ -530,7 +543,7 @@ void _AlpacaDevice::setPinState
 			_driveThread->setPinState(pin, state);
 			if (AppCore::getAppCore()->appLoggingActive())
 			{
-				TacCommand tacCommand = TacCommand::find(pin, _commandList);
+				TACCommand tacCommand = TACCommand::find(pin, _commandList);
 
 				AppCore::writeToApplicationLogLine("_AlpacaDevice::setPinState(" + QString::number(pin) +")  Command:" + tacCommand._command);
 			}
@@ -538,7 +551,7 @@ void _AlpacaDevice::setPinState
 		else
 		{
 			AppCore::writeToApplicationLogLine(QString("_AlpacaDevice::setPinState(%1, %2) failed. Operation on inactive device").arg(QString::number(pin)).arg(state));
-			throw TacException(TAC_DEVICE_INACTIVE, kSetPinError);
+			throw TACException(TAC_DEVICE_INACTIVE, kSetPinError);
 		}
 	}
 	else
@@ -684,7 +697,7 @@ void _AlpacaDevice::externalPowerControl(bool state)
 	}
 	else
 	{
-		throw TacException(TAC_COMMAND_NOT_FOUND, "Command extpower not Found.");
+		throw TACException(TAC_COMMAND_NOT_FOUND, "Command extpower not Found.");
 	}
 }
 

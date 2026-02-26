@@ -18,13 +18,13 @@ To test if the installation is working properly, please refer to the
 
 ## Class reference
 
-**TacDevice** - The class that represents a TAC device. It has the following attributes:
+**TACDevice** - The class that represents a TAC device. It has the following attributes:
 
 - Port name: The name of the COM port
 - Description: The desciption of the TAC device
 - Serial number: The serial number of the TAC device
 
-The available methods from the TacDevice object is described in the API reference table.
+The available methods from the TACDevice object is described in the API reference table.
 
 ## API reference
 
@@ -47,7 +47,7 @@ The following methods will be available to you when you create a **TACDevice** o
 | Function name | Parameters | Return type | Description |
 | ------------- | ---------- | ----------- | ----------- |
 | Open() | None | boolean | It returns whether the device is already open and if not opens it |
-| Close() | None | None | Closes the TacDevice. TAC operations will not work after device is closed |
+| Close() | None | None | Closes the TACDevice. TAC operations will not work after device is closed |
 | PortName() | None | string | It returns the port name of the TAC device |
 | SerialNumber() | None | string | It returns the serial number of the TAC device |
 | Description() | None | string | It returns the description of the TAC device |

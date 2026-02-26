@@ -109,9 +109,9 @@ public:
 
 	static QByteArray defaultScript(DebugBoardType boardType = eFTDI);
 
-	bool parseScript(const QByteArray& alpacaScript, const ScriptVariables& scriptVariables, const TacCommands& tacCommands);
+	bool parseScript(const QByteArray& alpacaScript, const ScriptVariables& scriptVariables, const TACCommands& tacCommands);
 	CommandEntries replaceTokens(const ScriptVariables scriptVariables, const CommandEntries commandEntries);
-	QStringList validateScript(const QByteArray& alpacaScript, const TacCommands& tacCommands);
+	QStringList validateScript(const QByteArray& alpacaScript, const TACCommands& tacCommands);
 
 	bool hasCommand(const QByteArray& command);
 	QStringList availableCommands();

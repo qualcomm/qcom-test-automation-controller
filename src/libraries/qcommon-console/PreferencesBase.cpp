@@ -179,7 +179,7 @@ QString PreferencesBase::defaultPlatformConfigLocation()
 	QString result;
 
 #ifdef DEBUG
-	result = "C:\\github\\AlpacaRepos\\AlpacaConfigs\\tac_configs\\";
+	result = "C:\\github\\open-source\\qcom-test-automation-controller\\configurations\\";
 #else
 	result = tacConfigRoot();
 #endif

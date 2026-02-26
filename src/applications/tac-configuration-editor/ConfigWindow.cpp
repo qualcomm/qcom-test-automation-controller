@@ -40,12 +40,14 @@
 #include "ConfigWindow.h"
 
 // TACConfigEditor
+#include "PIC32CXEditorView.h"
 #include "CodeEditor.h"
 #include "CreateConfigurationDialog.h"
 #include "ConfigEditorApplication.h"
 #include "FTDIEditorView.h"
 #include "ManageTabsDialog.h"
 #include "PineCommandLine.h"
+#include "PSOCEditorView.h"
 #include "TACPreviewWindow.h"
 
 // libTAC
@@ -76,10 +78,14 @@ const QByteArray kLockState{QByteArrayLiteral("lockState")};
 const QByteArray kWindowTitle{QByteArrayLiteral("TAC Configuration Editor")};
 const QByteArray kPIC32CXSerialIDLabel(QByteArrayLiteral("<html><body><p><span style=\" font-size:9pt; font-weight:600;\">Serial Number:</span></p></body></html>"));
 
+const QString kFirmware15HelpText("<html><body><p><span style=\" font-size:12pt; font-weight:600;\">v15</span></p></body></html>- Legacy firmware<br/>- Pins 48, 49 cannot be configured");
+const QString kFirmware16HelpText("<html><body><p><span style=\" font-size:12pt; font-weight:600;\">v16</span></p></body></html>- Firmware for Monaco MCULess design(s)<br/>- Pins 48, 49 can be configured<br/>- Pin 49 is active high");
+const QString kFirmware17HelpText("<html><body><p><span style=\" font-size:12pt; font-weight:600;\">v17</span></p></body></html>- Firmware for Hawi and future platforms<br/>- Pin 49 can be configured. Pin 48 is unavailable<br/>- Pin 49 is active low");
+
 
 ConfigWindow::ConfigWindow(QWidget* parent) :
 	  QMainWindow(parent),
-	  _recentConfigFiles(kTACConfigEditorApp, "TacEditorConfigRecents")
+	  _recentConfigFiles(kTACConfigEditorApp, "TACEditorConfigRecents")
 {
 	setupUi(this);
 
@@ -95,10 +101,22 @@ ConfigWindow::ConfigWindow(QWidget* parent) :
 	_nwgt = new NotificationWidget(statusbar);
 	statusbar->addPermanentWidget(_nwgt);
 
+	_usbDescriptorLabel->setEnabled(false);
+	_usbDescriptorLabel->hide();
+
+	_usbDescriptor->setEnabled(false);
+	_usbDescriptor->hide();
+
+	_firmwareVerGroupBox->setEnabled(false);
+
+	_metaSplitter->setSizes({1,0});
+
 	// lambda
 	connect(_actionContents, &QAction::triggered, [=]{ startLocalBrowser(docsRoot() + "/getting-started/07-TAC-Config-Editor.html");});
 	connect(_actionAbout, &QAction::triggered, [=] { ConfigEditorApplication::appInstance()->showAboutDialog();});
 	connect(_buttonEditor, &ButtonEditor::buttonsTableUpdated, this, &ConfigWindow::onButtonsTableUpdated);
+	connect(_firmwareBtnGroup, &QButtonGroup::buttonClicked, this, &ConfigWindow::onFirmwareSelectionUpdated);
+	connect(_metaSplitter, &QSplitter::splitterMoved, this, &ConfigWindow::onMetaSplitterMoved);
 
 	restoreSettings();
 
@@ -139,10 +157,7 @@ void ConfigWindow::rebuildRecents()
 	buildRecentsMenu(_recentFilesMenu, _recentConfigFiles, this, SLOT(onActionRecentMenuTriggered()));
 }
 
-void ConfigWindow::setTACConfigFile
-(
-	PlatformConfiguration tacConfigFile
-)
+void ConfigWindow::setTACConfigFile(PlatformConfiguration tacConfigFile)
 {
 	Q_ASSERT(tacConfigFile.isNull() == false);
 
@@ -222,12 +237,37 @@ void ConfigWindow::populateFields()
 
 	switch (_platformConfiguration->getPlatform())
 	{
+	case ePSOC:
+		_editorView = new PSOCEditorView(_editorFrame);
+		_firmwareVerGroupBox->setEnabled(true);
+
+		setFirmwareSelection();
+		break;
+
 	case eFTDI:
 		_editorView = new FTDIEditorView(_editorFrame);
 
 		_usbDescriptorLabel->setEnabled(true);
+		_usbDescriptorLabel->show();
+
 		_usbDescriptor->setEnabled(true);
+		_usbDescriptor->show();
+
 		_usbDescriptor->setText(_platformConfiguration->getUSBDescriptor());
+		break;
+
+	case ePIC32CXAuto:
+		_editorView = new PIC32CXEditorView(_editorFrame);
+
+		_usbDescriptorLabel->setText(kPIC32CXSerialIDLabel);
+		_usbDescriptorLabel->setEnabled(true);
+		_usbDescriptorLabel->show();
+
+		_usbDescriptor->setEnabled(true);
+		_usbDescriptor->show();
+
+		_usbDescriptor->setText(_platformConfiguration->getUSBDescriptor());
+
 		break;
 
 	default:
@@ -309,11 +349,18 @@ void ConfigWindow::on__actionSave_triggered()
 			else
 				updateConfiguration();
 		}
+		if (_platformConfiguration->getPlatform() == ePSOC && _platformConfiguration->getPlatformId() == 255) // PSOC IDs equal to 255 will not be uploaded
+		{
+			if (_platformConfiguration->fileVersion() == 1)
+				uploadConfiguration();
+			else
+				updateConfiguration();
+		}
 		else
 		{
 			// run update device list on experimental configurations
 #ifdef Q_OS_LINUX
-			QString program = "/opt/qcom/QTAC/bin/UpdateDeviceList";
+			QString program = "/opt/qcom/Alpaca/bin/UpdateDeviceList";
 #else
 			QString program = "UpdateDeviceList";
 #endif
@@ -341,7 +388,7 @@ void ConfigWindow::on__actionQuit_triggered()
 void ConfigWindow::on__actionBugWriter_triggered()
 {
 #ifdef Q_OS_LINUX
-	QString program = "/opt/qcom/QTAC/bin/BugWriter";
+	QString program = "/opt/qcom/Alpaca/bin/BugWriter";
 #else
 	QString program = "BugWriter";
 #endif
@@ -351,7 +398,7 @@ void ConfigWindow::on__actionBugWriter_triggered()
 	arguments << "prodversion:" + kProductVersion;
 	arguments << "application:TAC_Configuration_Editor";
 	arguments << "appversion:" + kAppVersion;
-	arguments << "listports:";
+	arguments << "listports:true";
 	QProcess* process = new QProcess(Q_NULLPTR);
 
 	process->setProgram(program);
@@ -370,14 +417,90 @@ void ConfigWindow::enableEditorActions()
 		_resetCountEnable->setChecked(_platformConfiguration->getResetEnabledState());
 }
 
+QList<quint32> ConfigWindow::firmwareSelection()
+{
+	QList<quint32> supportedVersions;
+	QAbstractButton* btn = _firmwareBtnGroup->checkedButton();
+	if (btn != Q_NULLPTR)
+	{
+		bool ok(false);
+		int ver = btn->text().toInt(&ok);
+
+		if (ok)
+			supportedVersions.append(ver);
+	}
+
+	return supportedVersions;
+}
+
+void ConfigWindow::setFirmwareSelection()
+{
+	QList<QAbstractButton*> btnList = _firmwareBtnGroup->buttons();
+	for (quint32 fwVer : _platformConfiguration->supportedFirmwareVer())
+	{
+		for (int idx(0); idx < btnList.size(); idx++)
+		{
+			bool ok(false);
+			int ver = btnList[idx]->text().toInt(&ok);
+
+			if (ok)
+			{
+				if (ver == fwVer)
+				{
+					btnList[idx]->setChecked(true);
+					setAboutFirmware(ver);
+					break;
+				}
+			}
+		}
+	}
+}
+
+void ConfigWindow::setAboutFirmware(int fwVer)
+{
+	switch (fwVer)
+	{
+	case 15:
+		_editorView->setRowEnabled(15, false);
+		_editorView->setRowEnabled(16, false);
+		_helpLabel->setText(kFirmware15HelpText);
+		break;
+	case 16:
+		_editorView->setRowEnabled(15, true);
+		_editorView->setRowEnabled(16, true);
+		_helpLabel->setText(kFirmware16HelpText);
+		break;
+	case 17:
+		_editorView->setRowEnabled(15, true);
+		_editorView->setRowEnabled(16, false);
+		_helpLabel->setText(kFirmware17HelpText);
+		break;
+	}
+
+	QList<int> sizes = _metaSplitter->sizes();
+	if (sizes.size() == 2)
+	{
+		int totalWidth = sizes[0] + sizes[1];
+		_metaSplitter->setSizes({totalWidth - 250, 250});
+	}
+}
+
 void ConfigWindow::uploadConfiguration()
 {
-	// do nothing
+	QString configPath = _platformConfiguration->filePath();
+	QString platformName = _platformConfiguration->name();
+	QString platformType = _platformConfiguration->getPlatformString();
+	PlatformID platformId = _platformConfiguration->getPlatformId();
+	int configVersion = _platformConfiguration->fileVersion();
 }
 
 void ConfigWindow::updateConfiguration()
 {
-	// do nothing
+	QString configPath = _platformConfiguration->filePath();
+	QString platformName = _platformConfiguration->name();
+	QString platformType = _platformConfiguration->getPlatformString();
+	PlatformID platformId = _platformConfiguration->getPlatformId();
+	int configVersion = _platformConfiguration->fileVersion();
 }
 
 bool ConfigWindow::testForTACFile()
@@ -477,7 +600,12 @@ void ConfigWindow::on__actionPreview_triggered()
 		delete _tacPreview;
 		_tacPreview = Q_NULLPTR;
 	}
-	_tacPreview = new TACPreviewWindow(_platformConfiguration);
+	_tacPreview = new TACPreviewWindow;
+
+	connect(_tacPreview, &TACPreviewWindow::startNotification, this, &ConfigWindow::onNotificationStarted);
+
+	_tacPreview->setPlatformConfiguration(_platformConfiguration);
+
 	_tacPreview->show();
 }
 
@@ -506,6 +634,15 @@ void ConfigWindow::on__platformId_textChanged(const QString& newText)
 		if (platformID != _platformConfiguration->getPlatformId())
 		{
 			_platformConfiguration->setPlatformID(platformID);
+		}
+
+		if (_platformConfiguration->getPlatform() == DebugBoardType::ePSOC)
+		{
+			if (_platformConfiguration->getPlatformId() == 255)
+				_nwgt->insertNotification("The PSOC platform id 255 is experimental. Configuration with this platform id will be saved at: " + tacConfigRoot());
+
+			else if (_platformConfiguration->getPlatformId() > 255)
+				_nwgt->insertNotification("A PSOC platform id above 255 is invalid and can crash the debug board upon programming", eWarnNotification);
 		}
 	}
 }
@@ -545,11 +682,11 @@ void ConfigWindow::onActionRecentMenuTriggered()
 	}
 }
 
-void ConfigWindow::onNotificationStarted(const QString &message)
+void ConfigWindow::onNotificationStarted(const QString &message, NotificationLevel level)
 {
 	if (_nwgt != Q_NULLPTR)
 	{
-		_nwgt->insertNotification(message, eWarnNotification);
+		_nwgt->insertNotification(message, level);
 	}
 }
 
@@ -713,6 +850,14 @@ void ConfigWindow::onScriptVariablesUpdated()
 	_actionDefaultScriptAndVariables->setToolTip("Clear table and restore default script variables");
 }
 
+void ConfigWindow::onFirmwareSelectionUpdated(QAbstractButton *selectedBtn)
+{
+	bool ok(false);
+	int ver = selectedBtn->text().toInt(&ok);
+	if (ok)
+		setAboutFirmware(ver);
+}
+
 void ConfigWindow::on__actionDefaultQuickSettings_triggered()
 {
 	if (_buttonEditor != Q_NULLPTR)
@@ -737,3 +882,14 @@ void ConfigWindow::on__actionDefaultScriptAndVariables_triggered()
 	}
 }
 
+void ConfigWindow::onMetaSplitterMoved(int pos, int index)
+{
+	Q_UNUSED(index);
+
+	QList<int> sizes = _metaSplitter->sizes();
+	if (sizes.size() == 2 && sizes[1] > 300)
+	{
+		int totalWidth = sizes[0] + sizes[1];
+		_metaSplitter->setSizes({totalWidth - 300, 300});
+	}
+}

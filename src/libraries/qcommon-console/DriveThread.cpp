@@ -66,14 +66,6 @@ void DriveThread::shutDown()
 	}
 }
 
-void DriveThread::setConsoleInterface
-(
-	ConsoleInterface* consoleInterface
-)
-{
-	_consoleInterface = consoleInterface;
-}
-
 void DriveThread::addDelay
 (
 	quint32 delayInMilliSeconds,

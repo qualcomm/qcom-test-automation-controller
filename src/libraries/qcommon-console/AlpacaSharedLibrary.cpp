@@ -92,12 +92,7 @@ bool AlpacaSharedLibrary::initialize
 
 bool AlpacaSharedLibrary::licenseIsValid()
 {
-	/* let me know when LIME works
-		if (_validLicense == false)
-			_validLicense = _appCore.checkLicense(kProductID, kCoreFeature);
-
-		*/
-
+	// disallow license validation for open-source
 	return _validLicense;
 }
 

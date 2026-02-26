@@ -33,7 +33,7 @@
 */
 
 /*
-	Author: Austin Simpson (austinsimpson.dev)
+	Author: Biswajit Roy <biswroy@qti.qualcomm.com>
 */
 
 #include "PainterEffects.h"

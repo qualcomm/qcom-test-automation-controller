@@ -46,11 +46,11 @@ class ReceiveInterface;
 #include <QByteArray>
 #include <QVariant>
 
-class QCOMMONCONSOLE_EXPORT TacLiteCommand
+class QCOMMONCONSOLE_EXPORT TACLiteCommand
 {
 public:
-	TacLiteCommand(SendInterface* sender, ReceiveInterface* receiver);
-	~TacLiteCommand();
+	TACLiteCommand(SendInterface* sender, ReceiveInterface* receiver);
+	~TACLiteCommand();
 
 	void version();
 	void name();

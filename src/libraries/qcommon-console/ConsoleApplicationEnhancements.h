@@ -66,7 +66,6 @@ QString QCOMMONCONSOLE_EXPORT expandPath(const QString& filePath);
 QString QCOMMONCONSOLE_EXPORT tacConfigRoot(bool expandPath = true);
 QString QCOMMONCONSOLE_EXPORT epmConfigRoot();
 
-void kickIt();
 void cleanIt(const QString& pathToClean);
 
 bool QCOMMONCONSOLE_EXPORT isUserPrivileged();

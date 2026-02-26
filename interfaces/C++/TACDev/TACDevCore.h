@@ -39,7 +39,6 @@
 
 #include "TACDev.h"
 
-// libTAC
 #include "AlpacaDevice.h"
 #include "TACPreferences.h"
 
@@ -51,17 +50,17 @@
 
 using namespace std;
 
-class DevTacCore :
+class DevTACCore :
 	public QObject,
 	public AlpacaSharedLibrary
 {
 	Q_OBJECT
 public:
-	DevTacCore()
+	DevTACCore()
 	{
 	}
 
-	~DevTacCore()
+	~DevTACCore()
 	{
 	}
 

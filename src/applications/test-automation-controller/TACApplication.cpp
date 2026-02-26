@@ -41,7 +41,6 @@
 // TAC
 #include "TACWindow.h"
 
-// libTAC
 #include "TACDefines.h"
 
 // QCommon

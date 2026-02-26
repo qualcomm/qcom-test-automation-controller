@@ -57,7 +57,6 @@ qt_add_library(${LIBRARY_NAME} STATIC
     CommandGroup.h
     CommandLineParser.cpp CommandLineParser.h
     ConsoleApplicationEnhancements.cpp ConsoleApplicationEnhancements.h
-    ConsoleInterface.h
     DateCheckFailEvent.h
     DebugBoardType.cpp DebugBoardType.h
     DriveThread.cpp DriveThread.h
@@ -69,7 +68,6 @@ qt_add_library(${LIBRARY_NAME} STATIC
     FTDIPlatformConfiguration.cpp FTDIPlatformConfiguration.h
     FrameCoder.cpp FrameCoder.h
     FramePackage.h
-    LicenseFailEvent.cpp LicenseFailEvent.h
     Notification.h
     PinID.h
     PlatformConfiguration.cpp PlatformConfiguration.h
@@ -77,6 +75,12 @@ qt_add_library(${LIBRARY_NAME} STATIC
     PlatformID.cpp PlatformID.h
     PreferencesBase.cpp PreferencesBase.h
     ProtocolInterface.cpp ProtocolInterface.h
+    PIC32CXDevice.h PIC32CXDevice.cpp
+	PIC32CXPlatformConfiguration.h PIC32CXPlatformConfiguration.cpp
+	PIC32CXSerialTableModel.h PIC32CXSerialTableModel.cpp
+	PSOCDevice.h PSOCDevice.cpp
+	PSOCPlatformConfiguration.h PSOCPlatformConfiguration.cpp
+	PSOCSerialTableModel.h PSOCSerialTableModel.cpp
     QCommonConsole.cpp QCommonConsole.h
     QCommonConsoleGlobal.h
     QualcommChartColor.cpp QualcommChartColor.h
@@ -90,6 +94,8 @@ qt_add_library(${LIBRARY_NAME} STATIC
     ScriptVariable.cpp ScriptVariable.h
     SendInterface.h
     SerialPort.cpp SerialPort.h
+    SerialPortInfo.cpp SerialPortInfo.h
+    SerialTableModel.h SerialTableModel.cpp
     StringProof.cpp StringProof.h
     StringUtilities.cpp StringUtilities.h
     SystemInformation.h
@@ -99,10 +105,9 @@ qt_add_library(${LIBRARY_NAME} STATIC
     TACCommands.cpp TACCommands.h
     TACPreferences.cpp TACPreferences.h
     Tabs.cpp Tabs.h
-    TacCommandHashes.h
-    TacException.h
+    TACCommandHashes.h
+    TACException.h
     ThreadedLog.cpp ThreadedLog.h
-    Throttle.h
     TickCount.cpp TickCount.h
     USBDescriptors.cpp USBDescriptors.h
     mymemcpy.cpp mymemcpy.h
@@ -111,6 +116,14 @@ qt_add_library(${LIBRARY_NAME} STATIC
     private/TACLiteCommand.cpp private/TACLiteCommand.h
     private/TACLiteDriveThread.cpp private/TACLiteDriveThread.h
     private/TACLiteProtocol.cpp private/TACLiteProtocol.h
+	private/TACPIC32CXCoder.h private/TACPIC32CXCoder.cpp
+	private/TACPIC32CXCommand.h private/TACPIC32CXCommand.cpp
+	private/TACPIC32CXDriveThread.h private/TACPIC32CXDriveThread.cpp
+	private/TACPIC32CXProtocol.h private/TACPIC32CXProtocol.cpp
+	private/TACPSOCCoder.h private/TACPSOCCoder.cpp
+	private/TACPSOCCommand.h private/TACPSOCCommand.cpp
+	private/TACPSOCDriveThread.h private/TACPSOCDriveThread.cpp
+	private/TACPSOCProtocol.h private/TACPSOCProtocol.cpp
     version.h
 
     ${QCOMMONCONSOLE_RESOURCES}

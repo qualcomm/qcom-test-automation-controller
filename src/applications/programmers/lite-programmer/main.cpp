@@ -41,12 +41,10 @@
 #include "ProgrammerCommandLine.h"
 
 // QCommonConsole
+#include "AppCore.h"
 #include "FTDIDevice.h"
-#include "Range.h"
 #include "QCommonConsole.h"
-
-// Qt
-#include <QCoreApplication>
+#include "Range.h"
 
 // c++
 #include <iostream>

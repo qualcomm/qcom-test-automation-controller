@@ -53,7 +53,9 @@ CreateConfigurationDialog::CreateConfigurationDialog
 
 	// mapping combo-box elements with the enum
 	_platformComboBox->insertItem(_platformComboBox->count(), "<select a platform>", eUnknownDebugBoard);
+	_platformComboBox->insertItem(_platformComboBox->count(), "PSOC", ePSOC);
 	_platformComboBox->insertItem(_platformComboBox->count(), "FTDI", eFTDI);
+	_platformComboBox->insertItem(_platformComboBox->count(), "PIC32CX (Automotive)", ePIC32CXAuto);
 
 	_chipCount->setMinimum(1);
 	_chipCount->setMaximum(4);

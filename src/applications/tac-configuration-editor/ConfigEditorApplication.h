@@ -40,7 +40,6 @@
 
 class ConfigWindow;
 
-// libTAC
 #include "TACPreferences.h"
 
 // QCommon

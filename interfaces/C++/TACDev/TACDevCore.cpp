@@ -34,7 +34,6 @@
 
 /*
 	Author: Michael Simpson (msimpson@qti.qualcomm.com)
-			Anmol Jaiswal (anmojais@qti.qualcomm.com)
 */
 
 #include "TACDevCore.h"
@@ -44,14 +43,14 @@
 #include "QCommonConsole.h"
 #include "RangedContainer.h"
 
-bool DevTacCore::initialize(const QByteArray &appName, const QByteArray &appVersion)
+bool DevTACCore::initialize(const QByteArray &appName, const QByteArray &appVersion)
 {
 	QCoreApplication::setApplicationName(kProductName);
 	QCoreApplication::setOrganizationName("Qualcomm, Inc.");
 
 	if (_initialized == false)
 	{
-		AppCore* appCore = DevTacCore::appCore();
+		AppCore* appCore = DevTACCore::appCore();
 
 		_preferences.setAppName(appName, appVersion);
 		appCore->setPreferences(&_preferences);
@@ -64,9 +63,9 @@ bool DevTacCore::initialize(const QByteArray &appName, const QByteArray &appVers
 	return _initialized;
 }
 
-void DevTacCore::setLoggingState(bool state)
+void DevTACCore::setLoggingState(bool state)
 {
-	AppCore* appCore = DevTacCore::appCore();
+	AppCore* appCore = DevTACCore::appCore();
 	if (appCore != Q_NULLPTR)
 	{
 		_preferences.setLoggingActive(state);
@@ -74,11 +73,11 @@ void DevTacCore::setLoggingState(bool state)
 	}
 }
 
-bool DevTacCore::getLoggingState()
+bool DevTACCore::getLoggingState()
 {
 	bool result{false};
 
-	AppCore* appCore = DevTacCore::appCore();
+	AppCore* appCore = DevTACCore::appCore();
 	if (appCore != Q_NULLPTR)
 	{
 		result = _preferences.loggingActive();
@@ -87,12 +86,12 @@ bool DevTacCore::getLoggingState()
 	return result;
 }
 
-AppCore *DevTacCore::appCore()
+AppCore *DevTACCore::appCore()
 {
 	return AppCore::getAppCore();
 }
 
-AlpacaDevice DevTacCore::getAlpacaDevice(TAC_HANDLE tacHandle)
+AlpacaDevice DevTACCore::getAlpacaDevice(TAC_HANDLE tacHandle)
 {
 	AlpacaDevice alpacaDevice;
 
@@ -118,7 +117,7 @@ AlpacaDevice DevTacCore::getAlpacaDevice(TAC_HANDLE tacHandle)
 	return alpacaDevice;
 }
 
-TAC_HANDLE DevTacCore::OpenHandleByDescription(const char *portName)
+TAC_HANDLE DevTACCore::OpenHandleByDescription(const char *portName)
 {
 	TAC_HANDLE result{kBadHandle};
 
@@ -136,7 +135,7 @@ TAC_HANDLE DevTacCore::OpenHandleByDescription(const char *portName)
 		AlpacaDevice alpacaDevice = _AlpacaDevice::findAlpacaDevice(portName);
 		if (alpacaDevice.isNull() == false)
 		{
-			connect(alpacaDevice.data(), &_AlpacaDevice::errorEvent, this, &DevTacCore::onErrorEvent);
+			connect(alpacaDevice.data(), &_AlpacaDevice::errorEvent, this, &DevTACCore::onErrorEvent);
 
 			if (alpacaDevice->open() == true)
 			{
@@ -167,7 +166,7 @@ TAC_HANDLE DevTacCore::OpenHandleByDescription(const char *portName)
 	return result;
 }
 
-TAC_RESULT DevTacCore::CloseTACHandle(TAC_HANDLE tacHandle)
+TAC_RESULT DevTACCore::CloseTACHandle(TAC_HANDLE tacHandle)
 {
 	TAC_RESULT result{NO_TAC_ERROR};
 
@@ -185,7 +184,7 @@ TAC_RESULT DevTacCore::CloseTACHandle(TAC_HANDLE tacHandle)
 	return result;
 }
 
-void DevTacCore::onErrorEvent(const QByteArray &message)
+void DevTACCore::onErrorEvent(const QByteArray &message)
 {
 	setLastError(message);
 }

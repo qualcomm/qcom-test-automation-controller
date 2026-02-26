@@ -38,7 +38,7 @@
 */
 
 #include "TACCommands.h"
-#include "TacCommandHashes.h"
+#include "TACCommandHashes.h"
 
 // QCommon
 #include "StringUtilities.h"

@@ -4,5 +4,9 @@
         <file>NotificationBellRing.png</file>
         <file>doubleclick.png</file>
         <file>Warning.drawio.png</file>
+        <file>Rewind.png</file>
+        <file>Stop.png</file>
+        <file>Play.png</file>
+        <file>Pause.png</file>
     </qresource>
 </RCC>

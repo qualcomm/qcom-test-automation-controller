@@ -39,7 +39,6 @@
 // TAC
 #include "TACApplication.h"
 
-// libTAC
 #include "QCommonConsole.h"
 
 // QCommon

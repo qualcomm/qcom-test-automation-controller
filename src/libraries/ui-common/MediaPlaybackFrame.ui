@@ -1,0 +1,117 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>MediaPlaybackFrame</class>
+	<widget class="QFrame" name="MediaPlaybackFrame">
+		<property name="sizePolicy">
+		<sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+		<horstretch>0</horstretch>
+		<verstretch>0</verstretch>
+		</sizepolicy>
+		</property>
+		<property name="frameShape">
+		<enum>QFrame::Shape::StyledPanel</enum>
+		</property>
+		<property name="frameShadow">
+		<enum>QFrame::Shadow::Raised</enum>
+		</property>
+		<layout class="QGridLayout" name="gridLayout_4">
+		<item row="2" column="0">
+		<layout class="QHBoxLayout" name="_mediaControlsHlayout">
+		<item>
+				<spacer name="_hspacer2">
+				<property name="orientation">
+				<enum>Qt::Orientation::Horizontal</enum>
+				</property>
+				<property name="sizeHint" stdset="0">
+				<size>
+				<width>40</width>
+				<height>20</height>
+				</size>
+				</property>
+				</spacer>
+		</item>
+		<item>
+				<widget class="QPushButton" name="_playBtn">
+				<property name="toolTip">
+				<string>Play the media</string>
+				</property>
+				<property name="text">
+				<string/>
+				</property>
+				<property name="icon">
+				<iconset resource="UI.qrc">
+				<normaloff>:/Play.png</normaloff>:/Play.png</iconset>
+				</property>
+				</widget>
+		</item>
+		<item>
+				<widget class="QPushButton" name="_stopBtn">
+				<property name="toolTip">
+				<string>Stop the media</string>
+				</property>
+				<property name="text">
+				<string/>
+				</property>
+				<property name="icon">
+				<iconset resource="UI.qrc">
+				<normaloff>:/Stop.png</normaloff>:/Stop.png</iconset>
+				</property>
+				</widget>
+		</item>
+		<item>
+				<widget class="QPushButton" name="_rewindBtn">
+				<property name="toolTip">
+				<string>Rewind the media</string>
+				</property>
+				<property name="text">
+				<string/>
+				</property>
+				<property name="icon">
+				<iconset resource="UI.qrc">
+				<normaloff>:/Rewind.png</normaloff>:/Rewind.png</iconset>
+				</property>
+				</widget>
+		</item>
+		<item>
+				<spacer name="_hspacer1">
+				<property name="orientation">
+				<enum>Qt::Orientation::Horizontal</enum>
+				</property>
+				<property name="sizeHint" stdset="0">
+				<size>
+				<width>40</width>
+				<height>20</height>
+				</size>
+				</property>
+				</spacer>
+		</item>
+		</layout>
+		</item>
+		<item row="0" column="0">
+		<layout class="QHBoxLayout" name="_mediaHLayout">
+		<property name="sizeConstraint">
+			<enum>QLayout::SizeConstraint::SetDefaultConstraint</enum>
+		</property>
+		</layout>
+		</item>
+		<item row="1" column="0">
+		<spacer name="_vSpacer">
+		<property name="orientation">
+				<enum>Qt::Orientation::Vertical</enum>
+		</property>
+		<property name="sizeType">
+				<enum>QSizePolicy::Policy::Minimum</enum>
+		</property>
+		<property name="sizeHint" stdset="0">
+				<size>
+				<width>20</width>
+				<height>40</height>
+				</size>
+		</property>
+		</spacer>
+		</item>
+		</layout>
+	</widget>
+ <resources/>
+ <connections/>
+</ui>

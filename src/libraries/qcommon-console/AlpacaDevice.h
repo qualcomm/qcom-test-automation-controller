@@ -1,38 +1,27 @@
 #ifndef TACDEVICE_H
 #define TACDEVICE_H
-/*
-	Copyright (c) Qualcomm Technologies, Inc. and/or its subsidiaries. 
-	 
-	Redistribution and use in source and binary forms, with or without
-	modification, are permitted (subject to the limitations in the
-	disclaimer below) provided that the following conditions are met:
-	 
-		* Redistributions of source code must retain the above copyright
-		  notice, this list of conditions and the following disclaimer.
-	 
-		* Redistributions in binary form must reproduce the above
-		  copyright notice, this list of conditions and the following
-		  disclaimer in the documentation and/or other materials provided
-		  with the distribution.
-	 
-		* Neither the name of Qualcomm Technologies, Inc. nor the names of its
-		  contributors may be used to endorse or promote products derived
-		  from this software without specific prior written permission.
-	 
-	NO EXPRESS OR IMPLIED LICENSES TO ANY PARTY'S PATENT RIGHTS ARE
-	GRANTED BY THIS LICENSE. THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT
-	HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED
-	WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
-	MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED.
-	IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR
-	ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
-	DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE
-	GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
-	INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER
-	IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-	OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN
-	IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-*/
+// Confidential and Proprietary Qualcomm Technologies, Inc.
+
+// NO PUBLIC DISCLOSURE PERMITTED:  Please report postings of this software on public servers or websites
+// to: DocCtrlAgent@qualcomm.com.
+
+// RESTRICTED USE AND DISCLOSURE:
+// This software contains confidential and proprietary information and is not to be used, copied, reproduced, modified
+// or distributed, in whole or in part, nor its contents revealed in any manner, without the express written permission
+// of Qualcomm Technologies, Inc.
+
+// Qualcomm is a trademark of QUALCOMM Incorporated, registered in the United States and other countries. All
+// QUALCOMM Incorporated trademarks are used with permission.
+
+// This software may be subject to U.S. and international export, re-export, or transfer laws.  Diversion contrary to U.S.
+// and international law is strictly prohibited.
+
+// Qualcomm Technologies, Inc.
+// 5775 Morehouse Drive
+// San Diego, CA 92121 U.S.A.
+// Copyright 2024 Qualcomm Technologies, Inc.
+// All rights reserved.
+// Qualcomm Technologies Confidential and Proprietary
 
 /*
 	Author: Michael Simpson (msimpson@qti.qualcomm.com)
@@ -92,8 +81,8 @@ public:
 	void buildQuickSettings();
 
 	quint32 commandCount();
-	TacCommand commandEntry(quint32 commandIndex);
-	TacCommands commandList();
+	TACCommand commandEntry(quint32 commandIndex);
+	TACCommands commandList();
 
 	quint32 quickCommandCount();
 	QByteArray getQuickCommand(quint32 index);
@@ -106,6 +95,8 @@ public:
 	bool sendCommand(const QByteArray& command, bool state);
 
 	bool quickCommand(const QByteArray& command);
+
+	bool isCommandQueueClear();
 
 	QByteArray getHelp();
 
@@ -186,13 +177,13 @@ protected:
 	QByteArray                  _macAddress{kMACNotSupported};
 	QByteArray					_serialNumber;
 	uint						_chipVersion{0};
-	PlatformID					_platformID{ALPACA_LITE_ID};
+	PlatformID					_platformID{MICRO_EPM_BOARD_ID_UNKNOWN};
 	QByteArray					_helpText;
 	TACDriveThread*				_driveThread{Q_NULLPTR};
 
 	PlatformConfiguration		_platformConfiguration;
-	TacCommandMap				_commands;
-	TacCommands					_commandList;
+	TACCommandMap				_commands;
+	TACCommands					_commandList;
 	QList<QByteArray>			_quickCommandList;
 	AlpacaScript				_alpacaScript;
 	QByteArray                  _lastError;

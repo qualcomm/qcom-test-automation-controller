@@ -1,0 +1,610 @@
+{
+    "author": "Biswajit Roy <biswroy@qti.qualcomm.com>",
+    "buttons": [
+        {
+            "cellLocation": "2,1",
+            "command": "bootToFastboot",
+            "command_group": 4,
+            "name": "Boot to MD Fastboot",
+            "tab": "General",
+            "tooltip": "Boots the device to primary fastboot"
+        },
+        {
+            "cellLocation": "2,0",
+            "command": "bootToEDL",
+            "command_group": 4,
+            "name": "Boot MD EDL",
+            "tab": "General",
+            "tooltip": "Boots the device to primary EDL"
+        },
+        {
+            "cellLocation": "0,1",
+            "command": "bootToSecondaryEDL",
+            "command_group": 4,
+            "name": "Boot SS EDL",
+            "tab": "General",
+            "tooltip": "Boots the device to secondary EDL"
+        },
+        {
+            "cellLocation": "1,1",
+            "command": "bootToUEFI",
+            "command_group": 4,
+            "name": "Boot to UEFI",
+            "tab": "General",
+            "tooltip": "Boots the device to UEFI"
+        },
+        {
+            "cellLocation": "0,0",
+            "command": "powerOn",
+            "command_group": 4,
+            "name": "Power On",
+            "tab": "General",
+            "tooltip": "Power on the MTP/Device"
+        },
+        {
+            "cellLocation": "3,0",
+            "command": "bootToSecondaryFastboot",
+            "command_group": 4,
+            "name": "Boot to SS MD Fastboot",
+            "tab": "General",
+            "tooltip": "Boots the device to secondary fastboot"
+        },
+        {
+            "cellLocation": "1,0",
+            "command": "powerOff",
+            "command_group": 4,
+            "name": "Power Off",
+            "tab": "General",
+            "tooltip": "Power off the MTP/Device"
+        }
+    ],
+    "creation_date": "Tue Apr 8 18:17:28 2025",
+    "description": "NordAu RIDE",
+    "fileVersion": 6,
+    "modification_date": "Tue Dec 2 16:07:46 2025",
+    "name": "NordAu RIDE",
+    "pineVersion": 1,
+    "pins": [
+        {
+            "command": "kratos",
+            "command_group": 3,
+            "enabled": false,
+            "help_hint": "Kratos Trigger",
+            "inverted": false,
+            "name": "Kratos Trigger",
+            "pin_number": 110,
+            "run_priority": "-1,-1",
+            "tab_name": "General"
+        },
+        {
+            "command": "forcemdpshold",
+            "command_group": 2,
+            "enabled": true,
+            "help_hint": "Force MD PS HOLD",
+            "inverted": false,
+            "name": "Force MD PS HOLD",
+            "pin_number": 120,
+            "run_priority": "1,1",
+            "tab_name": "General"
+        },
+        {
+            "command": "iic7",
+            "command_group": 2,
+            "enabled": false,
+            "help_hint": "Debug I2C 7",
+            "inverted": false,
+            "name": "JMI2C.7",
+            "pin_number": 320,
+            "run_priority": "-1,-1",
+            "tab_name": "General"
+        },
+        {
+            "command": "pcie2",
+            "command_group": 3,
+            "enabled": false,
+            "help_hint": "PCIE 2 Attention",
+            "inverted": false,
+            "name": "PCIE2 Attention",
+            "pin_number": 101,
+            "run_priority": "2,0",
+            "tab_name": "General"
+        },
+        {
+            "command": "iic4",
+            "command_group": 3,
+            "enabled": false,
+            "help_hint": "Debug pin",
+            "inverted": false,
+            "name": "JMI2C.4",
+            "pin_number": 111,
+            "run_priority": "-1,-1",
+            "tab_name": "General"
+        },
+        {
+            "command": "eud",
+            "command_group": 2,
+            "enabled": true,
+            "help_hint": "EUD for Primary SOC",
+            "inverted": false,
+            "name": "EUD",
+            "pin_number": 311,
+            "run_priority": "2,3",
+            "tab_name": "General"
+        },
+        {
+            "command": "forcesspshold",
+            "command_group": 2,
+            "enabled": true,
+            "help_hint": "Force SS PS HOLD",
+            "inverted": false,
+            "name": "Force SS PS HOLD",
+            "pin_number": 121,
+            "run_priority": "1,2",
+            "tab_name": "General"
+        },
+        {
+            "command": "iic13",
+            "command_group": 2,
+            "enabled": false,
+            "help_hint": "Debug pin",
+            "inverted": false,
+            "name": "JMI2C.13",
+            "pin_number": 221,
+            "run_priority": "-1,-1",
+            "tab_name": "General"
+        },
+        {
+            "command": "fastboot",
+            "command_group": 2,
+            "enabled": true,
+            "help_hint": "MD Fastboot",
+            "inverted": false,
+            "name": "Fastboot MD",
+            "pin_number": 321,
+            "run_priority": "2,2",
+            "tab_name": "General"
+        },
+        {
+            "command": "pcie3",
+            "command_group": 3,
+            "enabled": false,
+            "help_hint": "PCIE 3 Attention",
+            "inverted": false,
+            "name": "PCIE3 Attention",
+            "pin_number": 102,
+            "run_priority": "0,1",
+            "tab_name": "General"
+        },
+        {
+            "command": "usb1",
+            "command_group": 1,
+            "enabled": true,
+            "help_hint": "USB1 Disconnect",
+            "inverted": false,
+            "name": "USB1",
+            "pin_number": 312,
+            "run_priority": "2,0",
+            "tab_name": "General"
+        },
+        {
+            "command": "iic10",
+            "command_group": 3,
+            "enabled": false,
+            "help_hint": "Debug pin",
+            "inverted": false,
+            "name": "JMI2C.10",
+            "pin_number": 103,
+            "run_priority": "-1,-1",
+            "tab_name": "General"
+        },
+        {
+            "command": "",
+            "command_group": 0,
+            "enabled": false,
+            "help_hint": "",
+            "inverted": false,
+            "name": "",
+            "pin_number": 123,
+            "run_priority": "-1,-1",
+            "tab_name": "General"
+        },
+        {
+            "command": "",
+            "command_group": 0,
+            "enabled": false,
+            "help_hint": "",
+            "inverted": false,
+            "name": "",
+            "pin_number": 204,
+            "run_priority": "-1,-1",
+            "tab_name": "General"
+        },
+        {
+            "command": "qccbld",
+            "command_group": 2,
+            "enabled": false,
+            "help_hint": "QCC BLD Disconnect",
+            "inverted": false,
+            "name": "QCC BLD Disconnect",
+            "pin_number": 114,
+            "run_priority": "-1,-1",
+            "tab_name": "General"
+        },
+        {
+            "command": "inputpoff",
+            "command_group": 0,
+            "enabled": false,
+            "help_hint": "PMS Fast Power Off",
+            "inverted": false,
+            "name": "PMS Fast Power Off",
+            "pin_number": 224,
+            "run_priority": "-1,-1",
+            "tab_name": "General"
+        },
+        {
+            "command": "usb2",
+            "command_group": 1,
+            "enabled": false,
+            "help_hint": "USB 2 Disable",
+            "inverted": false,
+            "name": "USB2",
+            "pin_number": 205,
+            "run_priority": "0,1",
+            "tab_name": "General"
+        },
+        {
+            "command": "bbbld",
+            "command_group": 3,
+            "enabled": false,
+            "help_hint": "BB BLD Disconnect",
+            "inverted": false,
+            "name": "BB BLD Disconnect",
+            "pin_number": 115,
+            "run_priority": "-1,-1",
+            "tab_name": "General"
+        },
+        {
+            "command": "mode1",
+            "command_group": 3,
+            "enabled": true,
+            "help_hint": "Mode 1",
+            "inverted": false,
+            "name": "Mode 1",
+            "pin_number": 215,
+            "run_priority": "2,0",
+            "tab_name": "General"
+        },
+        {
+            "command": "inputpms",
+            "command_group": 0,
+            "enabled": false,
+            "help_hint": "PMS Enable",
+            "inverted": false,
+            "name": "PMS Enable",
+            "pin_number": 225,
+            "run_priority": "-1,-1",
+            "tab_name": "General"
+        },
+        {
+            "command": "inputpwr",
+            "command_group": 2,
+            "enabled": false,
+            "help_hint": "Fast K Power Off Enable",
+            "inverted": false,
+            "name": "Fast Power Off",
+            "pin_number": 206,
+            "run_priority": "4,2",
+            "tab_name": "General"
+        },
+        {
+            "command": "sfastboot",
+            "command_group": 2,
+            "enabled": true,
+            "help_hint": "Fastboot SS",
+            "inverted": false,
+            "name": "SAIL Subsystem Fastboot",
+            "pin_number": 116,
+            "run_priority": "3,2",
+            "tab_name": "General"
+        },
+        {
+            "command": "pedl",
+            "command_group": 2,
+            "enabled": true,
+            "help_hint": "MD EDL",
+            "inverted": false,
+            "name": "MD EDL",
+            "pin_number": 216,
+            "run_priority": "0,2",
+            "tab_name": "General"
+        },
+        {
+            "command": "pcie0",
+            "command_group": 3,
+            "enabled": true,
+            "help_hint": "PCIE Attention",
+            "inverted": false,
+            "name": "PCIE Attention",
+            "pin_number": 226,
+            "run_priority": "1,0",
+            "tab_name": "General"
+        },
+        {
+            "command": "mode0",
+            "command_group": 2,
+            "enabled": false,
+            "help_hint": "Mode 0 for Primary SOC",
+            "inverted": false,
+            "name": "Mode 0",
+            "pin_number": 207,
+            "run_priority": "1,2",
+            "tab_name": "General"
+        },
+        {
+            "command": "iic5",
+            "command_group": 3,
+            "enabled": false,
+            "help_hint": "Debug pin",
+            "inverted": false,
+            "name": "JMI2C.5",
+            "pin_number": 117,
+            "run_priority": "0,2",
+            "tab_name": "General"
+        },
+        {
+            "command": "mode0",
+            "command_group": 2,
+            "enabled": false,
+            "help_hint": "Mode 0",
+            "inverted": false,
+            "name": "Mode 0",
+            "pin_number": 217,
+            "run_priority": "-1,-1",
+            "tab_name": "General"
+        },
+        {
+            "command": "qccblden",
+            "command_group": 2,
+            "enabled": false,
+            "help_hint": "-",
+            "inverted": false,
+            "name": "QCC BLD EN",
+            "pin_number": 227,
+            "run_priority": "2,1",
+            "tab_name": "General"
+        },
+        {
+            "command": "sbattery",
+            "command_group": 2,
+            "enabled": true,
+            "help_hint": "SAIL Power on",
+            "inverted": false,
+            "name": "SAIL Power On",
+            "pin_number": 118,
+            "run_priority": "3,1",
+            "tab_name": "General"
+        },
+        {
+            "command": "usb0",
+            "command_group": 1,
+            "enabled": true,
+            "help_hint": "Disconnect USB0",
+            "inverted": false,
+            "name": "USB0",
+            "pin_number": 128,
+            "run_priority": "1,0",
+            "tab_name": "General"
+        },
+        {
+            "command": "mode2",
+            "command_group": 3,
+            "enabled": true,
+            "help_hint": "Mode 2",
+            "inverted": false,
+            "name": "Mode 2",
+            "pin_number": 228,
+            "run_priority": "3,0",
+            "tab_name": "General"
+        },
+        {
+            "command": "spshold",
+            "command_group": 2,
+            "enabled": true,
+            "help_hint": "SAIL Subsystem PSHOLD",
+            "inverted": false,
+            "name": "SAIL PS HOLD",
+            "pin_number": 119,
+            "run_priority": "3,0",
+            "tab_name": "General"
+        },
+        {
+            "command": "sedl",
+            "command_group": 2,
+            "enabled": true,
+            "help_hint": "SS EDL",
+            "inverted": false,
+            "name": "SS EDL",
+            "pin_number": 219,
+            "run_priority": "0,3",
+            "tab_name": "General"
+        },
+        {
+            "command": "pgood",
+            "command_group": 2,
+            "enabled": false,
+            "help_hint": "-",
+            "inverted": false,
+            "name": "PMS PGOOD",
+            "pin_number": 129,
+            "run_priority": "4,0",
+            "tab_name": "General"
+        },
+        {
+            "command": "sresn",
+            "command_group": 2,
+            "enabled": true,
+            "help_hint": "KK Resin N",
+            "inverted": false,
+            "name": "KK Resin N",
+            "pin_number": 10,
+            "run_priority": "2,0",
+            "tab_name": "General"
+        },
+        {
+            "command": "pkey",
+            "command_group": 2,
+            "enabled": true,
+            "help_hint": "Power Off",
+            "inverted": false,
+            "name": "Power Off",
+            "pin_number": 20,
+            "run_priority": "0,1",
+            "tab_name": "General"
+        },
+        {
+            "command": "pmspwr",
+            "command_group": 2,
+            "enabled": true,
+            "help_hint": "PMS Power On",
+            "inverted": false,
+            "name": "PMS Power On",
+            "pin_number": 11,
+            "run_priority": "2,1",
+            "tab_name": "General"
+        },
+        {
+            "command": "pcie0",
+            "command_group": 3,
+            "enabled": false,
+            "help_hint": "PCIE 0 Attention",
+            "inverted": false,
+            "name": "PCIE0 Attention",
+            "pin_number": 21,
+            "run_priority": "0,0",
+            "tab_name": "General"
+        },
+        {
+            "command": "uefi",
+            "command_group": 2,
+            "enabled": true,
+            "help_hint": "UEFI",
+            "inverted": false,
+            "name": "UEFI",
+            "pin_number": 16,
+            "run_priority": "1,3",
+            "tab_name": "General"
+        },
+        {
+            "command": "pcie1",
+            "command_group": 3,
+            "enabled": false,
+            "help_hint": "PCIE 1 Attention",
+            "inverted": false,
+            "name": "PCIE1 Attention",
+            "pin_number": 27,
+            "run_priority": "1,0",
+            "tab_name": "General"
+        },
+        {
+            "command": "iic2",
+            "command_group": 1,
+            "enabled": false,
+            "help_hint": "Debug pin",
+            "inverted": false,
+            "name": "JMI2C.2",
+            "pin_number": 3,
+            "run_priority": "-1,-1",
+            "tab_name": "General"
+        },
+        {
+            "command": "battery",
+            "command_group": 1,
+            "enabled": true,
+            "help_hint": "Disconnects power to the device",
+            "inverted": true,
+            "name": "Battery",
+            "pin_number": 4,
+            "run_priority": "0,0",
+            "tab_name": "General"
+        },
+        {
+            "command": "kkpwr",
+            "command_group": 2,
+            "enabled": true,
+            "help_hint": "Enables KK Power",
+            "inverted": false,
+            "name": "KK Power Enable",
+            "pin_number": 6,
+            "run_priority": "0,0",
+            "tab_name": "General"
+        },
+        {
+            "command": "pshold",
+            "command_group": 2,
+            "enabled": true,
+            "help_hint": "MD PS HOLD",
+            "inverted": false,
+            "name": "MD PS HOLD",
+            "pin_number": 7,
+            "run_priority": "1,0",
+            "tab_name": "General"
+        }
+    ],
+    "platform_id": 54,
+    "platform_type": "PIC32CXAuto",
+    "reset_enabled": false,
+    "script": "def powerOff()\r\n\tlogComment ====== powerOff start ======\r\n\r\n\r\n\tbattery 1\r\n\r\n\r\n\tlogComment ====== powerOff finish ======\r\n\r\ndef powerOn()\r\n\tlogComment ====== powerOn start ======\r\n\r\n\r\n\tbattery 1\r\n\tdelay 900\r\n\tbattery 0\r\n\r\n\tlogComment ====== powerOn finish ======\r\n\r\ndef bootToEDL()\r\n\tlogComment ====== bootToEDL start ======\r\n\r\n\tsedl 0\r\n\tuefi 0\r\n\tbattery 1\r\n\tpedl 1\r\n\tdelay 900\r\n\tbattery 0\r\n\tdelay $edl\r\n\tpedl 0\r\n\r\n\tlogComment ====== bootToEDL finish ======\r\n\r\ndef bootToSecondaryEDL()\r\n\tlogComment ====== bootToSecondaryEDL start ======\r\n\r\n\tpedl 0\r\n\tuefi 0\r\n\tbattery 1\r\n\tsedl 1\r\n\tdelay 900\r\n\tbattery 0\r\n\tdelay $edl\r\n\tsedl 0\r\n\r\n\tlogComment ====== bootToSecondaryEDL finish ======\r\n\r\ndef bootToUEFI()\r\n\tlogComment ====== bootToUEFIMenu start ======\r\n\r\n\tkkpwr 1\r\n\tuefi 1\r\n\tbattery 1\r\n\tdelay 900\r\n\tbattery 0\r\n\tdelay $uefi\r\n\tuefi 0\r\n\tkkpwr 0\r\n\r\ndef bootToFastboot()\r\n\tlogComment ====== bootToFastboot start ======\r\n\r\n\tpedl 0\r\n\tsedl 0\r\n\tuefi 0\r\n\tsfastboot 0\r\n\tbattery 1\r\n\tfastboot 1\r\n\tdelay 900\r\n\tbattery 0\r\n\tdelay $fastboot\r\n\tfastboot 0\r\n\r\n\tlogComment ====== bootToFastboot finished ======\r\n\r\ndef bootToSecondaryFastboot()\r\n\tlogComment ====== bootToSecondaryFastboot start ======\r\n\r\n\tpedl 0\r\n\tsedl 0\r\n\tuefi 0\r\n\tbattery 1\r\n\tsfastboot 1\r\n\tfastboot 1\r\n\tdelay 900\r\n\tbattery 0\r\n\tdelay $fastboot\r\n\tsfastboot 0\r\n\tfastboot 0\r\n\r\n\tlogComment ====== bootToSecondaryFastboot finished ======\r\n",
+    "tabs": [
+        {
+            "configurable": true,
+            "moveable": false,
+            "name": "General",
+            "ordinal": 0,
+            "user_tab": false,
+            "visible": true
+        },
+        {
+            "configurable": false,
+            "moveable": false,
+            "name": "Device Info",
+            "ordinal": 1,
+            "user_tab": false,
+            "visible": true
+        },
+        {
+            "configurable": false,
+            "moveable": true,
+            "name": "Terminal",
+            "ordinal": 2,
+            "user_tab": false,
+            "visible": true
+        }
+    ],
+    "usb_descriptor": "KARUSSELL",
+    "variables": [
+        {
+            "cellLocation": "0,0",
+            "default_value": "2500",
+            "label": "EDL timing (ms)",
+            "name": "edl",
+            "tooltip": "Configurable Boot to EDL timing in milliseconds",
+            "type": 1
+        },
+        {
+            "cellLocation": "1,0",
+            "default_value": "12000",
+            "label": "Fastboot timing (ms)",
+            "name": "fastboot",
+            "tooltip": "Configurable Boot to fastboot timing in milliseconds",
+            "type": 1
+        },
+        {
+            "cellLocation": "0,1",
+            "default_value": "13000",
+            "label": "UEFI timing (ms)",
+            "name": "uefi",
+            "tooltip": "Configurable Boot to UEFI timing in milliseconds",
+            "type": 1
+        }
+    ]
+}

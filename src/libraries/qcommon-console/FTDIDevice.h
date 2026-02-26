@@ -40,7 +40,6 @@
 
 #include "QCommonConsoleGlobal.h"
 
-// libTAC
 #include "AlpacaDevice.h"
 
 // QCommon

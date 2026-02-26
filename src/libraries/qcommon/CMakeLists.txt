@@ -57,7 +57,6 @@ qt_add_library(${LIBRARY_NAME} STATIC
     LEDWidget.cpp LEDWidget.h
     PainterEffects.cpp PainterEffects.h
     PinLED.cpp PinLED.h PinLED.ui
-    ProgressDialog.cpp ProgressDialog.h ProgressDialog.ui
     QCommon.cpp QCommon.h
     QCommonGlobal.h
     StyledLabel.cpp StyledLabel.h

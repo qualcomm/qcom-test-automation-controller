@@ -36,7 +36,7 @@
 
 #include "TACLiteCoder.h"
 #include "TACCommands.h"
-#include "TacCommandHashes.h"
+#include "TACCommandHashes.h"
 
 static quint32 designToPin(quint32 designPin)
 {
@@ -86,21 +86,21 @@ static quint32 designToPin(quint32 designPin)
 	return 0xFFFFFFF;
 }
 
-TacLiteCoder::TacLiteCoder() :
+TACLiteCoder::TACLiteCoder() :
 	FrameCoder()
 {
 }
 
-TacLiteCoder::~TacLiteCoder()
+TACLiteCoder::~TACLiteCoder()
 {
 }
 
-void TacLiteCoder::reset()
+void TACLiteCoder::reset()
 {
 	FrameCoder::reset();
 }
 
-void TacLiteCoder::decode
+void TACLiteCoder::decode
 (
 	const QByteArray& decodeMe
 )
@@ -108,7 +108,7 @@ void TacLiteCoder::decode
 	Q_UNUSED(decodeMe)
 }
 
-QByteArray TacLiteCoder::encode
+QByteArray TACLiteCoder::encode
 (
 	const QByteArray& encodeMe,
 	const Arguments &arguments
