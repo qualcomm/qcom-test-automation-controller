@@ -40,6 +40,7 @@
 */
 
 #include "PlatformConfiguration.h"
+#include "Notification.h"
 
 #include <QDialog>
 
@@ -61,7 +62,7 @@ public:
 	void readVariables();
 
 signals:
-	void startNotification(const QString& message);
+	void startNotification(const QString& message, NotificationLevel level);
 	void ScriptVariablesUpdated();
 
 private slots:

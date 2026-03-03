@@ -46,12 +46,12 @@
 // Qt
 #include <QByteArray>
 
-class QCOMMONCONSOLE_EXPORT TacLiteCoder :
+class QCOMMONCONSOLE_EXPORT TACLiteCoder :
 	public FrameCoder
 {
 public:
-	TacLiteCoder();
-	virtual ~TacLiteCoder();
+	TACLiteCoder();
+	virtual ~TACLiteCoder();
 
 	virtual void reset();
 
@@ -59,7 +59,7 @@ public:
 	virtual QByteArray encode(const QByteArray& encodeMe, const Arguments& arguments);
 
 private:
-	Q_DISABLE_COPY(TacLiteCoder)
+	Q_DISABLE_COPY(TACLiteCoder)
 	QByteArray					_recieveBuffer;
 };
 

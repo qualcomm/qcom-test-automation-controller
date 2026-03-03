@@ -58,7 +58,7 @@ typedef unsigned long TAC_RESULT;
 
 const TAC_HANDLE kBadHandle{0};
 
-// Keep in sync with TacException.h
+// Keep in sync with TACException.h
 
 const unsigned long NO_TAC_ERROR{0};
 const unsigned long TACDEV_BUFFER_TOO_SMALL{1};
@@ -117,6 +117,9 @@ extern "C" {
 
 	// Raw Pin State
 	TACDEV_EXPORT TAC_ERROR SetPinState(TAC_HANDLE tacHandle, int pin, bool state);
+
+	// Command queue status
+	TACDEV_EXPORT TAC_ERROR IsCommandQueueClear(TAC_HANDLE tacHandle, bool* status);
 
 	TACDEV_EXPORT TAC_RESULT SetBatteryState(TAC_HANDLE tacHandle, bool state);
 	TACDEV_EXPORT TAC_RESULT GetBatteryState(TAC_HANDLE tacHandle, bool* state);

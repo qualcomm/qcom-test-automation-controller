@@ -39,7 +39,6 @@
 */
 
 // QCommon
-#include "ConsoleInterface.h"
 #include "ProtocolInterface.h"
 #include "SendInterface.h"
 #include "QCommonConsoleGlobal.h"
@@ -87,8 +86,6 @@ public:
 		return result;
 	}
 
-
-	void setConsoleInterface(ConsoleInterface* consoleInterface);
 	void setProtocolInterface(ProtocolInterface* protocolInterface);
 
 	virtual void run() = 0;
@@ -120,7 +117,6 @@ protected:
 	static int					_driveTrainIDs;
 
 	int							_driveTrainID{0};
-	ConsoleInterface*			_consoleInterface{Q_NULLPTR};
 	ProtocolInterface*			_protocolInterface{Q_NULLPTR};
 	
 	QString						_driveTrainName{"<unnamed>"};

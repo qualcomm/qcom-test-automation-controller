@@ -34,7 +34,6 @@
 
 /*
 	Author: Michael Simpson (msimpson@qti.qualcomm.com)
-			Anmol Jaiswal (anmojais@qti.qualcomm.com)
 */
 
 #include "PreferencesDialog.h"

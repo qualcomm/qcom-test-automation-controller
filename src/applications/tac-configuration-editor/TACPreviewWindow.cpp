@@ -40,24 +40,23 @@
 
 #include <QResizeEvent>
 
-TACPreviewWindow::TACPreviewWindow
-(
-	PlatformConfiguration platformConfiguration,
-	QWidget* parent
-) :
-	  QWidget(parent),
-	  _platformConfig(platformConfiguration)
+TACPreviewWindow::TACPreviewWindow(QWidget* parent) : QWidget(parent)
 {
     setupUi(this);
 
-    _tacFrame->setPlatformConfiguration(_platformConfig);
-
-	resize(_platformConfig->getFormDimension());
+	connect(_tacFrame, &TACFrame::startNotification, this, &TACPreviewWindow::onNotificationStarted);
 }
 
 TACPreviewWindow::~TACPreviewWindow()
 {
+}
 
+void TACPreviewWindow::setPlatformConfiguration(PlatformConfiguration platformConfiguration)
+{
+	_platformConfig = platformConfiguration;
+
+	_tacFrame->setPlatformConfiguration(_platformConfig);
+	resize(_platformConfig->getFormDimension());
 }
 
 void TACPreviewWindow::resizeEvent
@@ -71,4 +70,9 @@ void TACPreviewWindow::resizeEvent
 		// we are going to pin this to larger than the classic dimension
 		_platformConfig->setFormDimension(size());
 	}
+}
+
+void TACPreviewWindow::onNotificationStarted(const QString &message, NotificationLevel level)
+{
+	emit startNotification(message, level);
 }

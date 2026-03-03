@@ -36,7 +36,6 @@
 
 #include "TACLiteProtocol.h"
 
-// QTAC Server
 #include "TACCommands.h"
 #include "TACDriveThread.h"
 #include "TACLiteCoder.h"
@@ -48,7 +47,7 @@ TACLiteProtocol::TACLiteProtocol() :
 	_tacDriveTrain(Q_NULLPTR),
 	_tickCount(0)
 {
-	setFrameCoder(new TacLiteCoder);
+	setFrameCoder(new TACLiteCoder);
 }
 
 TACLiteProtocol::~TACLiteProtocol()
@@ -60,7 +59,7 @@ TACLiteProtocol::~TACLiteProtocol()
 	}
 }
 
-void TACLiteProtocol::setTacDriveTrain
+void TACLiteProtocol::setTACDriveTrain
 (
 	TACDriveThread* tacDriveTrain
 )

@@ -144,6 +144,8 @@ global __alpacaVersionFunc
 global __tacVersionFunc
 global __getDeviceCountFunc
 global __getDeviceFunc
+global __getLoggingFunc
+global __setLoggingFunc
 
 # the path to the EPMDev shared library
 tacLibraryPath = _SetupTAC().getTACLibraryPath()
@@ -165,17 +167,20 @@ if tacLibraryPath is not None:
         __tacVersionFunc = tacLibrary.GetTACVersion
         __getDeviceCountFunc = tacLibrary.GetDeviceCount
         __getDeviceFunc = tacLibrary.GetPortData
+        __getLoggingFunc = tacLibrary.GetLoggingState
+        __setLoggingFunc = tacLibrary.SetLoggingState
 
     except Exception as error:
         logger.error(f"Error with TACDev shared Object. {error}")
         exit(1)
 
 
-class TacDevice:
-    def __init__(self, portName, desription, serialNumber):
+class TACDevice:
+    def __init__(self, portName, description, serialNumber):
         self.__portName = portName
-        self.__description = desription
+        self.__description = description
         self.__serialNumber = serialNumber
+        self.__tacHandle = BAD_TAC_HANDLE
 
     def PortName(self) -> str:
         return self.__portName
@@ -209,7 +214,7 @@ class TacDevice:
 
     def Get_Name(self) -> str:
         name = "Error: Port is closed"
-        if self.__tacHandle != None:
+        if self.__tacHandle != BAD_TAC_HANDLE:
             buf = create_string_buffer(1024)
             self.__nameFunc(self.__tacHandle, buf, sizeof(buf))
             name = buf.value.decode("cp1252")
@@ -218,28 +223,28 @@ class TacDevice:
     def GetFirmwareVersion(self):
         buf = create_string_buffer(1024)
         rc = self.__firmwareVersionFunc(self.__tacHandle, buf, sizeof(buf))
-        if rc != 0:
+        if rc != NO_TAC_ERROR:
             raise RuntimeError(f"GetFirmwareVersion returned: {GetErrorString(rc)}")
         return buf.value.decode("cp1252")
 
     def GetHardware(self):
         buf = create_string_buffer(1024)
         rc = self.__hardwareFunc(self.__tacHandle, buf, sizeof(buf))
-        if rc != 0:
+        if rc != NO_TAC_ERROR:
             raise RuntimeError(f"Error: GetHardware returned {GetErrorString(rc)}")
         return buf.value.decode("cp1252")
 
     def Get_HardwareVersion(self):
         buf = create_string_buffer(1024)
         rc = self.__hardwareVersionFunc(self.__tacHandle, buf, sizeof(buf))
-        if rc != 0:
+        if rc != NO_TAC_ERROR:
             raise RuntimeError(f"Error: Get_HardwareVersion returned {GetErrorString(rc)}")
         return buf.value.decode("cp1252")
 
     def Get_UUID(self):
         buf = create_string_buffer(1024)
         rc = self.__uuidFunc(self.__tacHandle, buf, sizeof(buf))
-        if rc != 0:
+        if rc != NO_TAC_ERROR:
             raise RuntimeError(f"Error: Get_UUID returned {GetErrorString(rc)}")
         return buf.value.decode("cp1252")
 
@@ -300,6 +305,13 @@ class TacDevice:
         if result != NO_TAC_ERROR:
             raise RuntimeError(f"Error: SetPin returned {GetErrorString(result)}")
 
+    def IsCommandQueueClear(self):
+            state = c_bool(False)
+            result = self.__isCommandQueueClearFunc(self.__tacHandle, byref(state))
+            if result != NO_TAC_ERROR:
+                raise RuntimeError(f"Error: IsCommandQueueClear returned {GetErrorString(result)}")
+            return state.value
+
     def GetHelpText(self):
         buf = create_string_buffer(1)
         actualBufferSize = c_int(0)
@@ -330,7 +342,7 @@ class TacDevice:
     def GetUsb0State(self):
         state = c_bool(False)
         rc = self.__getUsb0Func(self.__tacHandle, byref(state))
-        if rc != 0:
+        if rc != NO_TAC_ERROR:
             raise RuntimeError(f"Error: GetUsb0State returned {GetErrorString(rc)}")
         return state.value
 
@@ -342,7 +354,7 @@ class TacDevice:
     def GetUsb1State(self):
         state = c_bool(False)
         rc = self.__getUsb1Func(self.__tacHandle, byref(state))
-        if rc != 0:
+        if rc != NO_TAC_ERROR:
             raise RuntimeError(f"Error: GetUsb1State returned {GetErrorString(rc)}")
         return state.value
 
@@ -499,9 +511,9 @@ class TacDevice:
     def GetResetCount(self):
         resetCount = c_int(0)
         rc = self.__getResetCountFunc(self.__tacHandle, byref(resetCount))
-        if rc != 0:
+        if rc != NO_TAC_ERROR:
             raise RuntimeError(f"Error: GetResetCount returned {GetErrorString(rc)}")
-        return resetCount
+        return resetCount.value
 
     def ClearResetCount(self):
         rc = self.__clearResetCountFunc(self.__tacHandle)
@@ -633,6 +645,8 @@ class TacDevice:
         self.__getScriptVariableFunc = tacDll.GetScriptVariable
         self.__updateScriptVariableValueFunc = tacDll.UpdateScriptVariableValue
 
+        self.__isCommandQueueClearFunc = tacDll.IsCommandQueueClear
+
 def AlpacaVersion():
     buf = create_string_buffer(1024)
     __alpacaVersionFunc(buf, sizeof(buf))
@@ -646,11 +660,24 @@ def TACVersion():
     tacVersion = buf.value.decode("cp1252")
     return tacVersion
 
+def GetLoggingState() -> bool:
+    newState = c_bool(False)
+    rc = __getLoggingFunc(byref(newState))
+    if rc != NO_TAC_ERROR:
+        raise RuntimeError(f"Error: GetLoggingState returned {GetErrorString(rc)}")
+    
+    return newState.value
+
+def SetLoggingState(newState: bool) -> None:
+    ns = c_bool(newState)
+    rc = __setLoggingFunc(ns)
+    if rc != NO_TAC_ERROR:
+        raise RuntimeError(f"Error: SetLoggingState returned {GetErrorString(rc)}")
 
 def GetDeviceCount():
     deviceCount = c_int(0)
     rc = __getDeviceCountFunc(byref(deviceCount))
-    if rc != 0:
+    if rc != NO_TAC_ERROR:
         raise RuntimeError(f"Error: GetDeviceCount returned {GetErrorString(rc)}")
     
     return deviceCount.value
@@ -660,7 +687,7 @@ def GetDevice(deviceIndex):
     __getDeviceFunc(deviceIndex, buf, sizeof(buf))
     deviceAttributes = buf.value.decode("cp1252").split(";")
     if len(deviceAttributes) >= 3:
-        tacDevice = TacDevice(deviceAttributes[0], deviceAttributes[1], deviceAttributes[2])
+        tacDevice = TACDevice(deviceAttributes[0], deviceAttributes[1], deviceAttributes[2])
         tacDevice.SetupClassEntries(tacLibrary)
     else:
         tacDevice = None

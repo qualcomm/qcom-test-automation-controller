@@ -49,16 +49,16 @@ namespace TACExample
         static void Main(string[] args)
         {
             Console.WriteLine("Process ID:" + Process.GetCurrentProcess().Id);
-            Console.WriteLine("QTAC Version:" + TacDevice.GetAlpacaVersion());
-            Console.WriteLine("TAC Version:" + TacDevice.GetTACVersion());
+            Console.WriteLine("QTAC Version:" + TACDevice.GetAlpacaVersion());
+            Console.WriteLine("TAC Version:" + TACDevice.GetTACVersion());
 
-            uint deviceCount = TacDevice.DeviceCount();
+            uint deviceCount = TACDevice.DeviceCount();
             Console.WriteLine("Device Count:" + deviceCount);
             try
             {
                 for (uint deviceIndex = 0; deviceIndex < deviceCount; deviceIndex++)
                 {
-                    TacDevice tacDevice = TacDevice.GetDevice(deviceIndex);
+                    TACDevice tacDevice = TACDevice.GetDevice(deviceIndex);
 
                     Console.WriteLine("Found Port Name: " + tacDevice.PortName() + " Serial Number: " + tacDevice.SerialNumber() + " Description:" + tacDevice.Description() + "\n");
 

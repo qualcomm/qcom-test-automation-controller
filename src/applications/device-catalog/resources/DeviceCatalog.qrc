@@ -2,5 +2,11 @@
     <qresource prefix="/">
         <file>device-catalog.ico</file>
         <file>device-catalog.png</file>
+        <file>DeviceCatalog_ProgDevice.mp4</file>
+        <file>DeviceCatalog_UpdateFW.mp4</file>
+        <file>Pause.png</file>
+        <file>Play.png</file>
+        <file>Rewind.png</file>
+        <file>Stop.png</file>
     </qresource>
 </RCC>

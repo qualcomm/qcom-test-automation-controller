@@ -45,28 +45,28 @@
 // Qt
 #include <QList>
 
-class TacCommand;
+class TACCommand;
 
-typedef QList<TacCommand> TacCommands;
-typedef QMap<QString, TacCommand> TacCommandMap;
+typedef QList<TACCommand> TACCommands;
+typedef QMap<QString, TACCommand> TACCommandMap;
 
-class QCOMMONCONSOLE_EXPORT TacCommand
+class QCOMMONCONSOLE_EXPORT TACCommand
 {
 public:
-	TacCommand() = default;
-	TacCommand(const TacCommand&) = default;
-	TacCommand(TacCommand&&) = default;
+	TACCommand() = default;
+	TACCommand(const TACCommand&) = default;
+	TACCommand(TACCommand&&) = default;
 
-	~TacCommand() = default;
+	~TACCommand() = default;
 
-	TacCommand& operator=(const TacCommand&) = default;
-	TacCommand& operator=(TacCommand&&) = default;
+	TACCommand& operator=(const TACCommand&) = default;
+	TACCommand& operator=(TACCommand&&) = default;
 
 	QString command();
 
-	static bool contains(const QString& command, const TacCommands& tacCommands);
-	static TacCommand find(const QString& command, const TacCommands& tacCommands);
-	static TacCommand find(PinID pin, const TacCommands& tacCommands);
+	static bool contains(const QString& command, const TACCommands& tacCommands);
+	static TACCommand find(const QString& command, const TACCommands& tacCommands);
+	static TACCommand find(PinID pin, const TACCommands& tacCommands);
 
 	PinID						_pin{static_cast<PinID>(-1)};
 	QString						_command;

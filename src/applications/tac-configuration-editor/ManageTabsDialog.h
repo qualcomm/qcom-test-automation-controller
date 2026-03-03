@@ -39,7 +39,6 @@
 */
 
 
-// libTAC
 #include "PlatformConfiguration.h"
 #include "Tabs.h"
 

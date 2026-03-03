@@ -51,7 +51,7 @@
 
 #ifdef Q_OS_WIN
 	#ifdef DEBUG
-		const QString xmlTemplatePath(QStringLiteral("C:\\github\\AlpacaRepos\\__Builds\\x64\\Debug\\bin\\ftdi-template.xml"));
+		const QString xmlTemplatePath(QStringLiteral("C:\\github\\open-source\\qcom-test-automation-controller\\__Builds\\x64\\Debug\\bin\\ftdi-template.xml"));
 	#else
 		const QString xmlTemplatePath(QStringLiteral("C:\\Program Files (x86)\\Qualcomm\\QTAC\\ftdi-template.xml"));
 	#endif
@@ -59,7 +59,7 @@
 
 #ifdef Q_OS_LINUX
 	#ifdef DEBUG
-		const QString xmlTemplatePath(QStringLiteral("/local/mnt/workspace/github/AlpacaRepos/__Builds/Linux/Debug/bin/ftdi-template.xml"));
+		const QString xmlTemplatePath(QStringLiteral("/local/mnt/workspace/github/open-source/qcom-test-automation-controller/__Builds/Linux/Debug/bin/ftdi-template.xml"));
 	#else
 		const QString xmlTemplatePath(QStringLiteral("/opt/qcom/QTAC/bin/ftdi-template.xml"));
 	#endif

@@ -33,7 +33,7 @@
 */
 
 /*
-	Author: Michael Simpson (msimpson@qti.qualcomm.com)
+	Author: Biswajit Roy <biswroy@qti.qualcomm.com>
 */
 
 #include "AlpacaApplication.h"
@@ -43,7 +43,6 @@
 #include "DateCheckFailEvent.h"
 #include "EncryptedString.h"
 #include "HappinessDialog.h"
-#include "LicenseFailEvent.h"
 #include "QuitAppEvent.h"
 
 // Qt
@@ -55,10 +54,6 @@
 
 #include <QTextStream>
 
-// These strings are encrypted to prevent dynamic and static analyzers from fixing on the licensing.
-EncryptedString kAboutMessage("161e191517042f4c1218432c280f1800060d613f190c13122e02504c430c32051d11100e2f2c01150a4f3019110d000e2c015e020c0c4b23020804082f0d1c41200e2f0f151117412315502b0c0461230204100a2e66310d1300220d50290213251b111306411509110c434c613e110f07086128152d02132040502a1613354c320810092e0a1604114d613505190a0f612415");
-static EncryptedString kLicenseCheckFailed("0d0513040d12244c330906022a4c36000a0d2408");
-static EncryptedString kLicenseMgrFailed("0d0513040d12244c3d000d00260902412a0f3218110f0004612a11080f");
 
 AlpacaApplication::AlpacaApplication
 (
@@ -88,8 +83,6 @@ AlpacaApplication::AlpacaApplication
 AlpacaApplication::~AlpacaApplication()
 {
 	AppCore::writeToApplicationLogLine("AlpacaApplication::~AlpacaApplication()");
-
-	kickIt();
 }
 
 bool AlpacaApplication::initialize(PreferencesBase *preferencesBase)
@@ -215,23 +208,7 @@ bool AlpacaApplication::event(QEvent *e)
 			QMessageBox::warning(Q_NULLPTR,  "Date Check Failed", "Update your software");
 		}
 	}
-		break;
-
-	case kLicenseFailEvent:
-	{
-		AppCore::writeToApplicationLogLine("kLicenseFailEvent");
-
-		bool failNotified = alpacaSettings.value("failNotified", false).toBool();
-		if (failNotified == false)
-		{
-			alpacaSettings.setValue("failNotified", true);
-
-			//LicenseFailEvent* lfe = static_cast<LicenseFailEvent*>(e);
-			QMessageBox::warning(Q_NULLPTR,  "License Check Failed", "Check QPM for license activation");
-
-		}
-	}
-		break;
+	break;
 
 	default:
 		return QApplication::event(e);

@@ -34,7 +34,7 @@
 
 // Author: Biswajit Roy <biswroy@qti.qualcomm.com>
 
-// TacExample.cpp : This file contains the 'main' function. Program execution begins and ends there.
+// TACExample.cpp : This file contains the 'main' function. Program execution begins and ends there.
 
 // QTAC
 #include "TACDev.h"

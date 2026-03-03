@@ -52,10 +52,10 @@
 
 using namespace std;
 
-class DevTacCore
+class DevTACCore
 {
 public:
-	DevTacCore()
+	DevTACCore()
 	{
 		_appCore = AppCore::getAppCore();
 
@@ -64,7 +64,7 @@ public:
 		_appCore->postAutomationEvent();
 	}
 
-	~DevTacCore()
+	~DevTACCore()
 	{
 	}
 
@@ -92,7 +92,7 @@ int main(int argc, char *argv[])
 {
 	QCoreApplication a(argc, argv);
 
-	DevTacCore tacCore;
+	DevTACCore tacCore;
 
 	InitializeQCommonConsole();
 

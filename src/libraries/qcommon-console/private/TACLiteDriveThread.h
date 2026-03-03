@@ -1,5 +1,5 @@
-#ifndef TacLiteDriveThread_H
-#define TacLiteDriveThread_H
+#ifndef TACLiteDriveThread_H
+#define TACLiteDriveThread_H
 /*
 	Copyright (c) Qualcomm Technologies, Inc. and/or its subsidiaries. 
 	 
@@ -40,7 +40,6 @@
 
 #include "QCommonConsoleGlobal.h"
 
-// libTAC
 #include "TACLiteCommand.h"
 #include "TACDriveThread.h"
 #include "TACLiteProtocol.h"
@@ -52,14 +51,14 @@
 // Qt
 #include <QFile>
 
-class QCOMMONCONSOLE_EXPORT TacLiteDriveThread :
+class QCOMMONCONSOLE_EXPORT TACLiteDriveThread :
 	public TACDriveThread
 {
 Q_OBJECT
 
 public:
-	TacLiteDriveThread(uint hash);
-	~TacLiteDriveThread();
+	TACLiteDriveThread(uint hash);
+	~TACLiteDriveThread();
 
 	void setPinSets(FTDIPinSets pinsets)
 	{

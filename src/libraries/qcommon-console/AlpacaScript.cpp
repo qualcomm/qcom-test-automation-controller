@@ -69,7 +69,7 @@ QByteArray AlpacaScript::defaultScript(DebugBoardType boardType)
 	scriptPath = "C:\\github\\open-source\\qcom-test-automation-controller\\configurations\\DefaultScript.txt";
 #endif
 #ifdef Q_OS_LINUX
-	scriptPath = "/local/mnt/workspace/github/AlpacaRepos/AlpacaConfigs/tac_configs/DefaultScript.txt";
+	scriptPath = "/local/mnt/workspace/github/qcom-test-automation-controller/configurations/DefaultScript.txt";
 #endif
 #else
 	scriptPath = tacConfigRoot() + "DefaultScript.txt";
@@ -85,7 +85,7 @@ QByteArray AlpacaScript::defaultScript(DebugBoardType boardType)
 	return result;
 }
 
-bool AlpacaScript::parseScript(const QByteArray& alpacaScript, const ScriptVariables& scriptVariables, const TacCommands& tacCommands)
+bool AlpacaScript::parseScript(const QByteArray& alpacaScript, const ScriptVariables& scriptVariables, const TACCommands& tacCommands)
 {
 	bool result{true};
 
@@ -107,11 +107,11 @@ bool AlpacaScript::parseScript(const QByteArray& alpacaScript, const ScriptVaria
 
 				_scriptCommands[scriptCommand->_command] = scriptCommand;
 			}
-			else if (TacCommand::contains(words.at(0), tacCommands))
+			else if (TACCommand::contains(words.at(0), tacCommands))
 			{
 				QString command{words.at(0)};
 
-				TacCommand tacCommand = TacCommand::find(command, tacCommands);
+				TACCommand tacCommand = TACCommand::find(command, tacCommands);
 
 				CommandEntry commandEntry = CommandEntry(new _CommandEntry);
 
@@ -269,7 +269,7 @@ CommandEntries AlpacaScript::replaceTokens(const ScriptVariables scriptVariables
 QStringList AlpacaScript::validateScript
 (
 	const QByteArray &alpacaScript,
-	const TacCommands& tacCommands
+	const TACCommands& tacCommands
 )
 {
 	QStringList result;
@@ -310,7 +310,7 @@ QStringList AlpacaScript::validateScript
 			{
 				// nop, already handle in the loop above
 			}
-			else if (TacCommand::contains(firstParameter, tacCommands) == false)
+			else if (TACCommand::contains(firstParameter, tacCommands) == false)
 			{
 				QString message;
 

@@ -38,7 +38,6 @@
 
 #include "FTDIDevice.h"
 
-// libTAC
 #include "private/TACLiteDriveThread.h"
 
 // QCommonConsolde
@@ -219,7 +218,7 @@ bool FTDIDevice::open()
 
 		if (_driveThread == Q_NULLPTR)
 		{
-			TacLiteDriveThread* driveThread = new TacLiteDriveThread(_hash);
+			TACLiteDriveThread* driveThread = new TACLiteDriveThread(_hash);
 			driveThread->setPinSets(_ftdiPlatformConfiguration->getPinSet(0));
 			_driveThread = driveThread;
 			_driveThread->start();
@@ -239,7 +238,7 @@ bool FTDIDevice::open()
 			if (result == true)
 			{
 
-				connect(driveThread, &TacLiteDriveThread::pinStateChanged, this, &FTDIDevice::on_pinStateChanged, Qt::DirectConnection);
+				connect(driveThread, &TACLiteDriveThread::pinStateChanged, this, &FTDIDevice::on_pinStateChanged, Qt::DirectConnection);
 
 				Pins initialPins;
 				Pins pins = _platformConfiguration->getPins();
@@ -292,7 +291,7 @@ void FTDIDevice::buildCommandList()
 
 		for (const auto& ftdiPin: std::as_const(ftdiPinList))
 		{
-			TacCommand tacCommand;
+			TACCommand tacCommand;
 
 			tacCommand._pin = ftdiPin._setPin;
 			tacCommand._command = ftdiPin._pinCommand;

@@ -35,7 +35,6 @@
 /*
 	Author: Michael Simpson (msimpson@qti.qualcomm.com)
 			Biswajit Roy (biswroy@qti.qualcomm.com)
-			Anmol Jaiswal (anmojais@qti.qualcomm.com)
 */
 
 #include "AppCore.h"

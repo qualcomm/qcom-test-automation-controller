@@ -38,20 +38,18 @@
 
 #include "UIGlobalLib.h"
 
+// QCommonconsole
+#include "FramePackage.h"
+
 namespace Ui
 {
 	class TerminalWidget;
 }
 
-// QCommon
-#include "ConsoleInterface.h"
-
-// QT
+// Qt
 #include <QWidget>
 
-class UILIB_EXPORT TerminalWidget :
-	public QWidget,
-	private ConsoleInterface
+class UILIB_EXPORT TerminalWidget : public QWidget
 {
 	Q_OBJECT
 
@@ -63,9 +61,8 @@ public slots:
 	void on_consoleMessage(const QList<QByteArray>& messages);
 
 private:
-	// ConsoleInterface
-	virtual void addConsoleText(const QByteArray& consoleText);
-	virtual void handleConsoleResponse(const FramePackage& framePackage);
+	void addConsoleText(const QByteArray& consoleText);
+	void handleConsoleResponse(const FramePackage& framePackage);
 
 	Ui::TerminalWidget*			_ui{Q_NULLPTR};
 

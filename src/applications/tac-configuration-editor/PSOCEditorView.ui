@@ -1,0 +1,175 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>PSOCEditorView</class>
+ <widget class="QWidget" name="PSOCEditorView">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>999</width>
+    <height>499</height>
+   </rect>
+  </property>
+  <property name="sizePolicy">
+   <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+    <horstretch>0</horstretch>
+    <verstretch>0</verstretch>
+   </sizepolicy>
+  </property>
+  <property name="minimumSize">
+   <size>
+    <width>847</width>
+    <height>499</height>
+   </size>
+  </property>
+  <property name="contextMenuPolicy">
+   <enum>Qt::ContextMenuPolicy::CustomContextMenu</enum>
+  </property>
+  <property name="windowTitle">
+   <string>Form</string>
+  </property>
+  <layout class="QVBoxLayout" name="verticalLayout">
+   <property name="spacing">
+    <number>1</number>
+   </property>
+   <property name="leftMargin">
+    <number>1</number>
+   </property>
+   <property name="topMargin">
+    <number>1</number>
+   </property>
+   <property name="rightMargin">
+    <number>1</number>
+   </property>
+   <property name="bottomMargin">
+    <number>1</number>
+   </property>
+   <item>
+    <widget class="QTableWidget" name="_psocTable">
+     <property name="sizePolicy">
+      <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+       <horstretch>0</horstretch>
+       <verstretch>0</verstretch>
+      </sizepolicy>
+     </property>
+     <property name="minimumSize">
+      <size>
+       <width>0</width>
+       <height>0</height>
+      </size>
+     </property>
+     <property name="contextMenuPolicy">
+      <enum>Qt::ContextMenuPolicy::CustomContextMenu</enum>
+     </property>
+     <property name="toolTip">
+      <string/>
+     </property>
+     <attribute name="horizontalHeaderStretchLastSection">
+      <bool>false</bool>
+     </attribute>
+     <attribute name="verticalHeaderVisible">
+      <bool>false</bool>
+     </attribute>
+     <attribute name="verticalHeaderDefaultSectionSize">
+      <number>27</number>
+     </attribute>
+     <column>
+      <property name="text">
+       <string>Pin</string>
+      </property>
+      <property name="toolTip">
+       <string>&lt;Port, Bit&gt;</string>
+      </property>
+     </column>
+     <column>
+      <property name="text">
+       <string>Enabled</string>
+      </property>
+      <property name="toolTip">
+       <string>Whether the pin is active</string>
+      </property>
+     </column>
+     <column>
+      <property name="text">
+       <string>Initial</string>
+      </property>
+      <property name="toolTip">
+       <string>The initial value of the pin when TAC starts</string>
+      </property>
+     </column>
+     <column>
+      <property name="text">
+       <string>Priority</string>
+      </property>
+      <property name="toolTip">
+       <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Any entry that is greater than zero will result in that pin being set to the initial value on device open.  Any value less that zero will not be set.  This is the more common case.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+      </property>
+     </column>
+     <column>
+      <property name="text">
+       <string>Invert</string>
+      </property>
+      <property name="toolTip">
+       <string>Whether the pin is inverted</string>
+      </property>
+     </column>
+     <column>
+      <property name="text">
+       <string>Label</string>
+      </property>
+      <property name="toolTip">
+       <string>The label for the pin to be represented in the TAC UI (maximum 20 characters long)</string>
+      </property>
+     </column>
+     <column>
+      <property name="text">
+       <string>Tooltip</string>
+      </property>
+      <property name="toolTip">
+       <string>The tooltip for the pin label in the TAC UI (no character limit)</string>
+      </property>
+     </column>
+     <column>
+      <property name="text">
+       <string>Command</string>
+      </property>
+      <property name="toolTip">
+       <string>The TAC command for the operation</string>
+      </property>
+     </column>
+     <column>
+      <property name="text">
+       <string>Classic Action</string>
+      </property>
+      <property name="toolTip">
+       <string>The default action assigned to this pin (non-editable)</string>
+      </property>
+     </column>
+     <column>
+      <property name="text">
+       <string>Group</string>
+      </property>
+      <property name="toolTip">
+       <string>The category of the pin</string>
+      </property>
+     </column>
+     <column>
+      <property name="text">
+       <string>Tab</string>
+      </property>
+     </column>
+     <column>
+      <property name="text">
+       <string>Cell Location (col, row)</string>
+      </property>
+      <property name="toolTip">
+       <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Column is left to right&lt;/p&gt;&lt;p&gt;Row is top to bottom&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+      </property>
+     </column>
+    </widget>
+   </item>
+  </layout>
+ </widget>
+ <resources/>
+ <connections/>
+</ui>

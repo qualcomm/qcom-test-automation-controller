@@ -86,10 +86,7 @@ void TerminalWidget::on_consoleMessage
 	_ui->_commandText->verticalScrollBar()->setValue(_ui->_commandText->verticalScrollBar()->maximum());
 }
 
-void TerminalWidget::handleConsoleResponse
-(
-	const FramePackage& framePackage
-)
+void TerminalWidget::handleConsoleResponse(const FramePackage& framePackage)
 {
 	emit consoleMessagesReady(framePackage->_responses);
 }

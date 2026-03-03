@@ -35,18 +35,21 @@
 /*
 	Author: Michael Simpson (msimpson@qti.qualcomm.com)
 			Biswajit Roy (biswroy@qti.qualcomm.com)
+			Arkojit Sen (arkosen@qti.qualcomm.com)
 */
 
 #include "ApplicationEnhancements.h"
-#include "DeviceCatalog.h"
 #include "ConsoleApplicationEnhancements.h"
+#include "DeviceCatalog.h"
 #include "DeviceSelectionDialog.h"
 #include "USBDescriptors.h"
 
 // Qt
+
 #include <QDir>
 #include <QMenu>
 #include <QMessageBox>
+#include <QMediaPlayer>
 #include <QProcess>
 #include <QThread>
 
@@ -62,9 +65,12 @@ const int kConfigNameCol{0};
 const int kBoardType{1};
 const int kPlatformID{2};
 
+const QByteArray kv16FirmwareNotice(QByteArrayLiteral("You've chosen to program the v16 firmware. This firmware may contain updates not applicable to all teams. Uncheck unless you know what you're doing"));
+const QByteArray kv17FirmwareNotice(QByteArrayLiteral("You've chosen to program the v17 firmware. This firmware may contain updates not applicable to all teams. Uncheck unless you know what you're doing"));
+const QByteArray kDefaultNotice(QByteArrayLiteral("This space is used to share notification to user"));
 
-DeviceCatalog::DeviceCatalog(QWidget *parent)
-	: QDialog(parent)
+
+DeviceCatalog::DeviceCatalog(QWidget* parent) :QDialog(parent)
 {
 	const QString kUSBDescriptorPath{tacConfigRoot() + kUSBDescriptorFileName};
 
@@ -147,6 +153,14 @@ DeviceCatalog::DeviceCatalog(QWidget *parent)
 
 		_deviceTable->resizeColumnsToContents();
 	}
+
+	_firmwareDir = applicationDataPath().toLatin1() + QDir::separator().toLatin1() + "firmware/1.x.15.0";
+
+	connect(_infoCloseBtn, &QPushButton::clicked, this, &::DeviceCatalog::onInfoGroupCloseBtnClicked);
+	connect(_infoLabelText, &QLabel::linkActivated, this, &::DeviceCatalog::onInfoGroupLinkClicked);
+
+	// Default splitter properties (left frame expanded)
+	_splitter->setSizes({1,0});
 }
 
 DeviceCatalog::~DeviceCatalog()
@@ -220,10 +234,15 @@ void DeviceCatalog::invokeProgrammer(const DebugBoardType type)
 {
 	switch(type)
 	{
+		case ePSOC:
+			invokePSOCProgrammer(_currentSerialNumber, _currentPlatformId);
+			break;
 		case eFTDI:
 			invokeLiteProgrammer(_currentSerialNumber, _currentPlatformId);
 			break;
 		case eUnknownDebugBoard:
+		case eSpiderBoard:
+        case ePIC32CXAuto:
 			break;
 	}
 }
@@ -231,9 +250,9 @@ void DeviceCatalog::invokeProgrammer(const DebugBoardType type)
 void DeviceCatalog::invokeLiteProgrammer(const QString& serialNumber, const PlatformID platformId)
 {
 #ifdef Q_OS_LINUX
-	QString program = "/opt/qcom/QTAC/bin/LITEProgrammer";
+	QString program = "/opt/qcom/Alpaca/bin/LiteProgrammer";
 #else
-	QString program = "LITEProgrammer";
+	QString program = "LiteProgrammer";
 #endif
 	QStringList arguments; //-p platformid=18 serial=FT6G3Z6Y
 	arguments << "-p";
@@ -255,9 +274,9 @@ void DeviceCatalog::invokeLiteProgrammer(const QString& serialNumber, const Plat
 void DeviceCatalog::invokePSOCProgrammer(const QString &serialNumber, const PlatformID platformId)
 {
 #ifdef Q_OS_LINUX
-	QString program = "/opt/qcom/QTAC/bin/psoc-programmer";
+	QString program = "/opt/qcom/Alpaca/bin/PSOCProgrammer";
 #else
-	QString program = "psoc-programmer";
+	QString program = "PSOCProgrammer";
 #endif
 	QStringList arguments; //-p platformid=18 serial=FT6G3Z6Y
 	arguments << "-p";
@@ -276,13 +295,10 @@ void DeviceCatalog::invokePSOCProgrammer(const QString &serialNumber, const Plat
 																	 " unplugged and plugged back in.").arg(serialNumber));
 }
 
-void DeviceCatalog::onConfigurationLinkClicked
-(
-	QTableWidgetItem* twi
-)
+void DeviceCatalog::onConfigurationLinkClicked(QTableWidgetItem* twi)
 {
 #ifdef Q_OS_LINUX
-	QString program = "/opt/qcom/QTAC/bin/TACConfigEditor";
+	QString program = "/opt/qcom/Alpaca/bin/TACConfigEditor";
 #else
 	QString program = "TACConfigEditor";
 #endif
@@ -303,10 +319,7 @@ void DeviceCatalog::onConfigurationLinkClicked
 	}
 }
 
-void DeviceCatalog::onCustomContextMenuRequested
-(
-	const QPoint& pos
-)
+void DeviceCatalog::onCustomContextMenuRequested(const QPoint& pos)
 {
 	if (_deviceTable != Q_NULLPTR)
 	{
@@ -334,9 +347,17 @@ void DeviceCatalog::on__deviceTable_itemClicked(QTableWidgetItem *item)
 		if (twi)
 		{
 			if (twi->text() == "PSOC")
-				_firmwareUpdateBtn->setEnabled(true);
+			{
+				// _firmwareUpdateBtn->setEnabled(true);
+				// _firmwareLabel->setEnabled(true);
+				// _firmwareSelect->setEnabled(true);
+			}
 			else
+			{
 				_firmwareUpdateBtn->setEnabled(false);
+				_firmwareLabel->setEnabled(false);
+				_firmwareSelect->setEnabled(false);
+			}
 
 			_currentPlatformId = _deviceTable->item(row, kPlatformID)->data(Qt::UserRole).toUInt();
 		}
@@ -360,6 +381,10 @@ void DeviceCatalog::on__programBtn_clicked()
 					deviceSelectionDialog(eFTDI);
 					break;
 
+				case ePSOC:
+					deviceSelectionDialog(ePSOC);
+					break;
+
 				default:
 					break;
 				}
@@ -371,9 +396,8 @@ void DeviceCatalog::on__programBtn_clicked()
 
 void DeviceCatalog::on__firmwareUpdateBtn_clicked()
 {
-
-	QMessageBox::critical(this, "Missing functionality - EPM", "Firmware update using Device Catalog is not currently available as EPM is not open-sourced.");
-
+	// firmware programming capabilities cannot be enabled
+	// due to lack of open-source hardware protocols in psoc
 }
 
 void DeviceCatalog::on__docsBtn_clicked()
@@ -381,3 +405,40 @@ void DeviceCatalog::on__docsBtn_clicked()
 	startLocalBrowser(docsRoot() + "/getting-started/08-Device-Catalog.html");
 }
 
+void DeviceCatalog::onInfoGroupCloseBtnClicked()
+{
+	if (_infoGroupBox != Q_NULLPTR)
+		_infoGroupBox->hide();
+}
+
+void DeviceCatalog::onInfoGroupLinkClicked(const QString& link)
+{
+	_player.playback(QMediaPlayer::PlayingState, link);
+}
+
+void DeviceCatalog::on__firmwareSelect_currentTextChanged(const QString &firmwareVersion)
+{
+	bool ok(false);
+	int version = firmwareVersion.toInt(&ok);
+
+	if (ok)
+	{
+		switch (version)
+		{
+		case 15:
+			_firmwareDir = applicationDataPath().toLatin1() + QDir::separator().toLatin1() + "firmware/1.x.15.0";
+			_infoLabelText->setText(kDefaultNotice);
+			_infoGroupBox->hide();
+			break;
+		case 16:
+			_firmwareDir = applicationDataPath().toLatin1() + QDir::separator().toLatin1() + "firmware/1.x.16.0";
+			_infoLabelText->setText(kv16FirmwareNotice);
+			_infoGroupBox->show();
+			break;
+		case 17:
+			_firmwareDir = applicationDataPath().toLatin1() + QDir::separator().toLatin1() + "firmware/1.x.17.0";
+			_infoLabelText->setText(kv17FirmwareNotice);
+			_infoGroupBox->show();
+		}
+	}
+}

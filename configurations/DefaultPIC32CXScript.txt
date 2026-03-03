@@ -1,0 +1,91 @@
+def powerOff()
+	logComment ====== powerOff start ======
+
+
+	battery 1
+
+
+	logComment ====== powerOff finish ======
+
+def powerOn()
+	logComment ====== powerOn start ======
+
+
+	battery 1
+	delay 900
+	battery 0
+
+	logComment ====== powerOn finish ======
+
+def bootToEDL()
+	logComment ====== bootToEDL start ======
+
+	sedl 0
+	uefi 0
+	battery 1
+	pedl 1
+	delay 900
+	battery 0
+	delay $edl
+	pedl 0
+
+	logComment ====== bootToEDL finish ======
+
+def bootToSecondaryEDL()
+	logComment ====== bootToSecondaryEDL start ======
+
+	pedl 0
+	uefi 0
+	battery 1
+	sedl 1
+	delay 900
+	battery 0
+	delay $edl
+	sedl 0
+
+	logComment ====== bootToSecondaryEDL finish ======
+
+def bootToUEFI()
+	logComment ====== bootToUEFIMenu start ======
+
+	kkpwr 1
+	uefi 1
+	battery 1
+	delay 900
+	battery 0
+	delay $uefi
+	uefi 0
+	kkpwr 0
+
+def bootToFastboot()
+	logComment ====== bootToFastboot start ======
+
+	pedl 0
+	sedl 0
+	uefi 0
+	sfastboot 0
+	battery 1
+	fastboot 1
+	delay 900
+	battery 0
+	delay $fastboot
+	fastboot 0
+
+	logComment ====== bootToFastboot finished ======
+
+def bootToSecondaryFastboot()
+	logComment ====== bootToSecondaryFastboot start ======
+
+	pedl 0
+	sedl 0
+	uefi 0
+	battery 1
+	sfastboot 1
+	fastboot 1
+	delay 900
+	battery 0
+	delay $fastboot
+	sfastboot 0
+	fastboot 0
+
+	logComment ====== bootToSecondaryFastboot finished ======

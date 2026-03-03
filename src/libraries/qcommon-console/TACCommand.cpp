@@ -38,15 +38,15 @@
 
 #include "TACCommand.h"
 
-QString TacCommand::command()
+QString TACCommand::command()
 {
 	return _command;
 }
 
-bool TacCommand::contains
+bool TACCommand::contains
 (
 	const QString &command,
-	const TacCommands &tacCommands
+	const TACCommands &tacCommands
 )
 {
 	bool result{false};
@@ -63,9 +63,9 @@ bool TacCommand::contains
 	return result;
 }
 
-TacCommand TacCommand::find(const QString &command, const TacCommands &tacCommands)
+TACCommand TACCommand::find(const QString &command, const TACCommands &tacCommands)
 {
-	TacCommand result;
+	TACCommand result;
 
 	for (const auto& tacCommand: tacCommands)
 	{
@@ -79,13 +79,13 @@ TacCommand TacCommand::find(const QString &command, const TacCommands &tacComman
 	return result;
 }
 
-TacCommand TacCommand::find
+TACCommand TACCommand::find
 (
 	PinID pin,
-	const TacCommands& tacCommands
+	const TACCommands& tacCommands
 )
 {
-	TacCommand result;
+	TACCommand result;
 
 	for (const auto& tacCommand: tacCommands)
 	{

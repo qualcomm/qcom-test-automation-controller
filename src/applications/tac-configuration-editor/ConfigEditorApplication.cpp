@@ -40,7 +40,6 @@
 #include "ConfigEditorApplication.h"
 #include "ConfigWindow.h"
 
-// libTAC
 #include "TACDefines.h"
 
 // QCommon

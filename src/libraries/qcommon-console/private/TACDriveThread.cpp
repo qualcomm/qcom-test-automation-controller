@@ -1,36 +1,25 @@
-/*
-	Copyright (c) Qualcomm Technologies, Inc. and/or its subsidiaries. 
-	 
-	Redistribution and use in source and binary forms, with or without
-	modification, are permitted (subject to the limitations in the
-	disclaimer below) provided that the following conditions are met:
-	 
-		* Redistributions of source code must retain the above copyright
-		  notice, this list of conditions and the following disclaimer.
-	 
-		* Redistributions in binary form must reproduce the above
-		  copyright notice, this list of conditions and the following
-		  disclaimer in the documentation and/or other materials provided
-		  with the distribution.
-	 
-		* Neither the name of Qualcomm Technologies, Inc. nor the names of its
-		  contributors may be used to endorse or promote products derived
-		  from this software without specific prior written permission.
-	 
-	NO EXPRESS OR IMPLIED LICENSES TO ANY PARTY'S PATENT RIGHTS ARE
-	GRANTED BY THIS LICENSE. THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT
-	HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED
-	WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
-	MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED.
-	IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR
-	ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
-	DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE
-	GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
-	INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER
-	IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-	OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN
-	IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-*/
+// Confidential and Proprietary Qualcomm Technologies, Inc.
+
+// NO PUBLIC DISCLOSURE PERMITTED:  Please report postings of this software on public servers or websites
+// to: DocCtrlAgent@qualcomm.com.
+
+// RESTRICTED USE AND DISCLOSURE:
+// This software contains confidential and proprietary information and is not to be used, copied, reproduced, modified
+// or distributed, in whole or in part, nor its contents revealed in any manner, without the express written permission
+// of Qualcomm Technologies, Inc.
+
+// Qualcomm is a trademark of QUALCOMM Incorporated, registered in the United States and other countries. All
+// QUALCOMM Incorporated trademarks are used with permission.
+
+// This software may be subject to U.S. and international export, re-export, or transfer laws.  Diversion contrary to U.S.
+// and international law is strictly prohibited.
+
+// Qualcomm Technologies, Inc.
+// 5775 Morehouse Drive
+// San Diego, CA 92121 U.S.A.
+// Copyright 2013-2025 Qualcomm Technologies, Inc.
+// All rights reserved.
+// Qualcomm Technologies Confidential and Proprietary
 
 /*
 	Author: Michael Simpson (msimpson@qti.qualcomm.com)
@@ -46,8 +35,10 @@
 #include "StringUtilities.h"
 #include "TickCount.h"
 #include "TACCommands.h"
-#include "TacCommandHashes.h"
+#include "TACCommandHashes.h"
 #include "TACLiteDriveThread.h"
+#include "TACPSOCDriveThread.h"
+#include "TACPIC32CXDriveThread.h"
 
 // Qt
 #include <QDir>
@@ -81,9 +72,16 @@ TACDriveThread* TACDriveThread::openPort
 		{
 			switch (alpacaDevice->debugBoardType())
 			{
-			case eFTDI:
-				result = new TacLiteDriveThread(alpacaDevice->hash());
+			case ePSOC:
+				result = new TACPSOCDriveThread(alpacaDevice->hash());
 				break;
+
+			case eFTDI:
+				result = new TACLiteDriveThread(alpacaDevice->hash());
+				break;
+
+			case ePIC32CXAuto:
+				result = new TACPIC32CXDriveThread(alpacaDevice->hash());
 
 			default:
 				break;
@@ -92,6 +90,49 @@ TACDriveThread* TACDriveThread::openPort
 	}
 
 	return result;
+}
+
+HashType TACDriveThread::hash()
+{
+	return _hash;
+}
+
+void TACDriveThread::waitForCompletion()
+{
+	int count{0};
+
+	while (_waitForCompletion)
+	{
+		QThread::msleep(100);				// Give our high priority time to process
+		QCoreApplication::processEvents();  // Give the UI a timeslice to update
+
+		if (count++ > 50)
+		{
+			AppCore::writeToApplicationLogLine("Wait for completion timed out.");
+
+			_waitForCompletion = false;
+		}
+	}
+}
+
+void TACDriveThread::setWaitForCompletion()
+{
+	_waitForCompletion = true;
+}
+
+void TACDriveThread::clearWaitForCompletion()
+{
+	_waitForCompletion = false;
+}
+
+bool TACDriveThread::waitForCompletionStatus()
+{
+	return _waitForCompletion;
+}
+
+bool TACDriveThread::oldFirmware()
+{
+	return _oldFirmware;
 }
 
 QByteArray TACDriveThread::decodeCommand
@@ -206,6 +247,7 @@ bool TACDriveThread::checkLocalStore
 		break;
 
 	case kGetPlatformIDCommandHash:
+		if (_platformID != MICRO_EPM_BOARD_ID_UNKNOWN)
 		{
 			QString response = QString("%1(%2)").arg(PlatformContainer::toString(_platformID)).arg(static_cast<int>(_platformID));
 			framePackage->_responses.push_back(response.toLatin1().data());
@@ -248,6 +290,66 @@ QString TACDriveThread::hardwareVersionString()
 QString TACDriveThread::firmwareVersion()
 {
 	return _firmwareString;
+}
+
+uint TACDriveThread::majorVersion()
+{
+	return _firmwareMajor;
+}
+
+uint TACDriveThread::chipVersion()
+{
+	return _firmwareChip;
+}
+
+uint TACDriveThread::minorVersion()
+{
+	return _firmwareMinor;
+}
+
+uint TACDriveThread::revisionVersion()
+{
+	return _firmwareRevision;
+}
+
+QByteArray TACDriveThread::name() const
+{
+	return _name;
+}
+
+void TACDriveThread::setName(const QByteArray &newName)
+{
+	_name = newName;
+}
+
+QByteArray TACDriveThread::portName() const
+{
+	return _portName;
+}
+
+void TACDriveThread::setPortName(const QByteArray &portName)
+{
+	_portName = portName;
+}
+
+QString TACDriveThread::description() const
+{
+	return _description;
+}
+
+void TACDriveThread::setDescription(const QString &description)
+{
+	_description = description;
+}
+
+QString TACDriveThread::serialNumber() const
+{
+	return _serialNumber;
+}
+
+void TACDriveThread::setSerialNumber(QString serialNumber)
+{
+	_serialNumber = serialNumber;
 }
 
 QString TACDriveThread::uuid()

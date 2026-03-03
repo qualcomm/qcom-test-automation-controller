@@ -40,10 +40,9 @@
 #include "TACDev.h"
 #include "TACDevCore.h"
 
-// libTAC
 #include "TACDefines.h"
 #include "AlpacaDevice.h"
-#include "TacException.h"
+#include "TACException.h"
 
 // QCommon
 #include "mymemcpy.h"
@@ -53,7 +52,7 @@
 #include <QMap>
 #include <QThread>
 
-DevTacCore gDevTacCore;
+DevTACCore gDevTACCore;
 
 const QByteArray kTACDevHandleNotOpen("TAC device is not open. Please reopen the TAC device");
 const QByteArray kTACDevBufferTooSmall("TACDev buffer is too small");
@@ -67,7 +66,7 @@ TAC_RESULT InitializeTACDev()
 
 	if (initialized == false)
 	{
-		if (gDevTacCore.initialize(kAppName.toLatin1(), kAppVersion.toLatin1()) == false)
+		if (gDevTACCore.initialize(kAppName.toLatin1(), kAppVersion.toLatin1()) == false)
 			result = TACDEV_INIT_FAILED;
 		else
 			initialized = true;
@@ -85,14 +84,14 @@ TAC_RESULT _getCommandState
 {
 	TAC_RESULT result{NO_TAC_ERROR};
 
-	AlpacaDevice alpacaDevice = gDevTacCore.getAlpacaDevice(tacHandle);
+	AlpacaDevice alpacaDevice = gDevTACCore.getAlpacaDevice(tacHandle);
 	if (alpacaDevice.isNull() == false)
 	{
 		try
 		{
 			*state = alpacaDevice->getCommandState(command);
 		}
-		catch (const TacException& e)
+		catch (const TACException& e)
 		{
 			result = e.errorCode();
 		}
@@ -100,7 +99,7 @@ TAC_RESULT _getCommandState
 	else
 	{
 		result = TACDEV_BAD_TAC_HANDLE;
-		gDevTacCore.setLastError(kTACDevHandleNotOpen);
+		gDevTACCore.setLastError(kTACDevHandleNotOpen);
 	}
 
 	return result;
@@ -116,7 +115,7 @@ TAC_RESULT _setCommandState
 	TAC_RESULT result{NO_TAC_ERROR};
 	bool valid{false};
 
-	AlpacaDevice alpacaDevice = gDevTacCore.getAlpacaDevice(tacHandle);
+	AlpacaDevice alpacaDevice = gDevTACCore.getAlpacaDevice(tacHandle);
 	if (alpacaDevice.isNull() == false)
 	{
 		try
@@ -127,19 +126,19 @@ TAC_RESULT _setCommandState
 			if (valid == false)
 			{
 				result = TACDEV_BAD_TAC_HANDLE;
-				gDevTacCore.setLastError(kTACDevHandleNotOpen);
+				gDevTACCore.setLastError(kTACDevHandleNotOpen);
 			}
 		}
-		catch (const TacException& e)
+		catch (const TACException& e)
 		{
 			result = e.errorCode();
-			gDevTacCore.setLastError(e.getMessage());
+			gDevTACCore.setLastError(e.getMessage());
 		}
 	}
 	else
 	{
 		result = TACDEV_BAD_TAC_HANDLE;
-		gDevTacCore.setLastError(kTACDevHandleNotOpen);
+		gDevTACCore.setLastError(kTACDevHandleNotOpen);
 	}
 
 	return result;
@@ -153,23 +152,23 @@ TAC_RESULT _quickCommand
 {
 	TAC_RESULT result{NO_TAC_ERROR};
 
-	AlpacaDevice alpacaDevice = gDevTacCore.getAlpacaDevice(tacHandle);
+	AlpacaDevice alpacaDevice = gDevTACCore.getAlpacaDevice(tacHandle);
 	if (alpacaDevice.isNull() == false)
 	{
 		try
 		{
 			alpacaDevice->quickCommand(command);
 		}
-		catch (const TacException& e)
+		catch (const TACException& e)
 		{
 			result = e.errorCode();
-			gDevTacCore.setLastError(e.getMessage());
+			gDevTACCore.setLastError(e.getMessage());
 		}
 	}
 	else
 	{
 		result = TACDEV_BAD_TAC_HANDLE;
-		gDevTacCore.setLastError(kTACDevHandleNotOpen);
+		gDevTACCore.setLastError(kTACDevHandleNotOpen);
 	}
 
 	return result;
@@ -223,7 +222,7 @@ TAC_RESULT GetLastTACError
 {
 	TAC_RESULT result{NO_TAC_ERROR};
 
-	QByteArray lastErrorBA = gDevTacCore.lastError();
+	QByteArray lastErrorBA = gDevTACCore.lastError();
 	if (lastErrorBA.size() < bufferSize)
 	{
 		my_memcpy(lastError, bufferSize, lastErrorBA.data(), lastErrorBA.size());
@@ -231,7 +230,7 @@ TAC_RESULT GetLastTACError
 	else
 	{
 		result = TACDEV_BUFFER_TOO_SMALL;
-		gDevTacCore.setLastError(kTACDevBufferTooSmall);
+		gDevTACCore.setLastError(kTACDevBufferTooSmall);
 	}
 
 	return result;
@@ -242,14 +241,14 @@ TAC_RESULT GetLoggingState
 	bool* loggingState
 )
 {
-	*loggingState = gDevTacCore.getLoggingState();
+	*loggingState = gDevTACCore.getLoggingState();
 
 	return NO_TAC_ERROR;
 }
 
 TAC_RESULT SetLoggingState(bool loggingState)
 {
-	gDevTacCore.setLoggingState(loggingState);
+	gDevTACCore.setLoggingState(loggingState);
 
 	return NO_TAC_ERROR;
 }
@@ -261,7 +260,7 @@ unsigned long GetDeviceCount
 {
 	InitializeTACDev();
 
-	return gDevTacCore.GetDeviceCount(deviceCount);
+	return gDevTACCore.GetDeviceCount(deviceCount);
 }
 
 unsigned long GetPortData
@@ -273,7 +272,7 @@ unsigned long GetPortData
 {
 	int result{0};
 
-	const AlpacaDevices& alpacaDevices = gDevTacCore.GetAlpacaDevices();
+	const AlpacaDevices& alpacaDevices = gDevTACCore.GetAlpacaDevices();
 	if (deviceIndex < alpacaDevices.count())
 	{
 		AlpacaDevice alpacaDevice =  alpacaDevices.at(deviceIndex);
@@ -299,7 +298,7 @@ TAC_HANDLE OpenHandleByDescription
 	const char* portName
 )
 {
-	return gDevTacCore.OpenHandleByDescription(portName);
+	return gDevTACCore.OpenHandleByDescription(portName);
 }
 
 TAC_RESULT CloseTACHandle
@@ -307,7 +306,7 @@ TAC_RESULT CloseTACHandle
 	TAC_HANDLE tacHandle
 )
 {
-	return gDevTacCore.CloseTACHandle(tacHandle);
+	return gDevTACCore.CloseTACHandle(tacHandle);
 }
 
 TAC_RESULT GetName
@@ -319,14 +318,14 @@ TAC_RESULT GetName
 {
 	TAC_RESULT result{NO_TAC_ERROR};
 
-	AlpacaDevice alpacaDevice = gDevTacCore.getAlpacaDevice(tacHandle);
+	AlpacaDevice alpacaDevice = gDevTACCore.getAlpacaDevice(tacHandle);
 	if (alpacaDevice.isNull() == false)
 	{
 		QByteArray name = alpacaDevice->name();
 		if (name.size() >= bufferSize)
 		{
 			result = TACDEV_BUFFER_TOO_SMALL;
-			gDevTacCore.setLastError(kTACDevBufferTooSmall);
+			gDevTACCore.setLastError(kTACDevBufferTooSmall);
 		}
 		else
 			my_memcpy(deviceName, bufferSize, name, name.size());
@@ -336,7 +335,7 @@ TAC_RESULT GetName
 		my_memcpy(deviceName, bufferSize, "\0", 1);
 
 		result = TACDEV_BAD_TAC_HANDLE;
-		gDevTacCore.setLastError(kTACDevHandleNotOpen);
+		gDevTACCore.setLastError(kTACDevHandleNotOpen);
 	}
 
 	return result;
@@ -351,14 +350,14 @@ TAC_RESULT GetFirmwareVersion
 {
 	TAC_RESULT result{NO_TAC_ERROR};
 
-	AlpacaDevice alpacaDevice = gDevTacCore.getAlpacaDevice(tacHandle);
+	AlpacaDevice alpacaDevice = gDevTACCore.getAlpacaDevice(tacHandle);
 	if (alpacaDevice.isNull() == false)
 	{
 		QByteArray firmwareVer = alpacaDevice->firmwareVersion().toLatin1();
 		if (firmwareVer.size() >= bufferSize)
 		{
 			result = TACDEV_BUFFER_TOO_SMALL;
-			gDevTacCore.setLastError(kTACDevBufferTooSmall);
+			gDevTACCore.setLastError(kTACDevBufferTooSmall);
 		}
 		else
 			my_memcpy(firmwareVersion, bufferSize, firmwareVer.data(), firmwareVer.size());
@@ -368,7 +367,7 @@ TAC_RESULT GetFirmwareVersion
 		my_memcpy(firmwareVersion, bufferSize, "\0", 1);
 
 		result = TACDEV_BAD_TAC_HANDLE;
-		gDevTacCore.setLastError(kTACDevHandleNotOpen);
+		gDevTACCore.setLastError(kTACDevHandleNotOpen);
 	}
 
 	return result;
@@ -384,14 +383,14 @@ TAC_RESULT GetHardware
 {
 	TAC_RESULT result{NO_TAC_ERROR};
 
-	AlpacaDevice alpacaDevice = gDevTacCore.getAlpacaDevice(tacHandle);
+	AlpacaDevice alpacaDevice = gDevTACCore.getAlpacaDevice(tacHandle);
 	if (alpacaDevice.isNull() == false)
 	{
 		QByteArray hardwareType = alpacaDevice->debugBoardTypeString().toLatin1();
 		if (hardwareType.size() >= bufferSize)
 		{
 			result = TACDEV_BUFFER_TOO_SMALL;
-			gDevTacCore.setLastError(kTACDevBufferTooSmall);
+			gDevTACCore.setLastError(kTACDevBufferTooSmall);
 		}
 		else
 			my_memcpy(hardware, bufferSize, hardwareType.data(), hardwareType.size());
@@ -401,7 +400,7 @@ TAC_RESULT GetHardware
 		my_memcpy(hardware, bufferSize, "\0", 1);
 
 		result = TACDEV_BAD_TAC_HANDLE;
-		gDevTacCore.setLastError(kTACDevHandleNotOpen);
+		gDevTACCore.setLastError(kTACDevHandleNotOpen);
 	}
 
 	return result;
@@ -416,14 +415,14 @@ TAC_RESULT GetHardwareVersion
 {
 	TAC_RESULT result{NO_TAC_ERROR};
 
-	AlpacaDevice alpacaDevice = gDevTacCore.getAlpacaDevice(tacHandle);
+	AlpacaDevice alpacaDevice = gDevTACCore.getAlpacaDevice(tacHandle);
 	if (alpacaDevice.isNull() == false)
 	{
 		QByteArray hardwareVersionStr = alpacaDevice->hardwareVersionString().toLatin1();
 		if (hardwareVersionStr.size() >= bufferSize)
 		{
 			result = TACDEV_BUFFER_TOO_SMALL;
-			gDevTacCore.setLastError(kTACDevBufferTooSmall);
+			gDevTACCore.setLastError(kTACDevBufferTooSmall);
 		}
 		else
 			my_memcpy(hardwareVersion, bufferSize, hardwareVersionStr.data(), hardwareVersionStr.size());
@@ -432,7 +431,7 @@ TAC_RESULT GetHardwareVersion
 	{
 		my_memcpy(hardwareVersion, bufferSize, "\0", 1);
 		result = TACDEV_BAD_TAC_HANDLE;
-		gDevTacCore.setLastError(kTACDevHandleNotOpen);
+		gDevTACCore.setLastError(kTACDevHandleNotOpen);
 	}
 
 	return result;
@@ -447,14 +446,14 @@ TAC_RESULT GetUUID
 {
 	TAC_RESULT result{NO_TAC_ERROR};
 
-	AlpacaDevice alpacaDevice = gDevTacCore.getAlpacaDevice(tacHandle);
+	AlpacaDevice alpacaDevice = gDevTACCore.getAlpacaDevice(tacHandle);
 	if (alpacaDevice.isNull() == false)
 	{
 		QByteArray uuidStr = alpacaDevice->uuid().toLatin1();
 		if (uuidStr.size() >= bufferSize)
 		{
 			result = TACDEV_BUFFER_TOO_SMALL;
-			gDevTacCore.setLastError(kTACDevBufferTooSmall);
+			gDevTACCore.setLastError(kTACDevBufferTooSmall);
 		}
 		else
 			my_memcpy(uuid, bufferSize, uuidStr, uuidStr.size());
@@ -463,7 +462,7 @@ TAC_RESULT GetUUID
 	{
 		my_memcpy(uuid, bufferSize, "\0", 1);
 		result = TACDEV_BAD_TAC_HANDLE;
-		gDevTacCore.setLastError(kTACDevHandleNotOpen);
+		gDevTACCore.setLastError(kTACDevHandleNotOpen);
 	}
 
 	return result;
@@ -477,7 +476,7 @@ TAC_ERROR SetExternalPowerControl
 {
 	TAC_RESULT result{NO_TAC_ERROR};
 
-	AlpacaDevice alpacaDevice = gDevTacCore.getAlpacaDevice(tacHandle);
+	AlpacaDevice alpacaDevice = gDevTACCore.getAlpacaDevice(tacHandle);
 	if (alpacaDevice.isNull() == false)
 	{
 		alpacaDevice->externalPowerControl(state);
@@ -485,7 +484,7 @@ TAC_ERROR SetExternalPowerControl
 	else
 	{
 		result = TACDEV_BAD_TAC_HANDLE;
-		gDevTacCore.setLastError(kTACDevHandleNotOpen);
+		gDevTACCore.setLastError(kTACDevHandleNotOpen);
 	}
 
 	return result;
@@ -765,7 +764,7 @@ TAC_RESULT SetName
 {
 	TAC_RESULT result{NO_TAC_ERROR};
 
-	AlpacaDevice alpacaDevice = gDevTacCore.getAlpacaDevice(tacHandle);
+	AlpacaDevice alpacaDevice = gDevTACCore.getAlpacaDevice(tacHandle);
 	if (alpacaDevice.isNull() == false)
 	{
 		alpacaDevice->setWaitForCompletion();
@@ -774,7 +773,7 @@ TAC_RESULT SetName
 	else
 	{
 		result = TACDEV_BAD_TAC_HANDLE;
-		gDevTacCore.setLastError(kTACDevHandleNotOpen);
+		gDevTACCore.setLastError(kTACDevHandleNotOpen);
 	}
 
 	return result;
@@ -788,7 +787,7 @@ TAC_RESULT GetResetCount
 {
 	TAC_RESULT result{NO_TAC_ERROR};
 
-	AlpacaDevice alpacaDevice = gDevTacCore.getAlpacaDevice(tacHandle);
+	AlpacaDevice alpacaDevice = gDevTACCore.getAlpacaDevice(tacHandle);
 	if (alpacaDevice.isNull() == false)
 	{
 		alpacaDevice->setWaitForCompletion();
@@ -797,7 +796,7 @@ TAC_RESULT GetResetCount
 	else
 	{
 		result = TACDEV_BAD_TAC_HANDLE;
-		gDevTacCore.setLastError(kTACDevHandleNotOpen);
+		gDevTACCore.setLastError(kTACDevHandleNotOpen);
 	}
 
 	return result;
@@ -807,7 +806,7 @@ TAC_RESULT ClearResetCount(TAC_HANDLE tacHandle)
 {
 	TAC_RESULT result{NO_TAC_ERROR};
 
-	AlpacaDevice alpacaDevice = gDevTacCore.getAlpacaDevice(tacHandle);
+	AlpacaDevice alpacaDevice = gDevTACCore.getAlpacaDevice(tacHandle);
 	if (alpacaDevice.isNull() == false)
 	{
 		alpacaDevice->setWaitForCompletion();
@@ -816,7 +815,7 @@ TAC_RESULT ClearResetCount(TAC_HANDLE tacHandle)
 	else
 	{
 		result = TACDEV_BAD_TAC_HANDLE;
-		gDevTacCore.setLastError(kTACDevHandleNotOpen);
+		gDevTACCore.setLastError(kTACDevHandleNotOpen);
 	}
 
 	return result;
@@ -879,7 +878,7 @@ TAC_ERROR SetPinState
 {
 	TAC_RESULT result{NO_TAC_ERROR};
 
-	AlpacaDevice alpacaDevice = gDevTacCore.getAlpacaDevice(tacHandle);
+	AlpacaDevice alpacaDevice = gDevTACCore.getAlpacaDevice(tacHandle);
 	if (alpacaDevice.isNull() == false)
 	{
 		alpacaDevice->setWaitForCompletion();
@@ -888,7 +887,7 @@ TAC_ERROR SetPinState
 	else
 	{
 		result = TACDEV_BAD_TAC_HANDLE;
-		gDevTacCore.setLastError(kTACDevHandleNotOpen);
+		gDevTACCore.setLastError(kTACDevHandleNotOpen);
 	}
 
 	return result;
@@ -903,7 +902,7 @@ TAC_ERROR GetCommandCount
 	TAC_RESULT result{NO_TAC_ERROR};
 
 	*commandCount = 0;
-	AlpacaDevice alpacaDevice = gDevTacCore.getAlpacaDevice(tacHandle);
+	AlpacaDevice alpacaDevice = gDevTACCore.getAlpacaDevice(tacHandle);
 	if (alpacaDevice.isNull() == false)
 	{
 		*commandCount = alpacaDevice->commandCount();
@@ -911,7 +910,7 @@ TAC_ERROR GetCommandCount
 	else
 	{
 		result = TACDEV_BAD_TAC_HANDLE;
-		gDevTacCore.setLastError(kTACDevHandleNotOpen);
+		gDevTACCore.setLastError(kTACDevHandleNotOpen);
 	}
 
 	return result;
@@ -927,10 +926,10 @@ TAC_ERROR GetCommand
 {
 	TAC_RESULT result{NO_TAC_ERROR};
 
-	AlpacaDevice alpacaDevice = gDevTacCore.getAlpacaDevice(tacHandle);
+	AlpacaDevice alpacaDevice = gDevTACCore.getAlpacaDevice(tacHandle);
 	if (alpacaDevice.isNull() == false)
 	{
-		TacCommand commandEntry = alpacaDevice->commandEntry(commandIndex);
+		TACCommand commandEntry = alpacaDevice->commandEntry(commandIndex);
 		if (commandEntry._pin != 0)
 		{
 			QByteArray commandData;
@@ -952,13 +951,13 @@ TAC_ERROR GetCommand
 		else
 		{
 			result = TAC_BAD_INDEX;
-			gDevTacCore.setLastError(kTACBadIndex);
+			gDevTACCore.setLastError(kTACBadIndex);
 		}
 	}
 	else
 	{
 		result = TACDEV_BAD_TAC_HANDLE;
-		gDevTacCore.setLastError(kTACDevHandleNotOpen);
+		gDevTACCore.setLastError(kTACDevHandleNotOpen);
 	}
 
 	return result;
@@ -973,7 +972,7 @@ TAC_ERROR GetQuickCommandCount
 	TAC_RESULT result{NO_TAC_ERROR};
 
 	*commandCount = 0;
-	AlpacaDevice alpacaDevice = gDevTacCore.getAlpacaDevice(tacHandle);
+	AlpacaDevice alpacaDevice = gDevTACCore.getAlpacaDevice(tacHandle);
 	if (alpacaDevice.isNull() == false)
 	{
 		*commandCount = alpacaDevice->quickCommandCount();
@@ -981,7 +980,7 @@ TAC_ERROR GetQuickCommandCount
 	else
 	{
 		result = TACDEV_BAD_TAC_HANDLE;
-		gDevTacCore.setLastError(kTACDevHandleNotOpen);
+		gDevTACCore.setLastError(kTACDevHandleNotOpen);
 	}
 
 	return result;
@@ -997,7 +996,7 @@ TAC_ERROR GetQuickCommand
 {
 	TAC_RESULT result{NO_TAC_ERROR};
 
-	AlpacaDevice alpacaDevice = gDevTacCore.getAlpacaDevice(tacHandle);
+	AlpacaDevice alpacaDevice = gDevTACCore.getAlpacaDevice(tacHandle);
 	if (alpacaDevice.isNull() == false)
 	{
 		QByteArray commandData = alpacaDevice->getQuickCommand(commandIndex);
@@ -1008,13 +1007,13 @@ TAC_ERROR GetQuickCommand
 		else
 		{
 			result = TAC_BAD_INDEX;
-			gDevTacCore.setLastError(kTACBadIndex);
+			gDevTACCore.setLastError(kTACBadIndex);
 		}
 	}
 	else
 	{
 		result = TACDEV_BAD_TAC_HANDLE;
-		gDevTacCore.setLastError(kTACDevHandleNotOpen);
+		gDevTACCore.setLastError(kTACDevHandleNotOpen);
 	}
 
 	return result;
@@ -1029,14 +1028,14 @@ TAC_ERROR GetCommandState
 {
 	TAC_RESULT result{NO_TAC_ERROR};
 
-	AlpacaDevice alpacaDevice = gDevTacCore.getAlpacaDevice(tacHandle);
+	AlpacaDevice alpacaDevice = gDevTACCore.getAlpacaDevice(tacHandle);
 	if (alpacaDevice.isNull() == false)
 	{
 		try
 		{
 			*state = alpacaDevice->getCommandState(command);
 		}
-		catch (const TacException& e)
+		catch (const TACException& e)
 		{
 			Q_UNUSED(e)
 
@@ -1046,7 +1045,7 @@ TAC_ERROR GetCommandState
 	else
 	{
 		result = TACDEV_BAD_TAC_HANDLE;
-		gDevTacCore.setLastError(kTACDevHandleNotOpen);
+		gDevTACCore.setLastError(kTACDevHandleNotOpen);
 	}
 
 	return result;
@@ -1061,7 +1060,7 @@ TAC_ERROR SendCommand
 {
 	TAC_RESULT result{NO_TAC_ERROR};
 
-	AlpacaDevice alpacaDevice = gDevTacCore.getAlpacaDevice(tacHandle);
+	AlpacaDevice alpacaDevice = gDevTACCore.getAlpacaDevice(tacHandle);
 	if (alpacaDevice.isNull() == false)
 	{
 		bool valid;
@@ -1072,19 +1071,19 @@ TAC_ERROR SendCommand
 			if (valid == false)
 			{
 				result = TACDEV_BAD_TAC_HANDLE; // DriveThread is NULL
-				gDevTacCore.setLastError(kTACDevHandleNotOpen);
+				gDevTACCore.setLastError(kTACDevHandleNotOpen);
 			}
 		}
-		catch (TacException& e)
+		catch (TACException& e)
 		{
 			result = e.errorCode();
-			gDevTacCore.setLastError(e.getMessage());
+			gDevTACCore.setLastError(e.getMessage());
 		}
 	}
 	else
 	{
 		result = TACDEV_BAD_TAC_HANDLE;
-		gDevTacCore.setLastError(kTACDevHandleNotOpen);
+		gDevTACCore.setLastError(kTACDevHandleNotOpen);
 	}
 
 	return result;
@@ -1101,7 +1100,7 @@ TAC_ERROR GetHelpText
 {
 	TAC_RESULT result{NO_TAC_ERROR};
 
-	AlpacaDevice alpacaDevice = gDevTacCore.getAlpacaDevice(tacHandle);
+	AlpacaDevice alpacaDevice = gDevTACCore.getAlpacaDevice(tacHandle);
 	if (alpacaDevice.isNull() == false)
 	{
 		// todo
@@ -1109,7 +1108,7 @@ TAC_ERROR GetHelpText
 		if (helpText.size() >= bufferSize)
 		{
 			result = TACDEV_BUFFER_TOO_SMALL;
-			gDevTacCore.setLastError(kTACDevBufferTooSmall);
+			gDevTACCore.setLastError(kTACDevBufferTooSmall);
 			*actualSize = helpText.size();
 		}
 		else
@@ -1121,7 +1120,7 @@ TAC_ERROR GetHelpText
 		*actualSize = 0;
 
 		result = TACDEV_BAD_TAC_HANDLE;
-		gDevTacCore.setLastError(kTACDevHandleNotOpen);
+		gDevTACCore.setLastError(kTACDevHandleNotOpen);
 	}
 
 	return result;
@@ -1131,14 +1130,14 @@ TAC_ERROR GetHelpText
 TAC_ERROR GetScriptVariableCount(TAC_HANDLE tacHandle, unsigned long *scriptVariableCount)
 {
 	TAC_RESULT result{NO_TAC_ERROR};
-	AlpacaDevice alpacaDevice = gDevTacCore.getAlpacaDevice(tacHandle);
+	AlpacaDevice alpacaDevice = gDevTACCore.getAlpacaDevice(tacHandle);
 
 	if (alpacaDevice.isNull() == false)
 		*scriptVariableCount = alpacaDevice->scriptVariableCount();
 	else
 	{
 		result = TACDEV_BAD_TAC_HANDLE;
-		gDevTacCore.setLastError(kTACDevHandleNotOpen);
+		gDevTACCore.setLastError(kTACDevHandleNotOpen);
 	}
 
 	return result;
@@ -1147,7 +1146,7 @@ TAC_ERROR GetScriptVariableCount(TAC_HANDLE tacHandle, unsigned long *scriptVari
 TAC_ERROR GetScriptVariable(TAC_HANDLE tacHandle, unsigned long scriptVariableIndex, char *scriptVariableBuffer, int bufferSize)
 {
 	TAC_RESULT result{NO_TAC_ERROR};
-	AlpacaDevice alpacaDevice = gDevTacCore.getAlpacaDevice(tacHandle);
+	AlpacaDevice alpacaDevice = gDevTACCore.getAlpacaDevice(tacHandle);
 
 	if (alpacaDevice.isNull() == false)
 	{
@@ -1155,7 +1154,7 @@ TAC_ERROR GetScriptVariable(TAC_HANDLE tacHandle, unsigned long scriptVariableIn
 		if (variableData.size() >= bufferSize)
 		{
 			result = TACDEV_BUFFER_TOO_SMALL;
-			gDevTacCore.setLastError(kTACDevBufferTooSmall);
+			gDevTACCore.setLastError(kTACDevBufferTooSmall);
 		}
 		else
 			my_memcpy(scriptVariableBuffer, bufferSize, variableData, variableData.size());
@@ -1164,7 +1163,7 @@ TAC_ERROR GetScriptVariable(TAC_HANDLE tacHandle, unsigned long scriptVariableIn
 	{
 		my_memcpy(scriptVariableBuffer, bufferSize, "\0", 1);
 		result = TACDEV_BAD_TAC_HANDLE;
-		gDevTacCore.setLastError(kTACDevHandleNotOpen);
+		gDevTACCore.setLastError(kTACDevHandleNotOpen);
 	}
 	return result;
 }
@@ -1172,7 +1171,7 @@ TAC_ERROR GetScriptVariable(TAC_HANDLE tacHandle, unsigned long scriptVariableIn
 TAC_ERROR UpdateScriptVariableValue(TAC_HANDLE tacHandle, const char *scriptVariable, const char* scriptVariableValue)
 {
 	TAC_RESULT result{NO_TAC_ERROR};
-	AlpacaDevice alpacaDevice = gDevTacCore.getAlpacaDevice(tacHandle);
+	AlpacaDevice alpacaDevice = gDevTACCore.getAlpacaDevice(tacHandle);
 
 	try
 	{
@@ -1183,13 +1182,46 @@ TAC_ERROR UpdateScriptVariableValue(TAC_HANDLE tacHandle, const char *scriptVari
 		else
 		{
 			result = TACDEV_BAD_TAC_HANDLE;
-			gDevTacCore.setLastError(kTACDevHandleNotOpen);
+			gDevTACCore.setLastError(kTACDevHandleNotOpen);
 		}
 	}
-	catch (TacException& e)
+	catch (TACException& e)
 	{
 		result = e.errorCode();
-		gDevTacCore.setLastError(e.getMessage());
+		gDevTACCore.setLastError(e.getMessage());
+	}
+
+	return result;
+}
+
+TAC_ERROR IsCommandQueueClear(TAC_HANDLE tacHandle, bool* status)
+{
+	TAC_RESULT result{NO_TAC_ERROR};
+
+	AlpacaDevice alpacaDevice = gDevTACCore.getAlpacaDevice(tacHandle);
+	if (alpacaDevice.isNull() == false)
+	{
+		try
+		{
+            // if false, queue is clear
+            *status = !alpacaDevice->isCommandQueueClear();
+
+			// We're limited by the PIC32CX firmware.
+			// The firmware does not actually send us an acknowledgement for the command execution.
+			// It receives the commands and processes them later. Hardcoded delay can help some automation use-cases.
+			if (alpacaDevice->debugBoardType() == ePIC32CXAuto)
+				QThread::msleep(10000);
+		}
+		catch (TACException& e)
+		{
+			result = e.errorCode();
+			gDevTACCore.setLastError(e.getMessage());
+		}
+	}
+	else
+	{
+		result = TACDEV_BAD_TAC_HANDLE;
+		gDevTACCore.setLastError(kTACDevHandleNotOpen);
 	}
 
 	return result;
