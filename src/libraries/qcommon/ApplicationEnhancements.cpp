@@ -188,7 +188,7 @@ QString docsRoot()
 	result = "C:\\Program Files (x86)\\Qualcomm\\" + appName + "\\docs\\";
 #endif
 #ifdef Q_OS_LINUX
-	result = "opt/qcom/" + appName + "/docs/";
+    result = "/opt/qcom/" + appName + "/docs";
 #endif
 	return result;
 }

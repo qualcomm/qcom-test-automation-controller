@@ -69,8 +69,6 @@ void AboutDialog::setTitle
 {
 	QByteArray workingCopy{title};
 
-	AppCore* appCore = AppCore::getAppCore();
-
 	_ui->_title->setText(workingCopy);
 }
 
@@ -80,8 +78,6 @@ void AboutDialog::setAppName
 )
 {
 	QString appTitle = windowTitle().arg(appName);
-
-	AppCore* appCore = AppCore::getAppCore();
 
 	setWindowTitle(appTitle);
 }

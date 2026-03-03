@@ -18,7 +18,7 @@
   </property>
   <property name="windowIcon">
    <iconset>
-    <normaloff>:/TAC.png</normaloff>:/TAC.png</iconset>
+    <normaloff>:/QTAC.png</normaloff>:/QTAC.png</iconset>
   </property>
   <property name="modal">
    <bool>true</bool>
