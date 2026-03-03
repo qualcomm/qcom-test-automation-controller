@@ -74,10 +74,20 @@ To view these logs, you may install [Putty](https://www.putty.org/) or similar t
 | Category | Software | Minimum Version |
 | :-- | :-- | :-- |
 | Operating System | Windows, Debian | Windows 10 & above<br>Ubuntu 22.04 & above |
-| Compiler | [Visual Studio Compiler 2022](https://visualstudio.microsoft.com/downloads/#build-tools-for-visual-studio-2022) (Windows)<br>GCC (Linux) | MSVC 2022 (Windows)<br>GCC-11, G++-11, GLIBC-2.35 (Linux) |
+| Compiler | [Download MSVC 2022 (Windows)](https://aka.ms/vs/17/release/vs_community.exe)<br>GCC (Linux) | MSVC 2022 (Windows)<br>GCC-11, G++-11, GLIBC-2.35 (Linux) |
 | UI Framework | [Qt Open-source](https://www.qt.io/download-qt-installer-oss) | 6.9.0 and above |
 
-Please review the usage policies, license terms, and conditions of the above software before use.
+> [!NOTE]
+> Before use, please review the license terms for [Microsoft Visual Studio](https://visualstudio.microsoft.com/license-terms/) and [Qt](https://www.qt.io/development/download-open-source). We provide a direct link to MSVC 2022 because the current Qt version does not yet support the latest MSVC 2026 compiler available on Microsoft's website. This will be updated when Qt adds support for MSVC 2026.
+
+### Configure Visual Studio Compiler 2022 on Windows
+
+When building the project on Windows, please choose the following dependencies from the Visual Studio Installer.
+
+1. **Desktop development with C++** required for project compilation
+2. **.NET desktop development** required to compile QTAC C# APIs
+
+![Desktop development with C++](./docs/resources/qtac-msvc-2022-requirements.png)
 
 ### Configure Qt Installation
 
@@ -100,7 +110,7 @@ sudo apt install qt6-base-dev qt6-serialport-dev
 The following packages are required on Linux to execute QTAC applications:
 
 ```bash
-sudo apt install -y libxcb-cursor0 libpcre2-16-0 libxkbcommon-x11-0 libxcb-xkb1 libxcb-icccm4 libxcb-shape0 libxcb-keysyms1 libgl1 libegl-dev libxcb-xinerama0
+sudo apt install -y libxcb-cursor0 libpcre2-16-0 libxkbcommon-x11-0 libxcb-xkb1 libxcb-icccm4 libxcb-shape0 libxcb-keysyms1 libgl1 libegl-dev libxcb-xinerama0 libpulse-dev
 ```
 
 > [!WARNING]
@@ -175,6 +185,10 @@ __Builds\x64\Release\QTAC.exe
 ```
 
 The application will detect connected debug boards and display available Qualcomm devices for control.
+
+> [!NOTE]
+> If you're using a PSOC debug board, it is mandatory to have the board programmed at the factory with the required firmware.
+> If you notice enumeration issues with the debug board and QTAC unable to recognize the board, it is likely that the board is unprogrammed.
 
 ## Repository Structure
 

@@ -124,6 +124,18 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${BINPATH})
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${STATIC_LIBPATH})
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${STATIC_LIBPATH})
 
+if(WIN32)
+    if(TARGET Qt6::windeployqt)
+        get_target_property(WINDEPLOYQT_EXECUTABLE Qt6::windeployqt IMPORTED_LOCATION)
+    else()
+        find_program(WINDEPLOYQT_EXECUTABLE windeployqt HINTS "${Qt6_DIR}/../../../bin")
+    endif()
+    
+    if(NOT WINDEPLOYQT_EXECUTABLE)
+        set(WINDEPLOYQT_EXECUTABLE windeployqt)
+    endif()
+endif()
+
 # Function to apply common settings to a target
 function(QCommonSettings target_name)
     target_compile_definitions(${target_name} PRIVATE ${QCOMMON_DEFINITIONS})

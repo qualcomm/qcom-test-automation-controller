@@ -88,6 +88,8 @@ target_compile_definitions(${APP_NAME} PRIVATE
 target_link_libraries(${APP_NAME} PRIVATE
     Qt6::Core
     Qt6::Gui
+    Qt6::Multimedia
+    Qt6::MultimediaWidgets
     Qt6::SerialPort
     Qt6::Widgets
     Qt6::Xml

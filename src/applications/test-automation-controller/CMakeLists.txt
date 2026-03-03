@@ -79,6 +79,8 @@ target_compile_definitions(${APP_NAME} PRIVATE
 target_link_libraries(${APP_NAME} PRIVATE
     Qt6::Core
     Qt6::Gui
+    Qt6::Multimedia
+    Qt6::MultimediaWidgets
     Qt6::SerialPort
     Qt6::Widgets
     ftd2xx
@@ -138,3 +140,11 @@ qt_generate_deploy_app_script(
     NO_UNSUPPORTED_PLATFORM_ERROR
 )
 install(SCRIPT ${deploy_script})
+
+if(WIN32 AND WINDEPLOYQT_EXECUTABLE)
+    add_custom_command(TARGET ${APP_NAME} POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E echo "Deploying Qt libraries..."
+        COMMAND ${WINDEPLOYQT_EXECUTABLE} --no-translations --compiler-runtime --dir $<TARGET_FILE_DIR:${APP_NAME}> $<TARGET_FILE:${APP_NAME}>
+        COMMENT "Running windeployqt..."
+    )
+endif()
