@@ -18,7 +18,9 @@ qt_add_library(${LIBRARY_NAME} STATIC
     CustomValidator.cpp CustomValidator.h
     HoverAwareQWindow.cpp HoverAwareQWindow.h HoverAwareQWindow.ui
     I2CWidget.cpp I2CWidget.h I2CWidget.ui
+    MediaPlaybackFrame.cpp MediaPlaybackFrame.h MediaPlaybackFrame.ui
     NotificationWidget.cpp NotificationWidget.h NotificationWidget.ui
+    ProgressDialog.cpp ProgressDialog.h ProgressDialog.ui
     TACFrame.cpp TACFrame.h TACFrame.ui
     TerminalWidget.cpp TerminalWidget.h TerminalWidget.ui
     UIGlobalLib.h
@@ -53,6 +55,8 @@ target_compile_definitions(${LIBRARY_NAME} PUBLIC
 target_link_libraries(${LIBRARY_NAME} PUBLIC
     Qt6::Core
     Qt6::Gui
+    Qt6::Multimedia
+    Qt6::MultimediaWidgets
     Qt6::Widgets
 )
 

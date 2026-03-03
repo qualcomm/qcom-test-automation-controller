@@ -61,6 +61,12 @@ void EditorView::setPlatformConfiguration
 	_platformConfiguration = platformConfiguration;
 }
 
+void EditorView::setRowEnabled(int rowId, bool state)
+{
+	Q_UNUSED(rowId);
+	Q_UNUSED(state);
+}
+
 bool EditorView::read()
 {
 	bool result{false};

@@ -55,9 +55,9 @@ namespace TACDevInterop
 		}
 	}
 
-	public class TacDevice
+	public class TACDevice
 	{
-		public TacDevice(string portName, string description, string serialNumber)
+		public TACDevice(string portName, string description, string serialNumber)
 		{
 			_portName = portName;
 			_description = description;
@@ -168,9 +168,9 @@ namespace TACDevInterop
 		[DllImport("TACDev.dll")]
 		private static extern uint GetPortData(uint deviceIndex, byte[] portData, uint bufferSize);
 
-		static public TacDevice GetDevice(uint deviceIndex)
+		static public TACDevice GetDevice(uint deviceIndex)
 		{
-			TacDevice result = null;
+			TACDevice result = null;
 
 			byte[] output = new byte[kBufferSize];
 			uint tacResult = GetPortData(deviceIndex, output, kBufferSize);
@@ -180,7 +180,7 @@ namespace TACDevInterop
 				string[] portAttributes = portData.Split(';');
 				if (portAttributes.Length > 2)
 				{
-					result = new TacDevice(portAttributes[0].Trim('\0'), portAttributes[1].Trim('\0'), portAttributes[2].Trim('\0'));
+					result = new TACDevice(portAttributes[0].Trim('\0'), portAttributes[1].Trim('\0'), portAttributes[2].Trim('\0'));
 				}
 			}
 

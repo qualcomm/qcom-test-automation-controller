@@ -43,7 +43,6 @@
 #include "TACDeviceSelection.h"
 #include "PreferencesDialog.h"
 
-// libTAC
 #include "TACDefines.h"
 #include "TACPreferences.h"
 

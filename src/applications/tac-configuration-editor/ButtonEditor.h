@@ -41,7 +41,6 @@
 
 #include "ui_ButtonEditor.h"
 
-// libTAC
 #include "PlatformConfiguration.h"
 
 // QT

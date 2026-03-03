@@ -1,36 +1,25 @@
-/*
-	Copyright (c) Qualcomm Technologies, Inc. and/or its subsidiaries. 
-	 
-	Redistribution and use in source and binary forms, with or without
-	modification, are permitted (subject to the limitations in the
-	disclaimer below) provided that the following conditions are met:
-	 
-		* Redistributions of source code must retain the above copyright
-		  notice, this list of conditions and the following disclaimer.
-	 
-		* Redistributions in binary form must reproduce the above
-		  copyright notice, this list of conditions and the following
-		  disclaimer in the documentation and/or other materials provided
-		  with the distribution.
-	 
-		* Neither the name of Qualcomm Technologies, Inc. nor the names of its
-		  contributors may be used to endorse or promote products derived
-		  from this software without specific prior written permission.
-	 
-	NO EXPRESS OR IMPLIED LICENSES TO ANY PARTY'S PATENT RIGHTS ARE
-	GRANTED BY THIS LICENSE. THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT
-	HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED
-	WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
-	MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED.
-	IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR
-	ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
-	DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE
-	GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
-	INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER
-	IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-	OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN
-	IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-*/
+// Confidential and Proprietary Qualcomm Technologies, Inc.
+
+// NO PUBLIC DISCLOSURE PERMITTED:  Please report postings of this software on public servers or websites
+// to: DocCtrlAgent@qualcomm.com.
+
+// RESTRICTED USE AND DISCLOSURE:
+// This software contains confidential and proprietary information and is not to be used, copied, reproduced, modified
+// or distributed, in whole or in part, nor its contents revealed in any manner, without the express written permission
+// of Qualcomm Technologies, Inc.
+
+// Qualcomm is a trademark of QUALCOMM Incorporated, registered in the United States and other countries. All
+// QUALCOMM Incorporated trademarks are used with permission.
+
+// This software may be subject to U.S. and international export, re-export, or transfer laws.  Diversion contrary to U.S.
+// and international law is strictly prohibited.
+
+// Qualcomm Technologies, Inc.
+// 5775 Morehouse Drive
+// San Diego, CA 92121 U.S.A.
+// Copyright 2018-2025 Qualcomm Technologies, Inc.
+// All rights reserved.
+// Qualcomm Technologies Confidential and Proprietary
 
 /*
 	Author: Michael Simpson (msimpson@qti.qualcomm.com)
@@ -40,8 +29,10 @@
 #include "PlatformConfiguration.h"
 
 //libTAC
+#include "PIC32CXPlatformConfiguration.h"
 #include "ConsoleApplicationEnhancements.h"
 #include "FTDIPlatformConfiguration.h"
+#include "PSOCPlatformConfiguration.h"
 
 // QCommon
 #include "AlpacaScript.h"
@@ -116,7 +107,7 @@ const QString kNoVariableValue(QStringLiteral("<no value>"));
 QString _PlatformConfiguration::_lastError;
 Buttons _PlatformConfiguration::_classicButtons;
 bool _PlatformConfiguration::_dynamicConfigurationsInitialized{false};
-TacPlatformEntries _PlatformConfiguration::_tacPlatformEntries;
+TACPlatformEntries _PlatformConfiguration::_tacPlatformEntries;
 USBDescriptors _PlatformConfiguration::_usbDescriptors;
 
 _PlatformConfiguration::_PlatformConfiguration()
@@ -146,9 +137,16 @@ PlatformConfiguration _PlatformConfiguration::createPlatformConfiguration
 
 	switch (debugBoardType)
 	{
+	case ePSOC:
+		result = PlatformConfiguration(new _PSOCPlatformConfiguration);
+		break;
+
 	case eFTDI:
 		result = PlatformConfiguration(new _FTDIPlatformConfiguration(chipCount));
 		break;
+
+	case ePIC32CXAuto:
+		result = PlatformConfiguration(new _PIC32CXPlatformConfiguration);
 	default: ;
 	}
 
@@ -167,10 +165,17 @@ PlatformConfiguration _PlatformConfiguration::openPlatformConfiguration
 	if (fileInfo.isFile())
 	{
 		QString fileName = fileInfo.fileName();
-
-		if (fileName.contains("_ftdi_", Qt::CaseInsensitive))
+		if (fileName.contains("_psoc_", Qt::CaseInsensitive))
+		{
+			result = PlatformConfiguration(new _PSOCPlatformConfiguration);
+		}
+		else if (fileName.contains("_ftdi_", Qt::CaseInsensitive))
 		{
 			result = PlatformConfiguration(new _FTDIPlatformConfiguration(0));
+		}
+		else if (fileName.contains("_pic32cxauto_", Qt::CaseInsensitive))
+		{
+			result = PlatformConfiguration(new _PIC32CXPlatformConfiguration);
 		}
 		else
 		{
@@ -411,8 +416,12 @@ void _PlatformConfiguration::updateTabs
 
 void _PlatformConfiguration::setPlatform(const QString& platform)
 {
-	if (platform.compare("ftdi", Qt::CaseInsensitive) == 0)
+	if (platform.compare("psoc", Qt::CaseInsensitive) == 0)
+		_platform = ePSOC;
+	else if (platform.compare("ftdi", Qt::CaseInsensitive) == 0)
 		_platform = eFTDI;
+	else if (platform.compare("pic32cx (automotive)", Qt::CaseInsensitive) == 0)
+		_platform = ePIC32CXAuto;
 }
 
 PlatformID _PlatformConfiguration::getPlatformId()
@@ -1004,12 +1013,38 @@ QString _PlatformConfiguration::filePath()
 	return QDir::cleanPath(_platformPath + QDir::separator() + _platformFile);
 }
 
+void _PlatformConfiguration::setSupportedFirmwareVer(const QList<quint32> &firmwareList)
+{
+	_supportedFirmwareVer = firmwareList;
+}
+
+QList<quint32> _PlatformConfiguration::supportedFirmwareVer()
+{
+	return _supportedFirmwareVer;
+}
+
 void _PlatformConfiguration::setFilePath(const QString &filePath)
 {
 	QFileInfo fileInfo(filePath);
 
-	_platformPath = fileInfo.absolutePath();
-	_platformFile = fileInfo.fileName();
+	if (fileInfo.absoluteFilePath().startsWith("C:/ProgramData/Qualcomm/Alpaca", Qt::CaseInsensitive))
+	{
+		if (_platform == ePSOC && _platformId < 255)
+		{
+			_platformPath = documentsDataPath("TAC Configurations");
+			_platformFile = fileInfo.fileName();
+		}
+		else if (_platform == eFTDI && _platformId < 90000)
+		{
+			_platformPath = documentsDataPath("TAC Configurations");
+			_platformFile = fileInfo.fileName();
+		}
+	}
+	else
+	{
+		_platformPath = fileInfo.absolutePath();
+		_platformFile = fileInfo.fileName();
+	}
 }
 
 void _PlatformConfiguration::setUSBDescriptor(const QByteArray& usbDescriptor)
@@ -1075,7 +1110,14 @@ void _PlatformConfiguration::save()
 
 	if (_platformPath.isEmpty())
 	{
-		if (_platform == eFTDI)
+		if (_platform == ePSOC)
+		{
+			if (_platformId < 255)
+				_platformPath = documentsDataPath("TAC Configurations");
+			else
+				_platformPath = tacConfigRoot();
+		}
+		else
 		{
 			if (_platformId < 90000)
 				_platformPath = documentsDataPath("TAC Configurations");
@@ -1438,11 +1480,11 @@ void _PlatformConfiguration::initialize()
 void _PlatformConfiguration::copyToPineDataPath(const QString& savePath)
 {
 #ifdef Q_OS_WIN
-	QString pinePath{"C:/Program Files (x86)/Qualcomm/Shared/QTAC"};
+	QString pinePath{"C:/Program Files (x86)/Qualcomm/Shared/Alpaca"};
 	QString fileName = savePath.split("/").back();
 	QFileInfo configFile{pinePath + QDir::separator() + fileName};
 
-	// If the Shared/QTAC directory does not exist, create it
+	// If the Shared/Alpaca directory does not exist, create it
 	QDir().mkpath(pinePath);
 	
 	// If the file already exists, remove it

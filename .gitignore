@@ -30,3 +30,6 @@ __Builds/
 # Driver packages
 ftd2xx.lib
 *.zip
+
+# BRF documents
+*.xml

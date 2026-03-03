@@ -59,7 +59,7 @@ public:
 	TACLiteProtocol();
 	virtual ~TACLiteProtocol();
 
-	void setTacDriveTrain(TACDriveThread* tacDriveTrain);
+	void setTACDriveTrain(TACDriveThread* tacDriveTrain);
 
 	quint32 sendCommand(const QByteArray& command, const Arguments& arguments, bool console = false,
 		ReceiveInterface* receiveInterface = Q_NULLPTR, bool shouldStore = true);

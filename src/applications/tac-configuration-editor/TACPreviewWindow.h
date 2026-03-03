@@ -54,14 +54,21 @@ class TACPreviewWindow :
 {
 Q_OBJECT
 public:
-	TACPreviewWindow(PlatformConfiguration platformConfiguration, QWidget* parent = Q_NULLPTR);
+	TACPreviewWindow(QWidget* parent = Q_NULLPTR);
 	~TACPreviewWindow();
+
+	void setPlatformConfiguration(PlatformConfiguration platformConfiguration);
+
+signals:
+	void startNotification(const QString& message, NotificationLevel level);
 
 protected:
 	 virtual void resizeEvent(QResizeEvent* event);
 
 private:
-    PlatformConfiguration          			_platformConfig;
+	void onNotificationStarted(const QString &message, NotificationLevel level);
+
+	PlatformConfiguration          			_platformConfig;
 };
 
 #endif // TACPREVIEWWINDOW_H

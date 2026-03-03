@@ -49,7 +49,7 @@
 // QCommon
 #include "AppCore.h"
 #include "Range.h"
-#include "TacException.h"
+#include "TACException.h"
 
 // TAC
 
@@ -150,8 +150,6 @@ void TACFrame::setPlatformConfiguration
 )
 {
 	Q_ASSERT(platformConfiguration.isNull() == false);
-
-	_ui->_infoGroupBox->hide();
 
 	_platformConfiguration = platformConfiguration;
 
@@ -343,7 +341,10 @@ void TACFrame::populatePinLEDs(const Pins &pins, const QString &tabName)
 		{
 			for (const auto& pin: std::as_const(pins))
 			{
-				if (pin._tabName == tabName)
+				if (pin._cellLocation.y() < 0 || pin._cellLocation.x() < 0)
+					emit startNotification(QString("Cell location violation found for pin: %1").arg(pin._pin), eErrorNotification);
+
+				else if (pin._tabName == tabName)
 				{
 					switch (pin._commandGroup)
 					{
@@ -399,7 +400,10 @@ void TACFrame::populateQuickSettingsButtons
 
 	for (const auto& button: buttons)
 	{
-		if (button._tab == tabName)
+		if (button._cellLocation.y() < 0 || button._cellLocation.x() < 0)
+			emit startNotification(QString("Cell location violation found for quick settings label: %1").arg(button._label), eErrorNotification);
+
+		else if (button._tab == tabName)
 		{
 			switch (button._commandGroup)
 			{
@@ -501,7 +505,7 @@ void TACFrame::onPinTriggered
 			AppCore::writeToApplicationLogLine("TACFrame::onPinTriggered(" + QString::number(pin) +")");
 			_alpacaDevice->setPinState(pin, !state);
 		}
-		catch(TacException& e)
+		catch(TACException& e)
 		{
 			if (e.errorCode() == TAC_DEVICE_INACTIVE)
 			{

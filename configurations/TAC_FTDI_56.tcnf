@@ -67,10 +67,10 @@
     "chip_count": 1,
     "creation_date": "Tue Feb 28 18:16:55 2023",
     "description": "MTP8845 FTDI IO",
-    "fileVersion": 64,
-    "modification_date": "Tue May 6 11:48:47 2025",
+    "fileVersion": 65,
+    "modification_date": "Tue Jul 29 11:10:35 2025",
     "name": "Molokai MTP",
-    "pineVersion": 1,
+    "pineVersion": 2,
     "pins": [
         {
             "bus": "A",
@@ -588,7 +588,7 @@
     "platform_id": 56,
     "platform_type": "FTDI",
     "reset_enabled": false,
-    "script": "def powerOffTheDevice() \n\tlogComment ====== powerOffTheDevice sequence start ======\n\n\tbattery 1\n\tusb0 1\n\tusb1 1\n\n\tlogComment ====== powerOffTheDevice sequence finish ======\n\ndef powerOnTheDevice()\n\tlogComment ====== powerOnTheDevice sequence start ======\n\n\tdelay 500\n\tbattery 0\n\tdelay 900\n\tusb0 0\n\tusb1 0\n\tdelay 30\n\n\tlogComment ====== powerOnTheDevice sequence finish ======\n\ndef powerOff()\n\tlogComment ====== powerOff start ======\n\n\tpowerOffTheDevice\n\n\tpkey 0\n\tvolup 0\n\tvoldn 0\n\n\tpedl 0\n\n\tlogComment ====== powerOff finish ======\n\ndef powerOn()\n\tlogComment ====== powerOn start ======\n\n\tpowerOff\n\n\tpowerOnTheDevice\n\n\tpkey 1\n\tdelay 800\n\tpkey 0\n\n\tlogComment ====== powerOn finish ======\n\ndef bootToEDL()\n\tlogComment ====== bootToEDL start ======\n\n\tpowerOffTheDevice\n\n\tpkey 0\n\tvolup 0\n\tvoldn 0\n\n\tpedl 1\n\n\tpowerOnTheDevice\n\n\tpkey 1\n\tdelay 1300\n\tpkey 0\n\n\tpedl 0\n\n\tlogComment ====== bootToEDL finish ======\n\ndef bootToUEFI()\n\tlogComment ====== bootToUEFIMenu start ======\n\n\tpowerOffTheDevice\n\n\t// Put buttons in a set state\n\tpkey 0\n\tvolup 1\n\tvoldn 0\n\n\tpedl 0\n\n\tpowerOnTheDevice\n\tdelay 1500 //requires at least 700ms for pd controller negotiation\n\tpkey 1\n\tdelay 8000\n\tpkey 0\n\tvolup 0\n\tdelay 12\n\tpkey 1\n\tvolup 1\n\n\tpkey 0\n\tvolup 0\n\n\tlogComment ====== bootToUEFIMenu finish ======\n\ndef bootToFastboot()\n\tlogComment ====== bootToFastboot start ======\n\n\tpowerOffTheDevice\n\n\tpkey 0\n\tvolup 0\n\tvoldn 1\n\n\tpedl 0\n\n\tpowerOnTheDevice\n\n\tpkey 1\n\tdelay 2000\n\tpkey 0\n\n\tdelay 6000\n\tvoldn 0\n\tdelay 30\n\tvoldn 1\n\n\tvoldn 0\n\n\tlogComment ====== bootToFastboot finished ======",
+    "script": "def powerOffTheDevice() \n\tlogComment ====== powerOffTheDevice sequence start ======\n\n\tbattery 1\n\tusb0 1\n\tusb1 1\n\n\tlogComment ====== powerOffTheDevice sequence finish ======\n\ndef powerOnTheDevice()\n\tlogComment ====== powerOnTheDevice sequence start ======\n\n\tdelay 500\n\tbattery 0\n\tdelay 900\n\tusb0 0\n\tusb1 0\n\tdelay 30\n\n\tlogComment ====== powerOnTheDevice sequence finish ======\n\ndef powerOff()\n\tlogComment ====== powerOff start ======\n\n\tpowerOffTheDevice\n\n\tpkey 0\n\tvolup 0\n\tvoldn 0\n\n\tpedl 0\n\n\tlogComment ====== powerOff finish ======\n\ndef powerOn()\n\tlogComment ====== powerOn start ======\n\n\tpowerOff\n\n\tpowerOnTheDevice\n\n\tpkey 1\n\tdelay 800\n\tpkey 0\n\n\tlogComment ====== powerOn finish ======\n\ndef bootToEDL()\n\tlogComment ====== bootToEDL start ======\n\n\tpowerOffTheDevice\n\n\tpkey 0\n\tvolup 0\n\tvoldn 0\n\n\tpedl 1\n\n\tpowerOnTheDevice\n\n\tpkey 1\n\tdelay $edl\n\tpkey 0\n\n\tpedl 0\n\n\tlogComment ====== bootToEDL finish ======\n\ndef bootToUEFI()\n\tlogComment ====== bootToUEFIMenu start ======\n\n\tpowerOffTheDevice\n\n\t// Put buttons in a set state\n\tpkey 0\n\tvolup 1\n\tvoldn 0\n\n\tpedl 0\n\n\tpowerOnTheDevice\n\tdelay 1500 //requires at least 700ms for pd controller negotiation\n\tpkey 1\n\tdelay $uefi\n\tpkey 0\n\tvolup 0\n\tdelay 12\n\tpkey 1\n\tvolup 1\n\n\tpkey 0\n\tvolup 0\n\n\tlogComment ====== bootToUEFIMenu finish ======\n\ndef bootToFastboot()\n\tlogComment ====== bootToFastboot start ======\n\n\tpowerOffTheDevice\n\n\tpkey 0\n\tvolup 0\n\tvoldn 1\n\n\tpedl 0\n\n\tpowerOnTheDevice\n\n\tpkey 1\n\tdelay 2000\n\tpkey 0\n\n\tdelay $fastboot\n\tvoldn 0\n\tdelay 30\n\tvoldn 1\n\n\tvoldn 0\n\n\tlogComment ====== bootToFastboot finished ======",
     "tabs": [
         {
             "configurable": true,
@@ -625,5 +625,29 @@
     ],
     "usb_descriptor": "ALPACA-LITE MTP8845",
     "variables": [
+        {
+            "cellLocation": "0,0",
+            "default_value": "1300",
+            "label": "EDL timing (ms)",
+            "name": "edl",
+            "tooltip": "Configurable Boot to EDL timin",
+            "type": 1
+        },
+        {
+            "cellLocation": "1,0",
+            "default_value": "6000",
+            "label": "Fastboot timing (ms)",
+            "name": "fastboot",
+            "tooltip": "Configurable Boot to fastboot ",
+            "type": 1
+        },
+        {
+            "cellLocation": "0,1",
+            "default_value": "8000",
+            "label": "UEFI timing (ms)",
+            "name": "uefi",
+            "tooltip": "Configurable Boot to UEFI timi",
+            "type": 1
+        }
     ]
 }

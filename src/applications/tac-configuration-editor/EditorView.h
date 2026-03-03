@@ -38,7 +38,6 @@
 	Author: Biswajit Roy (biswroy@qti.qualcomm.com)
 */
 
-// libTAC
 #include "Tabs.h"
 #include "PlatformConfiguration.h"
 
@@ -70,6 +69,8 @@ public:
 
 	virtual void setPlatformConfiguration(PlatformConfiguration platformConfiguration);
 	virtual void resetPlatform() = 0;
+
+	virtual void setRowEnabled(int rowId, bool state);
 
 protected:
 	virtual bool read();

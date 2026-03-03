@@ -45,6 +45,7 @@
 #include <QListWidget>
 #include <QMenu>
 #include <QPropertyAnimation>
+#include <QThread>
 
 
 const quint32 kNoticeTime(3000);
@@ -66,11 +67,18 @@ HoverAwareQWindow::HoverAwareQWindow(QWidget* parent, Qt::WindowFlags flags):
 	_timer.setTimerType(Qt::VeryCoarseTimer);
 	_timer.setInterval(kNoticeTime);
 	_timer.setSingleShot(true);
+
+	_winAnim = new QPropertyAnimation(this, "windowOpacity");
+	connect(_winAnim, &QPropertyAnimation::finished, this, &HoverAwareQWindow::fadeOutAnimComplete);
 }
 
 HoverAwareQWindow::~HoverAwareQWindow()
 {
-	delete _ui;
+	if (_winAnim != Q_NULLPTR)
+		delete _winAnim;
+
+	if (_ui != Q_NULLPTR)
+		delete _ui;
 }
 
 void HoverAwareQWindow::insertNotification(const QString &message, const NotificationLevel notificationLevel)
@@ -106,36 +114,34 @@ void HoverAwareQWindow::onTimerTimeout()
 {
 	QPoint pos = QCursor::pos();
 
-	if (geometry().contains(pos) == false)
+	while (geometry().contains(pos) == true)
 	{
-		if (_winAnim == Q_NULLPTR)
-		{
-			_winAnim = new QPropertyAnimation(this, "windowOpacity");
-
-			connect(_winAnim, &QPropertyAnimation::finished, this, &HoverAwareQWindow::fadeOutAnimComplete);
-
-			_winAnim->setDuration(kNoticeTime);
-			_winAnim->setStartValue(1.0);
-			_winAnim->setEndValue(0.0);
-
-			_winAnim->setEasingCurve(QEasingCurve::OutBack);
-			_winAnim->start(QPropertyAnimation::DeleteWhenStopped);
-		}
-
-		if (_winAnim != Q_NULLPTR)
-			_winAnim->start(QPropertyAnimation::DeleteWhenStopped);
+		QThread::msleep(50);
+		pos = QCursor::pos();
 	}
-	else
-		setupNotificationTimer();
+
+	if (_winAnim != Q_NULLPTR)
+	{
+		_winAnim->setDuration(kNoticeTime);
+		_winAnim->setStartValue(1.0);
+		_winAnim->setEndValue(0.0);
+
+		_winAnim->setEasingCurve(QEasingCurve::OutBack);
+
+		_winAnim->stop();
+		_winAnim->start();
+	}
 }
 
 void HoverAwareQWindow::buildListView()
 {
 	quint16 notificationCount = _notifications.size();
 
-	if (notificationCount > 0)
+	if (notificationCount > 0 && notificationCount != _ui->_notificationListContainer->count())
 	{
-		for (const Notification& notification : _notifications)
+		_ui->_notificationListContainer->clear();
+
+		for (const Notification& notification : std::as_const(_notifications))
 		{
 			QListWidgetItem* lwi = new QListWidgetItem(_ui->_notificationListContainer);
 			lwi->setText(notification.getMessage());
@@ -144,7 +150,7 @@ void HoverAwareQWindow::buildListView()
 			QColor labelColor = ColorConversion::getLabelColor(notification.getLevel());
 
 			QBrush brushColor(labelColor);
-			lwi->setBackground(brushColor);
+			lwi->setForeground(brushColor);
 
 			_ui->_notificationListContainer->addItem(lwi);
 		}
@@ -161,17 +167,18 @@ void HoverAwareQWindow::onNotificationCleared()
 void HoverAwareQWindow::fadeOutAnimComplete()
 {
 	hide();
-	clearFrame();
 	setWindowOpacity(1.0);
-
-	delete _winAnim;
-	_winAnim = Q_NULLPTR;
 }
 
 void HoverAwareQWindow::setupNotificationTimer()
 {
-	if (_timer.isActive() == false)
-		_timer.start();
+	if (_winAnim != Q_NULLPTR)
+	{
+		_winAnim->stop();
+		setWindowOpacity(1.0);
+	}
+
+	_timer.start();
 }
 
 quint16 HoverAwareQWindow::maxNotificationView()
@@ -184,11 +191,6 @@ quint16 HoverAwareQWindow::maxNotificationView()
 
 void HoverAwareQWindow::clearFrame()
 {
-	QListWidgetItem* wgt{Q_NULLPTR};
-
-	while ((wgt=_ui->_notificationListContainer->takeItem(0)) != Q_NULLPTR)
-		delete wgt;
-
 	_ui->_notificationListContainer->clear();
 	resize(kNotificationLabelWidth, kNotificationLabelHeight);
 }

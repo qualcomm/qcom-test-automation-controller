@@ -40,9 +40,8 @@
 
 namespace Ui {
 	class TACFrameClass;
-} // namespace Ui
+}
 
-// libTAC
 #include "PlatformConfiguration.h"
 
 // QCommon
@@ -79,6 +78,7 @@ public:
 
 signals:
 	void consoleMessagesReady(const QList<QByteArray>& consoleMessages);
+	void startNotification(const QString& message, NotificationLevel level);
 
 public slots:
 	void onPinTriggered(PinID pin, bool state);

@@ -38,7 +38,6 @@
 */
 
 #include "ConsoleApplicationEnhancements.h"
-#include "AppCore.h"
 #include "Range.h"
 
 // Qt
@@ -61,18 +60,18 @@
 	#include <unistd.h>
 #endif
 
+const QString kAppName("QTAC");
 
 QString applicationBinPath()
 {
 	QString result;
-	QString appName{"QTAC"};
 
 #ifdef Q_OS_WIN
-	result = "C:/Program Files (x86)/Qualcomm/" + appName + "/";
+	result = "C:/Program Files (x86)/Qualcomm/" + kAppName + "/";
 #endif
 
 #ifdef Q_OS_LINUX
-	result = "/opt/qcom/" + appName + "/bin/";
+	result = "/opt/qcom/" + kAppName + "/bin/";
 #endif
 
 	result = QDir::cleanPath(result);
@@ -88,15 +87,16 @@ QString applicationDataPath()
 	QString result;
 
 #ifdef Q_OS_WIN
-	result = "C:/ProgramData/Qualcomm/QTAC/";
+	result = "C:/ProgramData/Qualcomm/" + kAppName + "/";
 #endif
 
 #ifdef Q_OS_LINUX
-	result = "/var/lib/qcom/data/QTAC/";
+	result = "/var/lib/qcom/data/" + kAppName + "/";
 #endif
 
-	result = QDir::cleanPath(result);
-
+#ifdef DEBUG
+	result = "../../../../configurations/";
+#endif
 	if (QDir(result).exists() == false)
 		QDir().mkpath(result);
 
@@ -113,7 +113,7 @@ QString documentsDataPath
 
 	appName = QCoreApplication::applicationName();
 	if (appName.isEmpty())
-		appName = "QTAC";
+		appName = kAppName;
 
 #ifdef Q_OS_WIN
 	// QStandardPaths would return the "One Drive" location. Excel documents don't like living here
@@ -235,22 +235,6 @@ QString getModuleFilePath(const QString &moduleFileName)
 	 return result;
 }
 
-void kickIt()
-{
-	QProcess* kickItProc = new QProcess(Q_NULLPTR);
-
-	QStringList arguments;
-
-	arguments << "upload" << "-telematics";
-
-	if (kickItProc->startDetached("qik.exe", arguments))
-	{
-		kickItProc->waitForStarted();
-	}
-
-	kickItProc->deleteLater();
-}
-
 void cleanIt(const QString &pathToClean)
 {
 	QProcess* cleanItProc = new QProcess(Q_NULLPTR);
@@ -351,7 +335,7 @@ QString tacConfigRoot(bool expandThePath)
 {
 	Q_UNUSED(expandThePath);
 
-	QString result = applicationDataPath() + "/tac_configs/";
+	QString result = applicationDataPath();
 
 	return result;
 }

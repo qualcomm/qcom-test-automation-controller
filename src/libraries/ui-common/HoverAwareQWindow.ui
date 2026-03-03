@@ -17,17 +17,28 @@
    <bool>false</bool>
   </property>
   <widget class="QWidget" name="_centralWgt">
+   <property name="styleSheet">
+    <string notr="true">_centralWidget {
+	border-radius: 10px;
+}</string>
+   </property>
    <layout class="QVBoxLayout" name="verticalLayout">
     <item>
      <widget class="QLabel" name="_clearAllLabel">
+      <property name="sizePolicy">
+       <sizepolicy hsizetype="Preferred" vsizetype="Minimum">
+        <horstretch>0</horstretch>
+        <verstretch>0</verstretch>
+       </sizepolicy>
+      </property>
       <property name="text">
        <string>&lt;a href=&quot;/ddlcplus/&quot;&gt;Clear All&lt;/a&gt;</string>
       </property>
       <property name="textFormat">
-       <enum>Qt::RichText</enum>
+       <enum>Qt::TextFormat::RichText</enum>
       </property>
       <property name="alignment">
-       <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+       <set>Qt::AlignmentFlag::AlignRight|Qt::AlignmentFlag::AlignTrailing|Qt::AlignmentFlag::AlignVCenter</set>
       </property>
       <property name="openExternalLinks">
        <bool>false</bool>
@@ -37,19 +48,31 @@
     <item>
      <widget class="QListWidget" name="_notificationListContainer">
       <property name="contextMenuPolicy">
-       <enum>Qt::CustomContextMenu</enum>
+       <enum>Qt::ContextMenuPolicy::CustomContextMenu</enum>
+      </property>
+      <property name="styleSheet">
+       <string notr="true">QListWidget {
+	border: 1px solid rgb(0, 0, 255);
+	background-color: rgb(241, 241, 241);
+	border-radius: 10px;
+}
+
+QListWidget::item {
+	border: 1px solid rgb(2, 175, 255);
+	border-radius: 10px;
+}</string>
       </property>
       <property name="frameShape">
-       <enum>QFrame::NoFrame</enum>
+       <enum>QFrame::Shape::NoFrame</enum>
       </property>
       <property name="editTriggers">
-       <set>QAbstractItemView::NoEditTriggers</set>
+       <set>QAbstractItemView::EditTrigger::NoEditTriggers</set>
       </property>
       <property name="isWrapping" stdset="0">
        <bool>false</bool>
       </property>
       <property name="resizeMode">
-       <enum>QListView::Adjust</enum>
+       <enum>QListView::ResizeMode::Adjust</enum>
       </property>
       <property name="wordWrap">
        <bool>true</bool>

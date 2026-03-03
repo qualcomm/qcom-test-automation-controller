@@ -399,7 +399,7 @@ void CodeEditor::onVariableTableItemChanged(QTableWidgetItem *twi)
 		QString lastError = _platformConfiguration->getLastError();
 
 		if (lastError.isEmpty() == false)
-			emit startNotification(lastError);
+			emit startNotification(lastError, eErrorNotification);
 	}
 }
 
@@ -425,4 +425,3 @@ void CodeEditor::on__variableTable_itemClicked(QTableWidgetItem *item)
 	Q_UNUSED(item);
 	emit ScriptVariablesUpdated();
 }
-

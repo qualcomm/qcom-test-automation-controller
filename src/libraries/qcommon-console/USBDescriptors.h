@@ -35,10 +35,9 @@
 */
 
 /*
-	Author: Michael Simpson
+	Author: Biswajit Roy <biswroy@qti.qualcomm.com>
 */
 
-// libTAC
 #include "QCommonConsoleGlobal.h"
 
 // Common

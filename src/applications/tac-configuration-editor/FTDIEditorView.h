@@ -41,7 +41,6 @@
 #include "ui_FTDIEditorView.h"
 #include "EditorView.h"
 
-// libTAC
 #include "FTDIPlatformConfiguration.h"
 
 // QT

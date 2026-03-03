@@ -47,7 +47,7 @@
 // C++
 #include <stdexcept>
 
-TacLiteCommand::TacLiteCommand
+TACLiteCommand::TACLiteCommand
 (
 	SendInterface* sender,
 	ReceiveInterface* receiver
@@ -62,27 +62,27 @@ TacLiteCommand::TacLiteCommand
 	_ready = sender->ready();
 }
 
-TacLiteCommand::~TacLiteCommand()
+TACLiteCommand::~TACLiteCommand()
 {
 	addEndTransaction();
 }
 
-void TacLiteCommand::version()
+void TACLiteCommand::version()
 {
 	send(kVersionCommand, Arguments(), false, _receiver);
 }
 
-void TacLiteCommand::name()
+void TACLiteCommand::name()
 {
 	send(kGetNameCommand, Arguments(), false, _receiver);
 }
 
-void TacLiteCommand::uuid()
+void TACLiteCommand::uuid()
 {
 	send(kGetUUIDCommand, Arguments(), false, false);
 }
 
-void TacLiteCommand::setPinState
+void TACLiteCommand::setPinState
 (
 	quint16 pin,
 	bool state
@@ -96,7 +96,7 @@ void TacLiteCommand::setPinState
 	send(kSetPinCommand, args, false, false);
 }
 
-void TacLiteCommand::battery
+void TACLiteCommand::battery
 (
 	bool state
 )
@@ -108,7 +108,7 @@ void TacLiteCommand::battery
 	send(kSetBatteryCommand, args, false, false);
 }
 
-void TacLiteCommand::usb0
+void TACLiteCommand::usb0
 (
 	bool state
 )
@@ -120,7 +120,7 @@ void TacLiteCommand::usb0
 	send(kSetUSB0Command, args, false, _receiver);
 }
 
-void TacLiteCommand::usb1
+void TACLiteCommand::usb1
 (
 	bool state
 )
@@ -132,7 +132,7 @@ void TacLiteCommand::usb1
 	send(kSetUSB1Command, args, false, _receiver);
 }
 
-void TacLiteCommand::externalPowerControl(bool state)
+void TACLiteCommand::externalPowerControl(bool state)
 {
 	Arguments args;
 
@@ -141,7 +141,7 @@ void TacLiteCommand::externalPowerControl(bool state)
 	send(kSetExternalPowerControlCommand, args, false, _receiver);
 }
 
-void TacLiteCommand::powerKey
+void TACLiteCommand::powerKey
 (
 	bool state
 )
@@ -153,7 +153,7 @@ void TacLiteCommand::powerKey
 	send(kSetPowerKeyCommand, args, false, _receiver);
 }
 
-void TacLiteCommand::volumeUp
+void TACLiteCommand::volumeUp
 (
 	bool state
 )
@@ -165,7 +165,7 @@ void TacLiteCommand::volumeUp
 	send(kSetVolumeUpCommand, args, false, _receiver);
 }
 
-void TacLiteCommand::volumeDown
+void TACLiteCommand::volumeDown
 (
 	bool state
 )
@@ -177,7 +177,7 @@ void TacLiteCommand::volumeDown
 	send(kSetVolumeDownCommand, args, false, _receiver);
 }
 
-void TacLiteCommand::setName
+void TACLiteCommand::setName
 (
 	const QByteArray& newName
 )
@@ -189,17 +189,17 @@ void TacLiteCommand::setName
 	send(kSetNameCommand, args, false, _receiver);
 }
 
-void TacLiteCommand::getResetCount()
+void TACLiteCommand::getResetCount()
 {
 	send(kGetResetCountCommand, Arguments(), false, _receiver);
 }
 
-void TacLiteCommand::clearResetCount()
+void TACLiteCommand::clearResetCount()
 {
 	send(kClearResetCountCommand, Arguments(), false, _receiver);
 }
 
-void TacLiteCommand::send
+void TACLiteCommand::send
 (
 	const QByteArray& command,
 	const Arguments& arguments,
@@ -210,12 +210,12 @@ void TacLiteCommand::send
 	_sender->send(command, arguments, console, _receiver, store);
 }
 
-void TacLiteCommand::addDelay(quint32 delayInMilliSeconds)
+void TACLiteCommand::addDelay(quint32 delayInMilliSeconds)
 {
 	_sender->addDelay(delayInMilliSeconds, _receiver);
 }
 
-void TacLiteCommand::addLogComment
+void TACLiteCommand::addLogComment
 (
 	const QByteArray& comment
 )
@@ -223,12 +223,12 @@ void TacLiteCommand::addLogComment
 	_sender->addLogComment(comment);
 }
 
-void TacLiteCommand::addEndTransaction()
+void TACLiteCommand::addEndTransaction()
 {
 	_sender->addEndTransaction(_receiver);
 }
 
-void TacLiteCommand::disconnectUIM1Button
+void TACLiteCommand::disconnectUIM1Button
 (
 	bool state
 )
@@ -240,7 +240,7 @@ void TacLiteCommand::disconnectUIM1Button
 	send(kSetDisconnectUIM1Command, args, false, _receiver);
 }
 
-void TacLiteCommand::disconnectUIM2Button
+void TACLiteCommand::disconnectUIM2Button
 (
 	bool state
 )
@@ -252,7 +252,7 @@ void TacLiteCommand::disconnectUIM2Button
 	send(kSetDisconnectUIM2Command, args, false, _receiver);
 }
 
-void TacLiteCommand::forcePSHoldHigh(bool state)
+void TACLiteCommand::forcePSHoldHigh(bool state)
 {
 	Arguments args;
 
@@ -261,7 +261,7 @@ void TacLiteCommand::forcePSHoldHigh(bool state)
 	send(kSetForcePSHoldHighCommand, args, false, _receiver);
 }
 
-void TacLiteCommand::disconnectSDCard(bool state)
+void TACLiteCommand::disconnectSDCard(bool state)
 {
 	Arguments args;
 
@@ -270,7 +270,7 @@ void TacLiteCommand::disconnectSDCard(bool state)
 	send(kSetDisconnectSDCardCommand, args, false, _receiver);
 }
 
-void TacLiteCommand::primaryEDL
+void TACLiteCommand::primaryEDL
 (
 	bool state
 )
@@ -282,7 +282,7 @@ void TacLiteCommand::primaryEDL
 	send(kSetPrimaryEDLCommand, args, false, _receiver);
 }
 
-void TacLiteCommand::secondaryEDL
+void TACLiteCommand::secondaryEDL
 (
 	bool state
 )
@@ -294,7 +294,7 @@ void TacLiteCommand::secondaryEDL
 	send(kSetSecondaryEDLCommand, args, false, _receiver);
 }
 
-void TacLiteCommand::secondaryPMResinN(bool state)
+void TACLiteCommand::secondaryPMResinN(bool state)
 {
 	Arguments args;
 
@@ -303,7 +303,7 @@ void TacLiteCommand::secondaryPMResinN(bool state)
 	send(kSecondaryPM_RESIN_NCommand, args, false, _receiver);
 }
 
-void TacLiteCommand::eud(bool state)
+void TACLiteCommand::eud(bool state)
 {
 	Arguments args;
 
@@ -312,12 +312,12 @@ void TacLiteCommand::eud(bool state)
 	send(kSetEUDCommand, args, false, _receiver);
 }
 
-void TacLiteCommand::platformID()
+void TACLiteCommand::platformID()
 {
 	send(kGetPlatformIDCommand, Arguments(), false, _receiver);
 }
 
-void TacLiteCommand::headsetDisconnect(bool state)
+void TACLiteCommand::headsetDisconnect(bool state)
 {
 
 	Arguments args;
