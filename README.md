@@ -27,7 +27,7 @@ QTAC is a software suite that enables users to control Qualcomm devices remotely
 | **Device Catalog** | Program debug board and view supported Qualcomm platforms |
 | **Command-line utilities** | DevList, FTDICheck, LITEProgrammer, PSOCProgrammer, TACDump, UpdateDeviceList |
 
-[<img src="./docs/resources/qtac-sw-suite.png" width="480"/>](./docs/resources/qtac-sw-suite.png)
+![QTAC UI Overview](./docs/resources/qtac-sw-suite.png)
 
 ## Hardware Requirements
 
@@ -112,21 +112,28 @@ __Builds\x64\Release\QTAC.exe
 
 ### Configuration
 
-1. **Install Dependencies**:
+> [!IMPORTANT]
+> - Installation using Qt Online Installer will require users to create a Qt account.
+> - If you're frequently working with Qt on Linux, consider adding the environment variables to `.bashrc`.
+> - Using `sudo apt install <package>` will update setup packages. Review command usage to prevent issues with other applications.
+
+1. **Qt Installation** (choose one):
+   
+   **Option A**: Qt Online Installer
+   - Install Qt 6.9+ for **GCC 64-bit** and **Qt Serial Port** component using [Qt Online Installer](https://www.qt.io/download-qt-installer-oss)
+   
+   **Option B**: Quick Installation via apt
    ```bash
-   sudo apt install qt6-base-dev qt6-serialport-dev libxcb-cursor0 libpcre2-16-0 libxkbcommon-x11-0 libxcb-xkb1 libxcb-icccm4 libxcb-shape0 libxcb-keysyms1 libgl1 libegl-dev libxcb-xinerama0 libpulse-dev
+   sudo apt install qt6-base-dev qt6-serialport-dev
    ```
-
-   > [!WARNING]
-   > Installing packages using `sudo apt install ...` will update packages globally in your system. Please review commands carefully before executing to prevent issues with other installed applications.
-
-2. **Environment Variable**:
+2. **Runtime Dependencies**:
+   ```bash
+   sudo apt install libxcb-cursor0 libpcre2-16-0 libxkbcommon-x11-0 libxcb-xkb1 libxcb-icccm4 libxcb-shape0 libxcb-keysyms1 libgl1 libegl-dev libxcb-xinerama0 libpulse-dev
+   ```
+3. **Environment Variable**:
    ```bash
    export QTBIN=/path/to/Qt/directory/<version>/gcc_64/bin
    ```
-
-> [!TIP]
-> If you're frequently working with Qt on Linux, consider adding the above path to `.bashrc`.
 
 ### Build & Usage
 
