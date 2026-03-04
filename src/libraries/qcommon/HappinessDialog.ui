@@ -3,7 +3,7 @@
  <class>HappinessDialogClass</class>
  <widget class="QDialog" name="HappinessDialogClass">
   <property name="windowModality">
-   <enum>Qt::ApplicationModal</enum>
+   <enum>Qt::WindowModality::ApplicationModal</enum>
   </property>
   <property name="geometry">
    <rect>
@@ -17,7 +17,7 @@
    <bool>true</bool>
   </property>
   <property name="contextMenuPolicy">
-   <enum>Qt::NoContextMenu</enum>
+   <enum>Qt::ContextMenuPolicy::NoContextMenu</enum>
   </property>
   <property name="windowTitle">
    <string>How are we doing?</string>
@@ -57,10 +57,10 @@
       <bool>true</bool>
      </property>
      <property name="frameShape">
-      <enum>QFrame::NoFrame</enum>
+      <enum>QFrame::Shape::NoFrame</enum>
      </property>
      <property name="frameShadow">
-      <enum>QFrame::Raised</enum>
+      <enum>QFrame::Shadow::Raised</enum>
      </property>
      <layout class="QHBoxLayout" name="horizontalLayout">
       <property name="spacing">
@@ -81,7 +81,7 @@
       <item>
        <spacer name="horizontalSpacer">
         <property name="orientation">
-         <enum>Qt::Horizontal</enum>
+         <enum>Qt::Orientation::Horizontal</enum>
         </property>
         <property name="sizeHint" stdset="0">
          <size>
@@ -112,13 +112,13 @@
          <bool>true</bool>
         </property>
         <property name="frameShape">
-         <enum>QFrame::NoFrame</enum>
+         <enum>QFrame::Shape::NoFrame</enum>
         </property>
         <property name="text">
          <string/>
         </property>
         <property name="pixmap">
-         <pixmap resource="QCommon.qrc">:/DissatisfiedStar.png</pixmap>
+         <pixmap resource="resources/QCResource.qrc">:/DissatisfiedStar.png</pixmap>
         </property>
        </widget>
       </item>
@@ -143,13 +143,13 @@
          <bool>true</bool>
         </property>
         <property name="frameShape">
-         <enum>QFrame::NoFrame</enum>
+         <enum>QFrame::Shape::NoFrame</enum>
         </property>
         <property name="text">
          <string/>
         </property>
         <property name="pixmap">
-         <pixmap resource="QCommon.qrc">:/resources/Unhappy.png</pixmap>
+         <pixmap resource="resources/QCResource.qrc">:/Unhappy.png</pixmap>
         </property>
        </widget>
       </item>
@@ -174,13 +174,13 @@
          <bool>true</bool>
         </property>
         <property name="frameShape">
-         <enum>QFrame::NoFrame</enum>
+         <enum>QFrame::Shape::NoFrame</enum>
         </property>
         <property name="text">
          <string/>
         </property>
         <property name="pixmap">
-         <pixmap resource="QCommon.qrc">:/resources/Satisfied.png</pixmap>
+         <pixmap resource="resources/QCResource.qrc">:/Satisfied.png</pixmap>
         </property>
        </widget>
       </item>
@@ -211,13 +211,13 @@
          <bool>true</bool>
         </property>
         <property name="frameShape">
-         <enum>QFrame::NoFrame</enum>
+         <enum>QFrame::Shape::NoFrame</enum>
         </property>
         <property name="text">
          <string/>
         </property>
         <property name="pixmap">
-         <pixmap resource="QCommon.qrc">:/resources/HappyStar.png</pixmap>
+         <pixmap resource="resources/QCResource.qrc">:/HappyStar.png</pixmap>
         </property>
        </widget>
       </item>
@@ -236,20 +236,20 @@
          <bool>true</bool>
         </property>
         <property name="frameShape">
-         <enum>QFrame::NoFrame</enum>
+         <enum>QFrame::Shape::NoFrame</enum>
         </property>
         <property name="text">
          <string/>
         </property>
         <property name="pixmap">
-         <pixmap resource="QCommon.qrc">:/resources/LoveStar.png</pixmap>
+         <pixmap resource="resources/QCResource.qrc">:/LoveStar.png</pixmap>
         </property>
        </widget>
       </item>
       <item>
        <spacer name="horizontalSpacer_2">
         <property name="orientation">
-         <enum>Qt::Horizontal</enum>
+         <enum>Qt::Orientation::Horizontal</enum>
         </property>
         <property name="sizeHint" stdset="0">
          <size>
@@ -268,17 +268,17 @@
       <bool>true</bool>
      </property>
      <property name="orientation">
-      <enum>Qt::Horizontal</enum>
+      <enum>Qt::Orientation::Horizontal</enum>
      </property>
      <property name="standardButtons">
-      <set>QDialogButtonBox::Cancel|QDialogButtonBox::Ok</set>
+      <set>QDialogButtonBox::StandardButton::Cancel|QDialogButtonBox::StandardButton::Ok</set>
      </property>
     </widget>
    </item>
   </layout>
  </widget>
  <resources>
-  <include location="QCommon.qrc"/>
+  <include location="resources/QCResource.qrc"/>
  </resources>
  <connections>
   <connection>

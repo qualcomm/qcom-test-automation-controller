@@ -1056,10 +1056,7 @@ void _PlatformConfiguration::setUSBDescriptor(const QByteArray& usbDescriptor)
 	}
 }
 
-bool _PlatformConfiguration::load
-(
-	const QString& filePath
-)
+bool _PlatformConfiguration::load(const QString& filePath)
 {
 	bool result(false);
 
@@ -1542,8 +1539,16 @@ PlatformConfiguration TACPlatformEntry::getConfiguration()
 	{
 		if (_platformEntry.isNull() == false)
 		{
-			QString platformPath = _platformEntry->_path;
+#ifdef DEBUG
+			// When in debug mode, application will look for configurations
+			// in the `configurations` directory in the project repository.
+			// Do not use absolute paths here.
+			QString platformPath = "../../../../configurations/" + _platformEntry->_path;
+#endif
 
+#ifdef RELEASE
+			QString platformPath = _platformEntry->_path;
+#endif
 			if (platformPath.isEmpty() == false)
 			{
 				_platformConfiguration = _PlatformConfiguration::openPlatformConfiguration(platformPath);

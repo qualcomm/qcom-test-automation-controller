@@ -118,6 +118,8 @@ void TACFrame::setDevice
 		connect(_alpacaDevice.data(), &_AlpacaDevice::pinStateChanged, this, &TACFrame::onPinResponse);
 
 		setPlatformConfiguration(alpacaDevice->platformConfiguration());
+
+		_ui->_infoGroupBox->hide();
 	}
 	{
 		// error message????
