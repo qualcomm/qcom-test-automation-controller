@@ -64,6 +64,7 @@ qt_add_library(${LIBRARY_NAME} STATIC
     TableComboBox.cpp TableComboBox.h
 
     ${QCOMMON_RESOURCES}
+    resources/QCResource.qrc
 )
 
 set_target_properties(${LIBRARY_NAME} PROPERTIES

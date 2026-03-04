@@ -140,7 +140,7 @@ target_compile_definitions(${LIBRARY_NAME} PUBLIC
     QTAC_STATIC
     QT_DISABLE_DEPRECATED_UP_TO=0x060600
     $<$<CONFIG:Debug>:DEBUG;_DEBUG>
-    $<$<NOT:$<CONFIG:Debug>>:NDEBUG;_NDEBUG>
+    $<$<NOT:$<CONFIG:Debug>>:NDEBUG;_NDEBUG;RELEASE>
     $<$<PLATFORM_ID:Windows>:FTD2XX_STATIC>
 )
 
