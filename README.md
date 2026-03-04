@@ -114,16 +114,16 @@ __Builds\x64\Release\QTAC.exe
 
 1. **Qt Installation** (choose one):
    
-   **Option A: Qt Online Installer** (Recommended)
+   **Option A: Qt Online Installer**
    - Install Qt 6.9+ for **GCC 64-bit** and **Qt Serial Port** component using [Qt Online Installer](https://www.qt.io/download-qt-installer-oss)
-   
-> [!NOTE]
-> Installation using Qt Online Installer will require users to create a Qt account.
    
    **Option B: Quick Installation via apt**
    ```bash
    sudo apt install qt6-base-dev qt6-serialport-dev
    ```
+
+> [!NOTE]
+> Installation using Qt Online Installer will require users to create a Qt account.
 
 2. **Runtime Dependencies**:
    ```bash
