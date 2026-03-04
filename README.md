@@ -112,15 +112,28 @@ __Builds\x64\Release\QTAC.exe
 
 ### Configuration
 
-1. **Install Dependencies**:
+1. **Qt Installation** (choose one):
+   
+   **Option A: Qt Online Installer** (Recommended)
+   - Install Qt 6.9+ for **GCC 64-bit** and **Qt Serial Port** component using [Qt Online Installer](https://www.qt.io/download-qt-installer-oss)
+   
+> [!NOTE]
+> Installation using Qt Online Installer will require users to create a Qt account.
+   
+   **Option B: Quick Installation via apt**
    ```bash
-   sudo apt install qt6-base-dev qt6-serialport-dev libxcb-cursor0 libpcre2-16-0 libxkbcommon-x11-0 libxcb-xkb1 libxcb-icccm4 libxcb-shape0 libxcb-keysyms1 libgl1 libegl-dev libxcb-xinerama0 libpulse-dev
+   sudo apt install qt6-base-dev qt6-serialport-dev
    ```
 
-   > [!WARNING]
-   > Installing packages using `sudo apt install ...` will update packages globally in your system. Please review commands carefully before executing to prevent issues with other installed applications.
+2. **Runtime Dependencies**:
+   ```bash
+   sudo apt install libxcb-cursor0 libpcre2-16-0 libxkbcommon-x11-0 libxcb-xkb1 libxcb-icccm4 libxcb-shape0 libxcb-keysyms1 libgl1 libegl-dev libxcb-xinerama0 libpulse-dev
+   ```
 
-2. **Environment Variable**:
+> [!WARNING]
+> Installing packages using `sudo apt install <package_name>` will update packages globally in your system. Please review commands carefully before executing to prevent issues with other installed applications.
+
+3. **Environment Variable**:
    ```bash
    export QTBIN=/path/to/Qt/directory/<version>/gcc_64/bin
    ```
