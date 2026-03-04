@@ -27,7 +27,7 @@ QTAC is a software suite that enables users to control Qualcomm devices remotely
 | **Device Catalog** | Program debug board and view supported Qualcomm platforms |
 | **Command-line utilities** | DevList, FTDICheck, LITEProgrammer, PSOCProgrammer, TACDump, UpdateDeviceList |
 
-[<img src="./docs/resources/qtac-sw-suite.png" width="480"/>](./docs/resources/qtac-sw-suite.png)
+[<img src="./docs/resources/qtac-sw-suite.png" width="640"/>](./docs/resources/qtac-sw-suite.png)
 
 ## Hardware Requirements
 
