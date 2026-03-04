@@ -32,7 +32,7 @@
         <string/>
        </property>
        <property name="pixmap">
-        <pixmap resource="QCommon.qrc">:/QTAC-lg.png</pixmap>
+        <pixmap resource="resources/QCResource.qrc">:/QTAC-lg.png</pixmap>
        </property>
       </widget>
      </item>
@@ -169,7 +169,7 @@ p, li { white-space: pre-wrap; }
   </layout>
  </widget>
  <resources>
-  <include location="QCommon.qrc"/>
+  <include location="resources/QCResource.qrc"/>
  </resources>
  <connections/>
 </ui>

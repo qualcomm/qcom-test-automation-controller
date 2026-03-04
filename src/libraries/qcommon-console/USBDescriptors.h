@@ -50,7 +50,13 @@ class QJsonObject;
 #include <QList>
 #include <QString>
 
-const QString kUSBDescriptorFileName{QStringLiteral("devicelist.json")};
+#ifdef DEBUG
+	const QString kUSBDescriptorFileName{QStringLiteral("devicelist-debug.json")};
+#endif
+
+#ifdef RELEASE
+	const QString kUSBDescriptorFileName{QStringLiteral("devicelist.json")};
+#endif
 
 struct QCOMMONCONSOLE_EXPORT USBDescriptor
 {
