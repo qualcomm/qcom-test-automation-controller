@@ -4,29 +4,14 @@
 
 QTAC is a software suite that enables users to control Qualcomm devices remotely. The device to be controlled must be attached to a Qualcomm approved debug board and connected to a host using a USB cable.
 
-### Workflow Overview
-
-![QTAC Usage Overview](./docs/resources/qtac-usage-overview.drawio.png)
-
-QTAC is widely used within Qualcomm to control Qualcomm devices according to the following workflow:
-
-1. Engineers create and trigger [Qualcomm Device Cloud (QDC)](https://qdc.qualcomm.com) jobs on Qualcomm platforms
-2. QDC jobs perform power measurements and device flashing by transitioning devices between states (power off/on, emergency download mode)
-3. Engineers use QTAC via QUTS APIs or standalone QTAC UI/API based on team requirements
-4. QDC and QUTS automation dispatch commands through the QUTS Service layer to QTAC libraries
-5. QTAC UI and API send commands directly to QTAC libraries, bypassing the QUTS Service layer
-6. QTAC libraries control debug boards to update device states
-7. Device state changes are notified to the OS via Qualcomm USB Drivers (QUD) through a separate USB endpoint
-8. Blue dotted lines in the diagram show device state notifications to the host OS (outside QTAC scope)
-
-### What You Get
+## What You Get
 
 A successful compilation of the project will yield the following applications:
 
 1. **Test Automation Controller (TAC)**: Control Qualcomm devices remotely using UI
 2. **TAC Configuration Editor**: Design configurable TAC UI based on GPIO use-cases
 3. **Device Catalog**: Program debug board and view list of supported Qualcomm platforms
-4. **Command-line utilities**: TACDump, DevList, FTDICheck, LITEProgrammer, UpdateDeviceList
+4. **Command-line utilities**: DevList, FTDICheck, LITEProgrammer, PSOCProgrammer, TACDump, UpdateDeviceList
 
 ![QTAC UI Overview](./docs/resources/qtac-sw-suite.png)
 
