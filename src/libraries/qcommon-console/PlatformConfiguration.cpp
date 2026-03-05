@@ -1549,7 +1549,7 @@ PlatformConfiguration TACPlatformEntry::getConfiguration()
 #ifdef RELEASE
 			QString platformPath = _platformEntry->_path;
 #endif
-			if (platformPath.isEmpty() == false)
+			if (_platformEntry->_path.isEmpty() == false)
 			{
 				_platformConfiguration = _PlatformConfiguration::openPlatformConfiguration(platformPath);
 				if (_platformConfiguration.isNull() == false)
