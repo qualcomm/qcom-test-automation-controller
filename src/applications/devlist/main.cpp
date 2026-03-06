@@ -49,13 +49,7 @@
 #include <iostream>
 #include <iomanip>
 
-#ifdef DEBUG
-	const QString kUSBDescriptorPath = tacConfigRoot() + "devicelist-debug.json";
-#endif
-
-#ifdef RELEASE
-	const QString kUSBDescriptorPath = tacConfigRoot() + "devicelist.json";
-#endif
+const QString kUSBDescriptorPath = tacConfigRoot() + "devicelist.json";
 
 int main(int argc, char *argv[])
 {

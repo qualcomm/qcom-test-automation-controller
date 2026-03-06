@@ -84,19 +84,8 @@ QString applicationBinPath()
 
 QString applicationDataPath()
 {
-	QString result;
+	QString result = "../../../../configurations/";
 
-#ifdef Q_OS_WIN
-	result = "C:/ProgramData/Qualcomm/" + kAppName + "/";
-#endif
-
-#ifdef Q_OS_LINUX
-	result = "/var/lib/qcom/data/" + kAppName + "/";
-#endif
-
-#ifdef DEBUG
-	result = "../../../../configurations/";
-#endif
 	if (QDir(result).exists() == false)
 		QDir().mkpath(result);
 

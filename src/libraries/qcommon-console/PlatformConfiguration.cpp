@@ -1539,17 +1539,9 @@ PlatformConfiguration TACPlatformEntry::getConfiguration()
 	{
 		if (_platformEntry.isNull() == false)
 		{
-#ifdef DEBUG
-			// When in debug mode, application will look for configurations
-			// in the `configurations` directory in the project repository.
-			// Do not use absolute paths here.
-			QString platformPath = "../../../../configurations/" + _platformEntry->_path;
-#endif
-
-#ifdef RELEASE
 			QString platformPath = _platformEntry->_path;
-#endif
-			if (_platformEntry->_path.isEmpty() == false)
+
+			if (platformPath.isEmpty() == false)
 			{
 				_platformConfiguration = _PlatformConfiguration::openPlatformConfiguration(platformPath);
 				if (_platformConfiguration.isNull() == false)
