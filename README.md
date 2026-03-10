@@ -59,7 +59,7 @@ QTAC is a software suite that enables users to control Qualcomm devices remotely
 ### Drivers
 
 - **[FTDI D2XX drivers](https://ftdichip.com/drivers/d2xx-drivers/)**: For debug board interaction.
-- **[Qualcomm USB Drivers (QUD)](https://softwarecenter.qualcomm.com/catalog/item/QUD)**: To view device status.
+- **[Qualcomm USB Drivers](https://softwarecenter.qualcomm.com/catalog/item/Qualcomm_Userspace_Driver)**: To view device status.
 
 > [!NOTE]
 > FTDI libraries are installed _automatically_ during the cmake configuration step when building from source.
