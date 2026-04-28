@@ -37,15 +37,18 @@
 set -e
 
 PRISTINE=1
+BUILD_UI=ON
 
 for arg in "$@"; do
     case "$arg" in
         --pristine)    PRISTINE=1 ;;
         --incremental) PRISTINE=0 ;;
+        --no-gui) BUILD_UI=OFF ;;
         *)
-            echo "Usage: $0 [--pristine|--incremental]"
+            echo "Usage: $0 [--pristine|--incremental] [--no-gui]"
             echo "  --pristine     Delete build/, __Builds/, and cached downloads (default)"
             echo "  --incremental  Reuse existing build tree and downloaded libraries"
+            echo "  --no-gui Build just low-level libraries without the UI application"
             exit 1 ;;
     esac
 done
@@ -80,11 +83,11 @@ if [ "$PRISTINE" -eq 1 ]; then
 fi
 
 # Debug
-cmake -S . -B build/${DISTRO}/Debug -DCMAKE_PREFIX_PATH="$(dirname "$QTBIN")" -DCMAKE_BUILD_TYPE=Debug ${CMAKE_DISTRO_FLAG}
+cmake -S . -B build/${DISTRO}/Debug -DCMAKE_PREFIX_PATH="$(dirname "$QTBIN")" -DCMAKE_BUILD_TYPE=Debug ${CMAKE_DISTRO_FLAG} -DBUILD_UI=${BUILD_UI}
 cmake --build build/${DISTRO}/Debug --parallel ${NPROC}
 
 # Release
-cmake -S . -B build/${DISTRO}/Release -DCMAKE_PREFIX_PATH="$(dirname "$QTBIN")" -DCMAKE_BUILD_TYPE=Release ${CMAKE_DISTRO_FLAG}
+cmake -S . -B build/${DISTRO}/Release -DCMAKE_PREFIX_PATH="$(dirname "$QTBIN")" -DCMAKE_BUILD_TYPE=Release ${CMAKE_DISTRO_FLAG} -DBUILD_UI=${BUILD_UI}
 cmake --build build/${DISTRO}/Release --parallel ${NPROC}
 
 echo "Check __Builds directory"

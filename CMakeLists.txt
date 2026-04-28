@@ -42,12 +42,26 @@ set(CMAKE_AUTORCC ON)
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
-find_package(QT NAMES Qt6 REQUIRED COMPONENTS Core Multimedia)
-find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Concurrent Gui Multimedia MultimediaWidgets Network SerialPort Widgets Xml)
+option(BUILD_UI "Build GUI applications and UI libraries" ON)
+
+if(BUILD_UI)
+    find_package(QT NAMES Qt6 REQUIRED COMPONENTS Core Multimedia)
+    find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Concurrent Gui Multimedia MultimediaWidgets Network SerialPort Widgets Xml)
+else()
+    find_package(QT NAMES Qt6 REQUIRED COMPONENTS Core)
+    find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Concurrent Core Network SerialPort Xml)
+endif()
 
 qt_standard_project_setup(REQUIRES 6.8)
+include(GNUInstallDirs)
 
 add_subdirectory(third-party)
 add_subdirectory(src/libraries)
-add_subdirectory(src/applications)
+if(BUILD_UI)
+    add_subdirectory(src/applications)
+endif()
 add_subdirectory(interfaces)
+
+install(DIRECTORY configurations/
+    DESTINATION ${CMAKE_INSTALL_DATADIR}/qtac/configurations
+)
