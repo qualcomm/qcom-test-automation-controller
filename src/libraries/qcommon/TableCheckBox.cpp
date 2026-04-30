@@ -51,7 +51,11 @@ TableCheckBox::TableCheckBox
 	// Initialize the check-box
 	_checkBox = new QCheckBox(this);
 
-	connect(_checkBox, &QCheckBox::checkStateChanged, this, [=, this](bool newState){ emit checkStateChanged(newState); });
+#if QT_VERSION >= QT_VERSION_CHECK(6, 7, 0)
+	connect(_checkBox, &QCheckBox::checkStateChanged, this, [=, this](Qt::CheckState state){ emit checkStateChanged(state == Qt::Checked); });
+#else
+	connect(_checkBox, &QCheckBox::stateChanged, this, [=, this](int state){ emit checkStateChanged(state == Qt::Checked); });
+#endif
 
 	// Prepare check box layout
 	QHBoxLayout* layoutCheckBox = new QHBoxLayout(this);
