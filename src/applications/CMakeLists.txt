@@ -41,6 +41,24 @@ find_package(QT NAMES Qt6 REQUIRED COMPONENTS Core)
 
 qt_standard_project_setup()
 
+# Qt 6.3/6.4 use FILENAME_VARIABLE; Qt 6.5+ renamed it to OUTPUT_SCRIPT.
+macro(qtac_deploy_app target)
+    if(Qt6Core_VERSION VERSION_GREATER_EQUAL "6.5")
+        qt_generate_deploy_app_script(
+            TARGET ${target}
+            OUTPUT_SCRIPT deploy_script
+            NO_UNSUPPORTED_PLATFORM_ERROR
+        )
+    else()
+        qt_generate_deploy_app_script(
+            TARGET ${target}
+            FILENAME_VARIABLE deploy_script
+            NO_UNSUPPORTED_PLATFORM_ERROR
+        )
+    endif()
+    install(SCRIPT ${deploy_script})
+endmacro()
+
 add_subdirectory(devlist)
 add_subdirectory(tacdump)
 add_subdirectory(ftdi-check)
