@@ -39,14 +39,30 @@ if "%QTBIN%"=="" (
     exit /b 1
 )
 
+set PRISTINE=1
+
+:parse_args
+if "%~1"=="--pristine"    ( set PRISTINE=1 & shift & goto :parse_args )
+if "%~1"=="--incremental" ( set PRISTINE=0 & shift & goto :parse_args )
+if not "%~1"=="" (
+    echo Usage: build.bat [--pristine^|--incremental]
+    echo   --pristine     Delete build\, __Builds\, and cached downloads ^(default^)
+    echo   --incremental  Reuse existing build tree and downloaded libraries
+    exit /b 1
+)
+
 call "C:\Program Files\Microsoft Visual Studio\2022\Community\VC\Auxiliary\Build\vcvars64.bat"
 call "C:\Program Files\Microsoft Visual Studio\2022\Professional\VC\Auxiliary\Build\vcvars64.bat"
 call "C:\Program Files (x86)\Microsoft Visual Studio\2022\BuildTools\VC\Auxiliary\Build\vcvars64.bat"
 
 set "PATH=%QTBIN%;%PATH%"
 
-if exist build rmdir /s /q build
-if exist __Builds rmdir /s /q __Builds
+if "%PRISTINE%"=="1" (
+    if exist build    rmdir /s /q build
+    if exist __Builds rmdir /s /q __Builds
+    del /q third-party\*.tgz 2>nul
+    del /q third-party\*.zip 2>nul
+)
 
 cmake -S . -B build\Debug -DCMAKE_PREFIX_PATH="%QTBIN%\.." ^
     -DCMAKE_COLOR_DIAGNOSTICS=ON ^
