@@ -78,7 +78,7 @@ target_include_directories(${LIBRARY_NAME} PUBLIC
 )
 
 target_link_directories(${LIBRARY_NAME} PRIVATE
-    ${CMAKE_SOURCE_DIR}/__Builds/x64/$<CONFIG>/lib
+    ${STATIC_LIBPATH}
 )
 
 target_compile_definitions(${LIBRARY_NAME} PUBLIC

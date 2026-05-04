@@ -45,7 +45,7 @@ target_include_directories(${APP_NAME} PRIVATE
 )
 
 target_link_directories(${APP_NAME} PRIVATE
-    ${CMAKE_SOURCE_DIR}/__Builds/x64/$<CONFIG>/lib
+    ${STATIC_LIBPATH}
 )
 
 target_compile_definitions(${APP_NAME} PRIVATE
