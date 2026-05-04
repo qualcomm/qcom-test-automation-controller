@@ -169,6 +169,10 @@ else()
         IMPORTED_LOCATION_RELEASE "${RELEASE_LIB}"
         IMPORTED_LOCATION         "${RELEASE_LIB}"
     )
+    if(APPLE)
+        set_target_properties(ftd2xx PROPERTIES
+            INTERFACE_LINK_LIBRARIES "-framework CoreFoundation;-framework IOKit")
+    endif()
 endif()
 
 if(WIN32 AND DEFINED ENV{QTDIR})
