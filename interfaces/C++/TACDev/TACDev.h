@@ -39,16 +39,20 @@
 */
 
 #if defined(TACDEV_LIBRARY)
-	#ifdef __linux__
+	#if defined(_WIN32)
+		#define TACDEV_EXPORT __declspec(dllexport)
+	#elif defined(__linux__) || defined(__APPLE__)
 		#define TACDEV_EXPORT __attribute__((visibility("default")))
 	#else
-		#define TACDEV_EXPORT __declspec(dllexport)
+		#error "Unsupported platform"
 	#endif
 #else
-	#ifdef __linux__
-	#   define TACDEV_EXPORT __attribute__((visibility("default")))
+	#if defined(_WIN32)
+		#define TACDEV_EXPORT __declspec(dllimport)
+	#elif defined(__linux__) || defined(__APPLE__)
+		#define TACDEV_EXPORT __attribute__((visibility("default")))
 	#else
-	#  define TACDEV_EXPORT  __declspec(dllimport)
+		#error "Unsupported platform"
 	#endif
 #endif
 
