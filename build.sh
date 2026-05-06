@@ -36,6 +36,20 @@
 
 set -e
 
+PRISTINE=1
+
+for arg in "$@"; do
+    case "$arg" in
+        --pristine)    PRISTINE=1 ;;
+        --incremental) PRISTINE=0 ;;
+        *)
+            echo "Usage: $0 [--pristine|--incremental]"
+            echo "  --pristine     Delete build/, __Builds/, and cached downloads (default)"
+            echo "  --incremental  Reuse existing build tree and downloaded libraries"
+            exit 1 ;;
+    esac
+done
+
 if [ -z "$QTBIN" ]; then
     echo "Set QTBIN first"
     exit 1
@@ -43,15 +57,32 @@ fi
 
 export PATH="$QTBIN:$PATH"
 
-# Clean start
-rm -rf build __Builds
+case "$(uname)" in
+    Linux)
+        DISTRO=$(. /etc/os-release && echo "$ID")
+        CMAKE_DISTRO_FLAG="-DLINUX_DISTRO=${DISTRO}"
+        ;;
+    Darwin)
+        DISTRO="macOS"
+        CMAKE_DISTRO_FLAG=""
+        ;;
+    *)
+        echo "Unsupported platform: $(uname)"
+        exit 1
+        ;;
+esac
+
+if [ "$PRISTINE" -eq 1 ]; then
+    rm -rf build __Builds
+    rm -f third-party/*.tgz third-party/*.zip
+fi
 
 # Debug
-cmake -S . -B build/Debug -DCMAKE_PREFIX_PATH="$(dirname "$QTBIN")" -DCMAKE_BUILD_TYPE=Debug
-cmake --build build/Debug
+cmake -S . -B build/${DISTRO}/Debug -DCMAKE_PREFIX_PATH="$(dirname "$QTBIN")" -DCMAKE_BUILD_TYPE=Debug ${CMAKE_DISTRO_FLAG}
+cmake --build build/${DISTRO}/Debug
 
 # Release
-cmake -S . -B build/Release -DCMAKE_PREFIX_PATH="$(dirname "$QTBIN")" -DCMAKE_BUILD_TYPE=Release
-cmake --build build/Release
+cmake -S . -B build/${DISTRO}/Release -DCMAKE_PREFIX_PATH="$(dirname "$QTBIN")" -DCMAKE_BUILD_TYPE=Release ${CMAKE_DISTRO_FLAG}
+cmake --build build/${DISTRO}/Release
 
 echo "Check __Builds directory"
