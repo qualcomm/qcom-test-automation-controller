@@ -61,10 +61,12 @@ case "$(uname)" in
     Linux)
         DISTRO=$(. /etc/os-release && echo "$ID")
         CMAKE_DISTRO_FLAG="-DLINUX_DISTRO=${DISTRO}"
+        NPROC=$(nproc)
         ;;
     Darwin)
         DISTRO="macOS"
         CMAKE_DISTRO_FLAG=""
+        NPROC=$(sysctl -n hw.logicalcpu)
         ;;
     *)
         echo "Unsupported platform: $(uname)"
@@ -79,10 +81,10 @@ fi
 
 # Debug
 cmake -S . -B build/${DISTRO}/Debug -DCMAKE_PREFIX_PATH="$(dirname "$QTBIN")" -DCMAKE_BUILD_TYPE=Debug ${CMAKE_DISTRO_FLAG}
-cmake --build build/${DISTRO}/Debug
+cmake --build build/${DISTRO}/Debug --parallel ${NPROC}
 
 # Release
 cmake -S . -B build/${DISTRO}/Release -DCMAKE_PREFIX_PATH="$(dirname "$QTBIN")" -DCMAKE_BUILD_TYPE=Release ${CMAKE_DISTRO_FLAG}
-cmake --build build/${DISTRO}/Release
+cmake --build build/${DISTRO}/Release --parallel ${NPROC}
 
 echo "Check __Builds directory"
