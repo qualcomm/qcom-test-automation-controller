@@ -99,8 +99,18 @@ Execute `build.bat` to generate executables:
 build.bat
 ```
 
+**Build options**:
+| Flag | Description |
+| :-- | :-- |
+| `--pristine` | Delete `build\`, `__Builds\`, and cached downloads before building (default) |
+| `--incremental` | Reuse existing build tree and downloaded libraries |
+| `--no-gui` | Build only headless libraries (`QCommonConsole`, `TACDev`) without Qt GUI modules or applications |
+| `--debug` | Also build a Debug configuration (Release is always built) |
+| `--install` | Install binaries, libraries, headers, and configs to `CMAKE_INSTALL_PREFIX` (default: `C:\Program Files\QTAC`); requires Administrator |
+| `--deploy` | Run `windeployqt` to bundle Qt DLLs into each app directory (slow; use for distribution packages) |
+
 **Build output**:
-- Debug: `__Builds\x64\Debug`
+- Debug (with `--debug`): `__Builds\x64\Debug`
 - Release: `__Builds\x64\Release`
 
 **Usage**:
@@ -133,7 +143,7 @@ __Builds\x64\Release\QTAC.exe
    ```
 4. **Environment Variable**:
    ```bash
-   export QTBIN=/path/to/Qt/directory/<version>/gcc_64/bin
+   export QTBIN=/usr/lib/qt6/bin
    ```
 
 ### Build & Usage
@@ -144,9 +154,26 @@ Execute `build.sh` to generate executables:
 ./build.sh
 ```
 
+**Build options**:
+| Flag | Description |
+| :-- | :-- |
+| `--pristine` | Delete `build/`, `__Builds/`, and cached downloads before building (default) |
+| `--incremental` | Reuse the existing build tree; skip the clean step. |
+| `--no-gui` | Build only headless libraries (`QCommonConsole`, `TACDev`) without Qt GUI modules or applications; omits Qt Multimedia, Widgets, `qcommon`, `ui-common`, and all GUI apps |
+| `--debug` | Also build a Debug configuration (Release is always built). |
+| `--install` | Install binaries, libraries, headers, and configs to `CMAKE_INSTALL_PREFIX` (default: `/usr/local`); invokes `sudo cmake --install` |
+| `--deploy` | Run `macdeployqt` to bundle Qt frameworks into each app bundle (slow; use for distribution packages; macOS only) |
+
+**No-GUI build** — omits Qt Multimedia, Qt Widgets, `qcommon`, `ui-common`, and all GUI
+applications. Only `QCommonConsole` and `TACDev` are compiled:
+
+```bash
+./build.sh --no-gui
+```
+
 **Build output**:
-- Debug: `__Builds/Linux/Debug`
-- Release: `__Builds/Linux/Release`
+- Release: `__Builds/Linux-<distro>/Release`
+- Debug (with `--debug`): `__Builds/Linux-<distro>/Debug`
 
 > [!NOTE]
 > Ensure that [make](https://www.gnu.org/software/make/) is available in your environment before building.
