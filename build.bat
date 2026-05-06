@@ -41,16 +41,19 @@ if "%QTBIN%"=="" (
 
 set PRISTINE=1
 set BUILD_UI=ON
+set BUILD_DEBUG=0
 
 :parse_args
 if "%~1"=="--pristine"    ( set PRISTINE=1    & shift & goto :parse_args )
 if "%~1"=="--incremental" ( set PRISTINE=0    & shift & goto :parse_args )
 if "%~1"=="--no-gui"      ( set BUILD_UI=OFF  & shift & goto :parse_args )
+if "%~1"=="--debug"       ( set BUILD_DEBUG=1 & shift & goto :parse_args )
 if not "%~1"=="" (
-    echo Usage: build.bat [--pristine^|--incremental] [--no-gui]
+    echo Usage: build.bat [--pristine^|--incremental] [--no-gui] [--debug]
     echo   --pristine     Delete build\, __Builds\, and cached downloads ^(default^)
     echo   --incremental  Reuse existing build tree and downloaded libraries
     echo   --no-gui       Build just low-level libraries without the UI application
+    echo   --debug        Also build Debug configuration ^(Release is always built^)
     exit /b 1
 )
 
@@ -67,14 +70,16 @@ if "%PRISTINE%"=="1" (
     del /q third-party\*.zip 2>nul
 )
 
-cmake -S . -B build\Debug -DCMAKE_PREFIX_PATH="%QTBIN%\.." ^
-    -DCMAKE_COLOR_DIAGNOSTICS=ON ^
-    -DCMAKE_GENERATOR=Ninja ^
-    -DCMAKE_BUILD_TYPE=Debug ^
-    -DBUILD_UI=%BUILD_UI% ^
-    -DCMAKE_CXX_FLAGS_INIT=-DQT_QML_DEBUG
+if "%BUILD_DEBUG%"=="1" (
+    cmake -S . -B build\Debug -DCMAKE_PREFIX_PATH="%QTBIN%\.." ^
+        -DCMAKE_COLOR_DIAGNOSTICS=ON ^
+        -DCMAKE_GENERATOR=Ninja ^
+        -DCMAKE_BUILD_TYPE=Debug ^
+        -DBUILD_UI=%BUILD_UI% ^
+        -DCMAKE_CXX_FLAGS_INIT=-DQT_QML_DEBUG
 
-cmake --build build\Debug
+    cmake --build build\Debug
+)
 
 cmake -S . -B build\Release -DCMAKE_PREFIX_PATH="%QTBIN%\.." ^
     -DCMAKE_COLOR_DIAGNOSTICS=ON ^
