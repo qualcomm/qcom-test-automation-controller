@@ -9,6 +9,7 @@
 - [Common Prerequisites](#common-prerequisites)
 - [Windows Guide](#windows-guide)
 - [Linux Guide](#linux-guide)
+- [macOS Guide](#macos-guide)
 - [Repository Structure](#repository-structure)
 - [Application Dependency Architecture](#application-dependency-architecture)
 - [Advanced Topics](#advanced-topics)
@@ -224,12 +225,69 @@ applications. Only `QCommonConsole` and `TACDev` are compiled:
 - Release: `__Builds/Linux-<distro>/Release`
 - Debug (with `--debug`): `__Builds/Linux-<distro>/Debug`
 
-> [!NOTE]
-> Ensure that [make](https://www.gnu.org/software/make/) is available in your environment before building.
+**Usage**:
+```bash
+./__Builds/Linux-$(. /etc/os-release && echo "$ID")/Release/bin/TAC
+```
+
+## macOS Guide
+
+### Configuration
+
+1. **Xcode Command Line Tools**:
+   ```bash
+   xcode-select --install
+   ```
+
+2. **CMake 3.16+** (choose one):
+   - Download from [cmake.org](https://cmake.org/download/)
+   - Or install via Homebrew: `brew install cmake`
+
+3. **Qt 6.8+** (choose one):
+
+   **Option A**: Homebrew (simplest — includes all required modules)
+   ```bash
+   brew install qt
+   ```
+
+   **Option B**: Qt Online Installer
+   - Use the [Qt Online Installer](https://www.qt.io/download-qt-installer-oss) and select
+     the following for the **macOS** target:
+     - Qt 6.8.x → **macOS** (compiler binaries)
+     - Qt 6.8.x → **Qt Serial Port**
+     - Qt 6.8.x → **Qt Multimedia**
+
+   > [!NOTE]
+   > Installation using Qt Online Installer requires a Qt account.
+
+4. **Environment Variable** — set `QTBIN` to the Qt `bin/` directory:
+
+   Homebrew:
+   ```bash
+   export QTBIN=$(brew --prefix qt)/bin
+   ```
+   Qt Online Installer:
+   ```bash
+   export QTBIN=~/Qt/6.8.0/macos/bin
+   ```
+
+### Build & Usage
+
+`build.sh` is used on macOS with the same flags as Linux. FTDI D2XX is downloaded
+automatically from an FTDI-provided DMG at cmake configure time (requires `hdiutil`,
+which is built into macOS).
+
+```bash
+./build.sh
+```
+
+**Build output**:
+- Release: `__Builds/macOS/Release`
+- Debug (with `--debug`): `__Builds/macOS/Debug`
 
 **Usage**:
 ```bash
-./__Builds/Linux/Release/QTAC
+open __Builds/macOS/Release/bin/TAC.app
 ```
 
 ## Repository Structure
