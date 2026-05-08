@@ -125,25 +125,57 @@ __Builds\x64\Release\QTAC.exe
 > [!IMPORTANT]
 > - Installation using Qt Online Installer will require users to create a Qt account.
 > - If you're frequently working with Qt on Linux, consider adding the environment variables to `.bashrc`.
-> - Using `sudo apt install <package>` will update setup packages. Review command usage to prevent issues with other applications.
 
-1. **Qt Installation** (choose one):
-   
-   **Option A**: Qt Online Installer
-   - Install Qt 6.9+ for **GCC 64-bit** and **Qt Serial Port** component using [Qt Online Installer](https://www.qt.io/download-qt-installer-oss)
-   
-   **Option B**: Quick Installation via apt
+1. **Build Tools**:
    ```bash
-   sudo apt install qt6-base-dev qt6-serialport-dev
+   sudo apt install cmake build-essential ninja-build git
    ```
-2. **Runtime Dependencies**:
+   - `cmake` 3.16 or later
+   - `build-essential` — GCC/G++ 11 or later and make
+   - `ninja-build` — faster parallel builds (recommended)
+
+2. **Qt 6.8+** (choose one):
+
+   **Option A**: System Qt via apt (Ubuntu 24.04+ / Debian 13+)
+   ```bash
+   sudo apt install qt6-base-dev qt6-multimedia-dev qt6-serialport-dev qt6-tools-dev
+   ```
+   > [!NOTE]
+   > Ubuntu 22.04 ships Qt 6.2 which is too old. Use Option B or C on 22.04.
+
+   For `--no-gui` builds only `QCommonConsole` and `TACDev` are compiled, so fewer Qt
+   packages are needed:
+   ```bash
+   sudo apt install qt6-base-dev qt6-serialport-dev qt6-tools-dev
+   ```
+
+   **Option B**: Qt Online Installer (any distro / Ubuntu version)
+   - Install Qt 6.8+ for **GCC 64-bit**, selecting the **Qt Serial Port** and
+     **Qt Multimedia** components using the
+     [Qt Online Installer](https://www.qt.io/download-qt-installer-oss)
+
+   **Option C**: aqtinstall (scriptable, no Qt account required)
+   ```bash
+   pip install aqtinstall
+   aqt install-qt linux desktop 6.8.0 gcc_64 -m qtserialport qtmultimedia
+   ```
+
+3. **USB Access** — install the udev rule so the debug board is accessible without root:
    ```bash
    sudo cp udev-rules/99-QTAC-USB.rules /etc/udev/rules.d/
    sudo udevadm control --reload
+   sudo udevadm trigger
    ```
-4. **Environment Variable**:
+
+4. **Environment Variable** — set `QTBIN` to the Qt `bin/` directory:
+
+   System Qt (apt):
    ```bash
    export QTBIN=/usr/lib/qt6/bin
+   ```
+   Qt Online Installer or aqtinstall:
+   ```bash
+   export QTBIN=~/Qt/6.8.0/gcc_64/bin
    ```
 
 ### Build & Usage
