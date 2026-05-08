@@ -10,6 +10,7 @@
 - [Windows Guide](#windows-guide)
 - [Linux Guide](#linux-guide)
 - [macOS Guide](#macos-guide)
+- [Installing QTAC](#installing-qtac)
 - [Repository Structure](#repository-structure)
 - [Application Dependency Architecture](#application-dependency-architecture)
 - [Advanced Topics](#advanced-topics)
@@ -289,6 +290,92 @@ which is built into macOS).
 ```bash
 open __Builds/macOS/Release/bin/TAC.app
 ```
+
+## Installing QTAC
+
+Pass `--install` to `build.sh` or `build.bat` to run `cmake --install` after a successful
+build. The default install prefix is `/usr/local` on Linux/macOS and
+`C:\Program Files\QTAC` on Windows. Override it by setting `CMAKE_INSTALL_PREFIX` in your
+cmake invocation.
+
+### Linux
+
+```bash
+./build.sh --install
+# or, to install to a custom prefix:
+cmake --install build/debian/Release --prefix /opt/qtac
+```
+
+| Installed path | Content |
+| :-- | :-- |
+| `$PREFIX/bin/TAC` | Test Automation Controller GUI |
+| `$PREFIX/bin/TACConfigEditor` | TAC Configuration Editor GUI |
+| `$PREFIX/bin/DeviceCatalog` | Device Catalog GUI |
+| `$PREFIX/bin/DevList` | List connected debug boards |
+| `$PREFIX/bin/TACDump` | Dump TAC configuration |
+| `$PREFIX/bin/FTDICheck` | FTDI device diagnostics |
+| `$PREFIX/bin/UpdateDeviceList` | Update the device list |
+| `$PREFIX/bin/LITEProgrammer` | Program LITE debug boards |
+| `$PREFIX/bin/qt.conf` | Qt plugin path for installed binaries |
+| `$PREFIX/lib/libTACDev.a` | TACDev C++ static library |
+| `$PREFIX/lib/libftd2xx.a` | FTDI D2XX static library |
+| `$PREFIX/include/qtac/TACDev.h` | TACDev public header |
+| `$PREFIX/share/qtac/configurations/` | Device configuration files (`.tcnf`, `devicelist.json`) |
+| `$PREFIX/share/applications/` | `.desktop` files for TAC, TACConfigEditor, DeviceCatalog |
+| `$PREFIX/share/icons/` | Application icons |
+
+Installed binaries have RPATH `$ORIGIN:$ORIGIN/../lib` so they find `libftd2xx.a` at
+runtime without needing `LD_LIBRARY_PATH`.
+
+### Windows
+
+Run `build.bat --install` from an **Administrator** command prompt. The install step
+checks for Administrator privileges and exits if not elevated.
+
+| Installed path | Content |
+| :-- | :-- |
+| `$PREFIX\bin\TAC.exe` | Test Automation Controller GUI |
+| `$PREFIX\bin\TACConfigEditor.exe` | TAC Configuration Editor GUI |
+| `$PREFIX\bin\DeviceCatalog.exe` | Device Catalog GUI |
+| `$PREFIX\bin\DevList.exe` | List connected debug boards |
+| `$PREFIX\bin\TACDump.exe` | Dump TAC configuration |
+| `$PREFIX\bin\FTDICheck.exe` | FTDI device diagnostics |
+| `$PREFIX\bin\UpdateDeviceList.exe` | Update the device list |
+| `$PREFIX\bin\LITEProgrammer.exe` | Program LITE debug boards |
+| `$PREFIX\lib\TACDev.lib` | TACDev C++ static library (Release) |
+| `$PREFIX\lib\ftd2xx.lib` | FTDI D2XX static library |
+| `$PREFIX\include\qtac\TACDev.h` | TACDev public header |
+| `$PREFIX\share\qtac\configurations\` | Device configuration files |
+
+> [!NOTE]
+> Qt DLLs are **not** bundled unless `--deploy` was also passed. Without `--deploy`,
+> ensure Qt's `bin\` directory is on `PATH` when running installed binaries.
+
+### macOS
+
+```bash
+./build.sh --install
+# or, to install to a custom prefix:
+sudo cmake --install build/macOS/Release --prefix /opt/qtac
+```
+
+| Installed path | Content |
+| :-- | :-- |
+| `$PREFIX/bin/TAC.app` | Test Automation Controller GUI (app bundle) |
+| `$PREFIX/bin/TACConfigEditor.app` | TAC Configuration Editor GUI (app bundle) |
+| `$PREFIX/bin/DeviceCatalog.app` | Device Catalog GUI (app bundle) |
+| `$PREFIX/bin/DevList` | List connected debug boards |
+| `$PREFIX/bin/TACDump` | Dump TAC configuration |
+| `$PREFIX/bin/FTDICheck` | FTDI device diagnostics |
+| `$PREFIX/bin/UpdateDeviceList` | Update the device list |
+| `$PREFIX/bin/LITEProgrammer` | Program LITE debug boards |
+| `$PREFIX/lib/libTACDev.a` | TACDev C++ static library |
+| `$PREFIX/lib/libftd2xx.a` | FTDI D2XX static library |
+| `$PREFIX/include/qtac/TACDev.h` | TACDev public header |
+| `$PREFIX/share/qtac/configurations/` | Device configuration files |
+
+App bundles embed an RPATH pointing to the Qt frameworks directory used at build time.
+Pass `--deploy` to run `macdeployqt` and make bundles fully self-contained for distribution.
 
 ## Repository Structure
 
