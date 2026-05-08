@@ -41,6 +41,8 @@ find_package(QT NAMES Qt6 REQUIRED COMPONENTS Core)
 
 qt_standard_project_setup()
 
+option(DEPLOY_APPS "Run macdeployqt/windeployqt to create self-contained app bundles (slow)" OFF)
+
 if(APPLE)
     # Add the Qt frameworks directory to the install rpath so apps can find Qt
     # frameworks at runtime without a full macdeployqt deployment.
@@ -51,8 +53,11 @@ endif()
 # Qt 6.3/6.4 use FILENAME_VARIABLE; Qt 6.5+ renamed it to OUTPUT_SCRIPT.
 # On Linux, system installs use system-provided Qt shared libraries;
 # running the deploy tool would copy system libs into /usr/local which is wrong.
+# On Windows/macOS the deploy step is opt-in via -DDEPLOY_APPS=ON (or --deploy
+# in build.sh/build.bat) to avoid slow macdeployqt/windeployqt runs during
+# routine testing.
 macro(qtac_deploy_app target)
-    if(WIN32 OR APPLE)
+    if(DEPLOY_APPS AND (WIN32 OR APPLE))
         if(Qt6Core_VERSION VERSION_GREATER_EQUAL "6.5")
             qt_generate_deploy_app_script(
                 TARGET ${target}

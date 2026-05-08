@@ -40,6 +40,7 @@ PRISTINE=1
 BUILD_UI=ON
 BUILD_DEBUG=0
 INSTALL=0
+DEPLOY=0
 
 for arg in "$@"; do
     case "$arg" in
@@ -48,14 +49,16 @@ for arg in "$@"; do
         --no-gui)      BUILD_UI=OFF ;;
         --debug)       BUILD_DEBUG=1 ;;
         --install)     INSTALL=1 ;;
+        --deploy)      DEPLOY=1 ;;
         *)
-            echo "Usage: $0 [--pristine|--incremental] [--no-gui] [--debug] [--install]"
+            echo "Usage: $0 [--pristine|--incremental] [--no-gui] [--debug] [--install] [--deploy]"
             echo "  --pristine     Delete build/, __Builds/, and cached downloads (default)"
             echo "  --incremental  Reuse existing build tree and downloaded libraries"
             echo "  --no-gui       Build just low-level libraries without the UI application"
             echo "  --debug        Also build Debug configuration (Release is always built)"
             echo "  --install      Install libraries, headers, applications, and configs"
             echo "                 (installs to CMAKE_INSTALL_PREFIX, default: /usr/local)"
+            echo "  --deploy       Bundle Qt dependencies into each app (slow; for distribution)"
             exit 1 ;;
     esac
 done
@@ -91,12 +94,17 @@ fi
 
 # Debug
 if [ "$BUILD_DEBUG" -eq 1 ]; then
-    cmake -S . -B build/${DISTRO}/Debug -DCMAKE_PREFIX_PATH="$(dirname "$QTBIN")" -DCMAKE_BUILD_TYPE=Debug ${CMAKE_DISTRO_FLAG} -DBUILD_UI=${BUILD_UI}
+    cmake -S . -B build/${DISTRO}/Debug -DCMAKE_PREFIX_PATH="$(dirname "$QTBIN")" -DCMAKE_BUILD_TYPE=Debug ${CMAKE_DISTRO_FLAG} -DBUILD_UI=${BUILD_UI} -DDEPLOY_APPS=OFF
     cmake --build build/${DISTRO}/Debug --parallel ${NPROC}
 fi
 
 # Release
-cmake -S . -B build/${DISTRO}/Release -DCMAKE_PREFIX_PATH="$(dirname "$QTBIN")" -DCMAKE_BUILD_TYPE=Release ${CMAKE_DISTRO_FLAG} -DBUILD_UI=${BUILD_UI}
+if [ "$DEPLOY" -eq 1 ]; then
+    DEPLOY_APPS_FLAG=ON
+else
+    DEPLOY_APPS_FLAG=OFF
+fi
+cmake -S . -B build/${DISTRO}/Release -DCMAKE_PREFIX_PATH="$(dirname "$QTBIN")" -DCMAKE_BUILD_TYPE=Release ${CMAKE_DISTRO_FLAG} -DBUILD_UI=${BUILD_UI} -DDEPLOY_APPS=${DEPLOY_APPS_FLAG}
 cmake --build build/${DISTRO}/Release --parallel ${NPROC}
 
 if [ "$INSTALL" -eq 1 ]; then
