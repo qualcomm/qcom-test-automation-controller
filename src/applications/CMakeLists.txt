@@ -49,22 +49,44 @@ if(APPLE)
 endif()
 
 # Qt 6.3/6.4 use FILENAME_VARIABLE; Qt 6.5+ renamed it to OUTPUT_SCRIPT.
+# On Linux, system installs use system-provided Qt shared libraries;
+# running the deploy tool would copy system libs into /usr/local which is wrong.
 macro(qtac_deploy_app target)
-    if(Qt6Core_VERSION VERSION_GREATER_EQUAL "6.5")
-        qt_generate_deploy_app_script(
-            TARGET ${target}
-            OUTPUT_SCRIPT deploy_script
-            NO_UNSUPPORTED_PLATFORM_ERROR
-        )
-    else()
-        qt_generate_deploy_app_script(
-            TARGET ${target}
-            FILENAME_VARIABLE deploy_script
-            NO_UNSUPPORTED_PLATFORM_ERROR
-        )
+    if(WIN32 OR APPLE)
+        if(Qt6Core_VERSION VERSION_GREATER_EQUAL "6.5")
+            qt_generate_deploy_app_script(
+                TARGET ${target}
+                OUTPUT_SCRIPT deploy_script
+                NO_UNSUPPORTED_PLATFORM_ERROR
+            )
+        else()
+            qt_generate_deploy_app_script(
+                TARGET ${target}
+                FILENAME_VARIABLE deploy_script
+                NO_UNSUPPORTED_PLATFORM_ERROR
+            )
+        endif()
+        install(SCRIPT ${deploy_script})
     endif()
-    install(SCRIPT ${deploy_script})
 endmacro()
+
+if(UNIX AND NOT APPLE)
+    # Install a qt.conf pointing to the Qt plugins directory used at build time.
+    # Without this, installed binaries report an empty plugin path and fail to
+    # start. Works for both apt Qt (/usr/lib/.../qt6/plugins) and aqtinstall.
+    get_target_property(_qmake Qt6::qmake IMPORTED_LOCATION)
+    execute_process(
+        COMMAND "${_qmake}" -query QT_INSTALL_PLUGINS
+        OUTPUT_VARIABLE _qt_plugins_dir
+        OUTPUT_STRIP_TRAILING_WHITESPACE
+    )
+    file(WRITE "${CMAKE_CURRENT_BINARY_DIR}/qt.conf"
+        "[Paths]\nPlugins=${_qt_plugins_dir}\n"
+    )
+    install(FILES "${CMAKE_CURRENT_BINARY_DIR}/qt.conf"
+        DESTINATION ${CMAKE_INSTALL_BINDIR}
+    )
+endif()
 
 add_subdirectory(devlist)
 add_subdirectory(tacdump)
