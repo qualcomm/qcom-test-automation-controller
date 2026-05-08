@@ -80,16 +80,33 @@ git clone https://github.com/qualcomm/qcom-test-automation-controller.git
 
 ### Configuration
 
-1. **Visual Studio**: Install **Desktop development with C++** and **.NET desktop development**.
+1. **Git**: Install [Git for Windows](https://git-scm.com/download/win).
+
+2. **Visual Studio 2022**: Install the
+   [Community](https://aka.ms/vs/17/release/vs_community.exe),
+   Professional, or Enterprise edition and select the following workloads:
+   - **Desktop development with C++** (required — provides MSVC compiler, CMake, and Ninja)
+   - **.NET desktop development** (required for C# interop builds)
+
    ![Desktop development with C++](./docs/resources/qtac-msvc-2022-requirements.png)
-2. **Qt**: Install Qt 6.9+ for **MSVC 2022 64-bit**, **Qt Serial Port** and **Qt Multimedia** components.
-   
-> [!NOTE]
-> Installation using Qt Online Installer will require users to create a Qt account.
-3. **Environment Variable**:
+
+   > [!NOTE]
+   > CMake 3.16+ and Ninja are bundled with Visual Studio; no separate installation needed.
+
+3. **Qt 6.8+**: Use the [Qt Online Installer](https://www.qt.io/download-qt-installer-oss)
+   and select the following for the **MSVC 2022 64-bit** target:
+   - Qt 6.8.x → **MSVC 2022 64-bit** (compiler binaries)
+   - Qt 6.8.x → **Qt Serial Port**
+   - Qt 6.8.x → **Qt Multimedia**
+
+   > [!NOTE]
+   > Installation using Qt Online Installer requires a Qt account.
+
+4. **Environment Variable** — set `QTBIN` permanently in your user environment:
    ```cmd
    setx QTBIN C:\Qt\<version>\msvc2022_64\bin
    ```
+   Open a new command prompt after running `setx` for the change to take effect.
 
 ### Build & Usage
 
