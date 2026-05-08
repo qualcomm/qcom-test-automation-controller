@@ -70,8 +70,9 @@ call "C:\Program Files (x86)\Microsoft Visual Studio\2022\BuildTools\VC\Auxiliar
 set "PATH=%QTBIN%;%PATH%"
 
 if "%PRISTINE%"=="1" (
-    if exist build    rmdir /s /q build
-    if exist __Builds rmdir /s /q __Builds
+    if exist build\Debug    rmdir /s /q build\Debug
+    if exist build\Release  rmdir /s /q build\Release
+    if exist __Builds\x64   rmdir /s /q __Builds\x64
     del /q third-party\*.tgz 2>nul
     del /q third-party\*.zip 2>nul
 )

@@ -75,11 +75,13 @@ case "$(uname)" in
         DISTRO=$(. /etc/os-release && echo "$ID")
         CMAKE_DISTRO_FLAG="-DLINUX_DISTRO=${DISTRO}"
         NPROC=$(nproc)
+        BUILDS_SUBDIR="Linux-${DISTRO}"
         ;;
     Darwin)
         DISTRO="macOS"
         CMAKE_DISTRO_FLAG=""
         NPROC=$(sysctl -n hw.logicalcpu)
+        BUILDS_SUBDIR="macOS"
         ;;
     *)
         echo "Unsupported platform: $(uname)"
@@ -88,7 +90,7 @@ case "$(uname)" in
 esac
 
 if [ "$PRISTINE" -eq 1 ]; then
-    rm -rf build __Builds
+    rm -rf build/${DISTRO} __Builds/${BUILDS_SUBDIR}
     rm -f third-party/*.tgz third-party/*.zip
 fi
 
