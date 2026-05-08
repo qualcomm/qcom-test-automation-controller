@@ -40,7 +40,7 @@ qt_add_resources(DC_RESOURCES
     resources/DeviceCatalog.qrc
 )
 
-qt_add_executable(${APP_NAME} WIN32
+qt_add_executable(${APP_NAME} WIN32 MACOSX_BUNDLE
     DeviceCatalog.cpp DeviceCatalog.h DeviceCatalog.ui
     DeviceCatalogApplication.cpp DeviceCatalogApplication.h
     DeviceSelectionDialog.cpp DeviceSelectionDialog.h DeviceSelectionDialog.ui

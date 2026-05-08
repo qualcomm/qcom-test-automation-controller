@@ -41,6 +41,13 @@ find_package(QT NAMES Qt6 REQUIRED COMPONENTS Core)
 
 qt_standard_project_setup()
 
+if(APPLE)
+    # Add the Qt frameworks directory to the install rpath so apps can find Qt
+    # frameworks at runtime without a full macdeployqt deployment.
+    get_filename_component(_qt_lib_dir "${Qt6Core_DIR}/../../" ABSOLUTE)
+    list(APPEND CMAKE_INSTALL_RPATH "${_qt_lib_dir}")
+endif()
+
 # Qt 6.3/6.4 use FILENAME_VARIABLE; Qt 6.5+ renamed it to OUTPUT_SCRIPT.
 macro(qtac_deploy_app target)
     if(Qt6Core_VERSION VERSION_GREATER_EQUAL "6.5")

@@ -40,7 +40,7 @@ qt_add_resources(TAC_EDITOR_RESOURCES
     resources/TACConfigEditor.qrc
 )
 
-qt_add_executable(${APP_NAME} WIN32
+qt_add_executable(${APP_NAME} WIN32 MACOSX_BUNDLE
     ButtonEditor.cpp ButtonEditor.h ButtonEditor.ui
     CodeEditor.cpp CodeEditor.h CodeEditor.ui
     ConfigEditorApplication.cpp ConfigEditorApplication.h

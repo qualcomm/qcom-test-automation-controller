@@ -40,7 +40,7 @@ qt_add_resources(TAC_RESOURCES
     resources/TAC.qrc
 )
 
-qt_add_executable(${APP_NAME} WIN32
+qt_add_executable(${APP_NAME} WIN32 MACOSX_BUNDLE
     PreferencesDialog.cpp PreferencesDialog.h PreferencesDialog.ui
     TACApplication.cpp TACApplication.h
     TACDeviceSelection.cpp TACDeviceSelection.h TACDeviceSelection.ui
