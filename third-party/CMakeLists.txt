@@ -205,6 +205,8 @@ if(WIN32 AND DEFINED ENV{QTDIR})
     endif()
 endif()
 
+install(FILES "${RELEASE_LIB}" DESTINATION ${CMAKE_INSTALL_LIBDIR})
+
 function(link_ftd2xx target_name)
     if(WIN32)
         target_link_libraries(${target_name} PRIVATE $<$<CONFIG:Debug>:ftd2xx_debug> $<$<CONFIG:Release>:ftd2xx_release>)

@@ -39,6 +39,7 @@ set -e
 PRISTINE=1
 BUILD_UI=ON
 BUILD_DEBUG=0
+INSTALL=0
 
 for arg in "$@"; do
     case "$arg" in
@@ -46,12 +47,15 @@ for arg in "$@"; do
         --incremental) PRISTINE=0 ;;
         --no-gui)      BUILD_UI=OFF ;;
         --debug)       BUILD_DEBUG=1 ;;
+        --install)     INSTALL=1 ;;
         *)
-            echo "Usage: $0 [--pristine|--incremental] [--no-gui] [--debug]"
+            echo "Usage: $0 [--pristine|--incremental] [--no-gui] [--debug] [--install]"
             echo "  --pristine     Delete build/, __Builds/, and cached downloads (default)"
             echo "  --incremental  Reuse existing build tree and downloaded libraries"
             echo "  --no-gui       Build just low-level libraries without the UI application"
             echo "  --debug        Also build Debug configuration (Release is always built)"
+            echo "  --install      Install libraries, headers, applications, and configs"
+            echo "                 (installs to CMAKE_INSTALL_PREFIX, default: /usr/local)"
             exit 1 ;;
     esac
 done
@@ -94,5 +98,9 @@ fi
 # Release
 cmake -S . -B build/${DISTRO}/Release -DCMAKE_PREFIX_PATH="$(dirname "$QTBIN")" -DCMAKE_BUILD_TYPE=Release ${CMAKE_DISTRO_FLAG} -DBUILD_UI=${BUILD_UI}
 cmake --build build/${DISTRO}/Release --parallel ${NPROC}
+
+if [ "$INSTALL" -eq 1 ]; then
+    sudo cmake --install build/${DISTRO}/Release
+fi
 
 echo "Check __Builds directory"

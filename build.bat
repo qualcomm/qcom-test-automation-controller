@@ -42,18 +42,21 @@ if "%QTBIN%"=="" (
 set PRISTINE=1
 set BUILD_UI=ON
 set BUILD_DEBUG=0
+set INSTALL=0
 
 :parse_args
 if "%~1"=="--pristine"    ( set PRISTINE=1    & shift & goto :parse_args )
 if "%~1"=="--incremental" ( set PRISTINE=0    & shift & goto :parse_args )
 if "%~1"=="--no-gui"      ( set BUILD_UI=OFF  & shift & goto :parse_args )
 if "%~1"=="--debug"       ( set BUILD_DEBUG=1 & shift & goto :parse_args )
+if "%~1"=="--install"     ( set INSTALL=1     & shift & goto :parse_args )
 if not "%~1"=="" (
-    echo Usage: build.bat [--pristine^|--incremental] [--no-gui] [--debug]
+    echo Usage: build.bat [--pristine^|--incremental] [--no-gui] [--debug] [--install]
     echo   --pristine     Delete build\, __Builds\, and cached downloads ^(default^)
     echo   --incremental  Reuse existing build tree and downloaded libraries
     echo   --no-gui       Build just low-level libraries without the UI application
     echo   --debug        Also build Debug configuration ^(Release is always built^)
+    echo   --install      Install libraries, headers, applications, and configs
     exit /b 1
 )
 
@@ -88,5 +91,14 @@ cmake -S . -B build\Release -DCMAKE_PREFIX_PATH="%QTBIN%\.." ^
     -DBUILD_UI=%BUILD_UI%
 
 cmake --build build\Release
+
+if "%INSTALL%"=="1" (
+    net session >nul 2>&1
+    if errorlevel 1 (
+        echo Error: --install requires Administrator privileges. Re-run build.bat as Administrator.
+        exit /b 1
+    )
+    cmake --install build\Release
+)
 
 echo Check __Builds directory
