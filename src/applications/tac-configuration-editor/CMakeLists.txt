@@ -40,7 +40,7 @@ qt_add_resources(TAC_EDITOR_RESOURCES
     resources/TACConfigEditor.qrc
 )
 
-qt_add_executable(${APP_NAME} WIN32
+qt_add_executable(${APP_NAME} WIN32 MACOSX_BUNDLE
     ButtonEditor.cpp ButtonEditor.h ButtonEditor.ui
     CodeEditor.cpp CodeEditor.h CodeEditor.ui
     ConfigEditorApplication.cpp ConfigEditorApplication.h
@@ -74,7 +74,7 @@ target_include_directories(${APP_NAME} PRIVATE
 )
 
 target_link_directories(${APP_NAME} PRIVATE
-    ${CMAKE_SOURCE_DIR}/__Builds/x64/$<CONFIG>/lib
+    ${STATIC_LIBPATH}
 )
 
 target_compile_definitions(${APP_NAME} PRIVATE
@@ -133,8 +133,4 @@ install(TARGETS ${APP_NAME}
     RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
 )
 
-qt_generate_deploy_app_script(TARGET ${APP_NAME}
-    OUTPUT_SCRIPT deploy_script
-    NO_UNSUPPORTED_PLATFORM_ERROR
-)
-install(SCRIPT ${deploy_script})
+qtac_deploy_app(${APP_NAME})

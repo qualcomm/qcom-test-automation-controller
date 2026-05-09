@@ -41,6 +41,7 @@
 #include "PlatformID.h"
 
 // Qt
+#include <QCoreApplication>
 #include <QDir>
 #include <QFile>
 #include <QTextStream>
@@ -48,22 +49,6 @@
 // C++
 #include <bitset>
 #include <iostream>
-
-#ifdef Q_OS_WIN
-	#ifdef DEBUG
-		const QString xmlTemplatePath(QStringLiteral("C:\\github\\open-source\\qcom-test-automation-controller\\__Builds\\x64\\Debug\\bin\\ftdi-template.xml"));
-	#else
-		const QString xmlTemplatePath(QStringLiteral("C:\\Program Files (x86)\\Qualcomm\\QTAC\\ftdi-template.xml"));
-	#endif
-#endif
-
-#ifdef Q_OS_LINUX
-	#ifdef DEBUG
-		const QString xmlTemplatePath(QStringLiteral("/local/mnt/workspace/github/open-source/qcom-test-automation-controller/__Builds/Linux/Debug/bin/ftdi-template.xml"));
-	#else
-		const QString xmlTemplatePath(QStringLiteral("/opt/qcom/QTAC/bin/ftdi-template.xml"));
-	#endif
-#endif
 
 const QString kUSBDescriptorPattern(QStringLiteral("%%USB_DESCRIPTOR%%"));
 
@@ -116,6 +101,8 @@ void FTDITemplateCompiler::write()
 bool FTDITemplateCompiler::load()
 {
 	bool result{false};
+	const QString xmlTemplatePath =
+		QCoreApplication::applicationDirPath() + QStringLiteral("/ftdi-template.xml");
 	QFile xmlFile(xmlTemplatePath);
 
 	if (_template.isNull() && xmlFile.open(QIODevice::ReadOnly))

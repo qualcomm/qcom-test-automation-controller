@@ -9,6 +9,8 @@
 - [Common Prerequisites](#common-prerequisites)
 - [Windows Guide](#windows-guide)
 - [Linux Guide](#linux-guide)
+- [macOS Guide](#macos-guide)
+- [Installing QTAC](#installing-qtac)
 - [Repository Structure](#repository-structure)
 - [Application Dependency Architecture](#application-dependency-architecture)
 - [Advanced Topics](#advanced-topics)
@@ -80,16 +82,33 @@ git clone https://github.com/qualcomm/qcom-test-automation-controller.git
 
 ### Configuration
 
-1. **Visual Studio**: Install **Desktop development with C++** and **.NET desktop development**.
+1. **Git**: Install [Git for Windows](https://git-scm.com/download/win).
+
+2. **Visual Studio 2022**: Install the
+   [Community](https://aka.ms/vs/17/release/vs_community.exe),
+   Professional, or Enterprise edition and select the following workloads:
+   - **Desktop development with C++** (required — provides MSVC compiler, CMake, and Ninja)
+   - **.NET desktop development** (required for C# interop builds)
+
    ![Desktop development with C++](./docs/resources/qtac-msvc-2022-requirements.png)
-2. **Qt**: Install Qt 6.9+ for **MSVC 2022 64-bit**, **Qt Serial Port** and **Qt Multimedia** components.
-   
-> [!NOTE]
-> Installation using Qt Online Installer will require users to create a Qt account.
-3. **Environment Variable**:
+
+   > [!NOTE]
+   > CMake 3.16+ and Ninja are bundled with Visual Studio; no separate installation needed.
+
+3. **Qt 6.8+**: Use the [Qt Online Installer](https://www.qt.io/download-qt-installer-oss)
+   and select the following for the **MSVC 2022 64-bit** target:
+   - Qt 6.8.x → **MSVC 2022 64-bit** (compiler binaries)
+   - Qt 6.8.x → **Qt Serial Port**
+   - Qt 6.8.x → **Qt Multimedia**
+
+   > [!NOTE]
+   > Installation using Qt Online Installer requires a Qt account.
+
+4. **Environment Variable** — set `QTBIN` permanently in your user environment:
    ```cmd
    setx QTBIN C:\Qt\<version>\msvc2022_64\bin
    ```
+   Open a new command prompt after running `setx` for the change to take effect.
 
 ### Build & Usage
 
@@ -99,8 +118,18 @@ Execute `build.bat` to generate executables:
 build.bat
 ```
 
+**Build options**:
+| Flag | Description |
+| :-- | :-- |
+| `--pristine` | Delete `build\`, `__Builds\`, and cached downloads before building (default) |
+| `--incremental` | Reuse existing build tree and downloaded libraries |
+| `--no-gui` | Build only headless libraries (`QCommonConsole`, `TACDev`) without Qt GUI modules or applications |
+| `--debug` | Also build a Debug configuration (Release is always built) |
+| `--install` | Install binaries, libraries, headers, and configs to `CMAKE_INSTALL_PREFIX` (default: `C:\Program Files\QTAC`); requires Administrator |
+| `--deploy` | Run `windeployqt` to bundle Qt DLLs into each app directory (slow; use for distribution packages) |
+
 **Build output**:
-- Debug: `__Builds\x64\Debug`
+- Debug (with `--debug`): `__Builds\x64\Debug`
 - Release: `__Builds\x64\Release`
 
 **Usage**:
@@ -115,25 +144,57 @@ __Builds\x64\Release\QTAC.exe
 > [!IMPORTANT]
 > - Installation using Qt Online Installer will require users to create a Qt account.
 > - If you're frequently working with Qt on Linux, consider adding the environment variables to `.bashrc`.
-> - Using `sudo apt install <package>` will update setup packages. Review command usage to prevent issues with other applications.
 
-1. **Qt Installation** (choose one):
-   
-   **Option A**: Qt Online Installer
-   - Install Qt 6.9+ for **GCC 64-bit** and **Qt Serial Port** component using [Qt Online Installer](https://www.qt.io/download-qt-installer-oss)
-   
-   **Option B**: Quick Installation via apt
+1. **Build Tools**:
    ```bash
-   sudo apt install qt6-base-dev qt6-serialport-dev
+   sudo apt install cmake build-essential ninja-build git
    ```
-2. **Runtime Dependencies**:
+   - `cmake` 3.16 or later
+   - `build-essential` — GCC/G++ 11 or later and make
+   - `ninja-build` — faster parallel builds (recommended)
+
+2. **Qt 6.8+** (choose one):
+
+   **Option A**: System Qt via apt (Ubuntu 24.04+ / Debian 13+)
+   ```bash
+   sudo apt install qt6-base-dev qt6-multimedia-dev qt6-serialport-dev qt6-tools-dev
+   ```
+   > [!NOTE]
+   > Ubuntu 22.04 ships Qt 6.2 which is too old. Use Option B or C on 22.04.
+
+   For `--no-gui` builds only `QCommonConsole` and `TACDev` are compiled, so fewer Qt
+   packages are needed:
+   ```bash
+   sudo apt install qt6-base-dev qt6-serialport-dev qt6-tools-dev
+   ```
+
+   **Option B**: Qt Online Installer (any distro / Ubuntu version)
+   - Install Qt 6.8+ for **GCC 64-bit**, selecting the **Qt Serial Port** and
+     **Qt Multimedia** components using the
+     [Qt Online Installer](https://www.qt.io/download-qt-installer-oss)
+
+   **Option C**: aqtinstall (scriptable, no Qt account required)
+   ```bash
+   pip install aqtinstall
+   aqt install-qt linux desktop 6.8.0 gcc_64 -m qtserialport qtmultimedia
+   ```
+
+3. **USB Access** — install the udev rule so the debug board is accessible without root:
    ```bash
    sudo cp udev-rules/99-QTAC-USB.rules /etc/udev/rules.d/
    sudo udevadm control --reload
+   sudo udevadm trigger
    ```
-4. **Environment Variable**:
+
+4. **Environment Variable** — set `QTBIN` to the Qt `bin/` directory:
+
+   System Qt (apt):
    ```bash
-   export QTBIN=/path/to/Qt/directory/<version>/gcc_64/bin
+   export QTBIN=/usr/lib/qt6/bin
+   ```
+   Qt Online Installer or aqtinstall:
+   ```bash
+   export QTBIN=~/Qt/6.8.0/gcc_64/bin
    ```
 
 ### Build & Usage
@@ -144,17 +205,177 @@ Execute `build.sh` to generate executables:
 ./build.sh
 ```
 
-**Build output**:
-- Debug: `__Builds/Linux/Debug`
-- Release: `__Builds/Linux/Release`
+**Build options**:
+| Flag | Description |
+| :-- | :-- |
+| `--pristine` | Delete `build/`, `__Builds/`, and cached downloads before building (default) |
+| `--incremental` | Reuse the existing build tree; skip the clean step. |
+| `--no-gui` | Build only headless libraries (`QCommonConsole`, `TACDev`) without Qt GUI modules or applications; omits Qt Multimedia, Widgets, `qcommon`, `ui-common`, and all GUI apps |
+| `--debug` | Also build a Debug configuration (Release is always built). |
+| `--install` | Install binaries, libraries, headers, and configs to `CMAKE_INSTALL_PREFIX` (default: `/usr/local`); invokes `sudo cmake --install` |
+| `--deploy` | Run `macdeployqt` to bundle Qt frameworks into each app bundle (slow; use for distribution packages; macOS only) |
 
-> [!NOTE]
-> Ensure that [make](https://www.gnu.org/software/make/) is available in your environment before building.
+**No-GUI build** — omits Qt Multimedia, Qt Widgets, `qcommon`, `ui-common`, and all GUI
+applications. Only `QCommonConsole` and `TACDev` are compiled:
+
+```bash
+./build.sh --no-gui
+```
+
+**Build output**:
+- Release: `__Builds/Linux-<distro>/Release`
+- Debug (with `--debug`): `__Builds/Linux-<distro>/Debug`
 
 **Usage**:
 ```bash
-./__Builds/Linux/Release/QTAC
+./__Builds/Linux-$(. /etc/os-release && echo "$ID")/Release/bin/TAC
 ```
+
+## macOS Guide
+
+### Configuration
+
+1. **Xcode Command Line Tools**:
+   ```bash
+   xcode-select --install
+   ```
+
+2. **CMake 3.16+** (choose one):
+   - Download from [cmake.org](https://cmake.org/download/)
+   - Or install via Homebrew: `brew install cmake`
+
+3. **Qt 6.8+** (choose one):
+
+   **Option A**: Homebrew (simplest — includes all required modules)
+   ```bash
+   brew install qt
+   ```
+
+   **Option B**: Qt Online Installer
+   - Use the [Qt Online Installer](https://www.qt.io/download-qt-installer-oss) and select
+     the following for the **macOS** target:
+     - Qt 6.8.x → **macOS** (compiler binaries)
+     - Qt 6.8.x → **Qt Serial Port**
+     - Qt 6.8.x → **Qt Multimedia**
+
+   > [!NOTE]
+   > Installation using Qt Online Installer requires a Qt account.
+
+4. **Environment Variable** — set `QTBIN` to the Qt `bin/` directory:
+
+   Homebrew:
+   ```bash
+   export QTBIN=$(brew --prefix qt)/bin
+   ```
+   Qt Online Installer:
+   ```bash
+   export QTBIN=~/Qt/6.8.0/macos/bin
+   ```
+
+### Build & Usage
+
+`build.sh` is used on macOS with the same flags as Linux. FTDI D2XX is downloaded
+automatically from an FTDI-provided DMG at cmake configure time (requires `hdiutil`,
+which is built into macOS).
+
+```bash
+./build.sh
+```
+
+**Build output**:
+- Release: `__Builds/macOS/Release`
+- Debug (with `--debug`): `__Builds/macOS/Debug`
+
+**Usage**:
+```bash
+open __Builds/macOS/Release/bin/TAC.app
+```
+
+## Installing QTAC
+
+Pass `--install` to `build.sh` or `build.bat` to run `cmake --install` after a successful
+build. The default install prefix is `/usr/local` on Linux/macOS and
+`C:\Program Files\QTAC` on Windows. Override it by setting `CMAKE_INSTALL_PREFIX` in your
+cmake invocation.
+
+### Linux
+
+```bash
+./build.sh --install
+# or, to install to a custom prefix:
+cmake --install build/debian/Release --prefix /opt/qtac
+```
+
+| Installed path | Content |
+| :-- | :-- |
+| `$PREFIX/bin/TAC` | Test Automation Controller GUI |
+| `$PREFIX/bin/TACConfigEditor` | TAC Configuration Editor GUI |
+| `$PREFIX/bin/DeviceCatalog` | Device Catalog GUI |
+| `$PREFIX/bin/DevList` | List connected debug boards |
+| `$PREFIX/bin/TACDump` | Dump TAC configuration |
+| `$PREFIX/bin/FTDICheck` | FTDI device diagnostics |
+| `$PREFIX/bin/UpdateDeviceList` | Update the device list |
+| `$PREFIX/bin/LITEProgrammer` | Program LITE debug boards |
+| `$PREFIX/bin/qt.conf` | Qt plugin path for installed binaries |
+| `$PREFIX/lib/libTACDev.a` | TACDev C++ static library |
+| `$PREFIX/lib/libftd2xx.a` | FTDI D2XX static library |
+| `$PREFIX/include/qtac/TACDev.h` | TACDev public header |
+| `$PREFIX/share/qtac/configurations/` | Device configuration files (`.tcnf`, `devicelist.json`) |
+| `$PREFIX/share/applications/` | `.desktop` files for TAC, TACConfigEditor, DeviceCatalog |
+| `$PREFIX/share/icons/` | Application icons |
+
+Installed binaries have RPATH `$ORIGIN:$ORIGIN/../lib` so they find `libftd2xx.a` at
+runtime without needing `LD_LIBRARY_PATH`.
+
+### Windows
+
+Run `build.bat --install` from an **Administrator** command prompt. The install step
+checks for Administrator privileges and exits if not elevated.
+
+| Installed path | Content |
+| :-- | :-- |
+| `$PREFIX\bin\TAC.exe` | Test Automation Controller GUI |
+| `$PREFIX\bin\TACConfigEditor.exe` | TAC Configuration Editor GUI |
+| `$PREFIX\bin\DeviceCatalog.exe` | Device Catalog GUI |
+| `$PREFIX\bin\DevList.exe` | List connected debug boards |
+| `$PREFIX\bin\TACDump.exe` | Dump TAC configuration |
+| `$PREFIX\bin\FTDICheck.exe` | FTDI device diagnostics |
+| `$PREFIX\bin\UpdateDeviceList.exe` | Update the device list |
+| `$PREFIX\bin\LITEProgrammer.exe` | Program LITE debug boards |
+| `$PREFIX\lib\TACDev.lib` | TACDev C++ static library (Release) |
+| `$PREFIX\lib\ftd2xx.lib` | FTDI D2XX static library |
+| `$PREFIX\include\qtac\TACDev.h` | TACDev public header |
+| `$PREFIX\share\qtac\configurations\` | Device configuration files |
+
+> [!NOTE]
+> Qt DLLs are **not** bundled unless `--deploy` was also passed. Without `--deploy`,
+> ensure Qt's `bin\` directory is on `PATH` when running installed binaries.
+
+### macOS
+
+```bash
+./build.sh --install
+# or, to install to a custom prefix:
+sudo cmake --install build/macOS/Release --prefix /opt/qtac
+```
+
+| Installed path | Content |
+| :-- | :-- |
+| `$PREFIX/bin/TAC.app` | Test Automation Controller GUI (app bundle) |
+| `$PREFIX/bin/TACConfigEditor.app` | TAC Configuration Editor GUI (app bundle) |
+| `$PREFIX/bin/DeviceCatalog.app` | Device Catalog GUI (app bundle) |
+| `$PREFIX/bin/DevList` | List connected debug boards |
+| `$PREFIX/bin/TACDump` | Dump TAC configuration |
+| `$PREFIX/bin/FTDICheck` | FTDI device diagnostics |
+| `$PREFIX/bin/UpdateDeviceList` | Update the device list |
+| `$PREFIX/bin/LITEProgrammer` | Program LITE debug boards |
+| `$PREFIX/lib/libTACDev.a` | TACDev C++ static library |
+| `$PREFIX/lib/libftd2xx.a` | FTDI D2XX static library |
+| `$PREFIX/include/qtac/TACDev.h` | TACDev public header |
+| `$PREFIX/share/qtac/configurations/` | Device configuration files |
+
+App bundles embed an RPATH pointing to the Qt frameworks directory used at build time.
+Pass `--deploy` to run `macdeployqt` and make bundles fully self-contained for distribution.
 
 ## Repository Structure
 

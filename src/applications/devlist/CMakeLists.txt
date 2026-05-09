@@ -52,7 +52,7 @@ target_compile_definitions(${APP_NAME} PRIVATE
 )
 
 target_link_directories(${APP_NAME} PRIVATE
-    ${CMAKE_SOURCE_DIR}/__Builds/x64/$<CONFIG>/lib
+    ${STATIC_LIBPATH}
 )
 
 target_link_libraries(${APP_NAME} PRIVATE
@@ -82,9 +82,4 @@ install(TARGETS ${APP_NAME}
     RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
 )
 
-qt_generate_deploy_app_script(
-    TARGET ${APP_NAME}
-    OUTPUT_SCRIPT deploy_script
-    NO_UNSUPPORTED_PLATFORM_ERROR
-)
-install(SCRIPT ${deploy_script})
+qtac_deploy_app(${APP_NAME})
