@@ -43,6 +43,12 @@ add_library(qtac-core STATIC
     src/String.cpp
     src/StringList.cpp
     src/Variant.cpp
+    # FTDI stack (Qt-free)
+    src/StringUtilities.cpp
+    src/AlpacaDevice.cpp
+    src/FTDIPlatformConfiguration.cpp
+    src/FTDIChipset.cpp
+    src/FTDIDevice.cpp
 )
 
 target_include_directories(qtac-core PUBLIC
@@ -52,3 +58,44 @@ target_include_directories(qtac-core PUBLIC
 
 target_compile_features(qtac-core PUBLIC cxx_std_20)
 QtacCoreSettings(qtac-core)
+
+# -----------------------------------------------------------------------
+# FTDI D2XX library
+# Assumes the ftd2xx SDK is installed in one of the standard locations.
+# Adjust paths as needed for your environment.
+# -----------------------------------------------------------------------
+option(QTAC_BUILD_FTDI "Include FTDI hardware support in qtac-core" ON)
+
+if(QTAC_BUILD_FTDI)
+    if(WIN32)
+        # Windows: link ftd2xx.lib from the FTDI CDM driver package
+        find_library(FTD2XX_LIB ftd2xx
+            HINTS
+                "$ENV{PROGRAMFILES}/FTDI/CDM Driver Package - Bus D2XX (v2.12.28)/Static/amd64"
+                "${CMAKE_CURRENT_SOURCE_DIR}/../../third-party/ftd2xx/win64"
+        )
+        if(FTD2XX_LIB)
+            target_link_libraries(qtac-core PUBLIC ${FTD2XX_LIB})
+        else()
+            message(WARNING "ftd2xx library not found; FTDI hardware support disabled")
+        endif()
+    elseif(UNIX)
+        # Linux: link libftd2xx.a or libftd2xx.so
+        find_library(FTD2XX_LIB ftd2xx
+            HINTS
+                "/usr/local/lib"
+                "${CMAKE_CURRENT_SOURCE_DIR}/../../third-party/ftd2xx/linux"
+        )
+        if(FTD2XX_LIB)
+            target_link_libraries(qtac-core PUBLIC ${FTD2XX_LIB} dl pthread)
+        else()
+            message(WARNING "ftd2xx library not found; FTDI hardware support disabled")
+        endif()
+    endif()
+
+    # ftd2xx.h location — expected alongside this CMakeLists.txt or in the
+    # qcommon-console source tree that is a sibling of source/
+    target_include_directories(qtac-core PRIVATE
+        ${CMAKE_CURRENT_SOURCE_DIR}/../../src/libraries/qcommon-console
+    )
+endif()
