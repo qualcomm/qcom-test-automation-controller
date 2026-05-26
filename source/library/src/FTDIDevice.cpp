@@ -222,10 +222,16 @@ bool FTDIDevice::open()
 	// this method.
 
 	if (_driveThread == nullptr)
+	{
+		_lastError = "No drive thread set";
 		return false;
+	}
 
 	if (!_driveThread->start())
+	{
+		_lastError = "Drive thread failed to start";
 		return false;
+	}
 
 	for (int count = 0; count < maxIterations; ++count)
 	{
@@ -233,6 +239,9 @@ bool FTDIDevice::open()
 		result = _driveThread->weAreRunning();
 		if (result) break;
 	}
+
+	if (!result)
+		_lastError = "Device did not become ready after open";
 
 	if (result)
 	{
