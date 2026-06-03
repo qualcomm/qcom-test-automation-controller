@@ -61,8 +61,10 @@ QTAC is a software suite that enables users to control Qualcomm devices remotely
 - **[FTDI D2XX drivers](https://ftdichip.com/drivers/d2xx-drivers/)**: For debug board interaction.
 - **[Qualcomm USB Drivers](https://softwarecenter.qualcomm.com/catalog/item/Qualcomm_Userspace_Driver)**: To view device status.
 
-> [!NOTE]
-> FTDI libraries are installed _automatically_ during the cmake configuration step when building from source.
+> [!IMPORTANT]
+> The FTDI D2XX library **must be downloaded manually** before building. The FTDI website is
+> protected by Cloudflare and cannot be fetched by automated tools. See the
+> [build steps below](#windows-guide) or [DEPENDENCIES.md](./DEPENDENCIES.md) for instructions.
 
 ### Optional Software
 
@@ -93,11 +95,21 @@ git clone https://github.com/qualcomm/qcom-test-automation-controller.git
 
 ### Build & Usage
 
-Execute `build.bat` to generate executables:
+**Step 1 — Download the FTDI D2XX library** (required before first build):
+
+1. Open a browser and go to **https://ftdichip.com/drivers/d2xx-drivers/**
+2. Download the latest Windows D2XX driver (`CDM-vX.XX.XX-WHQL-Certified.zip`)
+
+**Step 2 — Build**:
 
 ```cmd
+set FTDI_ARCHIVE_PATH=C:\path\to\CDM-vX.XX.XX-WHQL-Certified.zip
 build.bat
 ```
+
+> [!NOTE]
+> `FTDI_ARCHIVE_PATH` is only needed on the first build (or after cleaning `__Builds\`).
+> Subsequent builds can use `build.bat` without setting it.
 
 **Build output**:
 - Debug: `__Builds\x64\Debug`
@@ -138,11 +150,21 @@ __Builds\x64\Release\QTAC.exe
 
 ### Build & Usage
 
-Execute `build.sh` to generate executables:
+**Step 1 — Download the FTDI D2XX library** (required before first build):
+
+1. Open a browser and go to **https://ftdichip.com/drivers/d2xx-drivers/**
+2. Download the latest Linux x86_64 D2XX library (`libftd2xx-linux-x86_64-X.X.XX.tgz`)
+
+**Step 2 — Build**:
 
 ```bash
+export FTDI_ARCHIVE_PATH=/path/to/libftd2xx-linux-x86_64-X.X.XX.tgz
 ./build.sh
 ```
+
+> [!NOTE]
+> `FTDI_ARCHIVE_PATH` is only needed on the first build (or after cleaning `__Builds/`).
+> Subsequent builds can use `./build.sh` without setting it.
 
 **Build output**:
 - Debug: `__Builds/x64/Debug`

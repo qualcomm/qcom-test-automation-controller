@@ -46,12 +46,18 @@ export PATH="$QTBIN:$PATH"
 # Clean start
 rm -rf build __Builds
 
+# Forward FTDI_ARCHIVE_PATH to cmake if set
+FTDI_CMAKE_ARG=()
+if [ -n "$FTDI_ARCHIVE_PATH" ]; then
+    FTDI_CMAKE_ARG=("-DFTDI_ARCHIVE_PATH=$FTDI_ARCHIVE_PATH")
+fi
+
 # Debug
-cmake -S . -B build/Debug -DCMAKE_PREFIX_PATH="$(dirname "$QTBIN")" -DCMAKE_BUILD_TYPE=Debug
+cmake -S . -B build/Debug -DCMAKE_PREFIX_PATH="$(dirname "$QTBIN")" -DCMAKE_BUILD_TYPE=Debug "${FTDI_CMAKE_ARG[@]}"
 cmake --build build/Debug
 
 # Release
-cmake -S . -B build/Release -DCMAKE_PREFIX_PATH="$(dirname "$QTBIN")" -DCMAKE_BUILD_TYPE=Release
+cmake -S . -B build/Release -DCMAKE_PREFIX_PATH="$(dirname "$QTBIN")" -DCMAKE_BUILD_TYPE=Release "${FTDI_CMAKE_ARG[@]}"
 cmake --build build/Release
 
 echo "Check __Builds directory"

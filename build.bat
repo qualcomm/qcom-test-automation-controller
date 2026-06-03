@@ -48,18 +48,25 @@ set "PATH=%QTBIN%;%PATH%"
 if exist build rmdir /s /q build
 if exist __Builds rmdir /s /q __Builds
 
+set FTDI_CMAKE_ARG=
+if not "%FTDI_ARCHIVE_PATH%"=="" (
+    set "FTDI_CMAKE_ARG=-DFTDI_ARCHIVE_PATH=%FTDI_ARCHIVE_PATH%"
+)
+
 cmake -S . -B build\Debug -DCMAKE_PREFIX_PATH="%QTBIN%\.." ^
     -DCMAKE_COLOR_DIAGNOSTICS=ON ^
     -DCMAKE_GENERATOR=Ninja ^
     -DCMAKE_BUILD_TYPE=Debug ^
-    -DCMAKE_CXX_FLAGS_INIT=-DQT_QML_DEBUG
+    -DCMAKE_CXX_FLAGS_INIT=-DQT_QML_DEBUG ^
+    %FTDI_CMAKE_ARG%
 
 cmake --build build\Debug
 
 cmake -S . -B build\Release -DCMAKE_PREFIX_PATH="%QTBIN%\.." ^
     -DCMAKE_COLOR_DIAGNOSTICS=ON ^
     -DCMAKE_GENERATOR=Ninja ^
-    -DCMAKE_BUILD_TYPE=Release
+    -DCMAKE_BUILD_TYPE=Release ^
+    %FTDI_CMAKE_ARG%
 
 cmake --build build\Release
 
