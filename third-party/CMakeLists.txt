@@ -47,19 +47,18 @@ cmake_minimum_required(VERSION 3.16)
 #   cmake -DFTDI_ARCHIVE_PATH=/path/to/<archive> ...
 # ---------------------------------------------------------------------------
 
+set(FTDI_DRIVERS_PAGE "https://ftdichip.com/drivers/d2xx-drivers/")
+
 if(WIN32)
-    set(FTDI_ARCHIVE "CDM-v2.12.36.20-WHQL-Certified.zip")
-    set(FTDI_DOWNLOAD_URL "https://ftdichip.com/wp-content/uploads/2025/03/CDM-v2.12.36.20-WHQL-Certified.zip")
+    set(FTDI_ARCHIVE_HINT "CDM-vX.XX.XX-WHQL-Certified.zip")
     set(DEBUG_LIB "${CMAKE_SOURCE_DIR}/__Builds/x64/Debug/lib/ftd2xx.lib")
     set(RELEASE_LIB "${CMAKE_SOURCE_DIR}/__Builds/x64/Release/lib/ftd2xx.lib")
 else()
-    set(FTDI_ARCHIVE "libftd2xx-linux-x86_64-1.4.33.tgz")
-    set(FTDI_DOWNLOAD_URL "https://ftdichip.com/wp-content/uploads/2025/03/libftd2xx-linux-x86_64-1.4.33.tgz")
+    set(FTDI_ARCHIVE_HINT "libftd2xx-linux-x86_64-X.X.XX.tgz")
     set(DEBUG_LIB "${CMAKE_SOURCE_DIR}/__Builds/Linux/Debug/lib/libftd2xx.a")
     set(RELEASE_LIB "${CMAKE_SOURCE_DIR}/__Builds/Linux/Release/lib/libftd2xx.a")
 endif()
 
-set(ARCHIVE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/${FTDI_ARCHIVE}")
 set(TEMP_DIR "${CMAKE_CURRENT_SOURCE_DIR}/temp_extract")
 
 # Path to the manually downloaded FTDI archive.
@@ -73,20 +72,20 @@ if(NOT EXISTS "${DEBUG_LIB}" OR NOT EXISTS "${RELEASE_LIB}")
         message(FATAL_ERROR
             "FTDI library not found. This is a required dependency that must be "
             "downloaded manually (the download URL requires a browser).\n\n"
-            "  1. Open a browser and download:\n"
-            "       ${FTDI_DOWNLOAD_URL}\n\n"
+            "  1. Open a browser and go to:\n"
+            "       ${FTDI_DRIVERS_PAGE}\n"
+            "     Download the latest D2XX driver for your platform.\n\n"
             "  2. Re-run CMake with:\n"
-            "       -DFTDI_ARCHIVE_PATH=/path/to/${FTDI_ARCHIVE}\n\n"
+            "       -DFTDI_ARCHIVE_PATH=/path/to/${FTDI_ARCHIVE_HINT}\n\n"
             "See DEPENDENCIES.md for full instructions.")
     endif()
 
     message(STATUS "Extracting FTDI library from: ${FTDI_ARCHIVE_PATH}")
-    file(COPY_FILE "${FTDI_ARCHIVE_PATH}" "${ARCHIVE_PATH}")
 
     file(REMOVE_RECURSE "${TEMP_DIR}")
     file(MAKE_DIRECTORY "${TEMP_DIR}")
     execute_process(
-        COMMAND ${CMAKE_COMMAND} -E tar xzf "${ARCHIVE_PATH}"
+        COMMAND ${CMAKE_COMMAND} -E tar xzf "${FTDI_ARCHIVE_PATH}"
         WORKING_DIRECTORY "${TEMP_DIR}"
         RESULT_VARIABLE EXTRACT_RESULT
     )

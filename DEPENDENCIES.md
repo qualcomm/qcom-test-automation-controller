@@ -11,10 +11,14 @@ You must download the archive manually using a browser **before running CMake**.
 
 ### Download
 
-| Platform | File | URL |
-|----------|------|-----|
-| Windows  | `CDM-v2.12.36.20-WHQL-Certified.zip` | https://ftdichip.com/wp-content/uploads/2025/03/CDM-v2.12.36.20-WHQL-Certified.zip |
-| Linux    | `libftd2xx-linux-x86_64-1.4.33.tgz`  | https://ftdichip.com/wp-content/uploads/2025/03/libftd2xx-linux-x86_64-1.4.33.tgz  |
+Go to the FTDI D2XX drivers page and download the latest version for your platform:
+
+**https://ftdichip.com/drivers/d2xx-drivers/**
+
+| Platform | Archive name pattern |
+|----------|----------------------|
+| Windows  | `CDM-vX.XX.XX-WHQL-Certified.zip` |
+| Linux x86_64 | `libftd2xx-linux-x86_64-X.X.XX.tgz` |
 
 ### Build instructions
 
@@ -22,12 +26,12 @@ After downloading, pass the archive path to CMake:
 
 **Windows:**
 ```
-cmake -S . -B build -DFTDI_ARCHIVE_PATH=C:\path\to\CDM-v2.12.36.20-WHQL-Certified.zip
+cmake -S . -B build -DFTDI_ARCHIVE_PATH=C:\path\to\CDM-vX.XX.XX-WHQL-Certified.zip
 ```
 
 **Linux:**
 ```
-cmake -S . -B build -DFTDI_ARCHIVE_PATH=/path/to/libftd2xx-linux-x86_64-1.4.33.tgz
+cmake -S . -B build -DFTDI_ARCHIVE_PATH=/path/to/libftd2xx-linux-x86_64-X.X.XX.tgz
 ```
 
 CMake will extract the library into `__Builds/` on the first run. Subsequent builds
