@@ -140,28 +140,6 @@ public:
 		return *this;
 	}
 
-	ByteArray& prepend(const ByteArray& other)
-	{
-		_data.insert(0, other._data);
-		_isNull = false;
-		return *this;
-	}
-
-	ByteArray& prepend(const char* data)
-	{
-		if (data)
-			_data.insert(0, data);
-		_isNull = false;
-		return *this;
-	}
-
-	ByteArray& prepend(char ch)
-	{
-		_data.insert(_data.begin(), ch);
-		_isNull = false;
-		return *this;
-	}
-
 	// --- Insert / Remove ---
 
 	ByteArray& insert(int pos, const ByteArray& other)
@@ -206,26 +184,6 @@ public:
 		return *this;
 	}
 
-	void chop(int n)
-	{
-		if (n >= size())
-			_data.clear();
-		else if (n > 0)
-			_data.erase(_data.size() - static_cast<size_t>(n));
-	}
-
-	ByteArray chopped(int len) const
-	{
-		if (len >= size()) return ByteArray("");
-		return ByteArray(_data.substr(0, _data.size() - static_cast<size_t>(len)));
-	}
-
-	void truncate(int pos)
-	{
-		if (pos < size())
-			_data.resize(static_cast<size_t>(pos));
-	}
-
 	// --- Search ---
 
 	bool contains(const ByteArray& other) const
@@ -252,20 +210,6 @@ public:
 	int indexOf(char ch, int from = 0) const
 	{
 		auto pos = _data.find(ch, static_cast<size_t>(from));
-		return pos == std::string::npos ? -1 : static_cast<int>(pos);
-	}
-
-	int lastIndexOf(const ByteArray& other, int from = -1) const
-	{
-		size_t searchFrom = (from < 0) ? std::string::npos : static_cast<size_t>(from);
-		auto pos = _data.rfind(other._data, searchFrom);
-		return pos == std::string::npos ? -1 : static_cast<int>(pos);
-	}
-
-	int lastIndexOf(char ch, int from = -1) const
-	{
-		size_t searchFrom = (from < 0) ? std::string::npos : static_cast<size_t>(from);
-		auto pos = _data.rfind(ch, searchFrom);
 		return pos == std::string::npos ? -1 : static_cast<int>(pos);
 	}
 
@@ -330,20 +274,6 @@ public:
 		return ByteArray(_data.substr(0, static_cast<size_t>(len)));
 	}
 
-	ByteArray right(int len) const
-	{
-		if (len >= size()) return *this;
-		return ByteArray(_data.substr(_data.size() - static_cast<size_t>(len)));
-	}
-
-	ByteArray mid(int pos, int len = -1) const
-	{
-		if (pos >= size()) return ByteArray();
-		if (len < 0)
-			return ByteArray(_data.substr(static_cast<size_t>(pos)));
-		return ByteArray(_data.substr(static_cast<size_t>(pos), static_cast<size_t>(len)));
-	}
-
 	// --- Case conversion ---
 
 	ByteArray toLower() const
@@ -380,32 +310,6 @@ public:
 		try {
 			size_t pos = 0;
 			int result = std::stoi(_data, &pos, base);
-			if (ok) *ok = (pos == _data.size());
-			return result;
-		} catch (...) {
-			if (ok) *ok = false;
-			return 0;
-		}
-	}
-
-	double toDouble(bool* ok = nullptr) const
-	{
-		try {
-			size_t pos = 0;
-			double result = std::stod(_data, &pos);
-			if (ok) *ok = (pos == _data.size());
-			return result;
-		} catch (...) {
-			if (ok) *ok = false;
-			return 0.0;
-		}
-	}
-
-	long toLong(bool* ok = nullptr, int base = 10) const
-	{
-		try {
-			size_t pos = 0;
-			long result = std::stol(_data, &pos, base);
 			if (ok) *ok = (pos == _data.size());
 			return result;
 		} catch (...) {

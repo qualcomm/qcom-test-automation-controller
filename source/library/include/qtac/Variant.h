@@ -76,7 +76,6 @@ public:
 	unsigned int toUInt(bool* ok = nullptr) const;
 	long long toLongLong(bool* ok = nullptr) const;
 	unsigned long long toULongLong(bool* ok = nullptr) const;
-	double toDouble(bool* ok = nullptr) const;
 	qtac::String toString() const;
 	ByteArray toByteArray() const;
 
@@ -111,7 +110,6 @@ template<> inline int Variant::value<int>() const { return toInt(); }
 template<> inline unsigned int Variant::value<unsigned int>() const { return toUInt(); }
 template<> inline long long Variant::value<long long>() const { return toLongLong(); }
 template<> inline unsigned long long Variant::value<unsigned long long>() const { return toULongLong(); }
-template<> inline double Variant::value<double>() const { return toDouble(); }
 template<> inline String Variant::value<String>() const { return toString(); }
 template<> inline ByteArray Variant::value<ByteArray>() const { return toByteArray(); }
 

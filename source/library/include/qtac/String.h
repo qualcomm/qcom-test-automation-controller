@@ -77,16 +77,12 @@ public:
 
 	// --- Conversion to ByteArray ---
 	ByteArray toLatin1() const;
-	ByteArray toUtf8() const;
-	ByteArray toLocal8Bit() const;
 
 	// --- Numeric conversions ---
 	int toInt(bool* ok = nullptr, int base = 10) const;
 	unsigned int toUInt(bool* ok = nullptr, int base = 10) const;
 	long long toLongLong(bool* ok = nullptr, int base = 10) const;
 	unsigned long long toULongLong(bool* ok = nullptr, int base = 10) const;
-	double toDouble(bool* ok = nullptr) const;
-	float toFloat(bool* ok = nullptr) const;
 
 	// --- Case conversion ---
 	String toUpper() const;
@@ -94,24 +90,19 @@ public:
 
 	// --- Trimming ---
 	String trimmed() const;
-	String simplified() const;
 
 	// --- Search ---
 	bool contains(const String& str, bool caseSensitive = true) const;
 	bool contains(char ch, bool caseSensitive = true) const;
 	int indexOf(const String& str, int from = 0) const;
 	int indexOf(char ch, int from = 0) const;
-	int lastIndexOf(const String& str, int from = -1) const;
-	int lastIndexOf(char ch, int from = -1) const;
 	bool startsWith(const String& str, bool caseSensitive = true) const;
 	bool startsWith(char ch, bool caseSensitive = true) const;
 	bool endsWith(const String& str, bool caseSensitive = true) const;
 	bool endsWith(char ch, bool caseSensitive = true) const;
 
 	// --- Substrings ---
-	String mid(int pos, int len = -1) const;
 	String left(int len) const;
-	String right(int len) const;
 
 	// --- Split ---
 	StringList split(const String& separator) const;
@@ -145,7 +136,6 @@ public:
 	// --- Append ---
 	String& append(const String& str);
 	String& append(char ch);
-	String& prepend(const String& str);
 
 	// --- Operators ---
 	String& operator+=(const String& other);

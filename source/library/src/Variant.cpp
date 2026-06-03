@@ -136,19 +136,6 @@ unsigned long long Variant::toULongLong(bool* ok) const
 	return 0;
 }
 
-double Variant::toDouble(bool* ok) const
-{
-	if (auto* v = std::get_if<double>(&_data)) { if (ok) *ok = true; return *v; }
-	if (auto* v = std::get_if<bool>(&_data)) { if (ok) *ok = true; return *v ? 1.0 : 0.0; }
-	if (auto* v = std::get_if<int>(&_data)) { if (ok) *ok = true; return *v; }
-	if (auto* v = std::get_if<unsigned int>(&_data)) { if (ok) *ok = true; return *v; }
-	if (auto* v = std::get_if<long long>(&_data)) { if (ok) *ok = true; return static_cast<double>(*v); }
-	if (auto* v = std::get_if<unsigned long long>(&_data)) { if (ok) *ok = true; return static_cast<double>(*v); }
-	if (auto* v = std::get_if<qtac::String>(&_data)) { return v->toDouble(ok); }
-	if (ok) *ok = false;
-	return 0.0;
-}
-
 qtac::String Variant::toString() const
 {
 	if (auto* v = std::get_if<qtac::String>(&_data)) return *v;

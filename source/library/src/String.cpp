@@ -120,8 +120,6 @@ std::string String::toStdString() const { return _data; }
 // --- Conversion to ByteArray ---
 
 ByteArray String::toLatin1() const { return ByteArray(_data); }
-ByteArray String::toUtf8() const { return ByteArray(_data); }
-ByteArray String::toLocal8Bit() const { return ByteArray(_data); }
 
 // --- Numeric conversions ---
 
@@ -177,32 +175,6 @@ unsigned long long String::toULongLong(bool* ok, int base) const
 	}
 }
 
-double String::toDouble(bool* ok) const
-{
-	try {
-		size_t pos = 0;
-		double result = std::stod(_data, &pos);
-		if (ok) *ok = (pos == _data.size());
-		return result;
-	} catch (...) {
-		if (ok) *ok = false;
-		return 0.0;
-	}
-}
-
-float String::toFloat(bool* ok) const
-{
-	try {
-		size_t pos = 0;
-		float result = std::stof(_data, &pos);
-		if (ok) *ok = (pos == _data.size());
-		return result;
-	} catch (...) {
-		if (ok) *ok = false;
-		return 0.0f;
-	}
-}
-
 // --- Case conversion ---
 
 String String::toUpper() const
@@ -232,27 +204,6 @@ String String::trimmed() const
 	return String(_data.substr(start, end - start + 1));
 }
 
-String String::simplified() const
-{
-	std::string result;
-	result.reserve(_data.size());
-	bool inSpace = true;
-	for (unsigned char c : _data) {
-		if (std::isspace(c)) {
-			if (!inSpace && !result.empty()) {
-				result.push_back(' ');
-				inSpace = true;
-			}
-		} else {
-			result.push_back(static_cast<char>(c));
-			inSpace = false;
-		}
-	}
-	if (!result.empty() && result.back() == ' ')
-		result.pop_back();
-	return String(std::move(result));
-}
-
 // --- Search ---
 
 bool String::contains(const String& str, bool caseSensitive) const
@@ -279,20 +230,6 @@ int String::indexOf(const String& str, int from) const
 int String::indexOf(char ch, int from) const
 {
 	auto pos = _data.find(ch, static_cast<size_t>(from));
-	return pos == std::string::npos ? -1 : static_cast<int>(pos);
-}
-
-int String::lastIndexOf(const String& str, int from) const
-{
-	size_t searchFrom = (from < 0) ? std::string::npos : static_cast<size_t>(from);
-	auto pos = _data.rfind(str._data, searchFrom);
-	return pos == std::string::npos ? -1 : static_cast<int>(pos);
-}
-
-int String::lastIndexOf(char ch, int from) const
-{
-	size_t searchFrom = (from < 0) ? std::string::npos : static_cast<size_t>(from);
-	auto pos = _data.rfind(ch, searchFrom);
 	return pos == std::string::npos ? -1 : static_cast<int>(pos);
 }
 
@@ -332,23 +269,9 @@ bool String::endsWith(char ch, bool caseSensitive) const
 
 // --- Substrings ---
 
-String String::mid(int pos, int len) const
-{
-	if (pos >= size()) return String("");
-	if (len < 0)
-		return String(_data.substr(static_cast<size_t>(pos)));
-	return String(_data.substr(static_cast<size_t>(pos), static_cast<size_t>(len)));
-}
-
 String String::left(int len) const
 {
 	return String(_data.substr(0, static_cast<size_t>(len)));
-}
-
-String String::right(int len) const
-{
-	if (len >= size()) return *this;
-	return String(_data.substr(_data.size() - static_cast<size_t>(len)));
 }
 
 // --- Replace ---
@@ -497,7 +420,6 @@ String String::number(double value, char format, int precision)
 
 String& String::append(const String& str) { _data += str._data; _isNull = false; return *this; }
 String& String::append(char ch) { _data += ch; _isNull = false; return *this; }
-String& String::prepend(const String& str) { _data.insert(0, str._data); _isNull = false; return *this; }
 
 // --- Operators ---
 
