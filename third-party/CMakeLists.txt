@@ -34,14 +34,20 @@
 
 cmake_minimum_required(VERSION 3.16)
 
+# Primary: GitHub Release mirror (not behind Cloudflare, works from any machine).
+# Fallback: ftdichip.com direct (blocked by Cloudflare on some networks).
+set(FTDI_GITHUB_RELEASE_BASE "https://github.com/qualcomm/qcom-test-automation-controller/releases/download/v0.1.0-deps")
+
 if(WIN32)
-    set(FTDI_URL "https://ftdichip.com/wp-content/uploads/2025/03/CDM-v2.12.36.20-WHQL-Certified.zip")
     set(FTDI_ARCHIVE "CDM-v2.12.36.20-WHQL-Certified.zip")
+    set(FTDI_URL_PRIMARY "${FTDI_GITHUB_RELEASE_BASE}/${FTDI_ARCHIVE}")
+    set(FTDI_URL_FALLBACK "https://ftdichip.com/wp-content/uploads/2025/03/CDM-v2.12.36.20-WHQL-Certified.zip")
     set(DEBUG_LIB "${CMAKE_SOURCE_DIR}/__Builds/x64/Debug/lib/ftd2xx.lib")
     set(RELEASE_LIB "${CMAKE_SOURCE_DIR}/__Builds/x64/Release/lib/ftd2xx.lib")
 else()
-    set(FTDI_URL "https://ftdichip.com/wp-content/uploads/2025/03/libftd2xx-linux-x86_64-1.4.33.tgz")
     set(FTDI_ARCHIVE "libftd2xx-linux-x86_64-1.4.33.tgz")
+    set(FTDI_URL_PRIMARY "${FTDI_GITHUB_RELEASE_BASE}/${FTDI_ARCHIVE}")
+    set(FTDI_URL_FALLBACK "https://ftdichip.com/wp-content/uploads/2025/03/libftd2xx-linux-x86_64-1.4.33.tgz")
     set(DEBUG_LIB "${CMAKE_SOURCE_DIR}/__Builds/Linux/Debug/lib/libftd2xx.a")
     set(RELEASE_LIB "${CMAKE_SOURCE_DIR}/__Builds/Linux/Release/lib/libftd2xx.a")
 endif()
@@ -49,8 +55,8 @@ endif()
 set(ARCHIVE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/${FTDI_ARCHIVE}")
 set(TEMP_DIR "${CMAKE_CURRENT_SOURCE_DIR}/temp_extract")
 
-# Allow specifying a pre-downloaded archive to bypass the download step.
-# Useful when the download URL is blocked by Cloudflare or a firewall.
+# Allow specifying a pre-downloaded archive to bypass the download step entirely.
+# Useful in air-gapped or fully restricted environments.
 # Usage: cmake -DFTDI_ARCHIVE_PATH=/path/to/<archive> ...
 set(FTDI_ARCHIVE_PATH "" CACHE FILEPATH "Path to a pre-downloaded FTDI archive (skips download)")
 
@@ -59,34 +65,48 @@ if(NOT EXISTS "${DEBUG_LIB}" OR NOT EXISTS "${RELEASE_LIB}")
     set(NEED_DOWNLOAD TRUE)
 endif()
 
+# Try to download a URL and validate it is a real archive (not a Cloudflare block page).
+# Sets FTDI_DOWNLOAD_OK to TRUE on success.
+macro(try_ftdi_download URL)
+    set(FTDI_DOWNLOAD_OK FALSE)
+    set(RETRY_COUNT 0)
+    while(RETRY_COUNT LESS 3)
+        math(EXPR RETRY_COUNT "${RETRY_COUNT} + 1")
+        if(EXISTS "${ARCHIVE_PATH}")
+            file(REMOVE "${ARCHIVE_PATH}")
+        endif()
+        file(DOWNLOAD "${URL}" "${ARCHIVE_PATH}" SHOW_PROGRESS STATUS DOWNLOAD_STATUS TIMEOUT 300)
+        list(GET DOWNLOAD_STATUS 0 DOWNLOAD_ERROR_CODE)
+        if(DOWNLOAD_ERROR_CODE EQUAL 0 AND EXISTS "${ARCHIVE_PATH}")
+            execute_process(COMMAND ${CMAKE_COMMAND} -E tar tf "${ARCHIVE_PATH}" RESULT_VARIABLE TAR_RESULT OUTPUT_QUIET ERROR_QUIET)
+            if(TAR_RESULT EQUAL 0)
+                set(FTDI_DOWNLOAD_OK TRUE)
+                break()
+            endif()
+        endif()
+        if(RETRY_COUNT LESS 3)
+            execute_process(COMMAND ${CMAKE_COMMAND} -E sleep 5)
+        endif()
+    endwhile()
+endmacro()
+
 if(NEED_DOWNLOAD)
     if(FTDI_ARCHIVE_PATH AND EXISTS "${FTDI_ARCHIVE_PATH}")
         message(STATUS "Using pre-downloaded FTDI archive: ${FTDI_ARCHIVE_PATH}")
         file(COPY_FILE "${FTDI_ARCHIVE_PATH}" "${ARCHIVE_PATH}")
     else()
-        set(RETRY_COUNT 0)
-        while(RETRY_COUNT LESS 3)
-            math(EXPR RETRY_COUNT "${RETRY_COUNT} + 1")
-            if(EXISTS "${ARCHIVE_PATH}")
-                file(REMOVE "${ARCHIVE_PATH}")
-            endif()
-            file(DOWNLOAD "${FTDI_URL}" "${ARCHIVE_PATH}" SHOW_PROGRESS STATUS DOWNLOAD_STATUS TIMEOUT 300)
-            list(GET DOWNLOAD_STATUS 0 DOWNLOAD_ERROR_CODE)
-            if(DOWNLOAD_ERROR_CODE EQUAL 0 AND EXISTS "${ARCHIVE_PATH}")
-                execute_process(COMMAND ${CMAKE_COMMAND} -E tar tf "${ARCHIVE_PATH}" RESULT_VARIABLE TAR_RESULT OUTPUT_QUIET ERROR_QUIET)
-                if(TAR_RESULT EQUAL 0)
-                    break()
-                endif()
-            endif()
-            if(RETRY_COUNT LESS 3)
-                execute_process(COMMAND ${CMAKE_COMMAND} -E sleep 5)
-            endif()
-        endwhile()
-        if(RETRY_COUNT EQUAL 3)
-            message(FATAL_ERROR "Failed to download FTDI library after 3 attempts.\n"
-                "If the download URL is blocked (e.g. by Cloudflare), manually download:\n"
-                "  ${FTDI_URL}\n"
-                "then re-run CMake with: -DFTDI_ARCHIVE_PATH=/path/to/${FTDI_ARCHIVE}")
+        # Try GitHub Release mirror first, then fall back to ftdichip.com.
+        message(STATUS "Downloading FTDI library from GitHub Release mirror...")
+        try_ftdi_download("${FTDI_URL_PRIMARY}")
+        if(NOT FTDI_DOWNLOAD_OK)
+            message(STATUS "GitHub Release mirror failed, trying ftdichip.com directly...")
+            try_ftdi_download("${FTDI_URL_FALLBACK}")
+        endif()
+        if(NOT FTDI_DOWNLOAD_OK)
+            message(FATAL_ERROR "Failed to download FTDI library from all sources.\n"
+                "The ftdichip.com URL may be blocked by Cloudflare on this network.\n"
+                "To fix: manually download ${FTDI_ARCHIVE} from a browser, then re-run CMake with:\n"
+                "  -DFTDI_ARCHIVE_PATH=/path/to/${FTDI_ARCHIVE}")
         endif()
     endif()
     
