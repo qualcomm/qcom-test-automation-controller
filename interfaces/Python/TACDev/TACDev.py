@@ -582,8 +582,10 @@ class TACDevice:
     def SetupClassEntries(self, tacDll):
         self.__openByNameFunc = tacDll.OpenHandleByDescription
         self.__openByNameFunc.argtypes = [c_char_p]
+        self.__openByNameFunc.restype = c_ulong
 
         self.__closeFunc = tacDll.CloseTACHandle
+        self.__closeFunc.restype = c_ulong
         self.__nameFunc = tacDll.GetName
         self.__firmwareVersionFunc = tacDll.GetFirmwareVersion
         self.__hardwareFunc = tacDll.GetHardware
