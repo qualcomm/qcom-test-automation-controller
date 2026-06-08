@@ -38,6 +38,75 @@ include(${CMAKE_CURRENT_SOURCE_DIR}/cmake/QtacCommon.cmake)
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
+# -----------------------------------------------------------------------
+# libserialport — compiled from source for PSoC/PIC32CX serial communication.
+# libserialport uses autotools, not CMake, so we fetch the sources and compile
+# the relevant .c files directly (same approach as tac-core).
+# -----------------------------------------------------------------------
+include(FetchContent)
+enable_language(C)
+
+FetchContent_Declare(
+    libserialport
+    GIT_REPOSITORY https://github.com/sigrokproject/libserialport.git
+    GIT_TAG        master
+    GIT_SHALLOW    TRUE
+)
+FetchContent_GetProperties(libserialport)
+if(NOT libserialport_POPULATED)
+    FetchContent_Populate(libserialport)
+endif()
+
+set(LIBSERIALPORT_CONFIG_DIR "${CMAKE_CURRENT_BINARY_DIR}/libserialport_config")
+file(MAKE_DIRECTORY "${LIBSERIALPORT_CONFIG_DIR}")
+
+if(NOT WIN32)
+    file(WRITE "${LIBSERIALPORT_CONFIG_DIR}/config.h" [=[
+/* Generated config.h for libserialport on Linux/macOS */
+#define SP_PRIV __attribute__((visibility("hidden")))
+#define SP_API  __attribute__((visibility("default")))
+#define HAVE_STRUCT_SERIAL_STRUCT 1
+#define HAVE_STRUCT_TERMIOS2 1
+#define HAVE_DECL_BOTHER 1
+#define HAVE_REALPATH 1
+#define HAVE_FLOCK 1
+]=])
+endif()
+
+set(LIBSERIALPORT_SOURCES
+    "${libserialport_SOURCE_DIR}/serialport.c"
+    "${libserialport_SOURCE_DIR}/timing.c"
+)
+if(WIN32)
+    list(APPEND LIBSERIALPORT_SOURCES "${libserialport_SOURCE_DIR}/windows.c")
+else()
+    list(APPEND LIBSERIALPORT_SOURCES
+        "${libserialport_SOURCE_DIR}/linux.c"
+        "${libserialport_SOURCE_DIR}/linux_termios.c"
+    )
+endif()
+
+add_library(serialport STATIC ${LIBSERIALPORT_SOURCES})
+target_include_directories(serialport PUBLIC "${libserialport_SOURCE_DIR}")
+if(NOT WIN32)
+    target_include_directories(serialport PRIVATE "${LIBSERIALPORT_CONFIG_DIR}")
+endif()
+target_compile_definitions(serialport
+    PUBLIC  $<$<PLATFORM_ID:Windows>:LIBSERIALPORT_MSBUILD>
+    PRIVATE $<$<PLATFORM_ID:Windows>:_WIN32>
+    PRIVATE $<$<NOT:$<PLATFORM_ID:Windows>>:LIBSERIALPORT_ATBUILD>
+)
+if(WIN32)
+    target_link_libraries(serialport PRIVATE setupapi)
+else()
+    target_link_libraries(serialport PRIVATE pthread)
+endif()
+if(MSVC)
+    target_compile_options(serialport PRIVATE /W0)
+else()
+    target_compile_options(serialport PRIVATE -w)
+endif()
+
 add_library(qtac-core STATIC
     src/qtac_core.cpp
     src/String.cpp
@@ -49,7 +118,17 @@ add_library(qtac-core STATIC
     src/FTDIPlatformConfiguration.cpp
     src/FTDIChipset.cpp
     src/FTDIDevice.cpp
+    # Serial port (W2)
+    src/SerialPort.cpp
+    src/SerialPortInfo.cpp
 )
+
+# Platform-specific SerialPortInfo enumeration
+if(WIN32)
+    target_sources(qtac-core PRIVATE src/platform/SerialPortInfo_win32.cpp)
+else()
+    target_sources(qtac-core PRIVATE src/platform/SerialPortInfo_posix.cpp)
+endif()
 
 target_include_directories(qtac-core PUBLIC
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
@@ -58,6 +137,8 @@ target_include_directories(qtac-core PUBLIC
 
 target_compile_features(qtac-core PUBLIC cxx_std_20)
 QtacCoreSettings(qtac-core)
+
+target_link_libraries(qtac-core PUBLIC serialport)
 
 # -----------------------------------------------------------------------
 # FTDI D2XX library
