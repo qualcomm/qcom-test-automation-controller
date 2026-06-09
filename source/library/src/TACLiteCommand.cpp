@@ -37,32 +37,32 @@
 #include <qtac/SendInterface.h>
 
 // Command string constants (mirrors TACCommands.h)
-static const std::string kVersionCommand               {"Version"};
-static const std::string kGetNameCommand               {"Get Name"};
-static const std::string kSetNameCommand               {"Set Name"};
-static const std::string kGetUUIDCommand               {"Get UUID"};
-static const std::string kGetPlatformIDCommand         {"Get Platform ID"};
-static const std::string kGetResetCountCommand         {"Get Reset Count"};
-static const std::string kClearResetCountCommand       {"Clear Reset Count"};
-static const std::string kSetPinCommand                {"SetPin"};
-static const std::string kSetBatteryCommand            {"Battery"};
-static const std::string kSetUSB0Command               {"USB0"};
-static const std::string kSetUSB1Command               {"USB1"};
-static const std::string kSetPowerKeyCommand           {"Power Key"};
-static const std::string kSetVolumeUpCommand           {"Volume Up"};
-static const std::string kSetVolumeDownCommand         {"Volume Down"};
-static const std::string kSetExternalPowerControlCommand {"External Power Control"};
-static const std::string kSetDisconnectUIM1Command     {"Disconnect UIM1"};
-static const std::string kSetDisconnectUIM2Command     {"Disconnect UIM2"};
-static const std::string kSetForcePSHoldHighCommand    {"Force PS Hold High"};
-static const std::string kSetDisconnectSDCardCommand   {"Disconnect SDCARD"};
-static const std::string kSetPrimaryEDLCommand         {"Primary EDL"};
-static const std::string kSetSecondaryEDLCommand       {"Secondary EDL"};
-static const std::string kSecondaryPM_RESIN_NCommand   {"Secondary PM RESIN N"};
-static const std::string kSetEUDCommand                {"EUD"};
-static const std::string kSetHeadsetDisconnectCommand  {"Headset Disconnect"};
-static const std::string kI2CReadRegisterCommand       {"I2C Read Register"};
-static const std::string kI2CWriteRegisterCommand      {"I2C Write Register"};
+static const qtac::ByteArray kVersionCommand               {"Version"};
+static const qtac::ByteArray kGetNameCommand               {"Get Name"};
+static const qtac::ByteArray kSetNameCommand               {"Set Name"};
+static const qtac::ByteArray kGetUUIDCommand               {"Get UUID"};
+static const qtac::ByteArray kGetPlatformIDCommand         {"Get Platform ID"};
+static const qtac::ByteArray kGetResetCountCommand         {"Get Reset Count"};
+static const qtac::ByteArray kClearResetCountCommand       {"Clear Reset Count"};
+static const qtac::ByteArray kSetPinCommand                {"SetPin"};
+static const qtac::ByteArray kSetBatteryCommand            {"Battery"};
+static const qtac::ByteArray kSetUSB0Command               {"USB0"};
+static const qtac::ByteArray kSetUSB1Command               {"USB1"};
+static const qtac::ByteArray kSetPowerKeyCommand           {"Power Key"};
+static const qtac::ByteArray kSetVolumeUpCommand           {"Volume Up"};
+static const qtac::ByteArray kSetVolumeDownCommand         {"Volume Down"};
+static const qtac::ByteArray kSetExternalPowerControlCommand {"External Power Control"};
+static const qtac::ByteArray kSetDisconnectUIM1Command     {"Disconnect UIM1"};
+static const qtac::ByteArray kSetDisconnectUIM2Command     {"Disconnect UIM2"};
+static const qtac::ByteArray kSetForcePSHoldHighCommand    {"Force PS Hold High"};
+static const qtac::ByteArray kSetDisconnectSDCardCommand   {"Disconnect SDCARD"};
+static const qtac::ByteArray kSetPrimaryEDLCommand         {"Primary EDL"};
+static const qtac::ByteArray kSetSecondaryEDLCommand       {"Secondary EDL"};
+static const qtac::ByteArray kSecondaryPM_RESIN_NCommand   {"Secondary PM RESIN N"};
+static const qtac::ByteArray kSetEUDCommand                {"EUD"};
+static const qtac::ByteArray kSetHeadsetDisconnectCommand  {"Headset Disconnect"};
+static const qtac::ByteArray kI2CReadRegisterCommand       {"I2C Read Register"};
+static const qtac::ByteArray kI2CWriteRegisterCommand      {"I2C Write Register"};
 
 namespace qtac {
 
@@ -80,17 +80,17 @@ TACLiteCommand::~TACLiteCommand()
 
 void TACLiteCommand::version()
 {
-    send(qtac::ByteArray(kVersionCommand), Arguments(), false);
+    send(kVersionCommand, Arguments(), false);
 }
 
 void TACLiteCommand::name()
 {
-    send(qtac::ByteArray(kGetNameCommand), Arguments(), false);
+    send(kGetNameCommand, Arguments(), false);
 }
 
 void TACLiteCommand::uuid()
 {
-    send(qtac::ByteArray(kGetUUIDCommand), Arguments(), false, false);
+    send(kGetUUIDCommand, Arguments(), false, false);
 }
 
 void TACLiteCommand::setPinState(uint16_t pin, bool state)
@@ -98,73 +98,73 @@ void TACLiteCommand::setPinState(uint16_t pin, bool state)
     Arguments args;
     args.push_back(state);
     args.push_back(static_cast<uint32_t>(pin));
-    send(qtac::ByteArray(kSetPinCommand), args, false, false);
+    send(kSetPinCommand, args, false, false);
 }
 
 void TACLiteCommand::battery(bool state)
 {
     Arguments args;
     args.push_back(state);
-    send(qtac::ByteArray(kSetBatteryCommand), args, false, false);
+    send(kSetBatteryCommand, args, false, false);
 }
 
 void TACLiteCommand::usb0(bool state)
 {
     Arguments args;
     args.push_back(state);
-    send(qtac::ByteArray(kSetUSB0Command), args, false);
+    send(kSetUSB0Command, args, false);
 }
 
 void TACLiteCommand::usb1(bool state)
 {
     Arguments args;
     args.push_back(state);
-    send(qtac::ByteArray(kSetUSB1Command), args, false);
+    send(kSetUSB1Command, args, false);
 }
 
 void TACLiteCommand::externalPowerControl(bool state)
 {
     Arguments args;
     args.push_back(state);
-    send(qtac::ByteArray(kSetExternalPowerControlCommand), args, false);
+    send(kSetExternalPowerControlCommand, args, false);
 }
 
 void TACLiteCommand::powerKey(bool state)
 {
     Arguments args;
     args.push_back(state);
-    send(qtac::ByteArray(kSetPowerKeyCommand), args, false);
+    send(kSetPowerKeyCommand, args, false);
 }
 
 void TACLiteCommand::volumeUp(bool state)
 {
     Arguments args;
     args.push_back(state);
-    send(qtac::ByteArray(kSetVolumeUpCommand), args, false);
+    send(kSetVolumeUpCommand, args, false);
 }
 
 void TACLiteCommand::volumeDown(bool state)
 {
     Arguments args;
     args.push_back(state);
-    send(qtac::ByteArray(kSetVolumeDownCommand), args, false);
+    send(kSetVolumeDownCommand, args, false);
 }
 
 void TACLiteCommand::setName(const qtac::ByteArray& newName)
 {
     Arguments args;
     args.push_back(newName.toStdString());
-    send(qtac::ByteArray(kSetNameCommand), args, false);
+    send(kSetNameCommand, args, false);
 }
 
 void TACLiteCommand::getResetCount()
 {
-    send(qtac::ByteArray(kGetResetCountCommand), Arguments(), false);
+    send(kGetResetCountCommand, Arguments(), false);
 }
 
 void TACLiteCommand::clearResetCount()
 {
-    send(qtac::ByteArray(kClearResetCountCommand), Arguments(), false);
+    send(kClearResetCountCommand, Arguments(), false);
 }
 
 void TACLiteCommand::i2CReadRegister(uint32_t addr, uint32_t reg)
@@ -172,7 +172,7 @@ void TACLiteCommand::i2CReadRegister(uint32_t addr, uint32_t reg)
     Arguments args;
     args.push_back(addr);
     args.push_back(reg);
-    send(qtac::ByteArray(kI2CReadRegisterCommand), args, false);
+    send(kI2CReadRegisterCommand, args, false);
 }
 
 void TACLiteCommand::i2CWriteRegister(uint32_t addr, uint32_t reg, uint32_t data)
@@ -181,7 +181,7 @@ void TACLiteCommand::i2CWriteRegister(uint32_t addr, uint32_t reg, uint32_t data
     args.push_back(addr);
     args.push_back(reg);
     args.push_back(data);
-    send(qtac::ByteArray(kI2CWriteRegisterCommand), args, false);
+    send(kI2CWriteRegisterCommand, args, false);
 }
 
 void TACLiteCommand::send(const qtac::ByteArray& command, const Arguments& arguments,
@@ -209,68 +209,68 @@ void TACLiteCommand::disconnectUIM1Button(bool state)
 {
     Arguments args;
     args.push_back(state);
-    send(qtac::ByteArray(kSetDisconnectUIM1Command), args, false);
+    send(kSetDisconnectUIM1Command, args, false);
 }
 
 void TACLiteCommand::disconnectUIM2Button(bool state)
 {
     Arguments args;
     args.push_back(state);
-    send(qtac::ByteArray(kSetDisconnectUIM2Command), args, false);
+    send(kSetDisconnectUIM2Command, args, false);
 }
 
 void TACLiteCommand::forcePSHoldHigh(bool state)
 {
     Arguments args;
     args.push_back(state);
-    send(qtac::ByteArray(kSetForcePSHoldHighCommand), args, false);
+    send(kSetForcePSHoldHighCommand, args, false);
 }
 
 void TACLiteCommand::disconnectSDCard(bool state)
 {
     Arguments args;
     args.push_back(state);
-    send(qtac::ByteArray(kSetDisconnectSDCardCommand), args, false);
+    send(kSetDisconnectSDCardCommand, args, false);
 }
 
 void TACLiteCommand::primaryEDL(bool state)
 {
     Arguments args;
     args.push_back(state);
-    send(qtac::ByteArray(kSetPrimaryEDLCommand), args, false);
+    send(kSetPrimaryEDLCommand, args, false);
 }
 
 void TACLiteCommand::secondaryEDL(bool state)
 {
     Arguments args;
     args.push_back(state);
-    send(qtac::ByteArray(kSetSecondaryEDLCommand), args, false);
+    send(kSetSecondaryEDLCommand, args, false);
 }
 
 void TACLiteCommand::secondaryPMResinN(bool state)
 {
     Arguments args;
     args.push_back(state);
-    send(qtac::ByteArray(kSecondaryPM_RESIN_NCommand), args, false);
+    send(kSecondaryPM_RESIN_NCommand, args, false);
 }
 
 void TACLiteCommand::eud(bool state)
 {
     Arguments args;
     args.push_back(state);
-    send(qtac::ByteArray(kSetEUDCommand), args, false);
+    send(kSetEUDCommand, args, false);
 }
 
 void TACLiteCommand::platformID()
 {
-    send(qtac::ByteArray(kGetPlatformIDCommand), Arguments(), false);
+    send(kGetPlatformIDCommand, Arguments(), false);
 }
 
 void TACLiteCommand::headsetDisconnect(bool state)
 {
     Arguments args;
     args.push_back(state);
-    send(qtac::ByteArray(kSetHeadsetDisconnectCommand), args, false);
+    send(kSetHeadsetDisconnectCommand, args, false);
 }
 
 } // namespace qtac

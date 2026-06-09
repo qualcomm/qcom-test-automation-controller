@@ -39,13 +39,13 @@
 #include <cassert>
 
 // PIC32CX command string constants
-static const std::string kVersionCommand              {"Version"};
-static const std::string kGetNameCommand              {"Get Name"};
-static const std::string kGetUUIDCommand              {"Get UUID"};
-static const std::string kSetNameCommand              {"Set Name"};
-static const std::string kPIC32CXPlatformIDCommand    {"*IDN?"};
-static const std::string kPIC32CXSetPinCommand        {"CONF:DIG:ON"};
-static const std::string kPIC32CXClearBufferCommand   {"echo 1"};
+static const qtac::ByteArray kVersionCommand              {"Version"};
+static const qtac::ByteArray kGetNameCommand              {"Get Name"};
+static const qtac::ByteArray kGetUUIDCommand              {"Get UUID"};
+static const qtac::ByteArray kSetNameCommand              {"Set Name"};
+static const qtac::ByteArray kPIC32CXPlatformIDCommand    {"*IDN?"};
+static const qtac::ByteArray kPIC32CXSetPinCommand        {"CONF:DIG:ON"};
+static const qtac::ByteArray kPIC32CXClearBufferCommand   {"echo 1"};
 
 namespace qtac {
 
@@ -66,17 +66,17 @@ TACPIC32CXCommand::~TACPIC32CXCommand()
 
 void TACPIC32CXCommand::version()
 {
-    send(qtac::ByteArray(kVersionCommand), Arguments(), false, false);
+    send(kVersionCommand, Arguments(), false, false);
 }
 
 void TACPIC32CXCommand::name()
 {
-    send(qtac::ByteArray(kGetNameCommand), Arguments(), false, false);
+    send(kGetNameCommand, Arguments(), false, false);
 }
 
 void TACPIC32CXCommand::uuid()
 {
-    send(qtac::ByteArray(kGetUUIDCommand), Arguments(), false, false);
+    send(kGetUUIDCommand, Arguments(), false, false);
 }
 
 void TACPIC32CXCommand::setPinState(uint16_t pin, bool state)
@@ -84,24 +84,24 @@ void TACPIC32CXCommand::setPinState(uint16_t pin, bool state)
     Arguments args;
     args.push_back(state);
     args.push_back(static_cast<uint32_t>(pin));
-    send(qtac::ByteArray(kPIC32CXSetPinCommand), args, false, false);
+    send(kPIC32CXSetPinCommand, args, false, false);
 }
 
 void TACPIC32CXCommand::setName(const qtac::ByteArray& newName)
 {
     Arguments args;
     args.push_back(newName.toStdString());
-    send(qtac::ByteArray(kSetNameCommand), args, false, false);
+    send(kSetNameCommand, args, false, false);
 }
 
 void TACPIC32CXCommand::platformID()
 {
-    send(qtac::ByteArray(kPIC32CXPlatformIDCommand), Arguments(), false, false);
+    send(kPIC32CXPlatformIDCommand, Arguments(), false, false);
 }
 
 void TACPIC32CXCommand::clearBuffer()
 {
-    send(qtac::ByteArray(kPIC32CXClearBufferCommand), Arguments(), false, false);
+    send(kPIC32CXClearBufferCommand, Arguments(), false, false);
 }
 
 void TACPIC32CXCommand::send(const qtac::ByteArray& command, const Arguments& arguments,

@@ -70,31 +70,31 @@ void TACPSOCProtocol::setTACDriveTrain(TACDriveThread* tacDriveTrain)
     _tacDriveTrain = tacDriveTrain;
 }
 
-uint32_t TACPSOCProtocol::sendCommand(const std::string& command,
+uint32_t TACPSOCProtocol::sendCommand(const qtac::ByteArray& command,
                                        const Arguments&   arguments,
                                        bool               console,
                                        ReceiveInterface*  receiveInterface,
                                        bool               shouldStore)
 {
-    if (command.empty())
+    if (command.isEmpty())
         return kBadQueueValue;
 
     const uint32_t result = getNextSendID();
 
     FramePackage framePackage = makeFramePackage();
     framePackage->packetID         = result;
-    framePackage->request          = qtac::ByteArray(command);
+    framePackage->request          = command;
     framePackage->arguments        = arguments;
-    framePackage->requestHash      = arrayHash(qtac::ByteArray(command));
+    framePackage->requestHash      = arrayHash(command);
     framePackage->console          = console;
     framePackage->shouldStore      = shouldStore;
     framePackage->tickcount        = tickCount();
     framePackage->receiveInterface = receiveInterface;
 
     if (_frameCoder)
-        framePackage->codedRequest = _frameCoder->encode(qtac::ByteArray(command), arguments);
+        framePackage->codedRequest = _frameCoder->encode(command, arguments);
     else
-        framePackage->codedRequest = qtac::ByteArray(command);
+        framePackage->codedRequest = command;
 
     ProtocolInterface::queueCommand(framePackage);
     return result;

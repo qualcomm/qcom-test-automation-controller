@@ -43,7 +43,7 @@
 #include <sstream>
 #include <variant>
 
-static const std::string kTACPIC32CXDriveTrainName{"TAC PIC32CX Drive Train"};
+static const qtac::ByteArray kTACPIC32CXDriveTrainName{"TAC PIC32CX Drive Train"};
 
 namespace qtac {
 
@@ -228,7 +228,7 @@ void TACPIC32CXDriveThread::setName(const qtac::ByteArray& newName)
 uint32_t TACPIC32CXDriveThread::send(const qtac::ByteArray& sendMe, const Arguments& arguments,
                                       bool console, ReceiveInterface* receiveInterface, bool store)
 {
-    return _tacProtocol.sendCommand(sendMe.toStdString(), arguments, console, receiveInterface, store);
+    return _tacProtocol.sendCommand(sendMe, arguments, console, receiveInterface, store);
 }
 
 bool TACPIC32CXDriveThread::ready()

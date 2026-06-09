@@ -44,8 +44,8 @@
 #include <thread>
 #include <variant>
 
-static const std::string kTACSerialDriveTrainName{"TAC Serial Drive Train"};
-static const std::string kHelpCommand{"Help"};
+static const qtac::ByteArray kTACSerialDriveTrainName{"TAC Serial Drive Train"};
+static const qtac::ByteArray kHelpCommand{"Help"};
 
 namespace qtac {
 
@@ -151,7 +151,7 @@ void TACPSOCDriveThread::sendCommand(const qtac::ByteArray& command,
                                       ReceiveInterface* receiveInterface,
                                       bool              shouldStore)
 {
-    if (command.toStdString().find(kHelpCommand) != 0)
+    if (!command.startsWith(kHelpCommand))
     {
         Arguments args;
         qtac::ByteArray decoded = decodeCommand(command, args);
@@ -264,7 +264,7 @@ void TACPSOCDriveThread::setName(const qtac::ByteArray& newName)
 uint32_t TACPSOCDriveThread::send(const qtac::ByteArray& sendMe, const Arguments& arguments,
                                    bool console, ReceiveInterface* receiveInterface, bool store)
 {
-    return _tacProtocol.sendCommand(sendMe.toStdString(), arguments, console, receiveInterface, store);
+    return _tacProtocol.sendCommand(sendMe, arguments, console, receiveInterface, store);
 }
 
 bool TACPSOCDriveThread::ready()

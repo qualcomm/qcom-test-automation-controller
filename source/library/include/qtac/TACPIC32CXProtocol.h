@@ -59,7 +59,7 @@ public:
 
     void setTACDriveTrain(TACDriveThread* tacDriveTrain);
 
-    uint32_t sendCommand(const std::string& command,
+    uint32_t sendCommand(const qtac::ByteArray& command,
                          const Arguments&   arguments,
                          bool               console          = false,
                          ReceiveInterface*  receiveInterface = nullptr,

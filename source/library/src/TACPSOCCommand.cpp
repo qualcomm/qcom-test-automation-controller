@@ -42,17 +42,17 @@
 #include <stdexcept>
 
 // Command string constants
-static const std::string kVersionCommand          {"Version"};
-static const std::string kGetNameCommand          {"Get Name"};
-static const std::string kSetNameCommand          {"Set Name"};
-static const std::string kGetUUIDCommand          {"Get UUID"};
-static const std::string kGetPlatformIDCommand    {"Get Platform ID"};
-static const std::string kGetResetCountCommand    {"Get Reset Count"};
-static const std::string kClearResetCountCommand  {"Clear Reset Count"};
-static const std::string kSetPinCommand           {"SetPin"};
-static const std::string kI2CReadRegisterCommand  {"I2C Read Register"};
-static const std::string kI2CReadRegisterValueCommand {"I2C Read Register Value"};
-static const std::string kI2CWriteRegisterCommand {"I2C Write Register"};
+static const qtac::ByteArray kVersionCommand          {"Version"};
+static const qtac::ByteArray kGetNameCommand          {"Get Name"};
+static const qtac::ByteArray kSetNameCommand          {"Set Name"};
+static const qtac::ByteArray kGetUUIDCommand          {"Get UUID"};
+static const qtac::ByteArray kGetPlatformIDCommand    {"Get Platform ID"};
+static const qtac::ByteArray kGetResetCountCommand    {"Get Reset Count"};
+static const qtac::ByteArray kClearResetCountCommand  {"Clear Reset Count"};
+static const qtac::ByteArray kSetPinCommand           {"SetPin"};
+static const qtac::ByteArray kI2CReadRegisterCommand  {"I2C Read Register"};
+static const qtac::ByteArray kI2CReadRegisterValueCommand {"I2C Read Register Value"};
+static const qtac::ByteArray kI2CWriteRegisterCommand {"I2C Write Register"};
 
 namespace qtac {
 
@@ -73,17 +73,17 @@ TACPSOCCommand::~TACPSOCCommand()
 
 void TACPSOCCommand::version()
 {
-    send(qtac::ByteArray(kVersionCommand), Arguments(), false, false);
+    send(kVersionCommand, Arguments(), false, false);
 }
 
 void TACPSOCCommand::name()
 {
-    send(qtac::ByteArray(kGetNameCommand), Arguments(), false, false);
+    send(kGetNameCommand, Arguments(), false, false);
 }
 
 void TACPSOCCommand::uuid()
 {
-    send(qtac::ByteArray(kGetUUIDCommand), Arguments(), false, false);
+    send(kGetUUIDCommand, Arguments(), false, false);
 }
 
 void TACPSOCCommand::setPinState(uint16_t pin, bool state)
@@ -91,32 +91,32 @@ void TACPSOCCommand::setPinState(uint16_t pin, bool state)
     Arguments args;
     args.push_back(state);
     args.push_back(static_cast<uint32_t>(pin));
-    send(qtac::ByteArray(kSetPinCommand), args, false, false);
+    send(kSetPinCommand, args, false, false);
 }
 
 void TACPSOCCommand::setName(const qtac::ByteArray& newName)
 {
     Arguments args;
     args.push_back(newName.toStdString());
-    send(qtac::ByteArray(kSetNameCommand), args, false, false);
+    send(kSetNameCommand, args, false, false);
 }
 
 void TACPSOCCommand::getResetCount()
 {
-    send(qtac::ByteArray(kGetResetCountCommand), Arguments(), false, false);
+    send(kGetResetCountCommand, Arguments(), false, false);
 }
 
 void TACPSOCCommand::clearResetCount()
 {
-    send(qtac::ByteArray(kClearResetCountCommand), Arguments(), false, false);
+    send(kClearResetCountCommand, Arguments(), false, false);
 }
 
 // Helper: format a byte value as "0xNN" hex string.
-static std::string toHexByte(uint32_t value)
+static qtac::ByteArray toHexByte(uint32_t value)
 {
     std::ostringstream oss;
     oss << "0x" << std::uppercase << std::setfill('0') << std::setw(2) << std::hex << value;
-    return oss.str();
+    return qtac::ByteArray(oss.str().c_str());
 }
 
 void TACPSOCCommand::i2CReadRegister(uint32_t addr, uint32_t reg)
@@ -126,17 +126,17 @@ void TACPSOCCommand::i2CReadRegister(uint32_t addr, uint32_t reg)
     if (reg > 0xff)
         throw std::out_of_range("Error: invalid register");
 
-    const std::string addrStr = toHexByte(addr);
-    const std::string regStr  = toHexByte(reg);
+    const qtac::ByteArray addrStr = toHexByte(addr);
+    const qtac::ByteArray regStr  = toHexByte(reg);
 
     Arguments args;
-    args.push_back(addrStr + " " + regStr);
-    send(qtac::ByteArray(kI2CReadRegisterCommand), args, false, false);
+    args.push_back((addrStr + " " + regStr).toStdString());
+    send(kI2CReadRegisterCommand, args, false, false);
 
     addDelay(500);
 
     args.clear();
-    send(qtac::ByteArray(kI2CReadRegisterValueCommand), args, false, false);
+    send(kI2CReadRegisterValueCommand, args, false, false);
 }
 
 void TACPSOCCommand::i2CWriteRegister(uint32_t addr, uint32_t reg, uint32_t data)
@@ -148,18 +148,18 @@ void TACPSOCCommand::i2CWriteRegister(uint32_t addr, uint32_t reg, uint32_t data
     if (data > 0xff)
         throw std::out_of_range("Error: invalid data");
 
-    const std::string addrStr = toHexByte(addr);
-    const std::string regStr  = toHexByte(reg);
-    const std::string dataStr = toHexByte(data);
+    const qtac::ByteArray addrStr = toHexByte(addr);
+    const qtac::ByteArray regStr  = toHexByte(reg);
+    const qtac::ByteArray dataStr = toHexByte(data);
 
     Arguments args;
-    args.push_back(addrStr + " " + regStr + " " + dataStr);
-    send(qtac::ByteArray(kI2CWriteRegisterCommand), args, false, false);
+    args.push_back((addrStr + " " + regStr + " " + dataStr).toStdString());
+    send(kI2CWriteRegisterCommand, args, false, false);
 }
 
 void TACPSOCCommand::platformID()
 {
-    send(qtac::ByteArray(kGetPlatformIDCommand), Arguments(), false, false);
+    send(kGetPlatformIDCommand, Arguments(), false, false);
 }
 
 void TACPSOCCommand::send(const qtac::ByteArray& command, const Arguments& arguments,

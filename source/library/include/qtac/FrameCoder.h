@@ -42,8 +42,9 @@
 
 #include <qtac/ByteArray.h>
 #include <qtac/FramePackage.h>
+#include <qtac/String.h>
+#include <qtac/Variant.h>
 
-#include <string>
 #include <utility>
 #include <vector>
 
@@ -51,7 +52,7 @@ namespace qtac {
 
 class ProtocolInterface;
 
-using ErrorParameter  = std::pair<std::string, std::string>;
+using ErrorParameter  = std::pair<qtac::String, qtac::Variant>;
 using ErrorParameters = std::vector<ErrorParameter>;
 
 using FrameCompleteFunc = void (*)(const qtac::ByteArray& completedFrame, ProtocolInterface* userData);
