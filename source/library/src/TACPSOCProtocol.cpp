@@ -37,10 +37,8 @@
 #include <qtac/TACDriveThread.h>
 #include <qtac/StringUtilities.h>
 
-#include <algorithm>
 #include <cassert>
 #include <chrono>
-#include <cctype>
 
 namespace qtac {
 
@@ -52,8 +50,8 @@ static uint64_t tickCount()
 }
 
 // Prompt string recognised in frameComplete().
-static const std::string kCommand              {"CMD >> "};
-static const std::string kCommandNotRecognized {"CMD: Command not recognized."};
+static const qtac::ByteArray kCommand              {"CMD >> "};
+static const qtac::ByteArray kCommandNotRecognized {"CMD: Command not recognized."};
 
 TACPSOCProtocol::TACPSOCProtocol()
 {
@@ -85,7 +83,7 @@ uint32_t TACPSOCProtocol::sendCommand(const std::string& command,
 
     FramePackage framePackage = makeFramePackage();
     framePackage->packetID         = result;
-    framePackage->request          = command;
+    framePackage->request          = qtac::ByteArray(command);
     framePackage->arguments        = arguments;
     framePackage->requestHash      = arrayHash(qtac::ByteArray(command));
     framePackage->console          = console;
@@ -94,9 +92,9 @@ uint32_t TACPSOCProtocol::sendCommand(const std::string& command,
     framePackage->receiveInterface = receiveInterface;
 
     if (_frameCoder)
-        framePackage->codedRequest = _frameCoder->encode(command, arguments);
+        framePackage->codedRequest = _frameCoder->encode(qtac::ByteArray(command), arguments);
     else
-        framePackage->codedRequest = command;
+        framePackage->codedRequest = qtac::ByteArray(command);
 
     ProtocolInterface::queueCommand(framePackage);
     return result;
@@ -124,12 +122,12 @@ void TACPSOCProtocol::idle()
 // the commit: populate the pending frame package, validate it ("ok" last
 // line, case-insensitive), and route it to the drive thread.
 // -----------------------------------------------------------------------
-void TACPSOCProtocol::frameComplete(const std::string& completedFrame)
+void TACPSOCProtocol::frameComplete(const qtac::ByteArray& completedFrame)
 {
-    if (!completedFrame.empty())
+    if (!completedFrame.isEmpty())
     {
         // Skip the prompt line itself; keep all other lines.
-        if (completedFrame.find(kCommand) == std::string::npos)
+        if (!completedFrame.contains(kCommand))
             _responseLines.push_back(completedFrame);
     }
     else
@@ -143,16 +141,7 @@ void TACPSOCProtocol::frameComplete(const std::string& completedFrame)
             // Valid if the last non-empty line is "ok" (case-insensitive).
             fp->valid = false;
             if (!_responseLines.empty())
-            {
-                std::string last = _responseLines.back();
-                // trim trailing whitespace
-                while (!last.empty() && std::isspace(static_cast<unsigned char>(last.back())))
-                    last.pop_back();
-                std::string lower = last;
-                std::transform(lower.begin(), lower.end(), lower.begin(),
-                               [](unsigned char c){ return std::tolower(c); });
-                fp->valid = (lower == "ok");
-            }
+                fp->valid = (_responseLines.back().trimmed().toLower() == "ok");
 
             if (fp->receiveInterface)
                 fp->receiveInterface->receive(fp);
@@ -165,7 +154,7 @@ void TACPSOCProtocol::frameComplete(const std::string& completedFrame)
     }
 }
 
-void TACPSOCProtocol::badFrame(const std::string& /*completedFrame*/)
+void TACPSOCProtocol::badFrame(const qtac::ByteArray& /*completedFrame*/)
 {
 }
 

@@ -233,8 +233,8 @@ void TACLiteDriveThread::receive(FramePackage& framePackage)
     else
     {
         clearWaitForCompletion();
-        if (!framePackage->lastError.empty() && onErrorOnOpen)
-            onErrorOnOpen(qtac::ByteArray(framePackage->lastError));
+        if (!framePackage->lastError.isEmpty() && onErrorOnOpen)
+            onErrorOnOpen(framePackage->lastError);
     }
 
     log(framePackage);
@@ -303,7 +303,7 @@ void TACLiteDriveThread::run()
             if (framePackage)
             {
                 if (framePackage->delayInMilliSeconds != 0 ||
-                    !framePackage->comment.empty()        ||
+                    !framePackage->comment.isEmpty()      ||
                     framePackage->endTransaction          ||
                     checkLocalStore(framePackage))
                 {
@@ -313,7 +313,7 @@ void TACLiteDriveThread::run()
                 {
                     // Parse the encoded pin index string from codedRequest.
                     int pin = 0;
-                    try { pin = std::stoi(framePackage->codedRequest); }
+                    try { pin = std::stoi(framePackage->codedRequest.toStdString()); }
                     catch (...) {}
 
                     const bool state = getElectricalPinValue(framePackage->requestHash,
@@ -322,7 +322,7 @@ void TACLiteDriveThread::run()
                     {
                         std::ostringstream oss;
                         oss << "TACLiteDriveThread::run() write "
-                            << framePackage->codedRequest
+                            << framePackage->codedRequest.toStdString()
                             << " state:" << (state ? "on" : "off");
                         writeLogLine(oss.str());
                     }
@@ -353,7 +353,7 @@ void TACLiteDriveThread::run()
                             else
                                 argStr = std::get<std::string>(arg);
                         }
-                        framePackage->responses.push_back(framePackage->request + " " + argStr);
+                        framePackage->responses.push_back(framePackage->request + " " + argStr.c_str());
                         receive(framePackage);
                     }
                 }
@@ -425,7 +425,7 @@ void TACLiteDriveThread::handleSetName(FramePackage& framePackage)
     {
         const Argument& arg = framePackage->arguments.at(0);
         _name = qtac::ByteArray(std::get<std::string>(arg));
-        framePackage->synonym = "Set Name " + _name.toStdString();
+        framePackage->synonym = qtac::ByteArray("Set Name ") + _name;
     }
     if (onNameUpdate) onNameUpdate(_name.toStdString());
 }
@@ -440,7 +440,7 @@ void TACLiteDriveThread::handleSetPin(FramePackage& framePackage)
     if (framePackage->arguments.size() >= 2)
         pin   = static_cast<uint64_t>(std::get<uint32_t>(framePackage->arguments.at(1)));
 
-    framePackage->synonym = "Set Pin " + std::to_string(pin) + " " + (state ? "on" : "off");
+    framePackage->synonym = qtac::ByteArray("Set Pin ") + std::to_string(pin).c_str() + " " + (state ? "on" : "off");
     if (onPinStateChanged) onPinStateChanged(pin, state);
 }
 
@@ -448,7 +448,7 @@ void TACLiteDriveThread::handleUUIDResponse(FramePackage& framePackage)
 {
     if (framePackage->responses.size() > 1)
     {
-        _uuid = framePackage->responses.at(1);
+        _uuid = framePackage->responses.at(1).toStdString();
         if (onUuidUpdate) onUuidUpdate(_uuid.toStdString());
     }
 }
@@ -465,7 +465,7 @@ void TACLiteDriveThread::handlePlatformID(FramePackage& framePackage)
     {
         try
         {
-            _platformID = static_cast<PlatformID>(std::stoi(framePackage->responses.at(1)));
+            _platformID = static_cast<PlatformID>(std::stoi(framePackage->responses.at(1).toStdString()));
         }
         catch (...) {}
     }

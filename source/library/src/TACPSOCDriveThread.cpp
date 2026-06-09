@@ -39,33 +39,13 @@
 #include <qtac/PlatformID.h>
 #include <qtac/StringUtilities.h>
 
-#include <algorithm>
 #include <cassert>
-#include <cctype>
 #include <sstream>
 #include <thread>
 #include <variant>
 
 static const std::string kTACSerialDriveTrainName{"TAC Serial Drive Train"};
 static const std::string kHelpCommand{"Help"};
-
-// -----------------------------------------------------------------------
-// Local helpers
-// -----------------------------------------------------------------------
-
-static std::string strToLower(std::string s)
-{
-    std::transform(s.begin(), s.end(), s.begin(),
-                   [](unsigned char c){ return std::tolower(c); });
-    return s;
-}
-
-static std::string trimRight(std::string s)
-{
-    while (!s.empty() && std::isspace(static_cast<unsigned char>(s.back())))
-        s.pop_back();
-    return s;
-}
 
 namespace qtac {
 
@@ -307,7 +287,7 @@ bool TACPSOCDriveThread::readSerialData()
     if (buffer.isEmpty())
         return false;
 
-    _protocolInterface->handleReceivedData(buffer.toStdString());
+    _protocolInterface->handleReceivedData(buffer);
     return true;
 }
 
@@ -412,7 +392,7 @@ void TACPSOCDriveThread::run()
             if (framePackage)
             {
                 if (framePackage->delayInMilliSeconds != 0 ||
-                    !framePackage->comment.empty()          ||
+                    !framePackage->comment.isEmpty()        ||
                     framePackage->endTransaction            ||
                     checkLocalStore(framePackage))
                 {
@@ -420,10 +400,9 @@ void TACPSOCDriveThread::run()
                 }
                 else
                 {
-                    writeLogLine("TACPSOCDriveThread::run()::Write: " + framePackage->codedRequest);
+                    writeLogLine("TACPSOCDriveThread::run()::Write: " + framePackage->codedRequest.toStdString());
 
-                    const int bytesWritten = _serialPort->write(
-                        qtac::ByteArray(framePackage->codedRequest));
+                    const int bytesWritten = _serialPort->write(framePackage->codedRequest);
 
                     if (bytesWritten == -1)
                     {
@@ -465,7 +444,7 @@ void TACPSOCDriveThread::handleGetNameResponse(FramePackage& framePackage)
 {
     if (framePackage->responses.size() > 1)
     {
-        _name = qtac::ByteArray(framePackage->responses.at(1));
+        _name = framePackage->responses.at(1);
         if (onNameUpdate) onNameUpdate(qtac::String(_name.toStdString()));
     }
 }
@@ -477,7 +456,7 @@ void TACPSOCDriveThread::handleGetResetCount(FramePackage& framePackage)
         if (framePackage->responses.at(0) == "getresetcount" &&
             framePackage->responses.at(2) == "ok")
         {
-            try { _resetCount = static_cast<int>(std::stoul(framePackage->responses.at(1))); }
+            try { _resetCount = static_cast<int>(std::stoul(framePackage->responses.at(1).toStdString())); }
             catch (...) {}
         }
     }
@@ -495,16 +474,16 @@ void TACPSOCDriveThread::handleI2CRead(FramePackage& framePackage)
             if (!responses.empty())
                 responses.pop_back();
 
-            const std::string response =
+            const qtac::ByteArray response =
                 responses.empty() ? framePackage->responses.back() : responses.back();
 
             if (onI2CReadResult)
-                onI2CReadResult(qtac::ByteArray(response), true);
+                onI2CReadResult(response, true);
         }
         else
         {
             if (onI2CReadResult && !framePackage->responses.empty())
-                onI2CReadResult(qtac::ByteArray(framePackage->responses.back()), false);
+                onI2CReadResult(framePackage->responses.back(), false);
         }
     }
 }
@@ -519,14 +498,14 @@ void TACPSOCDriveThread::handleI2CWrite(FramePackage& framePackage)
             std::string argStr;
             if (!framePackage->arguments.empty())
                 argStr = std::get<std::string>(framePackage->arguments.at(0));
-            const std::string msg = framePackage->request + " " + argStr + " Successful";
-            onI2CWriteResult(qtac::ByteArray(msg));
+            const qtac::ByteArray msg = framePackage->request + " " + argStr.c_str() + " Successful";
+            onI2CWriteResult(msg);
         }
         else
         {
-            const std::string last =
-                framePackage->responses.empty() ? "" : framePackage->responses.back();
-            onI2CWriteResult(qtac::ByteArray("\"" + last + "\" Are the parameters correct?"));
+            const qtac::ByteArray last =
+                framePackage->responses.empty() ? qtac::ByteArray() : framePackage->responses.back();
+            onI2CWriteResult(qtac::ByteArray("\"") + last + "\" Are the parameters correct?");
         }
     }
 }
@@ -541,7 +520,7 @@ void TACPSOCDriveThread::handleSetPin(FramePackage& framePackage)
                                    std::get<uint32_t>(framePackage->arguments.at(1)));
 
         framePackage->synonym =
-            "Pin " + std::to_string(pin) + " " + (state ? "on" : "off");
+            qtac::ByteArray("Pin ") + std::to_string(pin).c_str() + " " + (state ? "on" : "off");
 
         if (onPinStateChanged) onPinStateChanged(pin, state);
     }
@@ -552,7 +531,7 @@ void TACPSOCDriveThread::handleSetName(FramePackage& framePackage)
     if (!framePackage->arguments.empty())
     {
         _name = qtac::ByteArray(std::get<std::string>(framePackage->arguments.at(0)));
-        framePackage->synonym = "Set Name " + _name.toStdString();
+        framePackage->synonym = qtac::ByteArray("Set Name ") + _name;
     }
     if (onNameUpdate) onNameUpdate(qtac::String(_name.toStdString()));
 }
@@ -561,7 +540,7 @@ void TACPSOCDriveThread::handleUUIDResponse(FramePackage& framePackage)
 {
     if (framePackage->responses.size() > 1)
     {
-        _uuid = qtac::String(framePackage->responses.at(1));
+        _uuid = qtac::String(framePackage->responses.at(1).toStdString());
         if (onUuidUpdate) onUuidUpdate(_uuid);
     }
 }
@@ -573,14 +552,14 @@ void TACPSOCDriveThread::handleVersionResponse(FramePackage& framePackage)
     if (framePackage->responses.size() > 1)
     {
         bool        isEPM{false};
-        std::string versionString = framePackage->responses.at(0);
+        std::string versionString = framePackage->responses.at(0).toStdString();
         if (versionString.find("EPM") != std::string::npos)
         {
             isEPM = true;
         }
         else
         {
-            versionString = framePackage->responses.at(1);
+            versionString = framePackage->responses.at(1).toStdString();
             if (versionString.find("EPM") != std::string::npos)
                 isEPM = true;
         }
@@ -661,7 +640,7 @@ void TACPSOCDriveThread::handlePlatformID(FramePackage& framePackage)
     {
         try
         {
-            _platformID = static_cast<PlatformID>(std::stoi(framePackage->responses.at(1)));
+            _platformID = static_cast<PlatformID>(std::stoi(framePackage->responses.at(1).toStdString()));
         }
         catch (...) {}
     }

@@ -30,34 +30,56 @@
 // OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN
 // IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-// Author: Biswajit Roy
-// Qt-free reimplementation of TACPIC32CXCoder from qcommon-console.
+// Authors: Michael Simpson, Biswajit Roy
 
-#pragma once
-
-#include <qtac/FrameCoder.h>
+#include <qtac/DriveThread.h>
+#include <qtac/ProtocolInterface.h>
 
 namespace qtac {
 
-// Threshold above which the buffer is considered a complete response.
-static constexpr size_t kValidPIC32CXResponseSize = 40;
+std::atomic<int> DriveThread::_driveTrainIDs{1};
 
-class TACPIC32CXCoder : public FrameCoder
+DriveThread::DriveThread()
 {
-public:
-    TACPIC32CXCoder();
-    ~TACPIC32CXCoder() override;
+    _driveTrainID = _driveTrainIDs.fetch_add(1);
+}
 
-    TACPIC32CXCoder(const TACPIC32CXCoder&)            = delete;
-    TACPIC32CXCoder& operator=(const TACPIC32CXCoder&) = delete;
+DriveThread::~DriveThread()
+{
+    if (_thread.joinable())
+        _thread.join();
+}
 
-    void            reset()                                                   override;
-    void            decode(const qtac::ByteArray& decodeMe)                   override;
-    qtac::ByteArray encode(const qtac::ByteArray& encodeMe,
-                           const Arguments&       arguments)                  override;
+void DriveThread::shutDown()
+{
+    if (stopRunning())
+    {
+        if (_thread.joinable())
+            _thread.join();
+    }
+}
 
-private:
-    qtac::ByteArray _receiveBuffer;
-};
+void DriveThread::addDelay(uint32_t delayInMilliSeconds, ReceiveInterface* receiveInterface)
+{
+    if (_protocolInterface != nullptr)
+        _protocolInterface->queueDelay(delayInMilliSeconds, receiveInterface);
+}
+
+void DriveThread::addLogComment(const std::string& comment)
+{
+    if (_protocolInterface != nullptr)
+        _protocolInterface->queueLogComment(comment);
+}
+
+void DriveThread::addEndTransaction(ReceiveInterface* receiveInterface)
+{
+    if (_protocolInterface != nullptr)
+        _protocolInterface->queueEndTransaction(receiveInterface);
+}
+
+void DriveThread::setProtocolInterface(ProtocolInterface* protocolInterface)
+{
+    _protocolInterface = protocolInterface;
+}
 
 } // namespace qtac

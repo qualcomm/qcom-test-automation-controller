@@ -38,8 +38,6 @@
 #include <qtac/TACCommandHashes.h>
 #include <qtac/PlatformID.h>
 
-#include <algorithm>
-#include <cctype>
 #include <chrono>
 #include <sstream>
 #include <thread>
@@ -57,35 +55,6 @@ namespace qtac {
 // -----------------------------------------------------------------------
 // Helpers
 // -----------------------------------------------------------------------
-
-static std::string toLower(std::string s)
-{
-    std::transform(s.begin(), s.end(), s.begin(),
-                   [](unsigned char c) { return static_cast<char>(std::tolower(c)); });
-    return s;
-}
-
-static std::string trim(const std::string& s)
-{
-    const auto b = s.find_first_not_of(" \t\r\n");
-    if (b == std::string::npos)
-        return {};
-    const auto e = s.find_last_not_of(" \t\r\n");
-    return s.substr(b, e - b + 1);
-}
-
-static bool endsWith(const std::string& s, const std::string& suffix)
-{
-    if (suffix.size() > s.size())
-        return false;
-    return s.compare(s.size() - suffix.size(), suffix.size(), suffix) == 0;
-}
-
-static bool startsWith(const std::string& s, const std::string& prefix)
-{
-    return s.size() >= prefix.size() &&
-           s.compare(0, prefix.size(), prefix) == 0;
-}
 
 static uint64_t tickCount()
 {
@@ -202,81 +171,75 @@ bool TACDriveThread::waitForCompletionStatus() const
 
 qtac::ByteArray TACDriveThread::decodeCommand(const qtac::ByteArray& command, Arguments& args)
 {
-    std::string result = toLower(trim(command.toStdString()));
+    qtac::String result = qtac::String(command.toStdString()).toLower().trimmed();
 
-    if (endsWith(result, " on"))
+    if (result.endsWith(" on"))
     {
         args.push_back(true);
-        result.erase(result.size() - 3);
+        result = result.left(result.size() - 3);
     }
-    else if (endsWith(result, " off"))
+    else if (result.endsWith(" off"))
     {
         args.push_back(false);
-        result.erase(result.size() - 4);
+        result = result.left(result.size() - 4);
     }
-    else if (endsWith(result, " 1"))
+    else if (result.endsWith(" 1"))
     {
         args.push_back(true);
-        result.erase(result.size() - 2);
+        result = result.left(result.size() - 2);
     }
-    else if (endsWith(result, " 0"))
+    else if (result.endsWith(" 0"))
     {
         args.push_back(false);
-        result.erase(result.size() - 2);
+        result = result.left(result.size() - 2);
     }
 
-    const std::string setNameLower   = toLower(kSetNameCommandStr);
-    const std::string btnAssertLower = toLower(kSetButtonAssertTime);
-    const std::string pkDelayLower   = toLower(kSetPowerKeyDelay);
+    const qtac::String setNameLower    = qtac::String(kSetNameCommandStr).toLower();
+    const qtac::String btnAssertLower  = qtac::String(kSetButtonAssertTime).toLower();
+    const qtac::String pkDelayLower    = qtac::String(kSetPowerKeyDelay).toLower();
 
-    if (startsWith(result, setNameLower) || startsWith(result, kSetNameAliasStr))
+    if (result.startsWith(setNameLower) || result.startsWith(kSetNameAliasStr.c_str()))
     {
-        // Strip the command prefix, leaving only the name argument.
-        if (startsWith(result, setNameLower))
-            result.erase(0, setNameLower.size());
+        if (result.startsWith(setNameLower))
+            result = result.mid(setNameLower.size());
         else
-            result.erase(0, kSetNameAliasStr.size());
+            result = result.mid(static_cast<int>(kSetNameAliasStr.size()));
 
-        result = trim(result);
-        args.push_back(result);
-        result = kSetNameCommandStr;
+        result = result.trimmed();
+        args.push_back(result.toStdString());
+        result = qtac::String(kSetNameCommandStr);
     }
-    else if (startsWith(result, btnAssertLower) || startsWith(result, kSetButtonAssertAlias))
+    else if (result.startsWith(btnAssertLower) || result.startsWith(kSetButtonAssertAlias.c_str()))
     {
-        if (startsWith(result, btnAssertLower))
-            result.erase(0, btnAssertLower.size());
+        if (result.startsWith(btnAssertLower))
+            result = result.mid(btnAssertLower.size());
         else
-            result.erase(0, kSetButtonAssertAlias.size());
+            result = result.mid(static_cast<int>(kSetButtonAssertAlias.size()));
 
-        result = trim(result);
-        args.push_back(static_cast<uint32_t>(std::stoul(result)));
-        result = kSetButtonAssertTime;
+        result = result.trimmed();
+        args.push_back(static_cast<uint32_t>(std::stoul(result.toStdString())));
+        result = qtac::String(kSetButtonAssertTime);
     }
-    else if (startsWith(result, pkDelayLower) || startsWith(result, kSetPowerKeyDelayAlias))
+    else if (result.startsWith(pkDelayLower) || result.startsWith(kSetPowerKeyDelayAlias.c_str()))
     {
-        if (startsWith(result, pkDelayLower))
-            result.erase(0, pkDelayLower.size());
+        if (result.startsWith(pkDelayLower))
+            result = result.mid(pkDelayLower.size());
         else
-            result.erase(0, kSetPowerKeyDelayAlias.size());
+            result = result.mid(static_cast<int>(kSetPowerKeyDelayAlias.size()));
 
-        result = trim(result);
-        args.push_back(static_cast<uint32_t>(std::stoul(result)));
-        result = kSetPowerKeyDelay;
+        result = result.trimmed();
+        args.push_back(static_cast<uint32_t>(std::stoul(result.toStdString())));
+        result = qtac::String(kSetPowerKeyDelay);
     }
-    else if (startsWith(result, kSetPinCommandLower))
+    else if (result.startsWith(kSetPinCommandLower.c_str()))
     {
-        result.erase(0, kSetPinCommandLower.size());
-        result = trim(result);
-        args.push_back(static_cast<uint32_t>(std::stoul(result)));
-        result = kSetPinCommandStr;
+        result = result.mid(static_cast<int>(kSetPinCommandLower.size()));
+        result = result.trimmed();
+        args.push_back(static_cast<uint32_t>(std::stoul(result.toStdString())));
+        result = qtac::String(kSetPinCommandStr);
     }
 
-    // Resolve via hash — if the lower-case result maps to a known command,
-    // use the canonical long-form name.  The concrete TACCommands registry
-    // (CommandStringToHash / CommandHashToCommandEntry) is linked separately.
-    // Here we return whatever normalised string we have; subclasses that need
-    // full hash resolution can override or post-process.
-    return qtac::ByteArray(result);
+    return qtac::ByteArray(result.toStdString());
 }
 
 // -----------------------------------------------------------------------
@@ -290,7 +253,7 @@ bool TACDriveThread::checkLocalStore(FramePackage& framePackage)
     case kVersionCommandHash:
         if (!_versionString.isEmpty())
         {
-            framePackage->responses.push_back(_versionString.toStdString());
+            framePackage->responses.push_back(_versionString);
             return true;
         }
         break;
@@ -298,7 +261,7 @@ bool TACDriveThread::checkLocalStore(FramePackage& framePackage)
     case kGetNameCommandHash:
         if (!_name.isEmpty())
         {
-            framePackage->responses.push_back(_name.toStdString());
+            framePackage->responses.push_back(_name);
             return true;
         }
         break;
@@ -306,7 +269,7 @@ bool TACDriveThread::checkLocalStore(FramePackage& framePackage)
     case kGetUUIDCommandHash:
         if (!_uuid.isEmpty())
         {
-            framePackage->responses.push_back(_uuid.toStdString());
+            framePackage->responses.push_back(qtac::ByteArray(_uuid.toStdString()));
             return true;
         }
         break;
@@ -317,7 +280,7 @@ bool TACDriveThread::checkLocalStore(FramePackage& framePackage)
             const qtac::String desc = PlatformContainer::toString(_platformID);
             std::ostringstream oss;
             oss << desc.toStdString() << "(" << static_cast<int>(_platformID) << ")";
-            framePackage->responses.push_back(oss.str());
+            framePackage->responses.push_back(qtac::ByteArray(oss.str()));
             return true;
         }
         break;
@@ -325,7 +288,7 @@ bool TACDriveThread::checkLocalStore(FramePackage& framePackage)
     case kPIC32CXVersionCommandHash:
         if (!_versionString.isEmpty())
         {
-            framePackage->responses.push_back(_versionString.toStdString());
+            framePackage->responses.push_back(_versionString);
             return true;
         }
         break;
@@ -428,25 +391,25 @@ void TACDriveThread::log(FramePackage& framePackage)
         timeStampLogMessage(qtac::String(entry));
         writeLogLine(entry);
     }
-    else if (!framePackage->comment.empty())
+    else if (!framePackage->comment.isEmpty())
     {
-        writeLogLine(framePackage->comment);
+        writeLogLine(framePackage->comment.toStdString());
     }
     else
     {
         std::string entry;
         if (framePackage->console)
-            entry = "Request from console: " + framePackage->request;
+            entry = "Request from console: " + framePackage->request.toStdString();
         else
-            entry = "Request: " + framePackage->request;
+            entry = "Request: " + framePackage->request.toStdString();
         writeLogLine(entry);
 
-        if (!framePackage->synonym.empty())
-            writeLogLine("Synonym: " + framePackage->synonym);
+        if (!framePackage->synonym.isEmpty())
+            writeLogLine("Synonym: " + framePackage->synonym.toStdString());
 
         writeLogLine("Responses");
         for (const auto& r : framePackage->responses)
-            writeLogLine("   " + r);
+            writeLogLine("   " + r.toStdString());
     }
 
     writeLogLine("Frame Package End");

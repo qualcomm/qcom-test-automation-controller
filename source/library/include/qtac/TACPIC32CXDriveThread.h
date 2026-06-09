@@ -98,7 +98,7 @@ private:
     SerialPortInfo                  _tacPortInfo;
     std::unique_ptr<SerialPort>     _serialPort;
     bool                            _readyRead{false};
-    std::string                     _serialBuffer;
+    qtac::ByteArray                 _serialBuffer;
 
     bool readSerialData();
 

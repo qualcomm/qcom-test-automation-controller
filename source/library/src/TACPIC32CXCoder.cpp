@@ -39,8 +39,8 @@
 #include <variant>
 
 // PIC32CX firmware prompt / error strings.
-static const std::string kPIC32CXCommandError          {"Error!!! port >"};
-static const std::string kPIC32CXCommandNotRecognized  {"*** Command Processor: unknown command. ***"};
+static const qtac::ByteArray kPIC32CXCommandError          {"Error!!! port >"};
+static const qtac::ByteArray kPIC32CXCommandNotRecognized  {"*** Command Processor: unknown command. ***"};
 
 namespace qtac {
 
@@ -65,37 +65,41 @@ void TACPIC32CXCoder::reset()
 //   • Otherwise → send empty sentinel (no data yet / ignore).
 // In all cases the receive buffer is cleared afterward.
 // -----------------------------------------------------------------------
-void TACPIC32CXCoder::decode(const std::string& decodeMe)
+void TACPIC32CXCoder::decode(const qtac::ByteArray& decodeMe)
 {
     _receiveBuffer += decodeMe;
 
-    if (_receiveBuffer.find(kPIC32CXCommandError)         == 0 ||
-        _receiveBuffer.find(kPIC32CXCommandNotRecognized) != std::string::npos)
+    if (_receiveBuffer.startsWith(kPIC32CXCommandError) ||
+        _receiveBuffer.contains(kPIC32CXCommandNotRecognized))
     {
         if (_frameFunction)
-            _frameFunction(std::string(), _protocolInterface);
+            _frameFunction(qtac::ByteArray(), _protocolInterface);
         _receiveBuffer.clear();
         return;
     }
 
-    if (_receiveBuffer.size() > kValidPIC32CXResponseSize)
+    if (static_cast<size_t>(_receiveBuffer.size()) > kValidPIC32CXResponseSize)
     {
         // Split on \r\n, skip empty tokens — mirrors Qt::SkipEmptyParts.
-        static const std::string kDelimiter{"\r\n"};
-        std::vector<std::string> frames;
-        std::string::size_type   start = 0;
-        while (start < _receiveBuffer.size())
+        static const qtac::ByteArray kDelimiter{"\r\n"};
+        std::vector<qtac::ByteArray> frames;
         {
-            auto end = _receiveBuffer.find(kDelimiter, start);
-            if (end == std::string::npos)
+            const std::string buf   = _receiveBuffer.toStdString();
+            const std::string delim = kDelimiter.toStdString();
+            std::string::size_type start = 0;
+            while (start < buf.size())
             {
-                const std::string tok = _receiveBuffer.substr(start);
-                if (!tok.empty()) frames.push_back(tok);
-                break;
+                auto end = buf.find(delim, start);
+                if (end == std::string::npos)
+                {
+                    const std::string tok = buf.substr(start);
+                    if (!tok.empty()) frames.push_back(qtac::ByteArray(tok));
+                    break;
+                }
+                const std::string tok = buf.substr(start, end - start);
+                if (!tok.empty()) frames.push_back(qtac::ByteArray(tok));
+                start = end + delim.size();
             }
-            const std::string tok = _receiveBuffer.substr(start, end - start);
-            if (!tok.empty()) frames.push_back(tok);
-            start = end + kDelimiter.size();
         }
 
         // Deliver frames[1] (index 1) if it exists, matching original `frames[1].toLatin1()`.
@@ -103,7 +107,7 @@ void TACPIC32CXCoder::decode(const std::string& decodeMe)
             _frameFunction(frames[1], _protocolInterface);
 
         if (_frameFunction)
-            _frameFunction(std::string(), _protocolInterface);
+            _frameFunction(qtac::ByteArray(), _protocolInterface);
 
         _receiveBuffer.clear();
         return;
@@ -111,7 +115,7 @@ void TACPIC32CXCoder::decode(const std::string& decodeMe)
 
     // Buffer not yet complete — send empty sentinel and clear.
     if (_frameFunction)
-        _frameFunction(std::string(), _protocolInterface);
+        _frameFunction(qtac::ByteArray(), _protocolInterface);
     _receiveBuffer.clear();
 }
 
@@ -124,11 +128,11 @@ void TACPIC32CXCoder::decode(const std::string& decodeMe)
 // "port 0" pins (original: prepend '0' if size < 3).
 // All other commands get a trailing '\n'.
 // -----------------------------------------------------------------------
-std::string TACPIC32CXCoder::encode(const std::string& encodeMe, const Arguments& arguments)
+qtac::ByteArray TACPIC32CXCoder::encode(const qtac::ByteArray& encodeMe, const Arguments& arguments)
 {
-    std::string result = encodeMe;
+    qtac::ByteArray result = encodeMe;
 
-    if (arrayHash(qtac::ByteArray(encodeMe)) == kPIC32CXSetPinCommandHash)
+    if (arrayHash(encodeMe) == kPIC32CXSetPinCommandHash)
     {
         if (arguments.size() == 2)
         {
@@ -139,12 +143,12 @@ std::string TACPIC32CXCoder::encode(const std::string& encodeMe, const Arguments
             if (pinStr.size() < 3)
                 pinStr = "0" + pinStr;
 
-            const std::string stateStr = argumentToBoolString(arguments.at(0));
-            result = encodeMe + " " + stateStr + " (@" + pinStr + ")";
+            const qtac::ByteArray stateStr = argumentToBoolString(arguments.at(0));
+            result = encodeMe + " " + stateStr + " (@" + pinStr.c_str() + ")";
         }
     }
 
-    if (result.empty() || result.back() != '\n')
+    if (result.isEmpty() || result[result.size() - 1] != '\n')
         result += '\n';
 
     return result;

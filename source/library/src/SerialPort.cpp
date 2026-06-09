@@ -61,6 +61,9 @@ SerialPort::~SerialPort()
 
 bool SerialPort::open()
 {
+	if (_port != nullptr)
+		close();
+
 	sp_port* port = nullptr;
 	if (sp_get_port_by_name(_portName.constData(), &port) != SP_OK)
 	{

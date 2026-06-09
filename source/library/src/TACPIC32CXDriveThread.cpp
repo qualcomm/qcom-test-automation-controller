@@ -254,10 +254,10 @@ bool TACPIC32CXDriveThread::readSerialData()
         const qtac::ByteArray chunk = _serialPort->readAll(0 /*non-blocking*/);
         if (chunk.isEmpty())
             break;
-        _serialBuffer += chunk.toStdString();
+        _serialBuffer += chunk;
     }
 
-    if (_serialBuffer.empty())
+    if (_serialBuffer.isEmpty())
         return false;
 
     _protocolInterface->handleReceivedData(_serialBuffer);
@@ -348,7 +348,7 @@ void TACPIC32CXDriveThread::run()
             if (framePackage)
             {
                 if (framePackage->delayInMilliSeconds != 0 ||
-                    !framePackage->comment.empty()          ||
+                    !framePackage->comment.isEmpty()        ||
                     framePackage->endTransaction            ||
                     checkLocalStore(framePackage))
                 {
@@ -356,7 +356,7 @@ void TACPIC32CXDriveThread::run()
                 }
                 else
                 {
-                    writeLogLine("TACPIC32CXDriveTrain::run()::Write: " + framePackage->codedRequest);
+                    writeLogLine("TACPIC32CXDriveTrain::run()::Write: " + framePackage->codedRequest.toStdString());
 
                     // Clear serial buffer before sending the version/identify command.
                     if (framePackage->requestHash == kPIC32CXVersionCommandHash)
@@ -365,8 +365,7 @@ void TACPIC32CXDriveThread::run()
                             writeLogLine("Buffer cleared before identifying PIC32CX board");
                     }
 
-                    const int bytesWritten = _serialPort->write(
-                        qtac::ByteArray(framePackage->codedRequest));
+                    const int bytesWritten = _serialPort->write(framePackage->codedRequest);
 
                     if (bytesWritten == -1)
                     {
@@ -413,7 +412,7 @@ void TACPIC32CXDriveThread::handleSetPin(FramePackage& framePackage)
                                    std::get<uint32_t>(framePackage->arguments.at(1)));
 
         framePackage->synonym =
-            "Pin " + std::to_string(pin) + " " + (state ? "on" : "off");
+            qtac::ByteArray("Pin ") + std::to_string(pin).c_str() + " " + (state ? "on" : "off");
 
         if (onPinStateChanged) onPinStateChanged(pin, state);
     }
@@ -424,7 +423,7 @@ void TACPIC32CXDriveThread::handleVersionResponse(FramePackage& framePackage)
     if (!framePackage->responses.empty())
     {
         // Response format: name,firmware,?,mac,boardID,serial,mcn (comma-separated).
-        const std::string& raw = framePackage->responses.at(0);
+        const std::string raw = framePackage->responses.at(0).toStdString();
 
         std::vector<std::string> parts;
         {
@@ -479,7 +478,7 @@ void TACPIC32CXDriveThread::handleClearBuffer(FramePackage& framePackage)
         for (size_t i = 0; i < framePackage->responses.size(); ++i)
         {
             if (i > 0) joined += ',';
-            joined += framePackage->responses[i];
+            joined += framePackage->responses[i].toStdString();
         }
         writeLogLine("Buffer cleared. Board response: '" + joined + "'");
     }

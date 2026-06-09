@@ -37,12 +37,11 @@
 #include <qtac/StringUtilities.h>
 #include <qtac/ProtocolInterface.h>
 
-#include <algorithm>
 #include <variant>
 
 // Prompt strings sent by the PSOC firmware.
-static const std::string kCommand              {"CMD >> "};
-static const std::string kCommandNotRecognized {"CMD: Command not recognized."};
+static const qtac::ByteArray kCommand              {"CMD >> "};
+static const qtac::ByteArray kCommandNotRecognized {"CMD: Command not recognized."};
 
 namespace qtac {
 
@@ -61,41 +60,43 @@ void TACPSOCCoder::reset()
 // Accumulates raw bytes in _receiveBuffer.  When the buffer contains the
 // PSOC command prompt (kCommand) or the "not recognized" string, we split
 // on "\r\n", deliver each non-prompt line as a frame, pad to at least 3
-// frames (matching the original Qt logic), then deliver an empty-string
-// sentinel that tells TACPSOCProtocol::frameComplete() to commit the packet.
+// frames (matching the original Qt logic), then deliver an empty sentinel
+// that tells TACPSOCProtocol::frameComplete() to commit the packet.
 // -----------------------------------------------------------------------
-void TACPSOCCoder::decode(const std::string& decodeMe)
+void TACPSOCCoder::decode(const qtac::ByteArray& decodeMe)
 {
-    static const std::string kDelimiter{"\r\n"};
+    static const qtac::ByteArray kDelimiter{"\r\n"};
 
     _receiveBuffer += decodeMe;
 
     // Check whether the prompt or "not recognized" tag is present.
     const bool hasPrompt =
-        _receiveBuffer.find(kCommand) != std::string::npos ||
-        _receiveBuffer.find(kCommandNotRecognized) != std::string::npos;
+        _receiveBuffer.contains(kCommand) ||
+        _receiveBuffer.contains(kCommandNotRecognized);
 
     if (!hasPrompt)
         return;
 
     // Split on \r\n, dropping empty tokens.
-    std::vector<std::string> frames;
+    std::vector<qtac::ByteArray> frames;
     {
+        const std::string buf      = _receiveBuffer.toStdString();
+        const std::string delim    = kDelimiter.toStdString();
         std::string::size_type start = 0;
-        while (start < _receiveBuffer.size())
+        while (start < buf.size())
         {
-            auto end = _receiveBuffer.find(kDelimiter, start);
+            auto end = buf.find(delim, start);
             if (end == std::string::npos)
             {
-                const std::string tok = _receiveBuffer.substr(start);
+                const std::string tok = buf.substr(start);
                 if (!tok.empty())
-                    frames.push_back(tok);
+                    frames.push_back(qtac::ByteArray(tok));
                 break;
             }
-            const std::string tok = _receiveBuffer.substr(start, end - start);
+            const std::string tok = buf.substr(start, end - start);
             if (!tok.empty())
-                frames.push_back(tok);
-            start = end + kDelimiter.size();
+                frames.push_back(qtac::ByteArray(tok));
+            start = end + delim.size();
         }
     }
 
@@ -112,13 +113,13 @@ void TACPSOCCoder::decode(const std::string& decodeMe)
     while (count < 3)
     {
         if (_frameFunction)
-            _frameFunction(" ", _protocolInterface);
+            _frameFunction(qtac::ByteArray(" "), _protocolInterface);
         ++count;
     }
 
-    // Empty-string sentinel — tells frameComplete() to commit the packet.
+    // Empty sentinel — tells frameComplete() to commit the packet.
     if (_frameFunction)
-        _frameFunction(std::string(), _protocolInterface);
+        _frameFunction(qtac::ByteArray(), _protocolInterface);
 
     _receiveBuffer.clear();
 }
@@ -129,11 +130,11 @@ void TACPSOCCoder::decode(const std::string& decodeMe)
 // Maps the high-level command name (identified by its hash) to the raw
 // serial string that the PSOC firmware understands.
 // -----------------------------------------------------------------------
-std::string TACPSOCCoder::encode(const std::string& encodeMe, const Arguments& arguments)
+qtac::ByteArray TACPSOCCoder::encode(const qtac::ByteArray& encodeMe, const Arguments& arguments)
 {
-    std::string result = encodeMe;
+    qtac::ByteArray result = encodeMe;
 
-    switch (arrayHash(qtac::ByteArray(encodeMe)))
+    switch (arrayHash(encodeMe))
     {
     case kVersionCommandHash:
         result = "version\r";
@@ -145,7 +146,7 @@ std::string TACPSOCCoder::encode(const std::string& encodeMe, const Arguments& a
 
     case kSetNameCommandHash:
         if (!arguments.empty())
-            result = "setname " + std::get<std::string>(arguments.at(0)) + "\r";
+            result = qtac::ByteArray("setname ") + std::get<std::string>(arguments.at(0)).c_str() + "\r";
         break;
 
     case kGetUUIDCommandHash:
@@ -166,7 +167,7 @@ std::string TACPSOCCoder::encode(const std::string& encodeMe, const Arguments& a
 
     case kI2CReadRegisterCommandHash:
         if (!arguments.empty())
-            result = "i2c readRegisterBytes " + std::get<std::string>(arguments.at(0)) + " 1";
+            result = qtac::ByteArray("i2c readRegisterBytes ") + std::get<std::string>(arguments.at(0)).c_str() + " 1";
         break;
 
     case kI2CReadRegisterValueCommandHash:
@@ -175,15 +176,15 @@ std::string TACPSOCCoder::encode(const std::string& encodeMe, const Arguments& a
 
     case kI2CWriteRegisterCommandHash:
         if (!arguments.empty())
-            result = "i2c writeByte " + std::get<std::string>(arguments.at(0));
+            result = qtac::ByteArray("i2c writeByte ") + std::get<std::string>(arguments.at(0)).c_str();
         break;
 
     case kSetPinCommandHash:
         if (arguments.size() == 2)
         {
-            const std::string stateStr = argumentToBoolString(arguments.at(0));
-            const std::string pinStr   = std::to_string(std::get<uint32_t>(arguments.at(1)));
-            result = "pin " + stateStr + " " + pinStr + "\r";
+            const qtac::ByteArray stateStr = argumentToBoolString(arguments.at(0));
+            const qtac::ByteArray pinStr   = qtac::ByteArray(std::to_string(std::get<uint32_t>(arguments.at(1))));
+            result = qtac::ByteArray("pin ") + stateStr + " " + pinStr + "\r";
         }
         break;
 
@@ -193,7 +194,7 @@ std::string TACPSOCCoder::encode(const std::string& encodeMe, const Arguments& a
     }
 
     // Ensure trailing \r (matches original behaviour).
-    if (result.empty() || result.back() != '\r')
+    if (result.isEmpty() || result[result.size() - 1] != '\r')
         result += '\r';
 
     return result;

@@ -274,6 +274,15 @@ String String::left(int len) const
 	return String(_data.substr(0, static_cast<size_t>(len)));
 }
 
+String String::mid(int position, int len) const
+{
+	if (position < 0) position = 0;
+	if (static_cast<size_t>(position) >= _data.size()) return String("");
+	if (len < 0)
+		return String(_data.substr(static_cast<size_t>(position)));
+	return String(_data.substr(static_cast<size_t>(position), static_cast<size_t>(len)));
+}
+
 // --- Replace ---
 
 String& String::replace(const String& before, const String& after)

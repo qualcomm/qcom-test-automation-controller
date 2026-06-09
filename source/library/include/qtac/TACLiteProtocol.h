@@ -80,13 +80,13 @@ public:
     void idle() override;
 
 protected:
-    void frameComplete(const std::string& completedFrame) override;
-    void badFrame(const std::string& completedFrame)      override;
+    void frameComplete(const qtac::ByteArray& completedFrame) override;
+    void badFrame(const qtac::ByteArray& completedFrame)      override;
 
 private:
     TACDriveThread* _tacDriveTrain{nullptr};
     uint64_t        _tickCount{0};
-    std::string     _currentCommand;
+    qtac::ByteArray _currentCommand;
 };
 
 } // namespace qtac

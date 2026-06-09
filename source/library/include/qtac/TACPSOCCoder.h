@@ -48,13 +48,13 @@ public:
     TACPSOCCoder(const TACPSOCCoder&)            = delete;
     TACPSOCCoder& operator=(const TACPSOCCoder&) = delete;
 
-    void        reset()                                              override;
-    void        decode(const std::string& decodeMe)                  override;
-    std::string encode(const std::string& encodeMe,
-                       const Arguments&   arguments)                 override;
+    void            reset()                                                   override;
+    void            decode(const qtac::ByteArray& decodeMe)                   override;
+    qtac::ByteArray encode(const qtac::ByteArray& encodeMe,
+                           const Arguments&       arguments)                  override;
 
 private:
-    std::string _receiveBuffer;
+    qtac::ByteArray _receiveBuffer;
 };
 
 } // namespace qtac

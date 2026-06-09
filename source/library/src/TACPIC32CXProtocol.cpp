@@ -79,7 +79,7 @@ uint32_t TACPIC32CXProtocol::sendCommand(const std::string& command,
 
     FramePackage framePackage = makeFramePackage();
     framePackage->packetID         = result;
-    framePackage->request          = command;
+    framePackage->request          = qtac::ByteArray(command);
     framePackage->arguments        = arguments;
     framePackage->requestHash      = arrayHash(qtac::ByteArray(command));
     framePackage->console          = console;
@@ -88,9 +88,9 @@ uint32_t TACPIC32CXProtocol::sendCommand(const std::string& command,
     framePackage->receiveInterface = receiveInterface;
 
     if (_frameCoder)
-        framePackage->codedRequest = _frameCoder->encode(command, arguments);
+        framePackage->codedRequest = _frameCoder->encode(qtac::ByteArray(command), arguments);
     else
-        framePackage->codedRequest = command;
+        framePackage->codedRequest = qtac::ByteArray(command);
 
     ProtocolInterface::queueCommand(framePackage);
     return result;
@@ -117,9 +117,9 @@ void TACPIC32CXProtocol::idle()
 // the commit.  All PIC32CX frames are considered valid (original comment:
 // "Consider all pic32cx frames to be valid").
 // -----------------------------------------------------------------------
-void TACPIC32CXProtocol::frameComplete(const std::string& completedFrame)
+void TACPIC32CXProtocol::frameComplete(const qtac::ByteArray& completedFrame)
 {
-    if (!completedFrame.empty())
+    if (!completedFrame.isEmpty())
     {
         _responseLines.push_back(completedFrame);
     }
@@ -142,7 +142,7 @@ void TACPIC32CXProtocol::frameComplete(const std::string& completedFrame)
     }
 }
 
-void TACPIC32CXProtocol::badFrame(const std::string& /*completedFrame*/)
+void TACPIC32CXProtocol::badFrame(const qtac::ByteArray& /*completedFrame*/)
 {
 }
 

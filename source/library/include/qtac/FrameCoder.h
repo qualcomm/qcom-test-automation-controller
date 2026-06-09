@@ -30,34 +30,60 @@
 // OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN
 // IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-// Author: Biswajit Roy
-// Qt-free reimplementation of TACPIC32CXCoder from qcommon-console.
+// Authors: Michael Simpson, Biswajit Roy
+// Qt-free reimplementation of FrameCoder.h from qcommon-console.
+// QByteArray  -> qtac::ByteArray
+// QPair       -> std::pair
+// QList       -> std::vector
+// Q_DISABLE_COPY -> explicitly deleted copy ctor/assignment
+// QObject     -> removed
 
 #pragma once
 
-#include <qtac/FrameCoder.h>
+#include <qtac/ByteArray.h>
+#include <qtac/FramePackage.h>
+
+#include <string>
+#include <utility>
+#include <vector>
 
 namespace qtac {
 
-// Threshold above which the buffer is considered a complete response.
-static constexpr size_t kValidPIC32CXResponseSize = 40;
+class ProtocolInterface;
 
-class TACPIC32CXCoder : public FrameCoder
+using ErrorParameter  = std::pair<std::string, std::string>;
+using ErrorParameters = std::vector<ErrorParameter>;
+
+using FrameCompleteFunc = void (*)(const qtac::ByteArray& completedFrame, ProtocolInterface* userData);
+using BadFrameFunc      = void (*)(const qtac::ByteArray& completedFrame, ProtocolInterface* userData);
+
+class FrameCoder
 {
 public:
-    TACPIC32CXCoder();
-    ~TACPIC32CXCoder() override;
+    FrameCoder()          = default;
+    virtual ~FrameCoder() = default;
 
-    TACPIC32CXCoder(const TACPIC32CXCoder&)            = delete;
-    TACPIC32CXCoder& operator=(const TACPIC32CXCoder&) = delete;
+    FrameCoder(const FrameCoder&)            = delete;
+    FrameCoder& operator=(const FrameCoder&) = delete;
 
-    void            reset()                                                   override;
-    void            decode(const qtac::ByteArray& decodeMe)                   override;
-    qtac::ByteArray encode(const qtac::ByteArray& encodeMe,
-                           const Arguments&       arguments)                  override;
+    virtual void reset();
 
-private:
-    qtac::ByteArray _receiveBuffer;
+    void setupCallbackFunctions(ProtocolInterface* userData,
+                                FrameCompleteFunc  frameFunc,
+                                BadFrameFunc       badFrameFunc);
+
+    virtual void             decode(const qtac::ByteArray& decodeMe);
+    virtual qtac::ByteArray  encode(const qtac::ByteArray& encodeMe, const Arguments& arguments);
+
+protected:
+    // Helper: returns "1" if the bool variant at the given argument index is true, else "0".
+    // The variant must hold a bool; behaviour is undefined for other alternative types.
+    qtac::ByteArray argumentToBoolString(const Argument& arg) const;
+
+    qtac::ByteArray     _frame;
+    ProtocolInterface*  _protocolInterface{nullptr};
+    FrameCompleteFunc   _frameFunction{nullptr};
+    BadFrameFunc        _badFrameFunction{nullptr};
 };
 
 } // namespace qtac

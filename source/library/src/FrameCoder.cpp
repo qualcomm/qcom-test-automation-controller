@@ -30,34 +30,39 @@
 // OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN
 // IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-// Author: Biswajit Roy
-// Qt-free reimplementation of TACPIC32CXCoder from qcommon-console.
-
-#pragma once
+// Authors: Michael Simpson, Biswajit Roy
 
 #include <qtac/FrameCoder.h>
 
 namespace qtac {
 
-// Threshold above which the buffer is considered a complete response.
-static constexpr size_t kValidPIC32CXResponseSize = 40;
-
-class TACPIC32CXCoder : public FrameCoder
+void FrameCoder::reset()
 {
-public:
-    TACPIC32CXCoder();
-    ~TACPIC32CXCoder() override;
+    _frame.clear();
+}
 
-    TACPIC32CXCoder(const TACPIC32CXCoder&)            = delete;
-    TACPIC32CXCoder& operator=(const TACPIC32CXCoder&) = delete;
+void FrameCoder::decode(const qtac::ByteArray& decodeMe)
+{
+    _frameFunction(decodeMe, _protocolInterface);
+}
 
-    void            reset()                                                   override;
-    void            decode(const qtac::ByteArray& decodeMe)                   override;
-    qtac::ByteArray encode(const qtac::ByteArray& encodeMe,
-                           const Arguments&       arguments)                  override;
+qtac::ByteArray FrameCoder::encode(const qtac::ByteArray& encodeMe, const Arguments& /*arguments*/)
+{
+    return encodeMe;
+}
 
-private:
-    qtac::ByteArray _receiveBuffer;
-};
+qtac::ByteArray FrameCoder::argumentToBoolString(const Argument& arg) const
+{
+    return std::get<bool>(arg) ? "1" : "0";
+}
+
+void FrameCoder::setupCallbackFunctions(ProtocolInterface*  protocolInterface,
+                                        FrameCompleteFunc   frameFunc,
+                                        BadFrameFunc        badFrameFunc)
+{
+    _protocolInterface  = protocolInterface;
+    _frameFunction      = frameFunc;
+    _badFrameFunction   = badFrameFunc;
+}
 
 } // namespace qtac

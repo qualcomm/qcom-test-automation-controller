@@ -30,34 +30,22 @@
 // OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN
 // IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-// Author: Biswajit Roy
-// Qt-free reimplementation of TACPIC32CXCoder from qcommon-console.
+// Authors: Michael Simpson, Biswajit Roy
+// Qt-free reimplementation of ReceiveInterface.h from qcommon-console.
 
 #pragma once
 
-#include <qtac/FrameCoder.h>
+#include <qtac/FramePackage.h>
 
 namespace qtac {
 
-// Threshold above which the buffer is considered a complete response.
-static constexpr size_t kValidPIC32CXResponseSize = 40;
-
-class TACPIC32CXCoder : public FrameCoder
+class ReceiveInterface
 {
 public:
-    TACPIC32CXCoder();
-    ~TACPIC32CXCoder() override;
+    ReceiveInterface()          = default;
+    virtual ~ReceiveInterface() = default;
 
-    TACPIC32CXCoder(const TACPIC32CXCoder&)            = delete;
-    TACPIC32CXCoder& operator=(const TACPIC32CXCoder&) = delete;
-
-    void            reset()                                                   override;
-    void            decode(const qtac::ByteArray& decodeMe)                   override;
-    qtac::ByteArray encode(const qtac::ByteArray& encodeMe,
-                           const Arguments&       arguments)                  override;
-
-private:
-    qtac::ByteArray _receiveBuffer;
+    virtual void receive(FramePackage& framePackage) = 0;
 };
 
 } // namespace qtac

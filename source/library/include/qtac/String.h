@@ -103,6 +103,7 @@ public:
 
 	// --- Substrings ---
 	String left(int len) const;
+	String mid(int position, int len = -1) const;
 
 	// --- Split ---
 	StringList split(const String& separator) const;

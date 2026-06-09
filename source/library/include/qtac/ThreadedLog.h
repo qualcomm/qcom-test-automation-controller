@@ -30,34 +30,58 @@
 // OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN
 // IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-// Author: Biswajit Roy
-// Qt-free reimplementation of TACPIC32CXCoder from qcommon-console.
+// Authors: Michael Simpson, Biswajit Roy
+// Qt-free reimplementation of ThreadedLog from qcommon-console.
+// QThread          -> std::thread (owned)
+// QSharedPointer   -> std::shared_ptr
+// QRecursiveMutex  -> std::recursive_mutex
+// QString          -> std::string
+// QStringList      -> std::vector<std::string>
+// QFile            -> std::ofstream
+// QDateTime        -> std::chrono + strftime
 
 #pragma once
 
-#include <qtac/FrameCoder.h>
+#include <atomic>
+#include <fstream>
+#include <memory>
+#include <mutex>
+#include <string>
+#include <thread>
+#include <vector>
 
 namespace qtac {
 
-// Threshold above which the buffer is considered a complete response.
-static constexpr size_t kValidPIC32CXResponseSize = 40;
+class _ThreadedLog;
+using ThreadedLog = std::shared_ptr<_ThreadedLog>;
 
-class TACPIC32CXCoder : public FrameCoder
+class _ThreadedLog
 {
 public:
-    TACPIC32CXCoder();
-    ~TACPIC32CXCoder() override;
+    _ThreadedLog() = default;
+    ~_ThreadedLog();
 
-    TACPIC32CXCoder(const TACPIC32CXCoder&)            = delete;
-    TACPIC32CXCoder& operator=(const TACPIC32CXCoder&) = delete;
+    static ThreadedLog  createThreadedLog();
+    static std::string  createLogName(const std::string& prefix);
 
-    void            reset()                                                   override;
-    void            decode(const qtac::ByteArray& decodeMe)                   override;
-    qtac::ByteArray encode(const qtac::ByteArray& encodeMe,
-                           const Arguments&       arguments)                  override;
+    void open(const std::string& filePath);
+    bool isOpen();
+    void close();
+
+    std::string currentLogPath() const { return _currentLogPath; }
+
+    void addLogEntry(const std::string& logEntry);
+
+    void run();
 
 private:
-    qtac::ByteArray _receiveBuffer;
+    std::atomic<bool>       _running{false};
+    std::atomic<bool>       _starting{false};
+    std::recursive_mutex    _mutex;
+    std::vector<std::string> _logEntries;
+    std::string             _currentLogPath;
+    std::ofstream           _logFile;
+    std::thread             _thread;
 };
 
 } // namespace qtac

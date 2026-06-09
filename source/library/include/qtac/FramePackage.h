@@ -30,34 +30,59 @@
 // OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN
 // IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-// Author: Biswajit Roy
-// Qt-free reimplementation of TACPIC32CXCoder from qcommon-console.
+// Authors: Michael Simpson, Biswajit Roy
+// Qt-free reimplementation of FramePackage.h from qcommon-console.
 
 #pragma once
 
-#include <qtac/FrameCoder.h>
+#include <qtac/ByteArray.h>
+
+#include <cstdint>
+#include <memory>
+#include <variant>
+#include <vector>
 
 namespace qtac {
 
-// Threshold above which the buffer is considered a complete response.
-static constexpr size_t kValidPIC32CXResponseSize = 40;
+class ReceiveInterface;
 
-class TACPIC32CXCoder : public FrameCoder
+// Heterogeneous argument — mirrors the QList<QVariant> usage: bool, uint32, or string.
+using Argument  = std::variant<bool, uint32_t, std::string>;
+using Arguments = std::vector<Argument>;class FramePackageData
 {
 public:
-    TACPIC32CXCoder();
-    ~TACPIC32CXCoder() override;
+    FramePackageData()  = default;
+    ~FramePackageData() = default;
 
-    TACPIC32CXCoder(const TACPIC32CXCoder&)            = delete;
-    TACPIC32CXCoder& operator=(const TACPIC32CXCoder&) = delete;
+    // Non-copyable; always used through shared_ptr.
+    FramePackageData(const FramePackageData&)            = delete;
+    FramePackageData& operator=(const FramePackageData&) = delete;
 
-    void            reset()                                                   override;
-    void            decode(const qtac::ByteArray& decodeMe)                   override;
-    qtac::ByteArray encode(const qtac::ByteArray& encodeMe,
-                           const Arguments&       arguments)                  override;
+    qtac::ByteArray              lastError;
+    qtac::ByteArray              request;
+    uint32_t                     requestHash{0};
+    Arguments                    arguments;
+    qtac::ByteArray              synonym;
+    qtac::ByteArray              codedRequest;
+    std::vector<qtac::ByteArray> responses;
+    uint32_t                     packetID{0};
+    qtac::ByteArray              comment;
 
-private:
-    qtac::ByteArray _receiveBuffer;
+    bool                    endTransaction{false};
+    bool                    valid{true};
+    bool                    console{false};
+    bool                    shouldStore{false};
+    ReceiveInterface*       receiveInterface{nullptr};
+    uint64_t                tickcount{0};
+    uint32_t                delayInMilliSeconds{0};
 };
+
+using FramePackage     = std::shared_ptr<FramePackageData>;
+using FramePackageList = std::vector<FramePackage>;
+
+inline FramePackage makeFramePackage()
+{
+    return std::make_shared<FramePackageData>();
+}
 
 } // namespace qtac

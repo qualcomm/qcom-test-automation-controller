@@ -79,7 +79,7 @@ uint32_t TACLiteProtocol::sendCommand(const std::string& command,
 
     FramePackage framePackage = makeFramePackage();
     framePackage->packetID         = result;
-    framePackage->request          = command;
+    framePackage->request          = qtac::ByteArray(command);
     framePackage->arguments        = arguments;
     framePackage->requestHash      = arrayHash(qtac::ByteArray(command));
     framePackage->console          = console;
@@ -88,9 +88,9 @@ uint32_t TACLiteProtocol::sendCommand(const std::string& command,
     framePackage->receiveInterface = receiveInterface;
 
     if (_frameCoder)
-        framePackage->codedRequest = _frameCoder->encode(command, arguments);
+        framePackage->codedRequest = _frameCoder->encode(qtac::ByteArray(command), arguments);
     else
-        framePackage->codedRequest = command;
+        framePackage->codedRequest = qtac::ByteArray(command);
 
     ProtocolInterface::queueCommand(framePackage);
     return result;
@@ -110,12 +110,12 @@ void TACLiteProtocol::idle()
 {
 }
 
-void TACLiteProtocol::frameComplete(const std::string& /*completedFrame*/)
+void TACLiteProtocol::frameComplete(const qtac::ByteArray& /*completedFrame*/)
 {
     clearPendingFrame();
 }
 
-void TACLiteProtocol::badFrame(const std::string& /*completedFrame*/)
+void TACLiteProtocol::badFrame(const qtac::ByteArray& /*completedFrame*/)
 {
 }
 

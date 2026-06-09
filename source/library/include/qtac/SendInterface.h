@@ -30,34 +30,31 @@
 // OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN
 // IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-// Author: Biswajit Roy
-// Qt-free reimplementation of TACPIC32CXCoder from qcommon-console.
+// Authors: Michael Simpson, Biswajit Roy
+// Qt-free reimplementation of SendInterface.h from qcommon-console.
 
 #pragma once
 
-#include <qtac/FrameCoder.h>
+#include <qtac/FramePackage.h>
+#include <qtac/ReceiveInterface.h>
+
+#include <cstdint>
+#include <string>
 
 namespace qtac {
 
-// Threshold above which the buffer is considered a complete response.
-static constexpr size_t kValidPIC32CXResponseSize = 40;
-
-class TACPIC32CXCoder : public FrameCoder
+class SendInterface
 {
 public:
-    TACPIC32CXCoder();
-    ~TACPIC32CXCoder() override;
+    SendInterface()          = default;
+    virtual ~SendInterface() = default;
 
-    TACPIC32CXCoder(const TACPIC32CXCoder&)            = delete;
-    TACPIC32CXCoder& operator=(const TACPIC32CXCoder&) = delete;
-
-    void            reset()                                                   override;
-    void            decode(const qtac::ByteArray& decodeMe)                   override;
-    qtac::ByteArray encode(const qtac::ByteArray& encodeMe,
-                           const Arguments&       arguments)                  override;
-
-private:
-    qtac::ByteArray _receiveBuffer;
+    virtual bool     ready() = 0;
+    virtual uint32_t send(const std::string& sendMe, const Arguments& arguments, bool command,
+                          ReceiveInterface* receiveInterface, bool store = true) = 0;
+    virtual void     addDelay(uint32_t delayInMilliSeconds, ReceiveInterface* receiveInterface) = 0;
+    virtual void     addLogComment(const std::string& comment) = 0;
+    virtual void     addEndTransaction(ReceiveInterface* receiveInterface) = 0;
 };
 
 } // namespace qtac

@@ -70,26 +70,26 @@ void TACLiteCoder::reset()
     FrameCoder::reset();
 }
 
-void TACLiteCoder::decode(const std::string& /*decodeMe*/)
+void TACLiteCoder::decode(const qtac::ByteArray& /*decodeMe*/)
 {
     // FTDI hardware is write-only for pin control — nothing to decode.
 }
 
-std::string TACLiteCoder::encode(const std::string& encodeMe, const Arguments& arguments)
+qtac::ByteArray TACLiteCoder::encode(const qtac::ByteArray& encodeMe, const Arguments& arguments)
 {
     // The only command with a meaningful encode is SetPin:
     // arguments[1] holds the pin number (uint32_t design-schematic value).
     // We convert it to the bus index string that the run() loop passes to
     // _FTDIChipset::write(pin, state).
-    if (arrayHash(qtac::ByteArray(encodeMe)) == kSetPinCommandHash)
+    if (arrayHash(encodeMe) == kSetPinCommandHash)
     {
         if (arguments.size() >= 2)
         {
             const uint32_t pin = std::get<uint32_t>(arguments.at(1));
-            return std::to_string(designToPin(pin));
+            return qtac::ByteArray(std::to_string(designToPin(pin)));
         }
     }
-    return "Invalid";
+    return qtac::ByteArray("Invalid");
 }
 
 } // namespace qtac

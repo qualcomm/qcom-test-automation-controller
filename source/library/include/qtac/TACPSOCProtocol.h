@@ -74,16 +74,16 @@ public:
     void idle() override;
 
 protected:
-    void frameComplete(const std::string& completedFrame) override;
-    void badFrame(const std::string& completedFrame)      override;
+    void frameComplete(const qtac::ByteArray& completedFrame) override;
+    void badFrame(const qtac::ByteArray& completedFrame)      override;
 
 private:
     TACDriveThread* _tacDriveTrain{nullptr};
     uint64_t        _tickCount{0};
-    std::string     _currentCommand;
+    qtac::ByteArray _currentCommand;
 
     // Accumulated response lines for the current pending frame.
-    std::vector<std::string> _responseLines;
+    std::vector<qtac::ByteArray> _responseLines;
 };
 
 } // namespace qtac
