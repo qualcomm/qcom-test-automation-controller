@@ -121,6 +121,27 @@ add_library(qtac-core STATIC
     # Serial port (W2)
     src/SerialPort.cpp
     src/SerialPortInfo.cpp
+    # Drive thread base (W2)
+    src/DriveThread.cpp
+    src/FrameCoder.cpp
+    src/ProtocolInterface.cpp
+    src/ThreadedLog.cpp
+    src/TACDriveThread.cpp
+    # TAC Lite (FTDI) drive thread (W2)
+    src/TACLiteCommand.cpp
+    src/TACLiteCoder.cpp
+    src/TACLiteProtocol.cpp
+    src/TACLiteDriveThread.cpp
+    # TAC PSOC (serial) drive thread (W2)
+    src/TACPSOCCommand.cpp
+    src/TACPSOCCoder.cpp
+    src/TACPSOCProtocol.cpp
+    src/TACPSOCDriveThread.cpp
+    # TAC PIC32CX (serial) drive thread (W2)
+    src/TACPIC32CXCommand.cpp
+    src/TACPIC32CXCoder.cpp
+    src/TACPIC32CXProtocol.cpp
+    src/TACPIC32CXDriveThread.cpp
 )
 
 # Platform-specific SerialPortInfo enumeration
