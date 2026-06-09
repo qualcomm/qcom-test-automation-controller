@@ -35,11 +35,11 @@
 
 #pragma once
 
+#include <qtac/ByteArray.h>
 #include <qtac/FramePackage.h>
 #include <qtac/ReceiveInterface.h>
 
 #include <cstdint>
-#include <string>
 
 namespace qtac {
 
@@ -50,10 +50,10 @@ public:
     virtual ~SendInterface() = default;
 
     virtual bool     ready() = 0;
-    virtual uint32_t send(const std::string& sendMe, const Arguments& arguments, bool command,
+    virtual uint32_t send(const qtac::ByteArray& sendMe, const Arguments& arguments, bool command,
                           ReceiveInterface* receiveInterface, bool store = true) = 0;
     virtual void     addDelay(uint32_t delayInMilliSeconds, ReceiveInterface* receiveInterface) = 0;
-    virtual void     addLogComment(const std::string& comment) = 0;
+    virtual void     addLogComment(const qtac::ByteArray& comment) = 0;
     virtual void     addEndTransaction(ReceiveInterface* receiveInterface) = 0;
 };
 

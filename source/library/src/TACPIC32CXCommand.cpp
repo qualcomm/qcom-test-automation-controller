@@ -107,7 +107,7 @@ void TACPIC32CXCommand::clearBuffer()
 void TACPIC32CXCommand::send(const qtac::ByteArray& command, const Arguments& arguments,
                               bool console, bool store)
 {
-    _sender->send(command.toStdString(), arguments, console, _receiver, store);
+    _sender->send(command, arguments, console, _receiver, store);
 }
 
 void TACPIC32CXCommand::addDelay(uint32_t delayInMilliSeconds)
@@ -117,7 +117,7 @@ void TACPIC32CXCommand::addDelay(uint32_t delayInMilliSeconds)
 
 void TACPIC32CXCommand::addLogComment(const qtac::ByteArray& comment)
 {
-    _sender->addLogComment(comment.toStdString());
+    _sender->addLogComment(comment);
 }
 
 void TACPIC32CXCommand::addEndTransaction()

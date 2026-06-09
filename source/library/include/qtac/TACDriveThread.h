@@ -50,7 +50,6 @@
 #include <functional>
 #include <memory>
 #include <mutex>
-#include <string>
 #include <vector>
 
 namespace qtac {
@@ -72,7 +71,7 @@ struct _CommandEntry
 
     CommandAction _commandAction{eNotSet};
     uint64_t      _pinID{static_cast<uint64_t>(-1)};
-    std::string   _action;
+    qtac::ByteArray _action;
     qtac::Variant _arguement;    // original spelling preserved
 };
 
@@ -175,7 +174,7 @@ public:
     qtac::ByteArray macAddress();
 
     // --- SendInterface ---
-    virtual uint32_t send(const std::string& sendMe, const Arguments& arguments,
+    virtual uint32_t send(const qtac::ByteArray& sendMe, const Arguments& arguments,
                           bool command, ReceiveInterface* receiveInterface,
                           bool store = true) = 0;
     virtual bool ready() = 0;
@@ -218,7 +217,7 @@ public:
 
     // Optional log sink — if set, log() and error messages route here instead
     // of to a global AppCore.
-    std::function<void(const std::string& line)> onLogLine;
+    std::function<void(const qtac::ByteArray& line)> onLogLine;
 
 protected:
     bool            _waitForCompletion{false};
@@ -253,7 +252,7 @@ protected:
     // Logging helpers.
     void log(FramePackage& framePackage);
     void timeStampLogMessage(const qtac::String& timeStampMe);
-    void writeLogLine(const std::string& line);
+    void writeLogLine(const qtac::ByteArray& line);
 };
 
 } // namespace qtac

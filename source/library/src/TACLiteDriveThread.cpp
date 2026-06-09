@@ -192,13 +192,13 @@ void TACLiteDriveThread::setName(const qtac::ByteArray& /*newName*/)
     // FTDI hardware does not support rename.
 }
 
-uint32_t TACLiteDriveThread::send(const std::string& sendMe,
+uint32_t TACLiteDriveThread::send(const qtac::ByteArray& sendMe,
                                    const Arguments& arguments,
                                    bool console,
                                    ReceiveInterface* receiveInterface,
                                    bool store)
 {
-    return _tacProtocol.sendCommand(sendMe, arguments, console, receiveInterface, store);
+    return _tacProtocol.sendCommand(sendMe.toStdString(), arguments, console, receiveInterface, store);
 }
 
 bool TACLiteDriveThread::ready()

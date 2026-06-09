@@ -165,7 +165,7 @@ void TACPSOCCommand::platformID()
 void TACPSOCCommand::send(const qtac::ByteArray& command, const Arguments& arguments,
                            bool console, bool store)
 {
-    _sender->send(command.toStdString(), arguments, console, _receiver, store);
+    _sender->send(command, arguments, console, _receiver, store);
 }
 
 void TACPSOCCommand::addDelay(uint32_t delayInMilliSeconds)
@@ -175,7 +175,7 @@ void TACPSOCCommand::addDelay(uint32_t delayInMilliSeconds)
 
 void TACPSOCCommand::addLogComment(const qtac::ByteArray& comment)
 {
-    _sender->addLogComment(comment.toStdString());
+    _sender->addLogComment(comment);
 }
 
 void TACPSOCCommand::addEndTransaction()

@@ -67,14 +67,14 @@ static uint64_t tickCount()
 // Command string constants (mirrors TACCommands.h kXxx values)
 // -----------------------------------------------------------------------
 
-static const std::string kSetNameCommandStr    {"Set Name"};
-static const std::string kSetNameAliasStr      {"setname"};
-static const std::string kSetButtonAssertTime  {"Set Button Assert Time"};
-static const std::string kSetButtonAssertAlias {"setbtnassert"};
-static const std::string kSetPowerKeyDelay     {"Set Power Key Delay"};
-static const std::string kSetPowerKeyDelayAlias{"setpkdelay"};
-static const std::string kSetPinCommandStr     {"SetPin"};
-static const std::string kSetPinCommandLower   {"setpin"};
+static const qtac::ByteArray kSetNameCommandStr    {"Set Name"};
+static const qtac::ByteArray kSetNameAliasStr      {"setname"};
+static const qtac::ByteArray kSetButtonAssertTime  {"Set Button Assert Time"};
+static const qtac::ByteArray kSetButtonAssertAlias {"setbtnassert"};
+static const qtac::ByteArray kSetPowerKeyDelay     {"Set Power Key Delay"};
+static const qtac::ByteArray kSetPowerKeyDelayAlias{"setpkdelay"};
+static const qtac::ByteArray kSetPinCommandStr     {"SetPin"};
+static const qtac::ByteArray kSetPinCommandLower   {"setpin"};
 
 // -----------------------------------------------------------------------
 // Construction / destruction
@@ -194,11 +194,11 @@ qtac::ByteArray TACDriveThread::decodeCommand(const qtac::ByteArray& command, Ar
         result = result.left(result.size() - 2);
     }
 
-    const qtac::String setNameLower    = qtac::String(kSetNameCommandStr).toLower();
-    const qtac::String btnAssertLower  = qtac::String(kSetButtonAssertTime).toLower();
-    const qtac::String pkDelayLower    = qtac::String(kSetPowerKeyDelay).toLower();
+    const qtac::String setNameLower    = qtac::String(kSetNameCommandStr.toStdString()).toLower();
+    const qtac::String btnAssertLower  = qtac::String(kSetButtonAssertTime.toStdString()).toLower();
+    const qtac::String pkDelayLower    = qtac::String(kSetPowerKeyDelay.toStdString()).toLower();
 
-    if (result.startsWith(setNameLower) || result.startsWith(kSetNameAliasStr.c_str()))
+    if (result.startsWith(setNameLower) || result.startsWith(qtac::String(kSetNameAliasStr.toStdString())))
     {
         if (result.startsWith(setNameLower))
             result = result.mid(setNameLower.size());
@@ -207,9 +207,9 @@ qtac::ByteArray TACDriveThread::decodeCommand(const qtac::ByteArray& command, Ar
 
         result = result.trimmed();
         args.push_back(result.toStdString());
-        result = qtac::String(kSetNameCommandStr);
+        result = qtac::String(kSetNameCommandStr.toStdString());
     }
-    else if (result.startsWith(btnAssertLower) || result.startsWith(kSetButtonAssertAlias.c_str()))
+    else if (result.startsWith(btnAssertLower) || result.startsWith(qtac::String(kSetButtonAssertAlias.toStdString())))
     {
         if (result.startsWith(btnAssertLower))
             result = result.mid(btnAssertLower.size());
@@ -218,9 +218,9 @@ qtac::ByteArray TACDriveThread::decodeCommand(const qtac::ByteArray& command, Ar
 
         result = result.trimmed();
         args.push_back(static_cast<uint32_t>(std::stoul(result.toStdString())));
-        result = qtac::String(kSetButtonAssertTime);
+        result = qtac::String(kSetButtonAssertTime.toStdString());
     }
-    else if (result.startsWith(pkDelayLower) || result.startsWith(kSetPowerKeyDelayAlias.c_str()))
+    else if (result.startsWith(pkDelayLower) || result.startsWith(qtac::String(kSetPowerKeyDelayAlias.toStdString())))
     {
         if (result.startsWith(pkDelayLower))
             result = result.mid(pkDelayLower.size());
@@ -229,14 +229,14 @@ qtac::ByteArray TACDriveThread::decodeCommand(const qtac::ByteArray& command, Ar
 
         result = result.trimmed();
         args.push_back(static_cast<uint32_t>(std::stoul(result.toStdString())));
-        result = qtac::String(kSetPowerKeyDelay);
+        result = qtac::String(kSetPowerKeyDelay.toStdString());
     }
-    else if (result.startsWith(kSetPinCommandLower.c_str()))
+    else if (result.startsWith(qtac::String(kSetPinCommandLower.toStdString())))
     {
         result = result.mid(static_cast<int>(kSetPinCommandLower.size()));
         result = result.trimmed();
         args.push_back(static_cast<uint32_t>(std::stoul(result.toStdString())));
-        result = qtac::String(kSetPinCommandStr);
+        result = qtac::String(kSetPinCommandStr.toStdString());
     }
 
     return qtac::ByteArray(result.toStdString());
@@ -371,7 +371,7 @@ void TACDriveThread::setThreadDelay(unsigned int delay)
 // Logging
 // -----------------------------------------------------------------------
 
-void TACDriveThread::writeLogLine(const std::string& line)
+void TACDriveThread::writeLogLine(const qtac::ByteArray& line)
 {
     if (onLogLine)
         onLogLine(line);
@@ -387,29 +387,29 @@ void TACDriveThread::log(FramePackage& framePackage)
     {
         std::ostringstream oss;
         oss << " Delay " << framePackage->delayInMilliSeconds << " in msecs";
-        const std::string entry = oss.str();
-        timeStampLogMessage(qtac::String(entry));
+        const qtac::ByteArray entry(oss.str().c_str());
+        timeStampLogMessage(qtac::String(oss.str()));
         writeLogLine(entry);
     }
     else if (!framePackage->comment.isEmpty())
     {
-        writeLogLine(framePackage->comment.toStdString());
+        writeLogLine(framePackage->comment);
     }
     else
     {
-        std::string entry;
+        qtac::ByteArray entry;
         if (framePackage->console)
-            entry = "Request from console: " + framePackage->request.toStdString();
+            entry = "Request from console: " + framePackage->request;
         else
-            entry = "Request: " + framePackage->request.toStdString();
+            entry = "Request: " + framePackage->request;
         writeLogLine(entry);
 
         if (!framePackage->synonym.isEmpty())
-            writeLogLine("Synonym: " + framePackage->synonym.toStdString());
+            writeLogLine("Synonym: " + framePackage->synonym);
 
         writeLogLine("Responses");
         for (const auto& r : framePackage->responses)
-            writeLogLine("   " + r.toStdString());
+            writeLogLine("   " + r);
     }
 
     writeLogLine("Frame Package End");
@@ -429,7 +429,7 @@ void TACDriveThread::timeStampLogMessage(const qtac::String& timeStampMe)
     oss << timeStampMe.toStdString()
         << "Time: " << current
         << " elapsed: " << (current - lastTimeStamp) << " (ms)";
-    writeLogLine(oss.str());
+    writeLogLine(qtac::ByteArray(oss.str().c_str()));
 
     lastTimeStamp = current;
 }

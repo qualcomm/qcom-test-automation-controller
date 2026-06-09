@@ -46,7 +46,7 @@ _ThreadedLog::~_ThreadedLog()
     close();
 }
 
-void _ThreadedLog::open(const std::string& filePath)
+void _ThreadedLog::open(const qtac::ByteArray& filePath)
 {
     _currentLogPath = filePath;
 
@@ -68,14 +68,14 @@ void _ThreadedLog::close()
     if (_running)
     {
         _running = false;
-        _currentLogPath.clear();
+        _currentLogPath = qtac::ByteArray();
     }
 
     if (_thread.joinable())
         _thread.join();
 }
 
-void _ThreadedLog::addLogEntry(const std::string& logEntry)
+void _ThreadedLog::addLogEntry(const qtac::ByteArray& logEntry)
 {
     std::lock_guard<std::recursive_mutex> lock(_mutex);
     _logEntries.push_back(logEntry);
@@ -83,14 +83,14 @@ void _ThreadedLog::addLogEntry(const std::string& logEntry)
 
 void _ThreadedLog::run()
 {
-    _logFile.open(_currentLogPath, std::ios::out | std::ios::binary);
+    _logFile.open(_currentLogPath.toStdString(), std::ios::out | std::ios::binary);
 
     _starting = false;
     _running  = _logFile.is_open();
 
     while (_running)
     {
-        std::string entry;
+        qtac::ByteArray entry;
 
         {
             std::lock_guard<std::recursive_mutex> lock(_mutex);
@@ -101,9 +101,9 @@ void _ThreadedLog::run()
             }
         }
 
-        if (!entry.empty())
+        if (!entry.isEmpty())
         {
-            _logFile << entry;
+            _logFile << entry.toStdString();
             _logFile.flush();
         }
         else
@@ -115,7 +115,7 @@ void _ThreadedLog::run()
     // Drain any remaining entries after _running is cleared.
     std::lock_guard<std::recursive_mutex> lock(_mutex);
     for (const auto& entry : _logEntries)
-        _logFile << entry;
+        _logFile << entry.toStdString();
     _logEntries.clear();
 
     _logFile.close();
@@ -126,7 +126,7 @@ ThreadedLog _ThreadedLog::createThreadedLog()
     return std::make_shared<_ThreadedLog>();
 }
 
-std::string _ThreadedLog::createLogName(const std::string& prefix)
+qtac::ByteArray _ThreadedLog::createLogName(const qtac::ByteArray& prefix)
 {
     using namespace std::chrono;
     auto now   = system_clock::to_time_t(system_clock::now());
@@ -137,8 +137,8 @@ std::string _ThreadedLog::createLogName(const std::string& prefix)
     localtime_r(&now, &tm);
 #endif
     std::ostringstream ss;
-    ss << prefix << std::put_time(&tm, "%m%d_%H%M%S") << ".log";
-    return ss.str();
+    ss << prefix.toStdString() << std::put_time(&tm, "%m%d_%H%M%S") << ".log";
+    return qtac::ByteArray(ss.str().c_str());
 }
 
 } // namespace qtac

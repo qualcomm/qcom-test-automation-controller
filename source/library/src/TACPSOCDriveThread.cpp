@@ -261,10 +261,10 @@ void TACPSOCDriveThread::setName(const qtac::ByteArray& newName)
 // SendInterface
 // -----------------------------------------------------------------------
 
-uint32_t TACPSOCDriveThread::send(const std::string& sendMe, const Arguments& arguments,
+uint32_t TACPSOCDriveThread::send(const qtac::ByteArray& sendMe, const Arguments& arguments,
                                    bool console, ReceiveInterface* receiveInterface, bool store)
 {
-    return _tacProtocol.sendCommand(sendMe, arguments, console, receiveInterface, store);
+    return _tacProtocol.sendCommand(sendMe.toStdString(), arguments, console, receiveInterface, store);
 }
 
 bool TACPSOCDriveThread::ready()

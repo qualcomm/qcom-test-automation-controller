@@ -35,18 +35,19 @@
 // QThread          -> std::thread (owned)
 // QSharedPointer   -> std::shared_ptr
 // QRecursiveMutex  -> std::recursive_mutex
-// QString          -> std::string
-// QStringList      -> std::vector<std::string>
+// QString          -> qtac::ByteArray
+// QStringList      -> std::vector<qtac::ByteArray>
 // QFile            -> std::ofstream
 // QDateTime        -> std::chrono + strftime
 
 #pragma once
 
+#include <qtac/ByteArray.h>
+
 #include <atomic>
 #include <fstream>
 #include <memory>
 #include <mutex>
-#include <string>
 #include <thread>
 #include <vector>
 
@@ -61,27 +62,27 @@ public:
     _ThreadedLog() = default;
     ~_ThreadedLog();
 
-    static ThreadedLog  createThreadedLog();
-    static std::string  createLogName(const std::string& prefix);
+    static ThreadedLog      createThreadedLog();
+    static qtac::ByteArray  createLogName(const qtac::ByteArray& prefix);
 
-    void open(const std::string& filePath);
+    void open(const qtac::ByteArray& filePath);
     bool isOpen();
     void close();
 
-    std::string currentLogPath() const { return _currentLogPath; }
+    qtac::ByteArray currentLogPath() const { return _currentLogPath; }
 
-    void addLogEntry(const std::string& logEntry);
+    void addLogEntry(const qtac::ByteArray& logEntry);
 
     void run();
 
 private:
-    std::atomic<bool>       _running{false};
-    std::atomic<bool>       _starting{false};
-    std::recursive_mutex    _mutex;
-    std::vector<std::string> _logEntries;
-    std::string             _currentLogPath;
-    std::ofstream           _logFile;
-    std::thread             _thread;
+    std::atomic<bool>               _running{false};
+    std::atomic<bool>               _starting{false};
+    std::recursive_mutex            _mutex;
+    std::vector<qtac::ByteArray>    _logEntries;
+    qtac::ByteArray                 _currentLogPath;
+    std::ofstream                   _logFile;
+    std::thread                     _thread;
 };
 
 } // namespace qtac

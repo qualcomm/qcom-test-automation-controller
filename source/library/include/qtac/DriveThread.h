@@ -36,12 +36,12 @@
 
 #pragma once
 
+#include <qtac/ByteArray.h>
 #include <qtac/SendInterface.h>
 
 #include <atomic>
 #include <map>
 #include <mutex>
-#include <string>
 #include <thread>
 
 namespace qtac {
@@ -83,13 +83,13 @@ public:
             _thread.detach();
     }
 
-    std::string name() const { return _driveTrainName; }
-    int         id()   const { return _driveTrainID; }
+    qtac::ByteArray name() const { return _driveTrainName; }
+    int             id()   const { return _driveTrainID; }
 
-    std::string lastErrorMessage()
+    qtac::ByteArray lastErrorMessage()
     {
         std::lock_guard<std::mutex> lock(_runningMutex);
-        std::string result = _lastErrorMessage;
+        qtac::ByteArray result = _lastErrorMessage;
         _lastErrorMessage.clear();
         return result;
     }
@@ -99,10 +99,10 @@ public:
     virtual void run() = 0;
 
     // SendInterface
-    virtual uint32_t send(const std::string& sendMe, const Arguments& arguments, bool command,
+    virtual uint32_t send(const qtac::ByteArray& sendMe, const Arguments& arguments, bool command,
                           ReceiveInterface* receiveInterface, bool store = true) = 0;
     virtual void addDelay(uint32_t delayInMilliSeconds, ReceiveInterface* receiveInterface) override;
-    virtual void addLogComment(const std::string& comment) override;
+    virtual void addLogComment(const qtac::ByteArray& comment) override;
     virtual void addEndTransaction(ReceiveInterface* receiveInterface) override;
 
     // Clears the running flag; returns the previous value.
@@ -125,11 +125,11 @@ protected:
 
     static std::atomic<int> _driveTrainIDs;
 
-    int                 _driveTrainID{0};
-    ProtocolInterface*  _protocolInterface{nullptr};
-    std::string         _driveTrainName{"<unnamed>"};
-    std::string         _lastErrorMessage;
-    std::thread         _thread;
+    int                     _driveTrainID{0};
+    ProtocolInterface*      _protocolInterface{nullptr};
+    qtac::ByteArray         _driveTrainName{"<unnamed>"};
+    qtac::ByteArray         _lastErrorMessage;
+    std::thread             _thread;
 
 private:
     std::mutex  _runningMutex;

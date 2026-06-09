@@ -187,7 +187,7 @@ void TACLiteCommand::i2CWriteRegister(uint32_t addr, uint32_t reg, uint32_t data
 void TACLiteCommand::send(const qtac::ByteArray& command, const Arguments& arguments,
                            bool console, bool store)
 {
-    _sender->send(command.toStdString(), arguments, console, _receiver, store);
+    _sender->send(command, arguments, console, _receiver, store);
 }
 
 void TACLiteCommand::addDelay(uint32_t delayInMilliSeconds)
@@ -197,7 +197,7 @@ void TACLiteCommand::addDelay(uint32_t delayInMilliSeconds)
 
 void TACLiteCommand::addLogComment(const qtac::ByteArray& comment)
 {
-    _sender->addLogComment(comment.toStdString());
+    _sender->addLogComment(comment);
 }
 
 void TACLiteCommand::addEndTransaction()

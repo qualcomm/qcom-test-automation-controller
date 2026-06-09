@@ -78,7 +78,7 @@ public:
     void setName(const qtac::ByteArray& newName) override;
 
     // --- SendInterface ---
-    uint32_t send(const std::string& sendMe, const Arguments& arguments,
+    uint32_t send(const qtac::ByteArray& sendMe, const Arguments& arguments,
                   bool console, ReceiveInterface* receiveInterface,
                   bool store = true) override;
     bool ready() override;

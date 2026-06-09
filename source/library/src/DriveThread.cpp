@@ -65,7 +65,7 @@ void DriveThread::addDelay(uint32_t delayInMilliSeconds, ReceiveInterface* recei
         _protocolInterface->queueDelay(delayInMilliSeconds, receiveInterface);
 }
 
-void DriveThread::addLogComment(const std::string& comment)
+void DriveThread::addLogComment(const qtac::ByteArray& comment)
 {
     if (_protocolInterface != nullptr)
         _protocolInterface->queueLogComment(comment);
