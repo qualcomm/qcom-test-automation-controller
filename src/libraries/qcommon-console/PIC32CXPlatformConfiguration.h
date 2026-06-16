@@ -9,7 +9,6 @@
 
 const PlatformID kMaxPIC32CXPlatformId(99999);
 
-
 struct PIC32CXPinData
 {
 	PIC32CXPinData() = default;

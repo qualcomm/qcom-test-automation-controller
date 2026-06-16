@@ -1,37 +1,11 @@
-// Confidential and Proprietary Qualcomm Technologies, Inc.
-
-// NO PUBLIC DISCLOSURE PERMITTED:  Please report postings of this software on public servers or websites
-// to: DocCtrlAgent@qualcomm.com.
-
-// RESTRICTED USE AND DISCLOSURE:
-// This software contains confidential and proprietary information and is not to be used, copied, reproduced, modified
-// or distributed, in whole or in part, nor its contents revealed in any manner, without the express written permission
-// of Qualcomm Technologies, Inc.
-
-// Qualcomm is a trademark of QUALCOMM Incorporated, registered in the United States and other countries. All
-// QUALCOMM Incorporated trademarks are used with permission.
-
-// This software may be subject to U.S. and international export, re-export, or transfer laws.  Diversion contrary to U.S.
-// and international law is strictly prohibited.
-
-// Qualcomm Technologies, Inc.
-// 5775 Morehouse Drive
-// San Diego, CA 92121 U.S.A.
-// Copyright 2022-2024 Qualcomm Technologies, Inc.
-// All rights reserved.
-// Qualcomm Technologies Confidential and Proprietary
-
-/*
-	Author: Michael Simpson (msimpson@qti.qualcomm.com)
-			Biswajit Roy (biswroy@qti.qualcomm.com)
-*/
+// Copyright (c) Qualcomm Technologies, Inc. and/or its subsidiaries.
+// SPDX-License-Identifier: BSD-3-Clause
 
 #include "AlpacaDevice.h"
 #include "TACException.h"
 #include "FTDIDevice.h"
 #include "PSOCDevice.h"
 #include "PIC32CXDevice.h"
-
 
 // QCommon
 #include "AppCore.h"
@@ -41,7 +15,6 @@ const QByteArray kSendCommandError("sendCommand error: Attempted operation on in
 const QByteArray kSetPinError("setPinState error: Attempted operation on inactive device");
 const QByteArray kQuickCommandError("quickCommand error: Attempted operation on inactive device");
 const QByteArray kCommandStatusError("commandQueueStatus error: Attempted operation on inactive device");
-
 
 QMutex _AlpacaDevice::_mutex;
 AlpacaDevices _AlpacaDevice::_alpacaDevices;
@@ -465,7 +438,6 @@ bool _AlpacaDevice::isCommandQueueClear()
 {
 	bool result{false};
 
-
 	if (_driveThread != Q_NULLPTR)
 	{
 		if (active() == true)
@@ -497,7 +469,6 @@ QByteArray _AlpacaDevice::getHelp()
 		result += "Author: " + _platformConfiguration->author() + kEndOfLine;
 		result += "Description: " + _platformConfiguration->description() + kEndOfLine;
 		result += "Modification Date: " + _platformConfiguration->modificationDate() + kEndOfLine;
-
 
 		Pins pins = _platformConfiguration->getPins();
 		if (pins.count() > 0)

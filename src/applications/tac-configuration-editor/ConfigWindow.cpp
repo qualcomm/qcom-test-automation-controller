@@ -1,41 +1,5 @@
-/*
-	Copyright (c) Qualcomm Technologies, Inc. and/or its subsidiaries. 
-	 
-	Redistribution and use in source and binary forms, with or without
-	modification, are permitted (subject to the limitations in the
-	disclaimer below) provided that the following conditions are met:
-	 
-		* Redistributions of source code must retain the above copyright
-		  notice, this list of conditions and the following disclaimer.
-	 
-		* Redistributions in binary form must reproduce the above
-		  copyright notice, this list of conditions and the following
-		  disclaimer in the documentation and/or other materials provided
-		  with the distribution.
-	 
-		* Neither the name of Qualcomm Technologies, Inc. nor the names of its
-		  contributors may be used to endorse or promote products derived
-		  from this software without specific prior written permission.
-	 
-	NO EXPRESS OR IMPLIED LICENSES TO ANY PARTY'S PATENT RIGHTS ARE
-	GRANTED BY THIS LICENSE. THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT
-	HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED
-	WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
-	MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED.
-	IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR
-	ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
-	DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE
-	GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
-	INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER
-	IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-	OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN
-	IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-*/
-
-/*
-	Author: Michael Simpson (msimpson@qti.qualcomm.com)
-			Biswajit Roy (biswroy@qti.qualcomm.com)
-*/
+// Copyright (c) Qualcomm Technologies, Inc. and/or its subsidiaries.
+// SPDX-License-Identifier: BSD-3-Clause
 
 #include "ConfigWindow.h"
 
@@ -73,7 +37,6 @@
 #include <QWhatsThis>
 #include <QWindow>
 
-
 const QByteArray kLockState{QByteArrayLiteral("lockState")};
 const QByteArray kWindowTitle{QByteArrayLiteral("TAC Configuration Editor")};
 const QByteArray kPIC32CXSerialIDLabel(QByteArrayLiteral("<html><body><p><span style=\" font-size:9pt; font-weight:600;\">Serial Number:</span></p></body></html>"));
@@ -81,7 +44,6 @@ const QByteArray kPIC32CXSerialIDLabel(QByteArrayLiteral("<html><body><p><span s
 const QString kFirmware15HelpText("<html><body><p><span style=\" font-size:12pt; font-weight:600;\">v15</span></p></body></html>- Legacy firmware<br/>- Pins 48, 49 cannot be configured");
 const QString kFirmware16HelpText("<html><body><p><span style=\" font-size:12pt; font-weight:600;\">v16</span></p></body></html>- Firmware for Monaco MCULess design(s)<br/>- Pins 48, 49 can be configured<br/>- Pin 49 is active high");
 const QString kFirmware17HelpText("<html><body><p><span style=\" font-size:12pt; font-weight:600;\">v17</span></p></body></html>- Firmware for Hawi and future platforms<br/>- Pin 49 can be configured. Pin 48 is unavailable<br/>- Pin 49 is active low");
-
 
 ConfigWindow::ConfigWindow(QWidget* parent) :
 	  QMainWindow(parent),
