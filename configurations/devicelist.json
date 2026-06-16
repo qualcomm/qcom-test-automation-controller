@@ -610,6 +610,19 @@
             "chip2BusSet": 0,
             "chip3BusSet": 0,
             "chip4BusSet": 0,
+            "configPath": "../../../../configurations/TAC_FTDI_63.tcnf",
+            "debugBoardType": 3,
+            "description": "AR TAC config for BONSAI",
+            "name": "Bonsai XRV7205",
+            "platform_id": 63,
+            "revision": 26,
+            "usb_descriptor": "ALPACA-LITE FOR AR V1"
+        },
+        {
+            "chip1BusSet": 12,
+            "chip2BusSet": 0,
+            "chip3BusSet": 0,
+            "chip4BusSet": 0,
             "configPath": "../../../../configurations/TAC_FTDI_64.tcnf",
             "debugBoardType": 3,
             "description": "FTDI-LITE SDX95 QMP",
@@ -637,7 +650,7 @@
             "description": "Hawi MTP8975 - PSoC",
             "name": "Hawi MTP8975",
             "platform_id": 66,
-            "revision": 85,
+            "revision": 86,
             "usb_descriptor": ""
         },
         {
@@ -706,6 +719,19 @@
             "usb_descriptor": "TDP535_JTAG_MUX_DC"
         },
         {
+            "chip1BusSet": 12,
+            "chip2BusSet": 0,
+            "chip3BusSet": 0,
+            "chip4BusSet": 0,
+            "configPath": "../../../../configurations/TAC_FTDI_73.tcnf",
+            "debugBoardType": 3,
+            "description": "MTP8950 (Maili) FTDI IO",
+            "name": "Maili MTP8950",
+            "platform_id": 73,
+            "revision": 28,
+            "usb_descriptor": "ALPACA-LITE MTP8950"
+        },
+        {
             "configPath": "../../../../configurations/TAC_PSOC_74.tcnf",
             "debugBoardType": 2,
             "description": "30-P9415-2 Dongle for Aliso",
@@ -713,7 +739,42 @@
             "platform_id": 74,
             "revision": 53,
             "usb_descriptor": ""
+        },
+        {
+            "chip1BusSet": 12,
+            "chip2BusSet": 0,
+            "chip3BusSet": 0,
+            "chip4BusSet": 0,
+            "configPath": "../../../../configurations/TAC_FTDI_77.tcnf",
+            "debugBoardType": 3,
+            "description": "ALPACA-LITE KARNALI QCB DT",
+            "name": "KARNALI QCB DT",
+            "platform_id": 77,
+            "revision": 84,
+            "usb_descriptor": "ALPACA-LITE KARNALI QCB DT"
+        },
+        {
+            "chip1BusSet": 12,
+            "chip2BusSet": 0,
+            "chip3BusSet": 0,
+            "chip4BusSet": 0,
+            "configPath": "../../../../configurations/TAC_FTDI_78.tcnf",
+            "debugBoardType": 3,
+            "description": "ALPACA-LITE MAILI CDP",
+            "name": "Maili CDP8950",
+            "platform_id": 78,
+            "revision": 17,
+            "usb_descriptor": "ALPACA-LITE MAILI CDP"
+        },
+        {
+            "configPath": "../../../../configurations/TAC_PSOC_82.tcnf",
+            "debugBoardType": 2,
+            "description": "SHIKRA PSOC",
+            "name": "SHIKRA PSOC",
+            "platform_id": 82,
+            "revision": 38,
+            "usb_descriptor": ""
         }
     ],
-    "modification_date": "Wed Jan 21 20:45:56 2026"
+    "modification_date": "Tue Jun 16 23:24:37 2026"
 }
