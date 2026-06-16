@@ -63,9 +63,6 @@ public:
 		return AlpacaApplication::alpacaAppinstance()->_appCore;
 	}
 
-	bool readyToRate();
-	void showRateDialog();
-
 protected:
 	void cleanupLogs();
 

@@ -52,7 +52,6 @@ qt_add_library(${LIBRARY_NAME} STATIC
     ApplicationEnhancements.cpp ApplicationEnhancements.h
     ColorSwatch.cpp ColorSwatch.h
     CustomComboBox.h
-    HappinessDialog.cpp HappinessDialog.h HappinessDialog.ui
     IntFilteredEditor.cpp IntFilteredEditor.h
     LEDWidget.cpp LEDWidget.h
     PainterEffects.cpp PainterEffects.h

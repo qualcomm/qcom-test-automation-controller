@@ -122,7 +122,6 @@
     <addaction name="actionContents"/>
     <addaction name="separator"/>
     <addaction name="actionAbout"/>
-    <addaction name="actionRate_Me"/>
     <addaction name="actionSubmit_Bug_Report"/>
    </widget>
    <addaction name="menuFile"/>

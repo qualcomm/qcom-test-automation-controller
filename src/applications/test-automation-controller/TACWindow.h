@@ -85,7 +85,6 @@ private slots:
 
 	void on_actionContents_triggered();
 	void on_actionAbout_triggered();
-	void on_actionRate_Me_triggered();
 	void on_actionSubmit_Bug_Report_triggered();
 
 

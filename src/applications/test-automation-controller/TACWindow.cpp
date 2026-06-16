@@ -321,11 +321,6 @@ void TACWindow::on_actionAbout_triggered()
 	TACApplication::tacAppInstance()->showAboutDialog();
 }
 
-void TACWindow::on_actionRate_Me_triggered()
-{
-	TACApplication::tacAppInstance()->showRateDialog();
-}
-
 void TACWindow::on_actionSubmit_Bug_Report_triggered()
 {
 #ifdef Q_OS_LINUX
