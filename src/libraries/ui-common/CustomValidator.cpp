@@ -33,9 +33,6 @@ CustomValidator::CustomValidator(QWidget *parent, const ValidatorType validation
 		_debugBoardType = type;
 		setPlatformIdLimit(parent);
 		break;
-	case ePINEVersionValidator:
-		setPINEVersionValidation(parent);
-		break;
 	}
 }
 
@@ -99,23 +96,6 @@ void CustomValidator::setPlatformIdLimit(QWidget *parent)
 				lew->setValidator(validator);
 				lew->setToolTip(_tooltip);
 			}
-		}
-	}
-}
-
-void CustomValidator::setPINEVersionValidation(QWidget *parent)
-{
-	if (parent != Q_NULLPTR)
-	{
-		QLineEdit* lew = qobject_cast<QLineEdit*>(parent);
-
-		if (lew != Q_NULLPTR)
-		{
-			_re.setPattern("[0-9]{1,5}");
-			_tooltip = "Maximum pine version can be 99999";
-
-			QRegularExpressionValidator validator(_re, parent);
-			lew->setValidator(&validator);
 		}
 	}
 }

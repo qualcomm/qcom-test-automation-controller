@@ -443,52 +443,13 @@
              </sizepolicy>
             </property>
             <property name="toolTip">
-             <string>The platform id of the configuration as determined from the PINE CLI. Maximum allowed value for platform id is 99999.</string>
+             <string>The platform id of the configuration. Maximum allowed value for platform id is 99999.</string>
             </property>
             <property name="inputMask">
              <string notr="true"/>
             </property>
             <property name="maxLength">
              <number>6</number>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <spacer name="horizontalSpacer_5">
-            <property name="orientation">
-             <enum>Qt::Orientation::Horizontal</enum>
-            </property>
-            <property name="sizeType">
-             <enum>QSizePolicy::Policy::Preferred</enum>
-            </property>
-            <property name="sizeHint" stdset="0">
-             <size>
-              <width>40</width>
-              <height>20</height>
-             </size>
-            </property>
-           </spacer>
-          </item>
-          <item>
-           <widget class="QLabel" name="label">
-            <property name="text">
-             <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;PINE Version:&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <widget class="QLineEdit" name="_pineVersion">
-            <property name="enabled">
-             <bool>false</bool>
-            </property>
-            <property name="sizePolicy">
-             <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
-              <horstretch>0</horstretch>
-              <verstretch>0</verstretch>
-             </sizepolicy>
-            </property>
-            <property name="toolTip">
-             <string>The version of the configuration as found from the PINE CLI output</string>
             </property>
            </widget>
           </item>
@@ -633,7 +594,6 @@ border: none;</string>
     <addaction name="_actionOpen"/>
     <addaction name="_actionPreview"/>
     <addaction name="_actionOpen_Script_Editor"/>
-    <addaction name="_actionPINEExport"/>
     <addaction name="separator"/>
     <addaction name="_actionQuit"/>
    </widget>
@@ -694,7 +654,6 @@ border: none;</string>
    <addaction name="_actionPreview"/>
    <addaction name="_actionManage_Tabs"/>
    <addaction name="_actionOpen_Script_Editor"/>
-   <addaction name="_actionPINEExport"/>
   </widget>
   <action name="_actionQuit">
    <property name="text">
@@ -850,24 +809,6 @@ border: none;</string>
    </property>
    <property name="toolTip">
     <string>Enables you to understand what an items in the application does.</string>
-   </property>
-  </action>
-  <action name="_actionPINEExport">
-   <property name="enabled">
-    <bool>false</bool>
-   </property>
-   <property name="icon">
-    <iconset resource="Resources/TACConfigEditor.qrc">
-     <normaloff>:/PINEUpload.drawio.png</normaloff>:/PINEUpload.drawio.png</iconset>
-   </property>
-   <property name="text">
-    <string>Export to PInE...</string>
-   </property>
-   <property name="toolTip">
-    <string>Publish the configuration to PInE</string>
-   </property>
-   <property name="visible">
-    <bool>false</bool>
    </property>
   </action>
   <action name="_actionDefaultQuickSettings">

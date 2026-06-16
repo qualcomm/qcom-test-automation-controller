@@ -1,9 +1,6 @@
 # Copyright (c) Qualcomm Technologies, Inc. and/or its subsidiaries.
 # SPDX-License-Identifier: BSD-3-Clause
 
-# Maintainer: Biswajit Roy (biswroy@qti.qualcomm.com)
-# Original author: Michael Simpson (msimpson@qti.qualcomm.com)
-
 set(QTAC_VERSION "5.5.2")
 set(BUG_WRITER_VERSION "2.0.0")
 set(DEVICE_CATALOG_VERSION "2.0.0")

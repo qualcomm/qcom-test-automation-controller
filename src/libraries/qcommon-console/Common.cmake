@@ -1,9 +1,6 @@
 # Copyright (c) Qualcomm Technologies, Inc. and/or its subsidiaries.
 # SPDX-License-Identifier: BSD-3-Clause
 
-# Maintainer: Biswajit Roy (biswroy@qti.qualcomm.com)
-# Original author: Michael Simpson (msimpson@qti.qualcomm.com)
-
 # Include version information
 include(${CMAKE_SOURCE_DIR}/src/libraries/qcommon-console/version.cmake)
 

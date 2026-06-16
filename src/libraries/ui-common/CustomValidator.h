@@ -17,8 +17,7 @@ enum ValidatorType
 	eNoSpaceValidator,
 	eNoSemiColonValidator,
 	eCellLocationValidator,
-	ePlatformIdValidator,
-	ePINEVersionValidator
+	ePlatformIdValidator
 };
 
 class CustomValidator : public QItemDelegate
@@ -33,7 +32,6 @@ private:
 	void setNumericOnlyValidation();
 	void setNoSemiColonValidation();
 	void setPlatformIdLimit(QWidget *parent);
-	void setPINEVersionValidation(QWidget *parent);
 
 	QRegularExpression              _re;
 	QString                         _tooltip;

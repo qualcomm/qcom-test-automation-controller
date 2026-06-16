@@ -96,9 +96,6 @@ public:
 	QString getFileVersion();
 	quint32 fileVersion();
 
-	QString getPineVersion();
-	void setPineVersion(quint32 pineVersion);
-
 	// Returns string version of platform type for UI elements
 	QString getPlatformString();
 
@@ -195,7 +192,6 @@ protected:
 	QString						_platformFile;
 	PlatformID					_platformId{kDefaultPlatformId};
 	quint32						_fileVersion{0};
-	quint32                     _pineVersion{1};
 	QString						_name;
 	QString						_author;
 	QString						_description;
@@ -217,7 +213,6 @@ protected:
 
 private:
 	static void initialize();
-	void copyToPineDataPath(const QString &savePath);
 
 	static USBDescriptors		_usbDescriptors;
 	static Buttons				_classicButtons;

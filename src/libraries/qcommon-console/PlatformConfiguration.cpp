@@ -32,7 +32,6 @@ const QString kAuthor(QStringLiteral("author"));
 const QString kDescription(QStringLiteral("description"));
 const QString kPlatformType(QStringLiteral("platform_type"));
 const QString kFileVersion(QStringLiteral("fileVersion"));
-const QString kPineVersion(QStringLiteral("pineVersion"));
 const QString kPlatformId(QStringLiteral("platform_id"));
 const QString kCreationDate(QStringLiteral("creation_date"));
 const QString kModifyDate(QStringLiteral("modification_date"));
@@ -412,16 +411,6 @@ QString _PlatformConfiguration::getFileVersion()
 quint32 _PlatformConfiguration::fileVersion()
 {
 	return _fileVersion;
-}
-
-QString _PlatformConfiguration::getPineVersion()
-{
-	return QString::number(_pineVersion);
-}
-
-void _PlatformConfiguration::setPineVersion(quint32 pineVersion)
-{
-	_pineVersion = pineVersion;
 }
 
 QString _PlatformConfiguration::getPlatformString()
@@ -1131,7 +1120,6 @@ void _PlatformConfiguration::save()
 			}
 		}
 	}
-	copyToPineDataPath(targetFilePath);
 }
 
 bool _PlatformConfiguration::read(QJsonObject& parentLevel)
@@ -1169,12 +1157,6 @@ bool _PlatformConfiguration::read(QJsonObject& parentLevel)
 	if (jsonValue.isNull() == false)
 	{
 		_fileVersion = static_cast<quint32>(jsonValue.toInt());
-	}
-
-	jsonValue = parentLevel.value(kPineVersion);
-	if (jsonValue.isNull() == false)
-	{
-		_pineVersion = static_cast<quint32>(jsonValue.toInt());
 	}
 
 	jsonValue = parentLevel.value(kCreationDate);
@@ -1311,7 +1293,6 @@ void _PlatformConfiguration::write(QJsonObject& parentLevel)
 	parentLevel[kAuthor] = _author;
 	parentLevel[kDescription] = _description;
 	parentLevel[kFileVersion] = static_cast<int>(++_fileVersion);
-	parentLevel[kPineVersion] = static_cast<int>(_pineVersion);
 	parentLevel[kCreationDate] = _creationDate;
 	parentLevel[kModifyDate] = _modifyDate;
 	parentLevel[kPlatformType] = debugBoardTypeToString(_platform);
@@ -1446,25 +1427,6 @@ void _PlatformConfiguration::initialize()
 
 		_classicButtons[button._hash] = button;
 	}
-}
-
-void _PlatformConfiguration::copyToPineDataPath(const QString& savePath)
-{
-#ifdef Q_OS_WIN
-	QString pinePath{"C:/Program Files (x86)/Qualcomm/Shared/Alpaca"};
-	QString fileName = savePath.split("/").back();
-	QFileInfo configFile{pinePath + QDir::separator() + fileName};
-
-	// If the Shared/Alpaca directory does not exist, create it
-	QDir().mkpath(pinePath);
-	
-	// If the file already exists, remove it
-	if (configFile.exists())
-		QFile(configFile.filePath()).remove();
-
-	// Copy the updated configuration
-	QFile::copy(savePath, configFile.absoluteFilePath());
-#endif
 }
 
 void _PlatformConfiguration::defaultAlpacaScript()

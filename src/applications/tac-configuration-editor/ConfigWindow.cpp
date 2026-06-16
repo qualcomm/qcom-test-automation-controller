@@ -10,7 +10,6 @@
 #include "ConfigEditorApplication.h"
 #include "FTDIEditorView.h"
 #include "ManageTabsDialog.h"
-#include "PineCommandLine.h"
 #include "PSOCEditorView.h"
 #include "TACPreviewWindow.h"
 
@@ -141,7 +140,6 @@ void ConfigWindow::setTACConfigFile(PlatformConfiguration tacConfigFile)
 	_buttonEditor->setPlatformConfiguration(_platformConfiguration);
 	_actionManage_Tabs->setEnabled(true);
 	_actionOpen_Script_Editor->setEnabled(true);
-	_actionPINEExport->setEnabled(true);
 	_actionSave->setEnabled(true);
 	_menuRestoreDefaults->setToolTipsVisible(true);
 
@@ -193,9 +191,6 @@ void ConfigWindow::populateFields()
 
 	_platformId->setEnabled(true);
 	_platformId->setText(QString::number(_platformConfiguration->getPlatformId()));
-
-	_pineVersion->setEnabled(true);
-	_pineVersion->setText(_platformConfiguration->getPineVersion());
 
 	switch (_platformConfiguration->getPlatform())
 	{
@@ -250,7 +245,6 @@ void ConfigWindow::populateFields()
 	_buttonEditor->setEnabled(true);
 
 	CustomValidator platformIdValidator(_platformId, ePlatformIdValidator, _platformConfiguration->getPlatform());
-	CustomValidator pineValidator(_pineVersion, ePINEVersionValidator, _platformConfiguration->getPlatform());
 }
 
 void ConfigWindow::changeEvent(QEvent *e)
@@ -751,27 +745,6 @@ void ConfigWindow::updatePlatformId(PlatformID platformId)
 void ConfigWindow::on__actionWhatsThis_triggered()
 {
 	QWhatsThis::enterWhatsThisMode();
-}
-
-void ConfigWindow::on__actionPINEExport_triggered()
-{
-	PineCommandLine pineCmd;
-	pineCmd.invokeCli();
-}
-
-void ConfigWindow::on__pineVersion_textChanged(const QString &pineVersionString)
-{
-	if (_platformConfiguration != Q_NULLPTR)
-	{
-		if (pineVersionString != _platformConfiguration->getPineVersion())
-		{
-			bool okay;
-
-			quint32 pineVersion = pineVersionString.toInt(&okay);
-			if (okay)
-				_platformConfiguration->setPineVersion(pineVersion);
-		}
-	}
 }
 
 void ConfigWindow::on__usbDescriptor_editingFinished()

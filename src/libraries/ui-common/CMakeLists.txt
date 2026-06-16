@@ -1,3 +1,6 @@
+# Copyright (c) Qualcomm Technologies, Inc. and/or its subsidiaries.
+# SPDX-License-Identifier: BSD-3-Clause
+
 include(${CMAKE_SOURCE_DIR}/src/libraries/qcommon/Common.cmake)
 
 if (CMAKE_BUILD_TYPE STREQUAL "Debug")

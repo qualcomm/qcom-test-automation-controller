@@ -19,7 +19,6 @@ qt_add_executable(${APP_NAME} WIN32
     FTDIEditorView.cpp FTDIEditorView.h FTDIEditorView.ui
     ManageTabsDialog.cpp ManageTabsDialog.h ManageTabsDialog.ui
     PIC32CXEditorView.cpp PIC32CXEditorView.h PIC32CXEditorView.ui
-    PineCommandLine.cpp PineCommandLine.h
     PSOCEditorView.cpp PSOCEditorView.h PSOCEditorView.ui
     TACPreviewWindow.cpp TACPreviewWindow.h TACPreviewWindow.ui
     TabEditorDialog.cpp TabEditorDialog.h TabEditorDialog.ui
