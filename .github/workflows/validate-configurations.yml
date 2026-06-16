@@ -16,8 +16,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Validate against schema
-        uses: python-jsonschema/check-jsonschema@0.31.3
-        with:
-          schema: .github/tac-configuration-schema.json
-          instanceFiles: configurations/*.tcnf
+      - name: Validate configurations
+        run: |
+          pip install check-jsonschema --quiet
+          check-jsonschema --schemafile .github/tac-configuration-schema.json configurations/*.tcnf
