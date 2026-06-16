@@ -55,7 +55,6 @@
     "fileVersion": 45,
     "modification_date": "Wed Apr 17 16:27:51 2024",
     "name": "RB5",
-    "pineVersion": 1,
     "pins": [
         {
             "classic_action": "TAC_SOFT_RESET",

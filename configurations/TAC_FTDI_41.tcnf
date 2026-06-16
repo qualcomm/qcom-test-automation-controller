@@ -86,7 +86,6 @@
     "fileVersion": 60,
     "modification_date": "Thu Sep 26 13:05:04 2024",
     "name": "SDX-SM_FUSION ATP DEBUG BOARD",
-    "pineVersion": 1,
     "pins": [
         {
             "bus": "A",
@@ -640,6 +639,5 @@
         }
     ],
     "usb_descriptor": "ALPACA-LITE SDX_FUS_ATP",
-    "variables": [
-    ]
+    "variables": []
 }

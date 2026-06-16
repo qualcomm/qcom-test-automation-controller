@@ -63,7 +63,6 @@
     "fileVersion": 6,
     "modification_date": "Tue Dec 2 16:07:46 2025",
     "name": "NordAu RIDE",
-    "pineVersion": 1,
     "pins": [
         {
             "command": "kratos",

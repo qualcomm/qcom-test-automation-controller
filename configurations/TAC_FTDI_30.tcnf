@@ -78,7 +78,6 @@
     "fileVersion": 6,
     "modification_date": "Wed Oct 23 11:40:26 2024",
     "name": "Qualcomm AIR 8775",
-    "pineVersion": 0,
     "pins": [
         {
             "bus": "A",
@@ -632,6 +631,5 @@
         }
     ],
     "usb_descriptor": "ALPACA-LITE AIR 8775",
-    "variables": [
-    ]
+    "variables": []
 }

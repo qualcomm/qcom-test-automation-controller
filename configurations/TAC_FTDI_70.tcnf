@@ -71,7 +71,6 @@
     "min_firmware_version": 15,
     "modification_date": "Thu Oct 23 15:21:39 2025",
     "name": "Hawi CDP",
-    "pineVersion": 1,
     "pins": [
         {
             "bus": "A",
@@ -625,6 +624,5 @@
         }
     ],
     "usb_descriptor": "ALPACA-LITE HAWI CDP",
-    "variables": [
-    ]
+    "variables": []
 }

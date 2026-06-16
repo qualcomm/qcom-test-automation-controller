@@ -70,7 +70,6 @@
     "fileVersion": 79,
     "modification_date": "Tue Oct 22 10:53:05 2024",
     "name": "KAANAPALI CDP",
-    "pineVersion": 3,
     "pins": [
         {
             "bus": "A",
@@ -624,6 +623,5 @@
         }
     ],
     "usb_descriptor": "ALPACA-LITE KAANAPALI CDP",
-    "variables": [
-    ]
+    "variables": []
 }

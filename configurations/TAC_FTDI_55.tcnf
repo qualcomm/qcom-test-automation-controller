@@ -78,7 +78,6 @@
     "fileVersion": 22,
     "modification_date": "Thu Mar 27 17:21:30 2025",
     "name": "Balsam SAR2230P",
-    "pineVersion": 1,
     "pins": [
         {
             "bus": "A",

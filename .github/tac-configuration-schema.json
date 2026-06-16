@@ -1,0 +1,182 @@
+{
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "title": "TAC Platform Configuration",
+    "type": "object",
+    "required": [
+        "platform_id", "platform_type", "name", "author", "description",
+        "fileVersion", "creation_date", "modification_date",
+        "reset_enabled", "script", "tabs", "buttons"
+    ],
+    "additionalProperties": false,
+    "properties": {
+        "platform_id":          { "type": "integer", "minimum": 0 },
+        "platform_type":        { "type": "string", "enum": ["FTDI", "FT232H", "PSOC", "PIC32CXAuto"] },
+        "name":                 { "type": "string", "minLength": 1 },
+        "author":               { "type": "string", "minLength": 1 },
+        "description":          { "type": "string" },
+        "fileVersion":          { "type": "integer", "minimum": 1 },
+        "creation_date":        { "type": "string", "minLength": 1 },
+        "modification_date":    { "type": "string", "minLength": 1 },
+        "usb_descriptor":       { "type": "string" },
+        "reset_enabled":        { "type": "boolean" },
+        "form_dimension":       { "type": "string" },
+        "script":               { "type": "string" },
+        "tabs":                 { "$ref": "#/definitions/tabs" },
+        "buttons":              { "$ref": "#/definitions/buttons" },
+        "variables":            { "$ref": "#/definitions/variables" },
+        "chip_count":           { "type": "integer", "minimum": 1 },
+        "pins":                 { "$ref": "#/definitions/pins" },
+        "bus":                  { "$ref": "#/definitions/bus" },
+        "supportedFirmwareVer": { "type": "array", "items": { "type": "integer", "minimum": 1 } }
+    },
+    "if":   { "properties": { "platform_type": { "enum": ["FTDI", "FT232H"] } } },
+    "then": { "required": ["chip_count", "pins", "bus"] },
+    "else": {
+        "if":   { "properties": { "platform_type": { "const": "PSOC" } } },
+        "then": { "required": ["pins", "supportedFirmwareVer"] },
+        "else": {
+            "if":   { "properties": { "platform_type": { "const": "PIC32CXAuto" } } },
+            "then": { "required": ["pins"] }
+        }
+    },
+    "definitions": {
+        "tabs": {
+            "type": "array",
+            "items": {
+                "type": "object",
+                "required": ["name", "user_tab", "moveable", "visible", "configurable", "ordinal"],
+                "additionalProperties": false,
+                "properties": {
+                    "name":         { "type": "string", "minLength": 1 },
+                    "user_tab":     { "type": "boolean" },
+                    "moveable":     { "type": "boolean" },
+                    "visible":      { "type": "boolean" },
+                    "configurable": { "type": "boolean" },
+                    "ordinal":      { "type": "integer", "minimum": 0 }
+                }
+            }
+        },
+        "buttons": {
+            "type": "array",
+            "items": {
+                "type": "object",
+                "required": ["name", "command", "command_group", "cellLocation", "tab", "tooltip"],
+                "additionalProperties": false,
+                "properties": {
+                    "name":          { "type": "string" },
+                    "command":       { "type": "string" },
+                    "command_group": { "type": "integer" },
+                    "cellLocation":  { "type": "string", "pattern": "^-?[0-9]+,-?[0-9]+$" },
+                    "tab":           { "type": "string" },
+                    "tooltip":       { "type": "string" }
+                }
+            }
+        },
+        "variables": {
+            "type": "array",
+            "items": {
+                "type": "object",
+                "required": ["name", "label", "tooltip", "type", "default_value", "cellLocation"],
+                "additionalProperties": false,
+                "properties": {
+                    "name":          { "type": "string", "minLength": 1 },
+                    "label":         { "type": "string" },
+                    "tooltip":       { "type": "string" },
+                    "type":          { "type": "integer" },
+                    "default_value": { "type": "string" },
+                    "cellLocation":  { "type": "string", "pattern": "^-?[0-9]+,-?[0-9]+$" }
+                }
+            }
+        },
+        "pins": {
+            "type": "array",
+            "items": {
+                "oneOf": [
+                    { "$ref": "#/definitions/ftdi_pin" },
+                    { "$ref": "#/definitions/psoc_pin" },
+                    { "$ref": "#/definitions/pic32cx_pin" }
+                ]
+            }
+        },
+        "ftdi_pin": {
+            "type": "object",
+            "required": [
+                "chip_index", "bus", "pin_number", "enabled", "input",
+                "name", "help_hint", "initial_value", "priority",
+                "inverted", "command", "command_group", "run_priority", "group"
+            ],
+            "additionalProperties": false,
+            "properties": {
+                "chip_index":    { "type": "integer", "minimum": 0 },
+                "bus":           { "type": "string", "enum": ["A", "B", "C", "D"] },
+                "pin_number":    { "type": "string" },
+                "enabled":       { "type": "boolean" },
+                "input":         { "type": "boolean" },
+                "name":          { "type": "string" },
+                "help_hint":     { "type": "string" },
+                "initial_value": { "type": "boolean" },
+                "priority":      { "type": "integer" },
+                "inverted":      { "type": "boolean" },
+                "command":       { "type": "string" },
+                "command_group": { "type": "integer" },
+                "run_priority":  { "type": "string", "pattern": "^-?[0-9]+,-?[0-9]+$" },
+                "group":         { "type": "string" }
+            }
+        },
+        "psoc_pin": {
+            "type": "object",
+            "required": [
+                "pin_number", "enabled", "initial_value", "initialization_priority",
+                "inverted", "name", "help_hint", "command", "command_group",
+                "classic_action", "run_priority", "tab_name"
+            ],
+            "additionalProperties": false,
+            "properties": {
+                "pin_number":              { "type": "string" },
+                "enabled":                 { "type": "boolean" },
+                "initial_value":           { "type": "boolean" },
+                "initialization_priority": { "type": "integer" },
+                "inverted":                { "type": "boolean" },
+                "name":                    { "type": "string" },
+                "help_hint":               { "type": "string" },
+                "command":                 { "type": "string" },
+                "command_group":           { "type": "integer" },
+                "classic_action":          { "type": "string" },
+                "run_priority":            { "type": "string", "pattern": "^-?[0-9]+,-?[0-9]+$" },
+                "tab_name":                { "type": "string" }
+            }
+        },
+        "pic32cx_pin": {
+            "type": "object",
+            "required": [
+                "pin_number", "enabled", "inverted", "name", "help_hint",
+                "command", "command_group", "run_priority", "tab_name"
+            ],
+            "additionalProperties": false,
+            "properties": {
+                "pin_number":    { "type": "integer", "minimum": 0 },
+                "enabled":       { "type": "boolean" },
+                "inverted":      { "type": "boolean" },
+                "name":          { "type": "string" },
+                "help_hint":     { "type": "string" },
+                "command":       { "type": "string" },
+                "command_group": { "type": "integer" },
+                "run_priority":  { "type": "string", "pattern": "^-?[0-9]+,-?[0-9]+$" },
+                "tab_name":      { "type": "string" }
+            }
+        },
+        "bus": {
+            "type": "array",
+            "items": {
+                "type": "object",
+                "required": ["bus", "bus_function", "chip_index"],
+                "additionalProperties": false,
+                "properties": {
+                    "bus":          { "type": "string", "enum": ["A", "B", "C", "D"] },
+                    "bus_function": { "type": "integer" },
+                    "chip_index":   { "type": "integer", "minimum": 0 }
+                }
+            }
+        }
+    }
+}

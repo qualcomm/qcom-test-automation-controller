@@ -150,7 +150,6 @@
     "fileVersion": 114,
     "modification_date": "Fri Oct 25 17:18:55 2024",
     "name": "RIDE MX 4.0 Lite",
-    "pineVersion": 8,
     "pins": [
         {
             "bus": "A",

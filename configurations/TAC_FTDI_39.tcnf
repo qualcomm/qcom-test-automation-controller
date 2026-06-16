@@ -86,7 +86,6 @@
     "fileVersion": 8,
     "modification_date": "Mon Dec 2 12:13:53 2024",
     "name": "RB8 IQ-9075-EVK",
-    "pineVersion": 1,
     "pins": [
         {
             "bus": "A",
@@ -640,6 +639,5 @@
         }
     ],
     "usb_descriptor": "ALPACA-LITE FOR RB8 IQ-9075-EVK",
-    "variables": [
-    ]
+    "variables": []
 }

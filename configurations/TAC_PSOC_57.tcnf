@@ -72,7 +72,6 @@
     "min_firmware_version": 16,
     "modification_date": "Mon Jul 7 18:14:06 2025",
     "name": "Monaco/Lemans RIDE MCU Less ADP Automotive",
-    "pineVersion": 1,
     "pins": [
         {
             "classic_action": "TAC_SOFT_RESET",
@@ -387,7 +386,9 @@
     "platform_type": "PSOC",
     "reset_enabled": false,
     "script": "def powerOff() \n\tlogComment ====== powerOffTheDevice sequence start ======\n\n\tbattery 1\n\n\tlogComment ====== powerOffTheDevice sequence finish ======\n\n\ndef powerOn()\n\tlogComment ====== powerOnTheDevice sequence start ======\n\n\tbattery 0\n\n\tlogComment ====== powerOnTheDevice sequence finish ======\n\n\ndef reset()\n\tlogComment ====== reset start ======\n\n\tpowerOff\n\tdelay 1500\n\tpowerOn\n\n\tlogComment ====== reset finish ======\n\n\ndef bootToEDL()\n\tlogComment ====== s1_md_sail_edl start ======\n\n\tpowerOff\n\tpedl 1\n\tsdcard 1\n\tdelay 1500\n\tpowerOn\n\tdelay 5000\n\tdelay $Optional_GPIO_Hold_Time\n\tpedl 0\n\tsdcard 0\n\n\tlogComment ======  s1_md_sail_edl finish ======\n\n\ndef bootToUEFI()\n\tlogComment ====== s1_uefi start ======\n\n\treset\n\tvolup 1\n\tdelay 1000\n\tpkey 1\n\tvoldn 0\n\tpedl 0\n\tdelay 8000\n\tdelay $Optional_GPIO_Hold_Time\n\tpkey 0\n\tvolup 0\n\tdelay 12\n\tpkey 1\n\tvolup 1\n\tpkey 0\n\tvolup 0 \n\n\tlogComment ======s1_uefi finish ======\n\n\ndef bootToFastboot()\n\tlogComment ====== s1_fastboot start ======\n\n\tpowerOff\n\tdelay 20\n\tfastboot 0\n\tpowerOn\n\tdelay 2000\n\tfastboot 1\n\n\tlogComment ====== s1_fastboot finish ======\n\n\n\ndef WAKEIN()\n\tlogComment ====== s1_WAKEIN start ======\n\n\t\n\twakein 1\n\tdelay 50\n\twakein 0\n\n\tlogComment ====== s1_WAKEIN finish ======\n\n\ndef mculesspoff()\n\tlogComment ====== s1_mculesspoff start ======\n\n\t\n\tfastpoff 1\n\tdelay 50\n\tfastpoff 0\n\n\tlogComment ====== s1_mculesspoff finish ======\n",
-    "supportedFirmwareVer": [16],
+    "supportedFirmwareVer": [
+        16
+    ],
     "tabs": [
         {
             "configurable": true,

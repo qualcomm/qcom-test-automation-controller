@@ -78,7 +78,6 @@
     "fileVersion": 10,
     "modification_date": "Thu Feb 20 12:49:04 2025",
     "name": "KUNO IDP35",
-    "pineVersion": 0,
     "pins": [
         {
             "bus": "A",

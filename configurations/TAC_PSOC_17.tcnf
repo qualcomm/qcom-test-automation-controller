@@ -55,7 +55,6 @@
     "fileVersion": 55,
     "modification_date": "Thu Aug 8 17:28:16 2024",
     "name": "Lemans ADP Automotive",
-    "pineVersion": 7,
     "pins": [
         {
             "classic_action": "TAC_SOFT_RESET",

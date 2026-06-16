@@ -1,0 +1,23 @@
+name: Validate TAC Configurations
+
+on:
+  pull_request:
+    branches: [main, develop, "feature/*"]
+    paths: ["configurations/**.tcnf"]
+  push:
+    branches: [main, develop, "feature/*"]
+    paths: ["configurations/**.tcnf"]
+  workflow_dispatch:
+
+jobs:
+  validate:
+    name: Validate .tcnf files
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Validate against schema
+        uses: python-jsonschema/check-jsonschema@0.31.3
+        with:
+          schema: .github/tac-configuration-schema.json
+          instanceFiles: configurations/*.tcnf

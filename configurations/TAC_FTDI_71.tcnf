@@ -10,7 +10,6 @@
     "reset_enabled": false,
     "chip_count": 1,
     "script": "def powerOn()\n\tlogComment ====== on start ======\n\t\n\tpwr_off 0\n\n\tlogComment ====== on finish ======\n\n\ndef powerOff() \n\tlogComment ====== off start ======\n\n\tpwr_off 1\n\n\tlogComment ====== off finish ======\n\n\ndef reset()\n\tlogComment ====== reset start ======\n\n\tpowerOff\n\tdelay 1500\n\tpowerOn\n\n\tlogComment ====== reset finish ======\n\n\ndef bootToEDL()\n\tlogComment ====== s1_md_sail_edl start ======\n\n\tpowerOff\n\tsw_dnld 1\n\tss_force_edl 1\n\tdelay 1500\n\tpowerOn\n\tdelay 5000\n\tsw_dnld 0\n\tss_force_edl 0\n\n\tlogComment ======  s1_md_sail_edl finish ======\n\n\ndef bootToSecondaryEDL()\n\tlogComment ====== s1_sail_edl start ======\n\n\tpowerOff\n\tss_force_edl 1\n\tdelay 1500\n\tpowerOn\n\tdelay 5000\n\tss_force_edl 0\n\n\tlogComment ======  s1_sail_edl finish ======\n\n\ndef bootToUEFI()\n\tlogComment ====== s1_uefi start ======\n\n\treset \n\tkpd_pwr 0\n\tuefi 1\n\tkpd_pwr 1\n\tdelay 8000\n\tkpd_pwr 0\n\tuefi 0\n\n\tlogComment ====== s1_uefi finish ======\n\n\ndef bootToFastboot()\n\tlogComment ====== s1_fastboot start ======\n\n\tpowerOff\n\tdelay 1500\n\tusb2 1\n\tdelay 500\n\tpowerOn\n\tdelay 8000\n\tusb2 0\n\n\tlogComment ====== s1_fastboot finish ======\n\n\n\n",
-    "pineVersion": 1,
     "fileVersion": 30,
     "bus": [
         {

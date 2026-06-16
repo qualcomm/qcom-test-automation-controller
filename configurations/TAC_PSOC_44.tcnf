@@ -55,7 +55,6 @@
     "fileVersion": 2,
     "modification_date": "Tue Dec 10 13:59:16 2024",
     "name": "Kanapali QRD",
-    "pineVersion": 1,
     "pins": [
         {
             "classic_action": "TC_EUD_EARLY_BOOT_EN",

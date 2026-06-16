@@ -86,7 +86,6 @@
     "fileVersion": 64,
     "modification_date": "Mon Mar 24 17:56:24 2025",
     "name": "Glymur SIP Lite",
-    "pineVersion": 2,
     "pins": [
         {
             "bus": "A",

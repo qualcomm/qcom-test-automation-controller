@@ -70,7 +70,6 @@
     "fileVersion": 17,
     "modification_date": "Fri Jan 17 17:36:49 2025",
     "name": "Glymur COB CDPS",
-    "pineVersion": 2,
     "pins": [
         {
             "bus": "A",

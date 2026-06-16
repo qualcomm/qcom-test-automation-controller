@@ -70,7 +70,6 @@
     "fileVersion": 22,
     "modification_date": "Tue Apr 30 16:16:09 2024",
     "name": "ATP SM-SC-SDX_NS DEBUG BOARD",
-    "pineVersion": 1,
     "pins": [
         {
             "bus": "A",
@@ -624,6 +623,5 @@
         }
     ],
     "usb_descriptor": "ALPACA-LITE SM_SC_SDX ATP",
-    "variables": [
-    ]
+    "variables": []
 }

@@ -55,7 +55,6 @@
     "fileVersion": 17,
     "modification_date": "Wed Nov 6 05:23:04 2024",
     "name": "CSM - PSoC",
-    "pineVersion": 6,
     "pins": [
         {
             "classic_action": "TAC_SOFT_RESET",
@@ -272,7 +271,7 @@
             "command": "pkey",
             "command_group": 2,
             "enabled": true,
-            "help_hint": "Starts PON; Power on signal to Lassen’s PMIC (Wailua)",
+            "help_hint": "Starts PON; Power on signal to Lassen\u2019s PMIC (Wailua)",
             "initial_value": false,
             "initialization_priority": 99,
             "inverted": false,
@@ -391,6 +390,5 @@
         }
     ],
     "usb_descriptor": "",
-    "variables": [
-    ]
+    "variables": []
 }

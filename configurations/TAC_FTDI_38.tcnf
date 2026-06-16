@@ -78,7 +78,6 @@
     "fileVersion": 44,
     "modification_date": "Mon Jan 6 14:47:03 2025",
     "name": "PAKALA CDP",
-    "pineVersion": 8,
     "pins": [
         {
             "bus": "A",
@@ -632,6 +631,5 @@
         }
     ],
     "usb_descriptor": "ALPACA-LITE PAKALA CDP",
-    "variables": [
-    ]
+    "variables": []
 }

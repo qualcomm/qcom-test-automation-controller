@@ -70,7 +70,6 @@
     "fileVersion": 24,
     "modification_date": "Thu Jan 23 19:46:48 2025",
     "name": "Glymur CoB QCB WITH BATTERY",
-    "pineVersion": 1,
     "pins": [
         {
             "bus": "A",

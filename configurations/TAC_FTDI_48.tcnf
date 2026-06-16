@@ -94,7 +94,6 @@
     "fileVersion": 52,
     "modification_date": "Thu Feb 20 10:37:32 2025",
     "name": "Kaanapali MTP",
-    "pineVersion": 2,
     "pins": [
         {
             "bus": "A",
@@ -648,6 +647,5 @@
         }
     ],
     "usb_descriptor": "ALPACA-LITE MTP8850",
-    "variables": [
-    ]
+    "variables": []
 }

@@ -78,7 +78,6 @@
     "fileVersion": 5,
     "modification_date": "Tue Nov 21 16:26:31 2023",
     "name": "Lanai Debug",
-    "pineVersion": 0,
     "pins": [
         {
             "bus": "A",

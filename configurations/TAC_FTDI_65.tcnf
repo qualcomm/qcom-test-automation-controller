@@ -96,7 +96,6 @@
     "min_firmware_version": 16,
     "modification_date": "Tue Aug 19 14:22:49 2025",
     "name": "Hawi MTP8975",
-    "pineVersion": 2,
     "pins": [
         {
             "bus": "A",

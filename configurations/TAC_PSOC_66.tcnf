@@ -64,7 +64,6 @@
     "form_dimension": "560,819",
     "modification_date": "Wed Apr 22 10:25:41 2026",
     "name": "Hawi MTP8975",
-    "pineVersion": 1,
     "pins": [
         {
             "classic_action": "TAC_SOFT_RESET",

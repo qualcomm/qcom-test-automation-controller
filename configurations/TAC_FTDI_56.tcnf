@@ -70,7 +70,6 @@
     "fileVersion": 65,
     "modification_date": "Tue Jul 29 11:10:35 2025",
     "name": "Molokai MTP",
-    "pineVersion": 2,
     "pins": [
         {
             "bus": "A",

@@ -54,7 +54,6 @@
     "fileVersion": 21,
     "modification_date": "Thu Nov 2 10:31:32 2023",
     "name": "ALPACA-LITE QCX217",
-    "pineVersion": 0,
     "pins": [
         {
             "bus": "A",

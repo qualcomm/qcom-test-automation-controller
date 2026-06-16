@@ -56,7 +56,6 @@
     "min_firmware_version": 15,
     "modification_date": "Thu Jul 31 01:08:08 2025",
     "name": "Glymur Battery Enabled Device",
-    "pineVersion": 2,
     "pins": [
         {
             "bus": "A",

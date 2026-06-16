@@ -71,7 +71,6 @@
     "min_firmware_version": 15,
     "modification_date": "Fri Aug 22 18:23:00 2025",
     "name": "SDX95 QMP",
-    "pineVersion": 1,
     "pins": [
         {
             "bus": "A",

@@ -86,7 +86,6 @@
     "fileVersion": 7,
     "modification_date": "Mon Jan 29 14:25:03 2024",
     "name": "RIDE MICRO 4.0",
-    "pineVersion": 0,
     "pins": [
         {
             "bus": "A",
@@ -640,6 +639,5 @@
         }
     ],
     "usb_descriptor": "RIDE MICRO 4.0",
-    "variables": [
-    ]
+    "variables": []
 }

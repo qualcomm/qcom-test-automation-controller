@@ -70,7 +70,6 @@
     "fileVersion": 15,
     "modification_date": "Thu Jan 23 15:38:42 2025",
     "name": "Glymur CoB QCB",
-    "pineVersion": 1,
     "pins": [
         {
             "bus": "A",

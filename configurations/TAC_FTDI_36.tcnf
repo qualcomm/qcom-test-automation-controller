@@ -78,7 +78,6 @@
     "fileVersion": 5,
     "modification_date": "Wed Apr 24 16:04:03 2024",
     "name": "XR TAC Config ",
-    "pineVersion": 2,
     "pins": [
         {
             "bus": "A",
