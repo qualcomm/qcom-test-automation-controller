@@ -33,6 +33,7 @@
 // Authors: Michael Simpson, Biswajit Roy
 
 #include <qtac/AlpacaDevice.h>
+#include <qtac/TACDriveThread.h>
 
 #include <algorithm>
 #include <mutex>
@@ -143,7 +144,7 @@ qtac::ByteArray _AlpacaDevice::getLastError()
 
 bool _AlpacaDevice::isOpen()
 {
-	return _driveThread != nullptr;
+	return _driveThread != nullptr || _serialDriveThread != nullptr;
 }
 
 void _AlpacaDevice::close()
@@ -153,6 +154,12 @@ void _AlpacaDevice::close()
 		_driveThread->shutDown();
 		delete _driveThread;
 		_driveThread = nullptr;
+	}
+	if (_serialDriveThread != nullptr)
+	{
+		_serialDriveThread->shutDown();
+		delete _serialDriveThread;
+		_serialDriveThread = nullptr;
 	}
 }
 

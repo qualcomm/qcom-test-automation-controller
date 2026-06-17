@@ -49,6 +49,8 @@
 #include <memory>
 #include <mutex>
 
+namespace qtac { class TACDriveThread; }
+
 // -----------------------------------------------------------------------
 // Minimal drive-thread interface — no Qt, no QThread.
 // Concrete implementations (e.g. TACLiteDriveThread) live in qcommon-console.
@@ -207,6 +209,7 @@ protected:
 	qtac::ByteArray _helpText;
 
 	IFTDIDriveThread*  _driveThread{nullptr};
+	qtac::TACDriveThread* _serialDriveThread{nullptr};
 
 	TACCommandMap   _commands;
 	TACCommands     _commandList;

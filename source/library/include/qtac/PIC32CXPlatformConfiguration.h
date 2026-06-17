@@ -1,0 +1,137 @@
+// Copyright (c) Qualcomm Technologies, Inc. and/or its subsidiaries.
+//
+// Redistribution and use in source and binary forms, with or without
+// modification, are permitted (subject to the limitations in the
+// disclaimer below) provided that the following conditions are met:
+//
+//     * Redistributions of source code must retain the above copyright
+//         notice, this list of conditions and the following disclaimer.
+//
+//     * Redistributions in binary form must reproduce the above
+//         copyright notice, this list of conditions and the following
+//         disclaimer in the documentation and/or other materials provided
+//         with the distribution.
+//
+//     * Neither the name of Qualcomm Technologies, Inc. nor the names of its
+//         contributors may be used to endorse or promote products derived
+//         from this software without specific prior written permission.
+//
+// NO EXPRESS OR IMPLIED LICENSES TO ANY PARTY'S PATENT RIGHTS ARE
+// GRANTED BY THIS LICENSE. THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT
+// HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED
+// WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
+// MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED.
+// IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR
+// ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+// DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE
+// GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+// INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER
+// IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
+// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN
+// IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+#pragma once
+
+#include <qtac/CommandGroup.h>
+#include <qtac/Map.h>
+#include <qtac/List.h>
+#include <qtac/PinEntry.h>
+#include <qtac/PinID.h>
+#include <qtac/PlatformID.h>
+#include <qtac/Point.h>
+#include <qtac/String.h>
+#include <qtac/StringUtilities.h>
+
+// Disable nlohmann versioned inline namespace so 'nlohmann::json' is unambiguous
+#ifndef NLOHMANN_JSON_NAMESPACE_NO_VERSION
+#  define NLOHMANN_JSON_NAMESPACE_NO_VERSION 1
+#endif
+#include <nlohmann/json.hpp>
+
+#include <memory>
+
+using json_t = nlohmann::json;
+
+const PlatformID kMaxPIC32CXPlatformId{99999};
+
+struct PIC32CXPinData
+{
+    PIC32CXPinData() = default;
+    PIC32CXPinData(const PIC32CXPinData&) = default;
+    PIC32CXPinData(PinID setPin)
+    {
+        _setPin = setPin;
+        _hash   = PIC32CXPinData::makePIC32CXHash(setPin);
+    }
+
+    void clear() { *this = PIC32CXPinData(); }
+
+    static HashType makePIC32CXHash(PinID setPin)
+    {
+        return strHash(qtac::String::number(static_cast<uint64_t>(setPin)));
+    }
+
+    HashType        _hash{0};
+    PinID           _setPin{static_cast<PinID>(-1)};
+    bool            _enabled{false};
+    qtac::String    _pinLabel;
+    qtac::String    _pinTooltip;
+    bool            _inverted{false};
+    qtac::String    _pinCommand;
+    CommandGroups   _commandGroup{eUnknownCommandGroup};
+    qtac::Point     _cellLocation{-1, -1};
+    qtac::String    _tabName{"General"};
+};
+
+using PIC32CXPinEntries = qtac::Map<HashType, PIC32CXPinData>;
+using PIC32CXPinList    = qtac::List<PIC32CXPinData>;
+
+class _PIC32CXPlatformConfiguration
+{
+public:
+    _PIC32CXPlatformConfiguration();
+    _PIC32CXPlatformConfiguration(const _PIC32CXPlatformConfiguration&) = delete;
+    _PIC32CXPlatformConfiguration& operator=(const _PIC32CXPlatformConfiguration&) = delete;
+    ~_PIC32CXPlatformConfiguration() = default;
+
+    Pins getPins();
+
+    PIC32CXPinList getAllPins();
+    PIC32CXPinList getActivePins();
+
+    bool getPinEnableState(PinID pinId) const;
+    void setPinEnableState(HashType hash, bool newState);
+
+    bool getPinInvertedState(PinID pinId) const;
+    void setPinInvertedState(HashType hash, bool newState);
+
+    qtac::String getPinLabel(PinID pinId) const;
+    void setPinLabel(HashType hash, const qtac::String& pinLabel);
+
+    qtac::String getPinTooltip(PinID pinId) const;
+    void setPinTooltip(HashType hash, const qtac::String& pinTooltip);
+
+    qtac::String getPinCommand(PinID pinId) const;
+    void setPinCommand(HashType hash, const qtac::String& pinCommand);
+
+    CommandGroups getPinGroup(PinID pinId) const;
+    void setPinGroup(HashType hash, CommandGroups pinGroup);
+
+    qtac::String getTabName(PinID pinId) const;
+    void setTabName(HashType hash, const qtac::String& tabName);
+
+    qtac::Point getPinCellLocation(PinID pinId) const;
+    void setPinCellLocation(HashType hash, const qtac::Point& cellLocation);
+
+    PinID bitFromSetPin(PinID setPin);
+
+    bool read(json_t& parentLevel);
+    void write(json_t& parentLevel);
+
+private:
+    void initialize();
+
+    PIC32CXPinEntries _pinEntries;
+};
+
+using PIC32CXPlatformConfiguration = std::shared_ptr<_PIC32CXPlatformConfiguration>;

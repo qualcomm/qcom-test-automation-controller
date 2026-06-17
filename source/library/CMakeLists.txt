@@ -142,6 +142,11 @@ add_library(qtac-core STATIC
     src/TACPIC32CXCoder.cpp
     src/TACPIC32CXProtocol.cpp
     src/TACPIC32CXDriveThread.cpp
+    # PSoC/PIC32CX devices and platform configurations (W1)
+    src/PSOCPlatformConfiguration.cpp
+    src/PIC32CXPlatformConfiguration.cpp
+    src/PSOCDevice.cpp
+    src/PIC32CXDevice.cpp
 )
 
 # Platform-specific SerialPortInfo enumeration
