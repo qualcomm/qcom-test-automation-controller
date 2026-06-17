@@ -50,7 +50,10 @@
 
 #include <memory>
 
+#ifndef QTAC_JSON_T_DEFINED
+#define QTAC_JSON_T_DEFINED
 using json_t = nlohmann::json;
+#endif
 
 const PlatformID kMaxPIC32CXPlatformId{99999};
 

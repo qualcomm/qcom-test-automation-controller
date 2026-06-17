@@ -147,6 +147,9 @@ add_library(qtac-core STATIC
     src/PIC32CXPlatformConfiguration.cpp
     src/PSOCDevice.cpp
     src/PIC32CXDevice.cpp
+    # Platform registry / devicelist.json loader (Phase 4)
+    src/PlatformID.cpp
+    src/TcnfLoader.cpp
 )
 
 # Platform-specific SerialPortInfo enumeration

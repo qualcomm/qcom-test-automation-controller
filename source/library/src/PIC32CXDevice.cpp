@@ -34,6 +34,8 @@
 #include <qtac/TACPIC32CXDriveThread.h>
 #include <qtac/SerialPortInfo.h>
 #include <qtac/StringUtilities.h>
+#include <qtac/PlatformID.h>
+#include <qtac/TcnfLoader.h>
 
 #include <chrono>
 #include <thread>
@@ -122,6 +124,21 @@ bool PIC32CXDevice::open()
     if (result)
     {
         _pic32cxPlatformConfiguration = new _PIC32CXPlatformConfiguration;
+
+        // Load .tcnf override if a config path is registered for this platform
+        if (_platformID != MICRO_EPM_BOARD_ID_UNKNOWN)
+        {
+            PlatformContainer::initialize();
+            auto entries = PlatformContainer::getEntries();
+            for (const auto& entry : entries)
+            {
+                if (entry && entry->_platformID == _platformID && !entry->_path.isEmpty())
+                {
+                    TcnfLoader::loadPIC32CX(entry->_path.toStdString(), _pic32cxPlatformConfiguration);
+                    break;
+                }
+            }
+        }
 
         _serialDriveThread->onPinStateChanged.connect([this](uint64_t pin, bool state) {
             this->on_pinStateChanged(pin, state);

@@ -34,6 +34,8 @@
 #include <qtac/TACPSOCDriveThread.h>
 #include <qtac/SerialPortInfo.h>
 #include <qtac/StringUtilities.h>
+#include <qtac/PlatformID.h>
+#include <qtac/TcnfLoader.h>
 
 #include <algorithm>
 #include <chrono>
@@ -143,6 +145,21 @@ bool PSOCDevice::open()
     if (result)
     {
         _psocPlatformConfiguration = new _PSOCPlatformConfiguration;
+
+        // Load .tcnf override if a config path is registered for this platform
+        if (_platformID != MICRO_EPM_BOARD_ID_UNKNOWN)
+        {
+            PlatformContainer::initialize();
+            auto entries = PlatformContainer::getEntries();
+            for (const auto& entry : entries)
+            {
+                if (entry && entry->_platformID == _platformID && !entry->_path.isEmpty())
+                {
+                    TcnfLoader::loadPSOC(entry->_path.toStdString(), _psocPlatformConfiguration);
+                    break;
+                }
+            }
+        }
 
         _serialDriveThread->onPinStateChanged.connect([this](uint64_t pin, bool state) {
             this->on_pinStateChanged(pin, state);

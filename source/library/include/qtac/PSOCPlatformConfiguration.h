@@ -50,7 +50,10 @@
 #include <memory>
 #include <vector>
 
+#ifndef QTAC_JSON_T_DEFINED
+#define QTAC_JSON_T_DEFINED
 using json_t = nlohmann::json;
+#endif
 
 const PinID kMaxPSOCPlatformId{255};
 

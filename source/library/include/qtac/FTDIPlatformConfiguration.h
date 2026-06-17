@@ -54,7 +54,10 @@
 #include <string>
 
 // Alias to hide versioning ambiguity
+#ifndef QTAC_JSON_T_DEFINED
+#define QTAC_JSON_T_DEFINED
 using json_t = nlohmann::json;
+#endif
 
 using ChipIndex = int16_t;
 
