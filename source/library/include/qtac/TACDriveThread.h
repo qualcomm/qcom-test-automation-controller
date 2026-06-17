@@ -45,9 +45,10 @@
 #include <qtac/StringUtilities.h>
 #include <qtac/Variant.h>
 
+#include <qtac/Signal.h>
+
 #include <condition_variable>
 #include <cstdint>
-#include <functional>
 #include <memory>
 #include <mutex>
 #include <vector>
@@ -185,39 +186,40 @@ public:
     void setThreadDelay(unsigned int delay);
 
     // -----------------------------------------------------------------------
-    // Callbacks (replace Qt signals)
+    // Signals (replace Qt signals)
     //
-    // Assign these before calling start().
+    // Connect subscribers before calling start().
+    // Each connect() returns an ID; pass it to disconnect() to unsubscribe.
     // -----------------------------------------------------------------------
-    std::function<void(uint64_t pin, bool state)>           onPinStateChanged;
-    std::function<void()>                                   onTransactionEnded;
-    std::function<void(uint8_t value, NotificationLevel)>   onProgress;
+    qtac::Signal<uint64_t, bool>                        onPinStateChanged;
+    qtac::Signal<>                                      onTransactionEnded;
+    qtac::Signal<uint8_t, NotificationLevel>            onProgress;
 
-    std::function<void()>                                   onDeviceOpen;
-    std::function<void(const qtac::ByteArray& errorString)> onErrorOnOpen;
+    qtac::Signal<>                                      onDeviceOpen;
+    qtac::Signal<const qtac::ByteArray&>                onErrorOnOpen;
 
-    std::function<void(const qtac::String& deviceStatus)>   onDeviceStatusChange;
+    qtac::Signal<const qtac::String&>                   onDeviceStatusChange;
 
-    std::function<void(const qtac::String& hardwareType)>   onHardwareTypeUpdate;
-    std::function<void(const qtac::String& hardwareVersion)> onHardwareVersionUpdate;
-    std::function<void(const qtac::String& firmwareVersion)> onFirmwareVersionUpdate;
-    std::function<void(const qtac::String& name)>           onNameUpdate;
-    std::function<void(const qtac::String& uuid)>           onUuidUpdate;
-    std::function<void(const qtac::String& serialNumber)>   onSerialNumUpdate;
-    std::function<void(int platformID)>                     onPlatformIDUpdate;
+    qtac::Signal<const qtac::String&>                   onHardwareTypeUpdate;
+    qtac::Signal<const qtac::String&>                   onHardwareVersionUpdate;
+    qtac::Signal<const qtac::String&>                   onFirmwareVersionUpdate;
+    qtac::Signal<const qtac::String&>                   onNameUpdate;
+    qtac::Signal<const qtac::String&>                   onUuidUpdate;
+    qtac::Signal<const qtac::String&>                   onSerialNumUpdate;
+    qtac::Signal<int>                                   onPlatformIDUpdate;
 
-    std::function<void()>                                   onDeviceConnected;
-    std::function<void()>                                   onDeviceDisconnected;
+    qtac::Signal<>                                      onDeviceConnected;
+    qtac::Signal<>                                      onDeviceDisconnected;
 
-    std::function<void()>                                   onResetCountCleared;
-    std::function<void(uint32_t resetCount)>                onResetCountUpdate;
+    qtac::Signal<>                                      onResetCountCleared;
+    qtac::Signal<uint32_t>                              onResetCountUpdate;
 
-    std::function<void(const qtac::ByteArray& result, bool valid)> onI2CReadResult;
-    std::function<void(const qtac::ByteArray& result)>             onI2CWriteResult;
+    qtac::Signal<const qtac::ByteArray&, bool>          onI2CReadResult;
+    qtac::Signal<const qtac::ByteArray&>                onI2CWriteResult;
 
     // Optional log sink — if set, log() and error messages route here instead
     // of to a global AppCore.
-    std::function<void(const qtac::ByteArray& line)> onLogLine;
+    qtac::Signal<const qtac::ByteArray&>                onLogLine;
 
 protected:
     bool            _waitForCompletion{false};

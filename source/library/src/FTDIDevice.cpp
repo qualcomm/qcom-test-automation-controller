@@ -245,10 +245,10 @@ bool FTDIDevice::open()
 
 	if (result)
 	{
-		// Wire up pin-state callback
-		_driveThread->onPinStateChanged = [this](uint64_t pin, bool state) {
+		// Wire up pin-state signal
+		_driveThread->onPinStateChanged.connect([this](uint64_t pin, bool state) {
 			this->on_pinStateChanged(pin, state);
-		};
+		});
 
 		// Initialize pins with their initial values, sorted by priority
 		Pins initialPins;

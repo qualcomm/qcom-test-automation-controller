@@ -83,14 +83,14 @@ TACLiteDriveThread::TACLiteDriveThread(HashType hash)
     setSerialNumber(_ftdiChipset->serialNumber().toStdString());
     setPortName(_ftdiChipset->portName());
 
-    // Wire callbacks so _AlpacaDevice is notified of disconnect / progress.
-    onDeviceDisconnected = [alpacaDevice]() {
+    // Wire signals so _AlpacaDevice is notified of disconnect / progress.
+    onDeviceDisconnected.connect([alpacaDevice]() {
         alpacaDevice->onDeviceDisconnect();
-    };
-    onProgress = [alpacaDevice](uint8_t value, NotificationLevel /*level*/) {
+    });
+    onProgress.connect([alpacaDevice](uint8_t value, NotificationLevel /*level*/) {
         if (alpacaDevice->onProgress)
             alpacaDevice->onProgress(value, 1 /*eInfoNotification*/);
-    };
+    });
 }
 
 TACLiteDriveThread::~TACLiteDriveThread() = default;

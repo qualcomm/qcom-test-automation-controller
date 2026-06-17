@@ -38,6 +38,7 @@
 #include <qtac/ByteArray.h>
 #include <qtac/String.h>
 #include <qtac/List.h>
+#include <qtac/Signal.h>
 #include <qtac/StringUtilities.h>
 #include <qtac/DebugBoardType.h>
 #include <qtac/PlatformID.h>
@@ -47,7 +48,6 @@
 #include <cstdint>
 #include <memory>
 #include <mutex>
-#include <functional>
 
 // -----------------------------------------------------------------------
 // Minimal drive-thread interface — no Qt, no QThread.
@@ -89,8 +89,8 @@ public:
 	virtual void i2CReadRegister(uint32_t addr, uint32_t reg) = 0;
 	virtual void i2CWriteRegister(uint32_t addr, uint32_t reg, uint32_t data) = 0;
 
-	// Callback set by _AlpacaDevice after open()
-	std::function<void(uint64_t pin, bool state)> onPinStateChanged;
+	// Signal set by _AlpacaDevice after open()
+	qtac::Signal<uint64_t, bool> onPinStateChanged;
 };
 
 // -----------------------------------------------------------------------
@@ -181,10 +181,10 @@ public:
 
 	void setActive(bool active = true) { _active = active; }
 
-	// --- Callbacks (replaces Qt signals) ---
-	std::function<void(uint64_t pin, bool state)> onPinStateChanged;
-	std::function<void(uint8_t value, int level)> onProgress;
-	std::function<void(const qtac::ByteArray& message)> onError;
+	// --- Signals (replaces Qt signals) ---
+	qtac::Signal<uint64_t, bool>               onPinStateChanged;
+	qtac::Signal<uint8_t, int>                 onProgress;
+	qtac::Signal<const qtac::ByteArray&>       onError;
 
 	// --- Slot equivalents (regular public methods) ---
 	void on_pinStateChanged(uint64_t pin, bool state);

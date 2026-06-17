@@ -73,13 +73,13 @@ TACPIC32CXDriveThread::TACPIC32CXDriveThread(HashType hash)
     _serialNumber = qtac::String(alpacaDevice->serialNumber().toStdString());
     _description  = qtac::String(alpacaDevice->description().toStdString());
 
-    onPinStateChanged = [alpacaDevice](uint64_t pin, bool state) {
+    onPinStateChanged.connect([alpacaDevice](uint64_t pin, bool state) {
         alpacaDevice->on_pinStateChanged(pin, state);
-    };
-    onProgress = [alpacaDevice](uint8_t value, NotificationLevel /*level*/) {
+    });
+    onProgress.connect([alpacaDevice](uint8_t value, NotificationLevel /*level*/) {
         if (alpacaDevice->onProgress)
             alpacaDevice->onProgress(value, 1 /*eInfoNotification*/);
-    };
+    });
 }
 
 TACPIC32CXDriveThread::~TACPIC32CXDriveThread() = default;

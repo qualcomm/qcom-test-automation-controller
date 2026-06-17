@@ -68,14 +68,14 @@ TACPSOCDriveThread::TACPSOCDriveThread(HashType hash)
     _serialNumber = qtac::String(alpacaDevice->serialNumber().toStdString());
     _description  = qtac::String(alpacaDevice->description().toStdString());
 
-    // Wire callbacks so _AlpacaDevice is notified of pin changes and progress.
-    onPinStateChanged = [alpacaDevice](uint64_t pin, bool state) {
+    // Wire signals so _AlpacaDevice is notified of pin changes and progress.
+    onPinStateChanged.connect([alpacaDevice](uint64_t pin, bool state) {
         alpacaDevice->on_pinStateChanged(pin, state);
-    };
-    onProgress = [alpacaDevice](uint8_t value, NotificationLevel /*level*/) {
+    });
+    onProgress.connect([alpacaDevice](uint8_t value, NotificationLevel /*level*/) {
         if (alpacaDevice->onProgress)
             alpacaDevice->onProgress(value, 1 /*eInfoNotification*/);
-    };
+    });
 }
 
 TACPSOCDriveThread::~TACPSOCDriveThread() = default;

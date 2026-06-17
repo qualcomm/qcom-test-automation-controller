@@ -158,7 +158,7 @@ FramePackage ProtocolInterface::getNextFramePackage()
                     std::chrono::milliseconds(fp->delayInMilliSeconds));
                 result = fp;
             }
-            else if (fp->endTransaction || !fp->comment.empty())
+            else if (fp->endTransaction || !fp->comment.isEmpty())
             {
                 result = fp;
             }
