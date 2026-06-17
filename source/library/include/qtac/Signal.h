@@ -30,7 +30,6 @@
 // OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN
 // IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-// Author: Bryant Finney
 // Qt-free multi-subscriber signal template.
 // Replaces Qt signals/slots for the qtac library.
 //
