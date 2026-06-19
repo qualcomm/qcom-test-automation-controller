@@ -1,7 +1,8 @@
-#ifndef TACPSOCCOMMAND_H
-#define TACPSOCCOMMAND_H
 // Copyright (c) Qualcomm Technologies, Inc. and/or its subsidiaries.
 // SPDX-License-Identifier: BSD-3-Clause
+
+#ifndef TACPSOCCOMMAND_H
+#define TACPSOCCOMMAND_H
 
 #include "QCommonConsoleGlobal.h"
 

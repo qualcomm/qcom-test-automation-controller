@@ -1,7 +1,8 @@
-#ifndef TACDEVICE_H
-#define TACDEVICE_H
 // Copyright (c) Qualcomm Technologies, Inc. and/or its subsidiaries.
 // SPDX-License-Identifier: BSD-3-Clause
+
+#ifndef TACDEVICE_H
+#define TACDEVICE_H
 
 #include "QCommonConsoleGlobal.h"
 

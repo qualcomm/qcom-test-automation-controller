@@ -1,7 +1,8 @@
-#ifndef PSOCEDITORVIEW_H
-#define PSOCEDITORVIEW_H
 // Copyright (c) Qualcomm Technologies, Inc. and/or its subsidiaries.
 // SPDX-License-Identifier: BSD-3-Clause
+
+#ifndef PSOCEDITORVIEW_H
+#define PSOCEDITORVIEW_H
 
 #include "ui_PSOCEditorView.h"
 #include "EditorView.h"

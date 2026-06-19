@@ -1,8 +1,9 @@
+// Copyright (c) Qualcomm Technologies, Inc. and/or its subsidiaries.
+// SPDX-License-Identifier: BSD-3-Clause
+
 #ifndef PIC32CXDEVICE_H
 #define PIC32CXDEVICE_H
 
-// Copyright (c) Qualcomm Technologies, Inc. and/or its subsidiaries.
-// SPDX-License-Identifier: BSD-3-Clause
 
 #include "AlpacaDevice.h"
 #include "PIC32CXPlatformConfiguration.h"

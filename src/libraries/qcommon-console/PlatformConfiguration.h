@@ -1,7 +1,8 @@
-#ifndef PLATFORMCONFIGURATION_H
-#define PLATFORMCONFIGURATION_H
 // Copyright (c) Qualcomm Technologies, Inc. and/or its subsidiaries.
 // SPDX-License-Identifier: BSD-3-Clause
+
+#ifndef PLATFORMCONFIGURATION_H
+#define PLATFORMCONFIGURATION_H
 
 // QCommonConsole
 #include "QCommonConsoleGlobal.h"

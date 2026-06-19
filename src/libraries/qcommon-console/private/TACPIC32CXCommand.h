@@ -1,8 +1,9 @@
+// Copyright (c) Qualcomm Technologies, Inc. and/or its subsidiaries.
+// SPDX-License-Identifier: BSD-3-Clause
+
 #ifndef TACPIC32CXCOMMAND_H
 #define TACPIC32CXCOMMAND_H
 
-// Copyright (c) Qualcomm Technologies, Inc. and/or its subsidiaries.
-// SPDX-License-Identifier: BSD-3-Clause
 
 #include "QCommonConsoleGlobal.h"
 

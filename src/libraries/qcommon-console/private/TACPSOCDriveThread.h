@@ -1,7 +1,8 @@
-#ifndef TACPSOCDRIVETHREAD_H
-#define TACPSOCDRIVETHREAD_H
 // Copyright (c) Qualcomm Technologies, Inc. and/or its subsidiaries.
 // SPDX-License-Identifier: BSD-3-Clause
+
+#ifndef TACPSOCDRIVETHREAD_H
+#define TACPSOCDRIVETHREAD_H
 
 #include "QCommonConsoleGlobal.h"
 

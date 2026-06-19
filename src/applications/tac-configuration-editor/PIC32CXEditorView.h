@@ -1,7 +1,8 @@
-#ifndef PIC32CXEditorView_H
-#define PIC32CXEditorView_H
 // Copyright (c) Qualcomm Technologies, Inc. and/or its subsidiaries.
 // SPDX-License-Identifier: BSD-3-Clause
+
+#ifndef PIC32CXEditorView_H
+#define PIC32CXEditorView_H
 
 #include "ui_PIC32CXEditorView.h"
 #include "EditorView.h"

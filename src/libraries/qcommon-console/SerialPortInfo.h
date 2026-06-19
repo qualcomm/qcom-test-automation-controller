@@ -1,7 +1,8 @@
-#ifndef SERIALPORTINFO_H
-#define SERIALPORTINFO_H
 // Copyright (c) Qualcomm Technologies, Inc. and/or its subsidiaries.
 // SPDX-License-Identifier: BSD-3-Clause
+
+#ifndef SERIALPORTINFO_H
+#define SERIALPORTINFO_H
 
 #include "QCommonConsoleGlobal.h"
 

@@ -1,7 +1,8 @@
-#ifndef TACCONFIGWINDOW_H
-#define TACCONFIGWINDOW_H
 // Copyright (c) Qualcomm Technologies, Inc. and/or its subsidiaries.
 // SPDX-License-Identifier: BSD-3-Clause
+
+#ifndef TACCONFIGWINDOW_H
+#define TACCONFIGWINDOW_H
 
 #include "ui_ConfigWindow.h"
 #include "EditorView.h"

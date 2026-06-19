@@ -1,7 +1,8 @@
-#ifndef PLATFORMID_H
-#define PLATFORMID_H
 // Copyright (c) Qualcomm Technologies, Inc. and/or its subsidiaries.
 // SPDX-License-Identifier: BSD-3-Clause
+
+#ifndef PLATFORMID_H
+#define PLATFORMID_H
 
 #include "QCommonConsoleGlobal.h"
 
