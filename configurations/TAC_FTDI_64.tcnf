@@ -68,7 +68,6 @@
     "creation_date": "Wed Feb 8 15:39:33 2023",
     "description": "FTDI-LITE SDX95 QMP",
     "fileVersion": 8,
-    "min_firmware_version": 15,
     "modification_date": "Fri Aug 22 18:23:00 2025",
     "name": "SDX95 QMP",
     "pins": [

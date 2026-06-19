@@ -355,6 +355,9 @@
     "platform_type": "PSOC",
     "reset_enabled": true,
     "script": "def powerOffTheDevice() \n\tlogComment ====== powerOffTheDevice sequence start ======\n\n\tbattery 1\n\tpkey 0\n\t\n\tlogComment ====== powerOffTheDevice sequence finish ======\n\ndef powerOnTheDevice()\n\tlogComment ====== powerOnTheDevice sequence start ======\n\n\tdelay 500\n\tbattery 0\n\tpkey 1\n\tdelay 900\n\t\n\n\tlogComment ====== powerOnTheDevice sequence finish ======\n\n\ndef bootToEDL()\n\tlogComment ====== bootToEDL start ======\n\n\tpowerOffTheDevice\n\tpedl 1\n\tpowerOnTheDevice\n\tdelay 3000\n\tpedl 0\n\n\tlogComment ====== bootToEDL finish ======\n\ndef bootToEUD()\n\tlogComment ====== bootToEUD start ======\n\n\tpowerOffTheDevice\n\teud 1\n\tpowerOnTheDevice\n\tdelay 3000\n\teud 0\n\n\tlogComment ====== bootToEUD finish ======\n\ndef bootToUEFIMenu()\n\tlogComment ====== bootToUEFIMenu start ======\n\n\tpowerOffTheDevice\n\tpowerOnTheDevice\n\tdelay 2000\n\tpkey 0\n\n\tlogComment ====== bootToUEFIMenu finish ======\n\ndef bootToFastBoot()\n\tlogComment ====== bootToFastBoot start ======\n\n\tpowerOffTheDevice\n\n\tpkey 0\n\tvolup 0\n\tvoldn 1\n\n\tpedl 0\n\n\tpowerOnTheDevice\n\n\tpkey 1\n\tdelay 8000\n\tpkey 0\n\n\tdelay 8000\n\tvoldn 0\n\tdelay 30\n\tvoldn 1\n\n\tvoldn 0\n\n\tlogComment ====== bootToFastBoot finished ======\n",
+    "supportedFirmwareVer": [
+        15
+    ],
     "tabs": [
         {
             "configurable": true,

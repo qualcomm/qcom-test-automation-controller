@@ -68,7 +68,6 @@
     "creation_date": "Thu Sep 25 13:06:42 2025",
     "description": "ALPACA-LITE HAWI CDP",
     "fileVersion": 15,
-    "min_firmware_version": 15,
     "modification_date": "Thu Oct 23 15:21:39 2025",
     "name": "Hawi CDP",
     "pins": [

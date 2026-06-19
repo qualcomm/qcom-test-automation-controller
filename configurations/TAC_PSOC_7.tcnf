@@ -52,6 +52,7 @@
     ],
     "creation_date": "Mon Nov 28 16:43:35 2022",
     "description": "Alpaca V3.1",
+    "fileVersion": 1,
     "modification_date": "Mon Feb 13 18:45:38 2023",
     "name": "Alpaca V3.1",
     "pins": [
@@ -340,6 +341,9 @@
     "platform_type": "PSOC",
     "reset_enabled": true,
     "script": "def powerOffTheDevice() \n\tlogComment ====== powerOffTheDevice sequence start ======\n\n\tbattery 1\n\tusb0 1\n\tusb1 1\n\n\tlogComment ====== powerOffTheDevice sequence finish ======\n\ndef powerOnTheDevice()\n\tlogComment ====== powerOnTheDevice sequence start ======\n\n\tdelay 500\n\tbattery 0\n\tdelay 900\n\tusb0 0\n\tusb1 0\n\tdelay 30\n\n\tlogComment ====== powerOnTheDevice sequence finish ======\n\ndef powerOff()\n\tlogComment ====== powerOff start ======\n\n\tpowerOffTheDevice\n\n\tpkey 0\n\tvolup 0\n\tvoldn 0\n\n\tpedl 0\n\n\tlogComment ====== powerOff finish ======\n\ndef powerOn()\n\tlogComment ====== powerOn start ======\n\n\tpowerOff\n\n\tpowerOnTheDevice\n\n\tpkey 1\n\tdelay 800\n\tpkey 0\n\n\tlogComment ====== powerOn finish ======\n\ndef bootToEDL()\n\tlogComment ====== bootToEDL start ======\n\n\tpowerOffTheDevice\n\n\tpkey 0\n\tvolup 0\n\tvoldn 0\n\n\tpedl 1\n\n\tpowerOnTheDevice\n\n\tpkey 1\n\tdelay 1300\n\tpkey 0\n\n\tpedl 0\n\n\tlogComment ====== bootToEDL finish ======\n\ndef bootToSecondaryEDL()\n\tlogComment ====== bootToSecondaryEDL start ======\n\n\tpowerOffTheDevice\n\n\tpkey 0\n\tvolup 0\n\tvoldn 0\n\n\tsedl 1\n\n\tpowerOnTheDevice\n\n\tpkey 1\n\tdelay 800\n\tpkey 0\n\n\tdelay 1300\n\n\tsedl 0\n\n\tlogComment ====== bootToSecondaryEDL finish ======\n\ndef bootToUEFI()\n\tlogComment ====== bootToUEFIMenu start ======\n\n\tpowerOffTheDevice\n\n\t// Put buttons in a set state\n\tpkey 0\n\tvolup 1\n\tvoldn 0\n\n\tpedl 0\n\n\tpowerOnTheDevice\n\n\tpkey 1\n\tdelay 8000\n\tpkey 0\n\tvolup 0\n\tdelay 12\n\tpkey 1\n\tvolup 1\n\n\tpkey 0\n\tvolup 0\n\n\tlogComment ====== bootToUEFIMenu finish ======\n\ndef bootToFastBoot()\n\tlogComment ====== bootToFastBoot start ======\n\n\tpowerOffTheDevice\n\n\tpkey 0\n\tvolup 0\n\tvoldn 1\n\n\tpedl 0\n\n\tpowerOnTheDevice\n\n\tpkey 1\n\tdelay 8000\n\tpkey 0\n\n\tdelay 8000\n\tvoldn 0\n\tdelay 30\n\tvoldn 1\n\n\tvoldn 0\n\n\tlogComment ====== bootToFastBoot finished ======\n",
+    "supportedFirmwareVer": [
+        15
+    ],
     "tabs": [
         {
             "configurable": true,

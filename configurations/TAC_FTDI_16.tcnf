@@ -75,6 +75,7 @@
     "chip_count": 1,
     "creation_date": "Wed Feb 15 13:36:56 2023",
     "description": "CSM - X100",
+    "fileVersion": 1,
     "modification_date": "Wed Feb 15 16:10:27 2023",
     "name": "CSM X100",
     "pins": [

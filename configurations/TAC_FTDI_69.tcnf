@@ -52,7 +52,6 @@
     "creation_date": "Thu Sep 4 15:08:24 2025",
     "description": "FTDI-LITE SDX95 M.2",
     "fileVersion": 23,
-    "min_firmware_version": 15,
     "modification_date": "Thu Sep 4 15:08:24 2025",
     "name": "SDX95 M.2",
     "pins": [

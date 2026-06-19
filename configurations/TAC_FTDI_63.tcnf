@@ -76,7 +76,6 @@
     "creation_date": "Thu Mar 21 12:04:27 2024",
     "description": "AR TAC config for BONSAI",
     "fileVersion": 26,
-    "min_firmware_version": 15,
     "modification_date": "Fri Feb 13 16:22:59 2026",
     "name": "Bonsai XRV7205",
     "pins": [

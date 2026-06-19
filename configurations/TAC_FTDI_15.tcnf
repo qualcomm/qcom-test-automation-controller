@@ -75,6 +75,7 @@
     "chip_count": 1,
     "creation_date": "Wed Feb 15 10:59:13 2023",
     "description": "CSM - Lite",
+    "fileVersion": 1,
     "modification_date": "Wed Feb 15 17:10:24 2023",
     "name": "CSM Lite",
     "pins": [

@@ -93,7 +93,7 @@
     "description": "MTP8975 (Hawi) FTDI IO",
     "fileVersion": 26,
     "form_dimension": "561,866",
-    "min_firmware_version": 16,
+    "supportedFirmwareVer": [16],
     "modification_date": "Tue Aug 19 14:22:49 2025",
     "name": "Hawi MTP8975",
     "pins": [

@@ -68,7 +68,6 @@
     "creation_date": "Mon Jan 06 12:32:11 2025",
     "description": "ALPACA-LITE KARNALI QCB DT",
     "fileVersion": 84,
-    "min_firmware_version": 15,
     "modification_date": "Mon Jan 06 12:32:11 2025",
     "name": "KARNALI QCB DT",
     "pins": [

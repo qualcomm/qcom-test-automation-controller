@@ -75,6 +75,7 @@
     "chip_count": 1,
     "creation_date": "Wed Feb 8 15:39:33 2023",
     "description": "FTDI-LITE SDX75 QMP",
+    "fileVersion": 1,
     "modification_date": "Thu Mar 16 14:06:26 2023",
     "name": "SDX75 QMP",
     "pins": [

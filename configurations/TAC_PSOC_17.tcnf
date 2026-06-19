@@ -341,6 +341,9 @@
     "platform_type": "PSOC",
     "reset_enabled": false,
     "script": "def powerOff() \n\tlogComment ====== powerOffTheDevice sequence start ======\n\n\tbattery 1\n\n\tlogComment ====== powerOffTheDevice sequence finish ======\n\n\ndef powerOn()\n\tlogComment ====== powerOnTheDevice sequence start ======\n\n\tbattery 0\n\n\tlogComment ====== powerOnTheDevice sequence finish ======\n\n\ndef reset()\n\tlogComment ====== reset start ======\n\n\tpowerOff\n\tdelay 1500\n\tpowerOn\n\n\tlogComment ====== reset finish ======\n\n\ndef bootToEDL()\n\tlogComment ====== s1_md_sail_edl start ======\n\n\tpowerOff\n\tpedl 1\n\tsdcard 1\n\tdelay 1500\n\tpowerOn\n\tdelay 5000\n\tdelay $Optional_GPIO_Hold_Time\n\tpedl 0\n\tsdcard 0\n\n\tlogComment ======  s1_md_sail_edl finish ======\n\n\ndef bootToUEFI()\n\tlogComment ====== s1_uefi start ======\n\n\treset\n\tvolup 1\n\tdelay 1000\n\tpkey 1\n\tvoldn 0\n\tpedl 0\n\tdelay 8000\n\tdelay $Optional_GPIO_Hold_Time\n\tpkey 0\n\tvolup 0\n\tdelay 12\n\tpkey 1\n\tvolup 1\n\tpkey 0\n\tvolup 0 \n\n\tlogComment ======s1_uefi finish ======\n\n\ndef bootToFastboot()\n\tlogComment ====== s1_fastboot start ======\n\n\tpowerOff\n\tvoldn 1\n\tdelay 1500\n\tpowerOn\n\tdelay 8000\n\tdelay $Optional_GPIO_Hold_Time\n\tvoldn 0\n\n\tlogComment ====== s1_fastboot finish ======\n",
+    "supportedFirmwareVer": [
+        15
+    ],
     "tabs": [
         {
             "configurable": true,

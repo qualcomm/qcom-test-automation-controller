@@ -113,11 +113,10 @@
         }
     ],
     "chip_count": 1,
-    "creation_date": "",
+    "creation_date": "Mon Sep 8 15:40:22 2025",
     "description": "TDP535 Platform Config",
     "fileVersion": 120,
     "form_dimension": "923,725",
-    "min_firmware_version": 15,
     "modification_date": "Mon Sep 8 15:40:22 2025",
     "name": "AmboseliAQ Lite",
     "pins": [
