@@ -271,7 +271,7 @@
             "command": "pkey",
             "command_group": 2,
             "enabled": true,
-            "help_hint": "Starts PON; Power on signal to Lassen\u2019s PMIC (Wailua)",
+            "help_hint": "Starts PON; Power on signal to Lassen's PMIC (Wailua)",
             "initial_value": false,
             "initialization_priority": 99,
             "inverted": false,
