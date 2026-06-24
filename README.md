@@ -63,7 +63,14 @@ QTAC is a software suite that enables users to control Qualcomm devices remotely
 - **[Qualcomm USB Drivers](https://softwarecenter.qualcomm.com/catalog/item/Qualcomm_Userspace_Driver)**: To view device status.
 
 > [!NOTE]
-> FTDI libraries are installed _automatically_ during the cmake configuration step when building from source.
+> FTDI libraries are downloaded _automatically_ during the cmake configuration step when building from source.
+> If the automatic download fails (e.g. due to network restrictions), download the archive manually and place it in the `third-party/` directory before re-running cmake:
+>
+> | Platform | Archive | URL |
+> | :-- | :-- | :-- |
+> | **Windows x64** | `CDM-v2.12.36.4-WHQL-Certified.zip` | https://web.archive.org/web/20250820134143/https://ftdichip.com/wp-content/uploads/2023/09/CDM-v2.12.36.4-WHQL-Certified.zip |
+> | **Windows ARM64** | `CDM-v2.12.36.20-for-ARM64-WHQL-Certified.zip` | https://web.archive.org/web/20250821211500/https://ftdichip.com/wp-content/uploads/2025/03/CDM-v2.12.36.20-for-ARM64-WHQL-Certified.zip |
+> | **Linux x86_64** | `libftd2xx-linux-x86_64-1.4.33.tgz` | https://web.archive.org/web/20250822044524/https://ftdichip.com/wp-content/uploads/2025/03/libftd2xx-linux-x86_64-1.4.33.tgz |
 
 ### Optional Software
 
@@ -84,12 +91,19 @@ git clone https://github.com/qualcomm/qcom-test-automation-controller.git
 1. **Visual Studio**: Install **Desktop development with C++** and **.NET desktop development**.
    ![Desktop development with C++](./docs/resources/qtac-msvc-2022-requirements.png)
 2. **Qt**: Install Qt 6.9+ for **MSVC 2022 64-bit**, **Qt Serial Port** and **Qt Multimedia** components.
+   For ARM64, also install the **MSVC 2022 ARM64** Qt component.
    
 > [!NOTE]
 > Installation using Qt Online Installer will require users to create a Qt account.
 3. **Environment Variable**:
+
+   **x64**:
    ```cmd
    setx QTBIN C:\Qt\<version>\msvc2022_64\bin
+   ```
+   **ARM64**:
+   ```cmd
+   setx QTBIN C:\Qt\<version>\msvc2022_arm64\bin
    ```
 
 ### Build & Usage
@@ -97,12 +111,15 @@ git clone https://github.com/qualcomm/qcom-test-automation-controller.git
 Execute `build.bat` to generate executables:
 
 ```cmd
-build.bat
+build.bat        (x64, default)
+build.bat ARM64  (ARM64)
 ```
 
 **Build output**:
-- Debug: `__Builds\x64\Debug`
-- Release: `__Builds\x64\Release`
+- x64 Debug: `__Builds\x64\Debug`
+- x64 Release: `__Builds\x64\Release`
+- ARM64 Debug: `__Builds\ARM64\Debug`
+- ARM64 Release: `__Builds\ARM64\Release`
 
 **Usage**:
 ```cmd

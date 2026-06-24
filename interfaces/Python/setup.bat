@@ -1,3 +1,6 @@
+@REM  Copyright (c) Qualcomm Technologies, Inc. and/or its subsidiaries.
+@REM  SPDX-License-Identifier: BSD-3-Clause
+
 DEL /F /Q /S TACDev.egg-info > NUL
 RMDIR /Q /S TACDev.egg-info
 

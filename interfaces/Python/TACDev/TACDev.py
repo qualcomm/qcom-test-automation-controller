@@ -1,117 +1,61 @@
-# Copyright (c) Qualcomm Technologies, Inc. and/or its subsidiaries. 
-#  
-# Redistribution and use in source and binary forms, with or without
-# modification, are permitted (subject to the limitations in the
-# disclaimer below) provided that the following conditions are met:
-#  
-# 	* Redistributions of source code must retain the above copyright
-# 	  notice, this list of conditions and the following disclaimer.
-#  
-# 	* Redistributions in binary form must reproduce the above
-# 	  copyright notice, this list of conditions and the following
-# 	  disclaimer in the documentation and/or other materials provided
-# 	  with the distribution.
-#  
-# 	* Neither the name of Qualcomm Technologies, Inc. nor the names of its
-# 	  contributors may be used to endorse or promote products derived
-# 	  from this software without specific prior written permission.
-#  
-# NO EXPRESS OR IMPLIED LICENSES TO ANY PARTY'S PATENT RIGHTS ARE
-# GRANTED BY THIS LICENSE. THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT
-# HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED
-# WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
-# MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED.
-# IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR
-# ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
-# DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE
-# GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
-# INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER
-# IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-# OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN
-# IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+# Copyright (c) Qualcomm Technologies, Inc. and/or its subsidiaries.
+# SPDX-License-Identifier: BSD-3-Clause
 
 # TACDev Python Library
 # 	Written by Michael Simpson (msimpson@qti.qualcomm.com) and edited by Biswajit Roy (biswroy@qti.qualcomm.com)
 # 	Don't modify this file.  If you do, you run the risk of missing out on bug fixes and product updates
 
 import logging
-import os
+import platform
+import struct
 import time
 from ctypes import *
 from pathlib import Path
-from sys import exit, platform
+from sys import exit
 
 # Configure logging
 logger = logging.getLogger(__name__)
-log_fmt: str = logging.BASIC_FORMAT
-logging.basicConfig(format=log_fmt, level=logging.INFO)
+logging.basicConfig(format=logging.BASIC_FORMAT, level=logging.INFO)
+
+_LIBS = {
+    ("win32",  "AMD64"): Path("__Builds/x64/Release/bin/TACDev.dll"),
+    ("win32",  "ARM64"): Path("__Builds/ARM64/Release/bin/TACDev.dll"),
+    ("linux",  "x86_64"): Path("__Builds/Linux/Release/lib/libTACDev.so"),
+}
 
 
-class _SetupTAC:
-    """
-    Internal class containing methods to configure shared library paths to TAC.
-    """
+def _find_lib() -> Path:
+    os_key  = "win32" if platform.system() == "Windows" else "linux"
+    machine = platform.machine()
 
-    # The path to the TAC shared library
-    __tacLibraryPath: Path = None
-    # The path to the debug python dll
-    __debugPythonPath: Path = Path("C:/github/AlpacaRepos/__Builds/x64/Debug/bin/PythonDebug.dll")
-    # Whether the current execution for debugging
-    __isDebugExecution: bool = False
+    rel = _LIBS.get((os_key, machine))
+    if rel is None:
+        logger.error(
+            f"Unsupported platform: {platform.system()} {machine}.\n"
+            "  QTAC supports Windows x64, Windows ARM64, and Linux x86_64."
+        )
+        exit(1)
 
-    def __init__(self) -> None:
-        self.setupSharedLibraryPath()
-        logger.debug(f"Configured the TAC library path to be: {self.__tacLibraryPath.as_posix()}")
+    if struct.calcsize("P") != 8:
+        logger.error(
+            f"Architecture mismatch: Python must be 64-bit on {platform.system()} {machine}.\n"
+            "  Install the 64-bit Python build from https://www.python.org/downloads/"
+        )
+        exit(1)
 
-        if self.__isDebugExecution:
-            logger.info(f"Process ID: {os.getpid()}")
+    candidate = Path.cwd()
+    for _ in range(8):
+        lib = candidate / rel
+        if lib.exists():
+            return lib.resolve()
+        candidate = candidate.parent
 
-    def PythonIsDebugging(self) -> bool:
-        """
-        Debug function to update the dll path to a debug dll.
-        """
-        if self.__debugPythonPath.exists():
-            try:
-                __pythonDebugLib = CDLL(self.__debugPythonPath.as_posix())
-                __isPythonDebuggingFunc = __pythonDebugLib.IsPythonDebugging
-                self.__isDebugExecution = __isPythonDebuggingFunc()
-                return self.__isDebugExecution
-
-            except Exception as error:
-                logger.error(f"Could not load the 'IsPythonDebugging()' from PythonDebug shared library. {error}")
-                exit(1)
-        return False
-
-    def setupSharedLibraryPath(self):
-        """
-        Configures the shared library path for TAC based on OS and QTAC installation
-        """
-        debugLinuxLibraryPath: Path = Path("/local/mnt/workspace/github/AlpacaRepos/__Builds/Linux/Debug/lib/libTACDev.so")
-        debugWindowsLibraryPath: Path = Path("C:/github/AlpacaRepos/__Builds/x64/Debug/bin/TACDevd.dll")
-        linuxLibraryPath: Path = Path("/opt/qcom/QTAC/lib/libTACDev.so")
-        windowsLibraryPath: Path = Path("C:/Program Files (x86)/Qualcomm/QTAC/TACDev.dll")
-
-        pythonIsDebugging = self.PythonIsDebugging()
-        currentPlatform = platform
-
-        if currentPlatform.startswith("linux") and pythonIsDebugging:
-            self.__tacLibraryPath = debugLinuxLibraryPath
-
-        elif platform.startswith("win32") and pythonIsDebugging:
-            self.__tacLibraryPath = debugWindowsLibraryPath
-
-        elif currentPlatform.startswith("linux") and not pythonIsDebugging:
-            self.__tacLibraryPath = linuxLibraryPath
-
-        elif currentPlatform.startswith("win32") and not pythonIsDebugging:
-            self.__tacLibraryPath = windowsLibraryPath
-
-
-    def getTACLibraryPath(self) -> str:
-        """
-        Returns the appropriate TAC library path as string.
-        """
-        return self.__tacLibraryPath.as_posix()
+    logger.error(
+        f"TACDev library not found.\n"
+        f"  Expected: {Path.cwd().resolve() / rel}\n"
+        "  Build the project first using build.bat / build.sh."
+    )
+    exit(1)
 
 
 # TAC HANDLE
@@ -147,32 +91,24 @@ global __getDeviceFunc
 global __getLoggingFunc
 global __setLoggingFunc
 
-# the path to the EPMDev shared library
-tacLibraryPath = _SetupTAC().getTACLibraryPath()
+try:
+    tacLibrary = CDLL(_find_lib().as_posix())
 
-if tacLibraryPath is not None:
-    try:
-        tacLibrary = CDLL(tacLibraryPath)
-
-        if not tacLibrary:
-            raise RuntimeError("TACDev not found")
-
-        initializeFunc = tacLibrary.InitializeTACDev
-        initResult = initializeFunc()
-        if initResult == TACDEV_INIT_FAILED:
-            logger.error("TACDev failed to initialize. Please report this issue to support.")
-            exit(1)
-
-        __alpacaVersionFunc = tacLibrary.GetAlpacaVersion
-        __tacVersionFunc = tacLibrary.GetTACVersion
-        __getDeviceCountFunc = tacLibrary.GetDeviceCount
-        __getDeviceFunc = tacLibrary.GetPortData
-        __getLoggingFunc = tacLibrary.GetLoggingState
-        __setLoggingFunc = tacLibrary.SetLoggingState
-
-    except Exception as error:
-        logger.error(f"Error with TACDev shared Object. {error}")
+    initResult = tacLibrary.InitializeTACDev()
+    if initResult == TACDEV_INIT_FAILED:
+        logger.error("TACDev failed to initialize. Please report this issue to support.")
         exit(1)
+
+    __alpacaVersionFunc = tacLibrary.GetAlpacaVersion
+    __tacVersionFunc = tacLibrary.GetTACVersion
+    __getDeviceCountFunc = tacLibrary.GetDeviceCount
+    __getDeviceFunc = tacLibrary.GetPortData
+    __getLoggingFunc = tacLibrary.GetLoggingState
+    __setLoggingFunc = tacLibrary.SetLoggingState
+
+except Exception as error:
+    logger.error(f"Error loading TACDev library. {error}")
+    exit(1)
 
 
 class TACDevice:

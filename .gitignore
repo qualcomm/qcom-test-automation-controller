@@ -23,6 +23,10 @@ ui_*
 **/*/dist
 __pycache__/
 .pytest_cache/
+*.egg-info/
+*.pyc
+*.pyo
+*.pyd
 
 # Qt build directory
 __Builds/
