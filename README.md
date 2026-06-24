@@ -52,10 +52,11 @@ QTAC is a software suite that enables users to control Qualcomm devices remotely
 | **OS** | Windows / Debian | Windows 10+ / Ubuntu 22.04+ |
 | **Compiler** | [MSVC 2022](https://aka.ms/vs/17/release/vs_community.exe) / GCC | MSVC 2022 / GCC-11, G++-11, GLIBC-2.35 |
 | **Build System** | [CMake](https://cmake.org/download/) | 3.22+ |
+| **Build Tool** | [Ninja](https://ninja-build.org/) (via Qt installer, system package manager, or direct download) | 1.10+ |
 | **UI Framework** | [Qt Open-source](https://www.qt.io/download-qt-installer-oss) | 6.9.0+ |
 
 > [!NOTE]
-> Review license terms for [Visual Studio](https://visualstudio.microsoft.com/license-terms/) and [Qt](https://www.qt.io/development/download-open-source). MSVC 2022 is linked as Qt doesn't support MSVC 2026 yet.
+> Review license terms for [Visual Studio](https://visualstudio.microsoft.com/license-terms/) and [Qt](https://www.qt.io/development/download-open-source). MSVC 2022 is linked as Qt does not yet support later MSVC versions.
 
 ### Drivers
 
@@ -124,6 +125,7 @@ build.bat ARM64  (ARM64)
 **Usage**:
 ```cmd
 __Builds\x64\Release\QTAC.exe
+__Builds\ARM64\Release\QTAC.exe
 ```
 
 ## Linux Guide
@@ -149,7 +151,7 @@ __Builds\x64\Release\QTAC.exe
    sudo cp udev-rules/99-QTAC-USB.rules /etc/udev/rules.d/
    sudo udevadm control --reload
    ```
-4. **Environment Variable**:
+3. **Environment Variable**:
    ```bash
    export QTBIN=/path/to/Qt/directory/<version>/gcc_64/bin
    ```
@@ -165,9 +167,6 @@ Execute `build.sh` to generate executables:
 **Build output**:
 - Debug: `__Builds/Linux/Debug`
 - Release: `__Builds/Linux/Release`
-
-> [!NOTE]
-> Ensure that [make](https://www.gnu.org/software/make/) is available in your environment before building.
 
 **Usage**:
 ```bash

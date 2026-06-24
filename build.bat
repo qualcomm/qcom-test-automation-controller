@@ -16,22 +16,12 @@ if "%ARCH%"=="" (
 )
 
 if /i "%ARCH%"=="x64" (
-    set CMAKE_SYSTEM_PROCESSOR=AMD64
     set EXPECTED_QT_PATH=msvc2022_64
     set VCVARS_SCRIPT=vcvars64.bat
     set VS_COMPONENT=Desktop development with C++
 ) else if /i "%ARCH%"=="ARM64" (
-    set CMAKE_SYSTEM_PROCESSOR=ARM64
     set EXPECTED_QT_PATH=msvc2022_arm64
-    if "%PROCESSOR_ARCHITECTURE%"=="ARM64" (
-        set VCVARS_SCRIPT=vcvarsarm64.bat
-    ) else if "%PROCESSOR_ARCHITECTURE%"=="AMD64" (
-        set VCVARS_SCRIPT=vcvarsamd64_arm64.bat
-    ) else (
-        echo ERROR: Cannot build for ARM64 - unrecognised host architecture '%PROCESSOR_ARCHITECTURE%'.
-        echo        ARM64 builds require an x64 host ^(cross-compile^) or an ARM64 host ^(native compile^).
-        exit /b 1
-    )
+    set VCVARS_SCRIPT=vcvarsarm64.bat
     set VS_COMPONENT=MSVC v143 - VS 2022 C++ ARM64 build tools
 ) else (
     echo ERROR: Unsupported architecture '%ARCH%'.
@@ -42,8 +32,7 @@ if /i "%ARCH%"=="x64" (
     exit /b 1
 )
 
-echo Target architecture : %ARCH%
-echo Host architecture   : %PROCESSOR_ARCHITECTURE%
+echo Architecture        : %ARCH%
 
 @REM ---------------------------------------------------------------------------
 @REM  Validate QTBIN
@@ -139,7 +128,6 @@ cmake -S . -B build\Debug -DCMAKE_PREFIX_PATH="%QTBIN%\.." ^
     -DCMAKE_COLOR_DIAGNOSTICS=ON ^
     -DCMAKE_GENERATOR=Ninja ^
     -DCMAKE_BUILD_TYPE=Debug ^
-    -DCMAKE_SYSTEM_PROCESSOR=%CMAKE_SYSTEM_PROCESSOR% ^
     -DCMAKE_CXX_FLAGS_INIT=-DQT_QML_DEBUG
 
 cmake --build build\Debug
@@ -147,8 +135,7 @@ cmake --build build\Debug
 cmake -S . -B build\Release -DCMAKE_PREFIX_PATH="%QTBIN%\.." ^
     -DCMAKE_COLOR_DIAGNOSTICS=ON ^
     -DCMAKE_GENERATOR=Ninja ^
-    -DCMAKE_BUILD_TYPE=Release ^
-    -DCMAKE_SYSTEM_PROCESSOR=%CMAKE_SYSTEM_PROCESSOR%
+    -DCMAKE_BUILD_TYPE=Release
 
 cmake --build build\Release
 

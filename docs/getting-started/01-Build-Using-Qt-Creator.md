@@ -2,7 +2,7 @@
 
 The [README](../../README.md) outlines the steps required to build QTAC using command line interface.
 To understand and modify the Qt UI components, you will need to get Qt Creator. If you've already
-installed Qt, you may execute the **Qt Maintainence Tool** to download the additional software Qt
+installed Qt, you may execute the **Qt Maintenance Tool** to download the additional software Qt
 Creator. If you're performing a fresh install, use the [Qt Online Installer](https://www.qt.io/download-open-source).
 
 ## Configure Qt installation
@@ -26,8 +26,8 @@ Required additional libraries:
 
 ![Qt additional dependencies](../resources/qtac-additional-dependencies.png)
 
-### Setup CMake
-QTAC requires CMake for building from source. You can either install CMake separately or use the Qt installer to setup CMake.
+### Setup CMake and Ninja
+QTAC requires CMake and Ninja for building from source. Both can be installed via the Qt installer, separately, or via your system package manager (`sudo apt install ninja-build cmake` on Linux).
 Review the following screenshot to setup CMake on your system.
 
 ![Qt CMake dependencies](../resources/qtac-cmake-install.png)
@@ -44,6 +44,10 @@ Open the session. The **Project** tab on the left pane will be inactive. Create 
 
 The **Project** tab now becomes active. Review the Qt kit configuration. Make sure no stray paths or kits are present
 as they can lead to erroneous libraries and applications.
+
+For Windows x64, ensure a kit is configured with:
+- **Compiler**: MSVC 2022 x64 (`cl.exe` from the x64 toolchain)
+- **Qt version**: the `msvc2022_64` Qt installation
 
 For ARM64 (Windows), ensure a kit is configured with:
 - **Compiler**: MSVC 2022 ARM64 (`cl.exe` from the ARM64 toolchain)

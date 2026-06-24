@@ -70,7 +70,7 @@ jobs:
     - name: Install dependencies
       run: |
         sudo apt-get update
-        sudo apt-get install -y python3-pip wget libxkbcommon-x11-0 x11-common libxcb-xinerama0-dev build-essential libgl1-mesa-dev mesa-common-dev uuid-dev libpulse-dev
+        sudo apt-get install -y python3-pip wget libxkbcommon-x11-0 x11-common libxcb-xinerama0-dev build-essential libgl1-mesa-dev mesa-common-dev uuid-dev libpulse-dev ninja-build
 
     - name: Cache Qt installation on Linux
       uses: actions/cache@v5
@@ -83,7 +83,6 @@ jobs:
 
     - name: Install Qt ${{ matrix.qt_version }} on ${{ matrix.os }}
       run: |
-        aqt install-qt linux desktop ${{ matrix.qt_version }} linux_gcc_64
         aqt install-qt linux desktop ${{ matrix.qt_version }} linux_gcc_64 -m qtmultimedia qtserialport
         echo "QT_ROOT_DIR=$HOME/work/qcom-test-automation-controller/qcom-test-automation-controller/${{ matrix.qt_version }}/gcc_64" >> $GITHUB_ENV
         echo "$HOME/work/qcom-test-automation-controller/qcom-test-automation-controller/${{ matrix.qt_version }}/gcc_64/bin" >> $GITHUB_PATH
@@ -102,7 +101,7 @@ jobs:
         cp __Builds/Linux/Debug/lib/libftd2xx.a __Builds/Linux/Release/lib/libftd2xx.a
 
     - name: Configure CMake for ${{ matrix.build_type }}
-      run: cmake -B build -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} -DCMAKE_PREFIX_PATH="$QT_ROOT_DIR/lib/cmake"
+      run: cmake -B build -DCMAKE_GENERATOR=Ninja -DCMAKE_COLOR_DIAGNOSTICS=ON -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} ${{ matrix.build_type == 'Debug' && '-DCMAKE_CXX_FLAGS_INIT=-DQT_QML_DEBUG' || '' }} -DCMAKE_PREFIX_PATH="$QT_ROOT_DIR/lib/cmake"
 
     - name: Build with ${{ matrix.build_type }}
       run: cmake --build build --config ${{ matrix.build_type }}
@@ -170,7 +169,7 @@ jobs:
 
     - name: Configure CMake for ${{ matrix.build_type }}
       shell: pwsh
-      run: cmake -B build -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} -DCMAKE_PREFIX_PATH="$env:QT_ROOT_DIR\lib\cmake"
+      run: cmake -B build -DCMAKE_GENERATOR=Ninja -DCMAKE_COLOR_DIAGNOSTICS=ON -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} ${{ matrix.build_type == 'Debug' && '-DCMAKE_CXX_FLAGS_INIT=-DQT_QML_DEBUG' || '' }} -DCMAKE_PREFIX_PATH="$env:QT_ROOT_DIR\lib\cmake"
 
     - name: Build with ${{ matrix.build_type }}
       shell: pwsh
@@ -239,7 +238,7 @@ jobs:
 
     - name: Configure CMake for ${{ matrix.build_type }}
       shell: pwsh
-      run: cmake -B build -A ARM64 -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} -DCMAKE_PREFIX_PATH="$env:QT_ROOT_DIR\lib\cmake"
+      run: cmake -B build -DCMAKE_GENERATOR=Ninja -DCMAKE_COLOR_DIAGNOSTICS=ON -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} ${{ matrix.build_type == 'Debug' && '-DCMAKE_CXX_FLAGS_INIT=-DQT_QML_DEBUG' || '' }} -DCMAKE_PREFIX_PATH="$env:QT_ROOT_DIR\lib\cmake"
 
     - name: Build with ${{ matrix.build_type }}
       shell: pwsh
