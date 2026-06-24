@@ -1,3 +1,6 @@
+# Copyright (c) Qualcomm Technologies, Inc. and/or its subsidiaries.
+# SPDX-License-Identifier: BSD-3-Clause
+
 name: CMake Build
 
 on: [push, pull_request]
@@ -62,7 +65,6 @@ jobs:
       matrix:
         os: [ubuntu-22.04, ubuntu-latest]
         qt_version: ['6.9.2', '6.10.0']
-        build_type: [Debug, Release]
 
     steps:
     - uses: actions/checkout@v6
@@ -84,8 +86,7 @@ jobs:
     - name: Install Qt ${{ matrix.qt_version }} on ${{ matrix.os }}
       run: |
         aqt install-qt linux desktop ${{ matrix.qt_version }} linux_gcc_64 -m qtmultimedia qtserialport
-        echo "QT_ROOT_DIR=$HOME/work/qcom-test-automation-controller/qcom-test-automation-controller/${{ matrix.qt_version }}/gcc_64" >> $GITHUB_ENV
-        echo "$HOME/work/qcom-test-automation-controller/qcom-test-automation-controller/${{ matrix.qt_version }}/gcc_64/bin" >> $GITHUB_PATH
+        echo "QTBIN=$HOME/work/qcom-test-automation-controller/qcom-test-automation-controller/${{ matrix.qt_version }}/gcc_64/bin" >> $GITHUB_ENV
 
     - name: Restore FTDI archive on Linux
       uses: actions/cache/restore@v5
@@ -93,18 +94,8 @@ jobs:
         path: third-party/libftd2xx-linux-x86_64-1.4.33.tgz
         key: ftdi-linux-1.4.33
 
-    - name: Extract FTDI library on Linux
-      run: |
-        mkdir -p __Builds/Linux/Debug/lib __Builds/Linux/Release/lib
-        tar -xvf third-party/libftd2xx-linux-x86_64-1.4.33.tgz -C third-party/
-        find third-party/ -name "libftd2xx-static.a" -exec cp {} __Builds/Linux/Debug/lib/libftd2xx.a \;
-        cp __Builds/Linux/Debug/lib/libftd2xx.a __Builds/Linux/Release/lib/libftd2xx.a
-
-    - name: Configure CMake for ${{ matrix.build_type }}
-      run: cmake -B build -DCMAKE_GENERATOR=Ninja -DCMAKE_COLOR_DIAGNOSTICS=ON -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} ${{ matrix.build_type == 'Debug' && '-DCMAKE_CXX_FLAGS_INIT=-DQT_QML_DEBUG' || '' }} -DCMAKE_PREFIX_PATH="$QT_ROOT_DIR/lib/cmake"
-
-    - name: Build with ${{ matrix.build_type }}
-      run: cmake --build build --config ${{ matrix.build_type }}
+    - name: Build
+      run: ./build.sh
 
   build-windows:
     needs: fetch-ftdi-windows
@@ -113,7 +104,6 @@ jobs:
       fail-fast: false
       matrix:
         qt_version: ['6.9.2', '6.10.0']
-        build_type: [Debug, Release]
 
     steps:
     - uses: actions/checkout@v6
@@ -132,10 +122,7 @@ jobs:
       shell: pwsh
       run: |
         aqt install-qt windows desktop ${{ matrix.qt_version }} win64_msvc2022_64 --outputdir "C:\Qt" -m qtserialport qtmultimedia
-
-        $qtRoot = "C:\Qt\${{ matrix.qt_version }}\msvc2022_64"
-        echo "QT_ROOT_DIR=$qtRoot" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
-        echo "$qtRoot\bin" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
+        echo "QTBIN=C:\Qt\${{ matrix.qt_version }}\msvc2022_64\bin" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
 
     - name: Restore FTDI archive on Windows
       uses: actions/cache/restore@v5
@@ -143,37 +130,9 @@ jobs:
         path: third-party\CDM-v2.12.36.4-WHQL-Certified.zip
         key: ftdi-windows-2.12.36.4
 
-    - name: Extract FTDI library on Windows
-      shell: pwsh
-      run: |
-        $debugLib  = "__Builds\x64\Debug\lib"
-        $releaseLib = "__Builds\x64\Release\lib"
-        $debugBin  = "__Builds\x64\Debug\bin"
-        $releaseBin = "__Builds\x64\Release\bin"
-        New-Item -ItemType Directory -Force -Path $debugLib, $releaseLib, $debugBin, $releaseBin | Out-Null
-
-        $tmp = "third-party\ftdi_extract"
-        Expand-Archive -Path "third-party\CDM-v2.12.36.4-WHQL-Certified.zip" -DestinationPath $tmp -Force
-
-        $lib = Get-ChildItem -Path $tmp -Filter "ftd2xx.lib" -Recurse | Where-Object { $_.FullName -match "amd64" } | Select-Object -First 1
-        if (-not $lib) { $lib = Get-ChildItem -Path $tmp -Filter "ftd2xx.lib" -Recurse | Select-Object -First 1 }
-        Copy-Item $lib.FullName -Destination $debugLib
-        Copy-Item $lib.FullName -Destination $releaseLib
-
-        $dll = Get-ChildItem -Path $tmp -Filter "FTD2XX64.dll" -Recurse | Select-Object -First 1
-        if ($dll) {
-            Copy-Item $dll.FullName -Destination "$debugBin\ftd2xx.dll"
-            Copy-Item $dll.FullName -Destination "$releaseBin\ftd2xx.dll"
-        }
-        Remove-Item -Recurse -Force $tmp
-
-    - name: Configure CMake for ${{ matrix.build_type }}
-      shell: pwsh
-      run: cmake -B build -DCMAKE_GENERATOR=Ninja -DCMAKE_COLOR_DIAGNOSTICS=ON -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} ${{ matrix.build_type == 'Debug' && '-DCMAKE_CXX_FLAGS_INIT=-DQT_QML_DEBUG' || '' }} -DCMAKE_PREFIX_PATH="$env:QT_ROOT_DIR\lib\cmake"
-
-    - name: Build with ${{ matrix.build_type }}
-      shell: pwsh
-      run: cmake --build build --config ${{ matrix.build_type }}
+    - name: Build
+      shell: cmd
+      run: build.bat x64
 
   build-windows-arm64:
     needs: fetch-ftdi-windows-arm64
@@ -182,7 +141,6 @@ jobs:
       fail-fast: false
       matrix:
         qt_version: ['6.9.2', '6.10.0']
-        build_type: [Debug, Release]
 
     steps:
     - uses: actions/checkout@v6
@@ -201,10 +159,7 @@ jobs:
       shell: pwsh
       run: |
         aqt install-qt windows_arm64 desktop ${{ matrix.qt_version }} win64_msvc2022_arm64 --outputdir "C:\Qt" --autodesktop -m qtserialport qtmultimedia
-
-        $qtRoot = "C:\Qt\${{ matrix.qt_version }}\msvc2022_arm64"
-        echo "QT_ROOT_DIR=$qtRoot" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
-        echo "$qtRoot\bin" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
+        echo "QTBIN=C:\Qt\${{ matrix.qt_version }}\msvc2022_arm64\bin" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
 
     - name: Restore FTDI archive for ARM64
       uses: actions/cache/restore@v5
@@ -212,34 +167,6 @@ jobs:
         path: third-party\CDM-v2.12.36.20-for-ARM64-WHQL-Certified.zip
         key: ftdi-windows-arm64-2.12.36.20
 
-    - name: Extract FTDI library for ARM64
-      shell: pwsh
-      run: |
-        $debugLib  = "__Builds\ARM64\Debug\lib"
-        $releaseLib = "__Builds\ARM64\Release\lib"
-        $debugBin  = "__Builds\ARM64\Debug\bin"
-        $releaseBin = "__Builds\ARM64\Release\bin"
-        New-Item -ItemType Directory -Force -Path $debugLib, $releaseLib, $debugBin, $releaseBin | Out-Null
-
-        $tmp = "third-party\ftdi_extract"
-        Expand-Archive -Path "third-party\CDM-v2.12.36.20-for-ARM64-WHQL-Certified.zip" -DestinationPath $tmp -Force
-
-        $lib = Get-ChildItem -Path $tmp -Filter "FTD2XXstatic.lib" -Recurse | Select-Object -First 1
-        if (-not $lib) { $lib = Get-ChildItem -Path $tmp -Filter "*.lib" -Recurse | Select-Object -First 1 }
-        Copy-Item $lib.FullName -Destination "$debugLib\ftd2xx.lib"
-        Copy-Item $lib.FullName -Destination "$releaseLib\ftd2xx.lib"
-
-        $dll = Get-ChildItem -Path $tmp -Filter "FTD2XX.dll" -Recurse | Select-Object -First 1
-        if ($dll) {
-            Copy-Item $dll.FullName -Destination "$debugBin\ftd2xx.dll"
-            Copy-Item $dll.FullName -Destination "$releaseBin\ftd2xx.dll"
-        }
-        Remove-Item -Recurse -Force $tmp
-
-    - name: Configure CMake for ${{ matrix.build_type }}
-      shell: pwsh
-      run: cmake -B build -DCMAKE_GENERATOR=Ninja -DCMAKE_COLOR_DIAGNOSTICS=ON -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} ${{ matrix.build_type == 'Debug' && '-DCMAKE_CXX_FLAGS_INIT=-DQT_QML_DEBUG' || '' }} -DCMAKE_PREFIX_PATH="$env:QT_ROOT_DIR\lib\cmake"
-
-    - name: Build with ${{ matrix.build_type }}
-      shell: pwsh
-      run: cmake --build build --config ${{ matrix.build_type }}
+    - name: Build
+      shell: cmd
+      run: build.bat ARM64

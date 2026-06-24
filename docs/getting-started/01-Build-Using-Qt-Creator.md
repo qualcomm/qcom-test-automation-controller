@@ -74,11 +74,11 @@ QTAC uses FTDI libraries to control FT4232H chip on the debug board. You can fin
 
 If the automatic download fails (e.g. due to network restrictions), download the archive manually and place it in the `third-party/` directory before opening the project in Qt Creator:
 
-| Platform | Archive | URL |
-| :-- | :-- | :-- |
-| **Windows x64** | `CDM-v2.12.36.4-WHQL-Certified.zip` | https://web.archive.org/web/20250820134143/https://ftdichip.com/wp-content/uploads/2023/09/CDM-v2.12.36.4-WHQL-Certified.zip |
-| **Windows ARM64** | `CDM-v2.12.36.20-for-ARM64-WHQL-Certified.zip` | https://web.archive.org/web/20250821211500/https://ftdichip.com/wp-content/uploads/2025/03/CDM-v2.12.36.20-for-ARM64-WHQL-Certified.zip |
-| **Linux x86_64** | `libftd2xx-linux-x86_64-1.4.33.tgz` | https://web.archive.org/web/20250822044524/https://ftdichip.com/wp-content/uploads/2025/03/libftd2xx-linux-x86_64-1.4.33.tgz |
+| Platform | Archive |
+| :-- | :-- |
+| **Windows x64** | [`CDM-v2.12.36.4-WHQL-Certified.zip`](https://web.archive.org/web/20250820134143/https://ftdichip.com/wp-content/uploads/2023/09/CDM-v2.12.36.4-WHQL-Certified.zip) |
+| **Windows ARM64** | [`CDM-v2.12.36.20-for-ARM64-WHQL-Certified.zip`](https://web.archive.org/web/20250821211500/https://ftdichip.com/wp-content/uploads/2025/03/CDM-v2.12.36.20-for-ARM64-WHQL-Certified.zip) |
+| **Linux x86_64** | [`libftd2xx-linux-x86_64-1.4.33.tgz`](https://web.archive.org/web/20250822044524/https://ftdichip.com/wp-content/uploads/2025/03/libftd2xx-linux-x86_64-1.4.33.tgz) |
 
 ## Open project
 Now you're set to build the project using Qt Creator.
