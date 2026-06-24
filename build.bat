@@ -83,6 +83,12 @@ echo QTBIN               : %QTBIN% [OK]
 @REM ---------------------------------------------------------------------------
 set VCVARS_FOUND=0
 
+if exist "C:\Program Files\Microsoft Visual Studio\2022\Enterprise\VC\Auxiliary\Build\%VCVARS_SCRIPT%" (
+    call "C:\Program Files\Microsoft Visual Studio\2022\Enterprise\VC\Auxiliary\Build\%VCVARS_SCRIPT%"
+    set VCVARS_FOUND=1
+    echo VS2022 toolchain     : Enterprise [OK]
+    goto :vcvars_done
+)
 if exist "C:\Program Files\Microsoft Visual Studio\2022\Community\VC\Auxiliary\Build\%VCVARS_SCRIPT%" (
     call "C:\Program Files\Microsoft Visual Studio\2022\Community\VC\Auxiliary\Build\%VCVARS_SCRIPT%"
     set VCVARS_FOUND=1
@@ -110,6 +116,7 @@ if "%VCVARS_FOUND%"=="0" (
     echo        go to Individual Components, and install:
     echo          '%VS_COMPONENT%'
     echo        Searched in:
+    echo          C:\Program Files\Microsoft Visual Studio\2022\Enterprise\VC\Auxiliary\Build
     echo          C:\Program Files\Microsoft Visual Studio\2022\Community\VC\Auxiliary\Build
     echo          C:\Program Files\Microsoft Visual Studio\2022\Professional\VC\Auxiliary\Build
     echo          C:\Program Files ^(x86^)\Microsoft Visual Studio\2022\BuildTools\VC\Auxiliary\Build
