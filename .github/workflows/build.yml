@@ -38,7 +38,7 @@ jobs:
       run: curl --ssl-no-revoke "https://web.archive.org/web/20250820134143/https://ftdichip.com/wp-content/uploads/2023/09/CDM-v2.12.36.4-WHQL-Certified.zip" -o "third-party\CDM-v2.12.36.4-WHQL-Certified.zip"
 
   fetch-ftdi-windows-arm64:
-    runs-on: windows-2022
+    runs-on: windows-11-arm
     steps:
     - uses: actions/checkout@v6
 
@@ -48,7 +48,6 @@ jobs:
       with:
         path: third-party\CDM-v2.12.36.20-for-ARM64-WHQL-Certified.zip
         key: ftdi-windows-arm64-2.12.36.20
-        enableCrossOsArchive: true
 
     - name: Download FTDI archive for ARM64
       if: steps.cache-ftdi-windows-arm64.outputs.cache-hit != 'true'
@@ -213,7 +212,6 @@ jobs:
       with:
         path: third-party\CDM-v2.12.36.20-for-ARM64-WHQL-Certified.zip
         key: ftdi-windows-arm64-2.12.36.20
-        enableCrossOsArchive: true
 
     - name: Extract FTDI library for ARM64
       shell: pwsh
