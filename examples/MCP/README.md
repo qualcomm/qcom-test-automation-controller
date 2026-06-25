@@ -55,7 +55,6 @@ sequenceDiagram
 | Requirement | Details |
 | :-- | :-- |
 | Python | 3.10+ matching your target architecture (x64 Python on x64, ARM64 Python on ARM64) |
-| OpenSSL | Required to build the `cryptography` package (a fastmcp dependency). Install the version matching your architecture from [slproweb.com](https://slproweb.com/products/Win32OpenSSL.html) or via package manager on Linux. On ARM64 Windows, also set `OPENSSL_DIR` to the install path before running `setup.bat ARM64` - the ARM64 wheel must be compiled from source |
 | QTAC build | Project must be built with `build.bat` / `build.sh` - TACDev library is loaded from `__Builds` |
 
 ## Setup
@@ -63,10 +62,12 @@ sequenceDiagram
 | Platform | Command |
 | :-- | :-- |
 | Windows x64 (auto-detected) | `setup.bat` |
-| Windows ARM64 | `setup.bat ARM64` |
+| Windows ARM64 (auto-detected) | `setup.bat` |
 | Linux | `./setup.sh` |
 
-Each script checks for an existing build, installs the TACDev Python library, and installs MCP dependencies.
+Each script auto-detects architecture, checks for an existing build, installs the TACDev Python
+library, and installs MCP dependencies. On ARM64 Windows, OpenSSL is downloaded and installed
+automatically if not already present.
 
 For full setup guidance see [Bootcamp guide](../../docs/bootcamp/01-Bootcamp.md) and
 [Python API reference](../../docs/bootcamp/02-Python-API.md).
@@ -121,9 +122,9 @@ asyncio.run(main())
 | :-- | :-- |
 | `ModuleNotFoundError: No module named 'TACDev'` | Run `pip install interfaces/Python` from the repo root, or use `setup.bat` / `setup.sh` |
 | `TACDev library not found` | Build the project first with `build.bat` / `build.sh` and run from repo root |
-| `Architecture mismatch` | Use a 64-bit Python matching your target architecture (x64 or ARM64) |
+| `Architecture mismatch` | Use Python matching your target architecture (x64 or ARM64) |
 | `ModuleNotFoundError: No module named 'fastmcp'` | Requires Python 3.10+. Run `pip install -r requirements.txt` |
-| `cryptography` build failure on ARM64 | Set `OPENSSL_DIR` to the ARM64 OpenSSL install path before running `setup.bat ARM64`. Download the ARM64 OpenSSL installer from [slproweb.com](https://slproweb.com/products/Win32OpenSSL.html), then: `setx OPENSSL_DIR "C:\Program Files\OpenSSL-ARM64"` and reopen the prompt |
-| `get_device_count` returns 0 | Check debug board is connected. On Windows run `FTDICheck.exe` from `__Builds\x64\Release\bin`. On Linux ensure udev rules are installed: `sudo cp udev-rules/99-QTAC-USB.rules /etc/udev/rules.d/ && sudo udevadm control --reload` |
+| `cryptography` build failure on ARM64 | Re-run `setup.bat` - it downloads and installs OpenSSL automatically. If it still fails, install manually from [slproweb.com](https://slproweb.com/download/Win64ARMOpenSSL-4_0_1.msi) (full installer, not Light) and set `OPENSSL_DIR=C:\Program Files\OpenSSL-Win64-ARM` |
+| `get_device_count` returns 0 | Check debug board is connected. On Windows run `FTDICheck.exe` from `__Builds\x64\Release\bin`. On Linux: `sudo cp udev-rules/99-QTAC-USB.rules /etc/udev/rules.d/ && sudo udevadm control --reload` |
 
 See [Bootcamp troubleshooting](../../docs/bootcamp/01-Bootcamp.md#troubleshooting) for more.
