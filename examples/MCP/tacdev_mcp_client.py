@@ -6,69 +6,44 @@
 """
 MCP client for tacdev_mcp_server.py.
 
-Launches the server as a subprocess and exposes a clean
-TACDevClient class whose methods map 1-to-1 to every MCP tool.
-
 Typical usage
 -------------
     from tacdev_mcp_client import TACDevClient
 
-    with TACDevClient() as tac:
-        count = tac.get_device_count()
-        handle = tac.open_handle_by_description("TAC-Lite")
-        tac.power_on_button(handle)
-        tac.close_tac_handle(handle)
+    async def main():
+        async with TACDevClient() as tac:
+            devices = await tac.list_devices()
+            handle = await tac.open_handle_by_description("COM3")
+            await tac.power_on_button(handle)
+            await tac.close_tac_handle(handle)
 
-Run as a script for a quick interactive demo:
-    python tacdev_mcp_client.py [port_name]
+    asyncio.run(main())
 """
 
 from __future__ import annotations
 
 import asyncio
-import os
+import json
 import sys
-from contextlib import asynccontextmanager
 from pathlib import Path
 from typing import Any
 
-from mcp import ClientSession, StdioServerParameters
-from mcp.client.stdio import stdio_client
+import yaml
+from fastmcp import Client
 
-# --------------------------------------------------------------------------- #
-# Server launch parameters
-# --------------------------------------------------------------------------- #
-_SERVER_SCRIPT = str(Path(__file__).with_name("tacdev_mcp_server.py"))
-
-_SERVER_PARAMS = StdioServerParameters(
-    command=sys.executable,
-    args=[_SERVER_SCRIPT],
-    env={
-        **os.environ,
-        # Override library path here if needed, or set TACDEV_LIB_PATH in env.
-        # "TACDEV_LIB_PATH": r"C:\path\to\TACDev.dll",
-    },
-)
+_CONFIG_PATH = Path(__file__).with_name("config.yaml")
 
 
-# --------------------------------------------------------------------------- #
-# Low-level async helper
-# --------------------------------------------------------------------------- #
-@asynccontextmanager
-async def _session():
-    """Async context manager that yields a live MCP ClientSession."""
-    async with stdio_client(_SERVER_PARAMS) as (read, write):
-        async with ClientSession(read, write) as session:
-            await session.initialize()
-            yield session
+def _server_url() -> str:
+    with open(_CONFIG_PATH) as f:
+        cfg = yaml.safe_load(f)
+    s = cfg["server"]
+    return f"http://{s['host']}:{s['port']}/sse"
 
 
-async def _call(session: ClientSession, tool: str, **kwargs: Any) -> Any:
-    """Call one MCP tool and return its unwrapped result value."""
-    result = await session.call_tool(tool, arguments=kwargs)
-    # FastMCP returns a list of TextContent; pull out the parsed dict.
+async def _call(client: Client, tool: str, **kwargs: Any) -> Any:
+    result = await client.call_tool(tool, kwargs)
     if result.content:
-        import json
         text = result.content[0].text
         try:
             return json.loads(text)
@@ -77,357 +52,271 @@ async def _call(session: ClientSession, tool: str, **kwargs: Any) -> Any:
     return None
 
 
-# --------------------------------------------------------------------------- #
-# Synchronous TACDevClient
-# --------------------------------------------------------------------------- #
 class TACDevClient:
-    """
-    Synchronous wrapper around the TACDev MCP server.
-
-    Can be used as a context manager:
-        with TACDevClient() as tac:
-            ...
-
-    Or manually:
-        tac = TACDevClient()
-        tac.connect()
-        tac.disconnect()
-    """
-
     def __init__(self) -> None:
-        self._loop: asyncio.AbstractEventLoop | None = None
-        self._session: ClientSession | None = None
-        self._ctx = None
+        self._client = Client(_server_url())
 
-    # ── Lifecycle ────────────────────────────────────────────────────────────
-
-    def connect(self) -> "TACDevClient":
-        self._loop = asyncio.new_event_loop()
-        self._ctx  = _session()
-        self._session = self._loop.run_until_complete(self._ctx.__aenter__())
+    async def __aenter__(self) -> TACDevClient:
+        await self._client.__aenter__()
         return self
 
-    def disconnect(self) -> None:
-        if self._ctx and self._loop:
-            self._loop.run_until_complete(self._ctx.__aexit__(None, None, None))
-        if self._loop:
-            self._loop.close()
-        self._session = None
-        self._loop    = None
-        self._ctx     = None
+    async def __aexit__(self, *args) -> None:
+        await self._client.__aexit__(*args)
 
-    def __enter__(self) -> "TACDevClient":
-        return self.connect()
+    async def _call(self, tool: str, **kwargs: Any) -> Any:
+        return await _call(self._client, tool, **kwargs)
 
-    def __exit__(self, *_) -> None:
-        self.disconnect()
+    async def list_devices(self) -> dict:
+        return await self._call("list_devices")
 
-    # ── Internal dispatch ────────────────────────────────────────────────────
+    async def get_alpaca_version(self) -> str:
+        return (await self._call("get_alpaca_version"))["alpaca_version"]
 
-    def _call(self, tool: str, **kwargs: Any) -> Any:
-        if self._session is None or self._loop is None:
-            raise RuntimeError("Not connected — call connect() or use as a context manager")
-        return self._loop.run_until_complete(_call(self._session, tool, **kwargs))
+    async def get_tac_version(self) -> str:
+        return (await self._call("get_tac_version"))["tac_version"]
 
-    # ── Version / diagnostics ────────────────────────────────────────────────
+    async def get_last_tac_error(self) -> str:
+        return (await self._call("get_last_tac_error"))["last_error"]
 
-    def get_alpaca_version(self) -> str:
-        """Return the Alpaca firmware version string."""
-        return self._call("get_alpaca_version")["alpaca_version"]
+    async def get_logging_state(self) -> bool:
+        return (await self._call("get_logging_state"))["logging_enabled"]
 
-    def get_tac_version(self) -> str:
-        """Return the TACDev library version string."""
-        return self._call("get_tac_version")["tac_version"]
+    async def set_logging_state(self, enabled: bool) -> None:
+        await self._call("set_logging_state", enabled=enabled)
 
-    def get_last_tac_error(self) -> str:
-        """Return the last error message recorded by TACDev."""
-        return self._call("get_last_tac_error")["last_error"]
+    async def get_device_count(self) -> int:
+        return (await self._call("get_device_count"))["device_count"]
 
-    # ── Logging ──────────────────────────────────────────────────────────────
+    async def get_port_data(self, device_index: int) -> str:
+        return (await self._call("get_port_data", device_index=device_index))["port_data"]
 
-    def get_logging_state(self) -> bool:
-        """Return whether TACDev logging is currently enabled."""
-        return self._call("get_logging_state")["logging_enabled"]
+    async def list_ports(self) -> list[str]:
+        count = await self.get_device_count()
+        return [await self.get_port_data(i) for i in range(count)]
 
-    def set_logging_state(self, enabled: bool) -> None:
-        """Enable or disable TACDev logging."""
-        self._call("set_logging_state", enabled=enabled)
+    async def open_handle_by_description(self, port_name: str) -> int:
+        return (await self._call("open_handle_by_description", port_name=port_name))["handle"]
 
-    # ── Device enumeration ───────────────────────────────────────────────────
+    async def close_tac_handle(self, handle: int) -> None:
+        await self._call("close_tac_handle", handle=handle)
 
-    def get_device_count(self) -> int:
-        """Return the number of connected TAC devices."""
-        return self._call("get_device_count")["device_count"]
+    async def get_name(self, handle: int) -> str:
+        return (await self._call("get_name", handle=handle))["name"]
 
-    def get_port_data(self, device_index: int) -> str:
-        """Return the port description string for the device at device_index."""
-        return self._call("get_port_data", device_index=device_index)["port_data"]
+    async def get_firmware_version(self, handle: int) -> str:
+        return (await self._call("get_firmware_version", handle=handle))["firmware_version"]
 
-    def list_ports(self) -> list[str]:
-        """Convenience: return port descriptions for all connected devices."""
-        count = self.get_device_count()
-        return [self.get_port_data(i) for i in range(count)]
+    async def get_hardware(self, handle: int) -> str:
+        return (await self._call("get_hardware", handle=handle))["hardware"]
 
-    # ── Handle management ────────────────────────────────────────────────────
+    async def get_hardware_version(self, handle: int) -> str:
+        return (await self._call("get_hardware_version", handle=handle))["hardware_version"]
 
-    def open_handle_by_description(self, port_name: str) -> int:
-        """Open a TAC device by port description and return its integer handle."""
-        return self._call("open_handle_by_description", port_name=port_name)["handle"]
+    async def get_uuid(self, handle: int) -> str:
+        return (await self._call("get_uuid", handle=handle))["uuid"]
 
-    def close_tac_handle(self, handle: int) -> None:
-        """Close a previously opened TAC device handle."""
-        self._call("close_tac_handle", handle=handle)
-
-    # ── Device info ──────────────────────────────────────────────────────────
-
-    def get_name(self, handle: int) -> str:
-        return self._call("get_name", handle=handle)["name"]
-
-    def get_firmware_version(self, handle: int) -> str:
-        return self._call("get_firmware_version", handle=handle)["firmware_version"]
-
-    def get_hardware(self, handle: int) -> str:
-        return self._call("get_hardware", handle=handle)["hardware"]
-
-    def get_hardware_version(self, handle: int) -> str:
-        return self._call("get_hardware_version", handle=handle)["hardware_version"]
-
-    def get_uuid(self, handle: int) -> str:
-        return self._call("get_uuid", handle=handle)["uuid"]
-
-    def get_device_info(self, handle: int) -> dict:
-        """Convenience: return all device identity fields in one call."""
+    async def get_device_info(self, handle: int) -> dict:
         return {
-            "name":             self.get_name(handle),
-            "firmware_version": self.get_firmware_version(handle),
-            "hardware":         self.get_hardware(handle),
-            "hardware_version": self.get_hardware_version(handle),
-            "uuid":             self.get_uuid(handle),
+            "name":             await self.get_name(handle),
+            "firmware_version": await self.get_firmware_version(handle),
+            "hardware":         await self.get_hardware(handle),
+            "hardware_version": await self.get_hardware_version(handle),
+            "uuid":             await self.get_uuid(handle),
         }
 
-    # ── External power ───────────────────────────────────────────────────────
+    async def set_external_power_control(self, handle: int, state: bool) -> None:
+        await self._call("set_external_power_control", handle=handle, state=state)
 
-    def set_external_power_control(self, handle: int, state: bool) -> None:
-        self._call("set_external_power_control", handle=handle, state=state)
+    async def list_commands(self, handle: int) -> list[str]:
+        return (await self._call("list_commands", handle=handle))["commands"]
 
-    # ── Dynamic commands ─────────────────────────────────────────────────────
+    async def get_command(self, handle: int, command_index: int) -> str:
+        return (await self._call("get_command", handle=handle, command_index=command_index))["command"]
 
-    def list_commands(self, handle: int) -> list[str]:
-        return self._call("list_commands", handle=handle)["commands"]
+    async def list_quick_commands(self, handle: int) -> list[str]:
+        return (await self._call("list_quick_commands", handle=handle))["quick_commands"]
 
-    def get_command(self, handle: int, command_index: int) -> str:
-        return self._call("get_command", handle=handle, command_index=command_index)["command"]
+    async def list_script_variables(self, handle: int) -> list[str]:
+        return (await self._call("list_script_variables", handle=handle))["script_variables"]
 
-    def list_quick_commands(self, handle: int) -> list[str]:
-        return self._call("list_quick_commands", handle=handle)["quick_commands"]
+    async def update_script_variable(self, handle: int, variable: str, value: str) -> None:
+        await self._call("update_script_variable", handle=handle, variable=variable, value=value)
 
-    # ── Script variables ─────────────────────────────────────────────────────
+    async def get_command_state(self, handle: int, command: str) -> bool:
+        return (await self._call("get_command_state", handle=handle, command=command))["state"]
 
-    def list_script_variables(self, handle: int) -> list[str]:
-        return self._call("list_script_variables", handle=handle)["script_variables"]
+    async def send_command(self, handle: int, command: str, state: bool) -> None:
+        await self._call("send_command", handle=handle, command=command, state=state)
 
-    def update_script_variable(self, handle: int, variable: str, value: str) -> None:
-        self._call("update_script_variable", handle=handle, variable=variable, value=value)
+    async def get_help_text(self, handle: int) -> str:
+        return (await self._call("get_help_text", handle=handle))["help_text"]
 
-    # ── Core command interface ────────────────────────────────────────────────
+    async def is_command_queue_clear(self, handle: int) -> bool:
+        return (await self._call("is_command_queue_clear", handle=handle))["queue_clear"]
 
-    def get_command_state(self, handle: int, command: str) -> bool:
-        return self._call("get_command_state", handle=handle, command=command)["state"]
+    async def set_pin_state(self, handle: int, pin: int, state: bool) -> None:
+        await self._call("set_pin_state", handle=handle, pin=pin, state=state)
 
-    def send_command(self, handle: int, command: str, state: bool) -> None:
-        self._call("send_command", handle=handle, command=command, state=state)
+    async def set_battery_state(self, handle: int, state: bool) -> None:
+        await self._call("set_battery_state", handle=handle, state=state)
 
-    # ── Help / queue ─────────────────────────────────────────────────────────
+    async def get_battery_state(self, handle: int) -> bool:
+        return (await self._call("get_battery_state", handle=handle))["state"]
 
-    def get_help_text(self, handle: int) -> str:
-        return self._call("get_help_text", handle=handle)["help_text"]
+    async def set_usb0(self, handle: int, state: bool) -> None:
+        await self._call("set_usb0", handle=handle, state=state)
 
-    def is_command_queue_clear(self, handle: int) -> bool:
-        return self._call("is_command_queue_clear", handle=handle)["queue_clear"]
+    async def get_usb0_state(self, handle: int) -> bool:
+        return (await self._call("get_usb0_state", handle=handle))["state"]
 
-    # ── Raw pin control ───────────────────────────────────────────────────────
+    async def set_usb1(self, handle: int, state: bool) -> None:
+        await self._call("set_usb1", handle=handle, state=state)
 
-    def set_pin_state(self, handle: int, pin: int, state: bool) -> None:
-        self._call("set_pin_state", handle=handle, pin=pin, state=state)
+    async def get_usb1_state(self, handle: int) -> bool:
+        return (await self._call("get_usb1_state", handle=handle))["state"]
 
-    # ── Battery ───────────────────────────────────────────────────────────────
+    async def set_power_key(self, handle: int, state: bool) -> None:
+        await self._call("set_power_key", handle=handle, state=state)
 
-    def set_battery_state(self, handle: int, state: bool) -> None:
-        self._call("set_battery_state", handle=handle, state=state)
+    async def get_power_key_state(self, handle: int) -> bool:
+        return (await self._call("get_power_key_state", handle=handle))["state"]
 
-    def get_battery_state(self, handle: int) -> bool:
-        return self._call("get_battery_state", handle=handle)["state"]
+    async def set_volume_up(self, handle: int, state: bool) -> None:
+        await self._call("set_volume_up", handle=handle, state=state)
 
-    # ── USB ───────────────────────────────────────────────────────────────────
+    async def get_volume_up_state(self, handle: int) -> bool:
+        return (await self._call("get_volume_up_state", handle=handle))["state"]
 
-    def set_usb0(self, handle: int, state: bool) -> None:
-        self._call("set_usb0", handle=handle, state=state)
+    async def set_volume_down(self, handle: int, state: bool) -> None:
+        await self._call("set_volume_down", handle=handle, state=state)
 
-    def get_usb0_state(self, handle: int) -> bool:
-        return self._call("get_usb0_state", handle=handle)["state"]
+    async def get_volume_down_state(self, handle: int) -> bool:
+        return (await self._call("get_volume_down_state", handle=handle))["state"]
 
-    def set_usb1(self, handle: int, state: bool) -> None:
-        self._call("set_usb1", handle=handle, state=state)
+    async def set_disconnect_uim1(self, handle: int, state: bool) -> None:
+        await self._call("set_disconnect_uim1", handle=handle, state=state)
 
-    def get_usb1_state(self, handle: int) -> bool:
-        return self._call("get_usb1_state", handle=handle)["state"]
+    async def get_disconnect_uim1_state(self, handle: int) -> bool:
+        return (await self._call("get_disconnect_uim1_state", handle=handle))["state"]
 
-    # ── Power key ─────────────────────────────────────────────────────────────
+    async def set_disconnect_uim2(self, handle: int, state: bool) -> None:
+        await self._call("set_disconnect_uim2", handle=handle, state=state)
 
-    def set_power_key(self, handle: int, state: bool) -> None:
-        self._call("set_power_key", handle=handle, state=state)
+    async def get_disconnect_uim2_state(self, handle: int) -> bool:
+        return (await self._call("get_disconnect_uim2_state", handle=handle))["state"]
 
-    def get_power_key_state(self, handle: int) -> bool:
-        return self._call("get_power_key_state", handle=handle)["state"]
+    async def set_disconnect_sd_card(self, handle: int, state: bool) -> None:
+        await self._call("set_disconnect_sd_card", handle=handle, state=state)
 
-    # ── Volume ────────────────────────────────────────────────────────────────
+    async def get_disconnect_sd_card_state(self, handle: int) -> bool:
+        return (await self._call("get_disconnect_sd_card_state", handle=handle))["state"]
 
-    def set_volume_up(self, handle: int, state: bool) -> None:
-        self._call("set_volume_up", handle=handle, state=state)
+    async def set_primary_edl(self, handle: int, state: bool) -> None:
+        await self._call("set_primary_edl", handle=handle, state=state)
 
-    def get_volume_up_state(self, handle: int) -> bool:
-        return self._call("get_volume_up_state", handle=handle)["state"]
+    async def get_primary_edl_state(self, handle: int) -> bool:
+        return (await self._call("get_primary_edl_state", handle=handle))["state"]
 
-    def set_volume_down(self, handle: int, state: bool) -> None:
-        self._call("set_volume_down", handle=handle, state=state)
+    async def set_secondary_edl(self, handle: int, state: bool) -> None:
+        await self._call("set_secondary_edl", handle=handle, state=state)
 
-    def get_volume_down_state(self, handle: int) -> bool:
-        return self._call("get_volume_down_state", handle=handle)["state"]
+    async def get_secondary_edl_state(self, handle: int) -> bool:
+        return (await self._call("get_secondary_edl_state", handle=handle))["state"]
 
-    # ── SIM / SD ──────────────────────────────────────────────────────────────
+    async def set_force_ps_hold_high(self, handle: int, state: bool) -> None:
+        await self._call("set_force_ps_hold_high", handle=handle, state=state)
 
-    def set_disconnect_uim1(self, handle: int, state: bool) -> None:
-        self._call("set_disconnect_uim1", handle=handle, state=state)
+    async def get_force_ps_hold_high_state(self, handle: int) -> bool:
+        return (await self._call("get_force_ps_hold_high_state", handle=handle))["state"]
 
-    def get_disconnect_uim1_state(self, handle: int) -> bool:
-        return self._call("get_disconnect_uim1_state", handle=handle)["state"]
+    async def set_secondary_pm_resin_n(self, handle: int, state: bool) -> None:
+        await self._call("set_secondary_pm_resin_n", handle=handle, state=state)
 
-    def set_disconnect_uim2(self, handle: int, state: bool) -> None:
-        self._call("set_disconnect_uim2", handle=handle, state=state)
+    async def get_secondary_pm_resin_n_state(self, handle: int) -> bool:
+        return (await self._call("get_secondary_pm_resin_n_state", handle=handle))["state"]
 
-    def get_disconnect_uim2_state(self, handle: int) -> bool:
-        return self._call("get_disconnect_uim2_state", handle=handle)["state"]
+    async def set_eud(self, handle: int, state: bool) -> None:
+        await self._call("set_eud", handle=handle, state=state)
 
-    def set_disconnect_sd_card(self, handle: int, state: bool) -> None:
-        self._call("set_disconnect_sd_card", handle=handle, state=state)
+    async def get_eud_state(self, handle: int) -> bool:
+        return (await self._call("get_eud_state", handle=handle))["state"]
 
-    def get_disconnect_sd_card_state(self, handle: int) -> bool:
-        return self._call("get_disconnect_sd_card_state", handle=handle)["state"]
+    async def set_headset_disconnect(self, handle: int, state: bool) -> None:
+        await self._call("set_headset_disconnect", handle=handle, state=state)
 
-    # ── EDL ───────────────────────────────────────────────────────────────────
+    async def get_headset_disconnect_state(self, handle: int) -> bool:
+        return (await self._call("get_headset_disconnect_state", handle=handle))["state"]
 
-    def set_primary_edl(self, handle: int, state: bool) -> None:
-        self._call("set_primary_edl", handle=handle, state=state)
+    async def set_name(self, handle: int, new_name: str) -> None:
+        await self._call("set_name", handle=handle, new_name=new_name)
 
-    def get_primary_edl_state(self, handle: int) -> bool:
-        return self._call("get_primary_edl_state", handle=handle)["state"]
+    async def get_reset_count(self, handle: int) -> int:
+        return (await self._call("get_reset_count", handle=handle))["reset_count"]
 
-    def set_secondary_edl(self, handle: int, state: bool) -> None:
-        self._call("set_secondary_edl", handle=handle, state=state)
+    async def clear_reset_count(self, handle: int) -> None:
+        await self._call("clear_reset_count", handle=handle)
 
-    def get_secondary_edl_state(self, handle: int) -> bool:
-        return self._call("get_secondary_edl_state", handle=handle)["state"]
+    async def power_on_button(self, handle: int) -> None:
+        await self._call("power_on_button", handle=handle)
 
-    # ── PS_HOLD / RESIN_N ────────────────────────────────────────────────────
+    async def power_off_button(self, handle: int) -> None:
+        await self._call("power_off_button", handle=handle)
 
-    def set_force_ps_hold_high(self, handle: int, state: bool) -> None:
-        self._call("set_force_ps_hold_high", handle=handle, state=state)
+    async def boot_to_fastboot_button(self, handle: int) -> None:
+        await self._call("boot_to_fastboot_button", handle=handle)
 
-    def get_force_ps_hold_high_state(self, handle: int) -> bool:
-        return self._call("get_force_ps_hold_high_state", handle=handle)["state"]
+    async def boot_to_uefi_menu_button(self, handle: int) -> None:
+        await self._call("boot_to_uefi_menu_button", handle=handle)
 
-    def set_secondary_pm_resin_n(self, handle: int, state: bool) -> None:
-        self._call("set_secondary_pm_resin_n", handle=handle, state=state)
+    async def boot_to_edl_button(self, handle: int) -> None:
+        await self._call("boot_to_edl_button", handle=handle)
 
-    def get_secondary_pm_resin_n_state(self, handle: int) -> bool:
-        return self._call("get_secondary_pm_resin_n_state", handle=handle)["state"]
+    async def boot_to_secondary_edl_button(self, handle: int) -> None:
+        await self._call("boot_to_secondary_edl_button", handle=handle)
 
-    # ── EUD ───────────────────────────────────────────────────────────────────
 
-    def set_eud(self, handle: int, state: bool) -> None:
-        self._call("set_eud", handle=handle, state=state)
+async def _demo(port_name: str | None = None) -> None:
+    async with TACDevClient() as tac:
+        print(f"  Alpaca version : {await tac.get_alpaca_version()}")
+        print(f"  TAC version    : {await tac.get_tac_version()}")
+        print(f"  Logging        : {await tac.get_logging_state()}")
 
-    def get_eud_state(self, handle: int) -> bool:
-        return self._call("get_eud_state", handle=handle)["state"]
+        devices = await tac.list_devices()
+        print(f"  Available      : {devices['available']}")
+        print(f"  In use         : {devices['in_use']}")
 
-    # ── Headset ───────────────────────────────────────────────────────────────
-
-    def set_headset_disconnect(self, handle: int, state: bool) -> None:
-        self._call("set_headset_disconnect", handle=handle, state=state)
-
-    def get_headset_disconnect_state(self, handle: int) -> bool:
-        return self._call("get_headset_disconnect_state", handle=handle)["state"]
-
-    # ── Name / reset count ───────────────────────────────────────────────────
-
-    def set_name(self, handle: int, new_name: str) -> None:
-        self._call("set_name", handle=handle, new_name=new_name)
-
-    def get_reset_count(self, handle: int) -> int:
-        return self._call("get_reset_count", handle=handle)["reset_count"]
-
-    def clear_reset_count(self, handle: int) -> None:
-        self._call("clear_reset_count", handle=handle)
-
-    # ── Button sequences ─────────────────────────────────────────────────────
-
-    def power_on_button(self, handle: int) -> None:
-        """Execute the power-on button sequence."""
-        self._call("power_on_button", handle=handle)
-
-    def power_off_button(self, handle: int) -> None:
-        """Execute the power-off button sequence."""
-        self._call("power_off_button", handle=handle)
-
-    def boot_to_fastboot_button(self, handle: int) -> None:
-        """Boot the device into Fastboot mode."""
-        self._call("boot_to_fastboot_button", handle=handle)
-
-    def boot_to_uefi_menu_button(self, handle: int) -> None:
-        """Boot the device into the UEFI menu."""
-        self._call("boot_to_uefi_menu_button", handle=handle)
-
-    def boot_to_edl_button(self, handle: int) -> None:
-        """Boot the device into primary EDL mode."""
-        self._call("boot_to_edl_button", handle=handle)
-
-    def boot_to_secondary_edl_button(self, handle: int) -> None:
-        """Boot the device into secondary EDL mode."""
-        self._call("boot_to_secondary_edl_button", handle=handle)
-
-
-# --------------------------------------------------------------------------- #
-# Quick demo / smoke-test (run as script)
-# --------------------------------------------------------------------------- #
-def _demo(port_name: str | None = None) -> None:
-    with TACDevClient() as tac:
-        print(f"  Alpaca version : {tac.get_alpaca_version()}")
-        print(f"  TAC version    : {tac.get_tac_version()}")
-        print(f"  Logging        : {tac.get_logging_state()}")
-
-        ports = tac.list_ports()
-        print(f"  Devices found  : {len(ports)}")
-        for i, p in enumerate(ports):
-            print(f"    [{i}] {p}")
-
-        if not port_name and ports:
-            port_name = ports[0]
+        if not port_name and devices["available"]:
+            port_name = devices["available"][0]["port"]
 
         if port_name:
             print(f"\nOpening '{port_name}'...")
-            handle = tac.open_handle_by_description(port_name)
-            info   = tac.get_device_info(handle)
+            handle = await tac.open_handle_by_description(port_name)
+
+            info = await tac.get_device_info(handle)
             for k, v in info.items():
                 print(f"  {k:<20}: {v}")
 
-            print(f"  Commands       : {tac.list_commands(handle)}")
-            print(f"  Queue clear    : {tac.is_command_queue_clear(handle)}")
+            print(f"\n  Queue clear    : {await tac.is_command_queue_clear(handle)}")
 
-            tac.close_tac_handle(handle)
-            print("Handle closed.")
+            print("\n--- Available commands ---")
+            print(await tac.get_help_text(handle))
+
+            commands = await tac.list_commands(handle)
+            if commands:
+                cmd = commands[0].split(";")[0]
+                state_before = await tac.get_command_state(handle, cmd)
+                print(f"Command '{cmd}' state before toggle: {state_before}")
+                await tac.send_command(handle, cmd, not state_before)
+                state_after = await tac.get_command_state(handle, cmd)
+                print(f"Command '{cmd}' state after  toggle: {state_after}")
+                await tac.send_command(handle, cmd, state_before)
+                print(f"Command '{cmd}' restored to        : {await tac.get_command_state(handle, cmd)}")
+
+            await tac.close_tac_handle(handle)
+            print("\nHandle closed.")
         else:
-            print("No device available — skipping handle demo.")
+            print("No device available.")
 
 
 if __name__ == "__main__":
-    _demo(sys.argv[1] if len(sys.argv) > 1 else None)
+    asyncio.run(_demo(sys.argv[1] if len(sys.argv) > 1 else None))

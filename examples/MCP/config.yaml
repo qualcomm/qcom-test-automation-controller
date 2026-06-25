@@ -1,0 +1,15 @@
+server:
+  # Host to bind the MCP server on
+  host: "127.0.0.1"
+  # Port the MCP server listens on
+  port: 8000
+
+logging:
+  # Log file path (relative to server script or absolute)
+  file: "tacdev_mcp.log"
+  # Logging level: DEBUG, INFO, WARNING, ERROR
+  level: "INFO"
+  # Maximum log file size in bytes before rotation (10 MB default)
+  max_bytes: 10485760
+  # Number of rotated backup log files to retain
+  backup_count: 5

@@ -28,6 +28,9 @@ __pycache__/
 *.pyo
 *.pyd
 
+# MCP logs
+examples/MCP/*.log
+
 # Qt build directory
 __Builds/
 

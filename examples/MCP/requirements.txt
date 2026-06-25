@@ -1,2 +1,2 @@
-fastmcp>=2.0.0
-mcp>=1.0.0
+fastmcp>=3.0.0
+pyyaml

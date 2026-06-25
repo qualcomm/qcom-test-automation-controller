@@ -1,13 +1,59 @@
 # QTAC MCP Server
 
 An [MCP](https://modelcontextprotocol.io) server that exposes the full TACDev API as tools,
-allowing AI assistants to control Qualcomm devices via a QTAC debug board.
+allowing AI assistants and automation clients to control Qualcomm devices via a QTAC debug board.
+
+## Architecture
+
+A persistent SSE server. Multiple clients connect concurrently, each identified by a UUID session.
+Each client can open one or more devices. A device can only be held by one session at a time.
+On disconnect, the server closes any devices the session left open.
+
+```mermaid
+sequenceDiagram
+    participant A as Client A
+    participant S as MCP Server
+    participant B as Client B
+
+    A->>S: SSE connect
+    S-->>A: session UUID (auto)
+    S-->>A: device list push [COM3: free, COM5: free]
+
+    B->>S: SSE connect
+    S-->>B: session UUID (auto)
+    S-->>B: device list push [COM3: free, COM5: free]
+
+    A->>S: open_handle_by_description(COM3)
+    S->>S: TACDev.Open(COM3), register ownership
+    S-->>A: handle: 1
+
+    B->>S: open_handle_by_description(COM3)
+    S-->>B: ERROR - COM3 in use by session-A
+
+    B->>S: open_handle_by_description(COM5)
+    S->>S: TACDev.Open(COM5), register ownership
+    S-->>B: handle: 2
+
+    par Client A uses COM3
+        A->>S: tool calls (handle 1)
+        S-->>A: results
+    and Client B uses COM5
+        B->>S: tool calls (handle 2)
+        S-->>B: results
+    end
+
+    A->>S: close_tac_handle(1)
+    S->>S: TACDev.Close(COM3), release ownership
+    A->>S: SSE disconnect
+
+    B->>S: SSE disconnect (without closing handle)
+    S->>S: TACDev.Close(COM5), release ownership
+```
 
 ## Prerequisites
 
 - Python 3.8+ (64-bit, matching your build architecture: x64 or ARM64)
 - Project built with `build.bat` / `build.sh` (the TACDev library is loaded from `__Builds`)
-- MCP-capable host
 
 ## Setup
 
@@ -26,39 +72,69 @@ Each script builds the project, installs the TACDev Python library, and installs
 For full setup guidance see [Bootcamp guide](../../docs/bootcamp/01-Bootcamp.md) and
 [Python API reference](../../docs/bootcamp/02-Python-API.md).
 
+## Configuration
+
+All runtime parameters are in `config.yaml`:
+
+```yaml
+server:
+  host: "127.0.0.1"
+  port: 8000
+
+logging:
+  file: "tacdev_mcp.log"
+  level: "INFO"
+  max_bytes: 10485760
+  backup_count: 5
+```
+
 ## Usage
 
-`tacdev_mcp_server.py`: starts the MCP server over stdio. Run from the repo root:
+**Start the server** (must be running before any client connects):
 
 ```bash
 python examples/MCP/tacdev_mcp_server.py
 ```
 
-`tacdev_mcp_client.py`: launches the server as a subprocess and runs a device demo.
-Pass an optional port name to open a specific device:
+**Run the client demo:**
 
 ```bash
-python examples/MCP/tacdev_mcp_client.py           # lists devices, opens first found
-python examples/MCP/tacdev_mcp_client.py TAC-Lite  # opens device by port name
+python examples/MCP/tacdev_mcp_client.py             # opens first available device
+python examples/MCP/tacdev_mcp_client.py COM41        # opens specific port
+```
+
+**Use as a library:**
+
+```python
+import asyncio
+from tacdev_mcp_client import TACDevClient
+
+async def main():
+    async with TACDevClient() as tac:
+        devices = await tac.list_devices()
+        handle = await tac.open_handle_by_description("COM41")
+        await tac.power_on_button(handle)
+        await tac.close_tac_handle(handle)
+
+asyncio.run(main())
 ```
 
 ## Available tools
 
 | Category | Tools |
 | :-- | :-- |
-| Diagnostics | `get_alpaca_version`, `get_tac_version` |
+| Devices | `list_devices` |
+| Diagnostics | `get_alpaca_version`, `get_tac_version`, `get_last_tac_error` |
 | Logging | `get_logging_state`, `set_logging_state` |
 | Device enumeration | `get_device_count`, `get_port_data` |
 | Handle management | `open_handle_by_description`, `close_tac_handle` |
 | Device info | `get_name`, `get_firmware_version`, `get_hardware`, `get_hardware_version`, `get_uuid` |
 | External power | `set_external_power_control` |
-| Dynamic commands | `list_commands`, `get_command` |
-| Quick commands | `list_quick_commands` |
+| Dynamic commands | `list_commands`, `get_command`, `list_quick_commands` |
 | Script variables | `list_script_variables`, `update_script_variable` |
 | Command interface | `get_command_state`, `send_command` |
-| Help | `get_help_text` |
+| Help / queue | `get_help_text`, `is_command_queue_clear` |
 | Raw pin | `set_pin_state` |
-| Command queue | `is_command_queue_clear` |
 | Battery | `set_battery_state`, `get_battery_state` |
 | USB | `set_usb0`, `get_usb0_state`, `set_usb1`, `get_usb1_state` |
 | Buttons | `set_power_key`, `get_power_key_state`, `set_volume_up`, `get_volume_up_state`, `set_volume_down`, `get_volume_down_state` |
