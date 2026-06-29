@@ -6,7 +6,7 @@
 set -e
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-REPO_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
+REPO_ROOT="$(cd "$SCRIPT_DIR/../../.." && pwd)"
 
 if [ ! -d "$REPO_ROOT/__Builds" ]; then
     echo "[1/3] Build not found. Running root build..."
@@ -23,4 +23,4 @@ pip install -r "$SCRIPT_DIR/requirements.txt"
 
 echo ""
 echo "Setup complete. Start the MCP server:"
-echo "  python examples/MCP/tacdev_mcp_server.py"
+echo "  python examples/MCP/sse/tacdev_mcp_server.py"

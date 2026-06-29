@@ -1,8 +1,8 @@
 # QTAC MCP Server — stdio
 
-Server is spawned automatically per-client. No standalone process to manage.
-Use this variant for Claude CLI integration.
+Server is spawned automatically per-client process. No standalone server to manage.
 
+Use this variant for Claude CLI integration or single-client automation.
 For multi-client shared access see [`../sse/`](../sse/).
 
 ## Prerequisites
@@ -12,6 +12,8 @@ For multi-client shared access see [`../sse/`](../sse/).
 
 ## Setup
 
+Installs the TACDev library and all dependencies:
+
 ```bat
 setup.bat        # Windows (auto-detects x64/ARM64)
 ```
@@ -19,27 +21,47 @@ setup.bat        # Windows (auto-detects x64/ARM64)
 ./setup.sh       # Linux
 ```
 
-## Claude CLI
+Or manually:
 
-**Register the server** (run once from repo root):
+```bash
+pip install interfaces/Python          # from repo root
+pip install -r examples/MCP/stdio/requirements.txt
+```
+
+## Running
+
+No separate server process needed — the server is spawned automatically.
+
+### Option 1 — Python client
+
+```bash
+python examples/MCP/stdio/tacdev_mcp_client.py           # first available device
+python examples/MCP/stdio/tacdev_mcp_client.py COM41     # specific port
+```
+
+### Option 2 — Claude CLI
+
+Register once from repo root:
 
 ```bash
 claude mcp add TACDev-MCP -- python examples/MCP/stdio/tacdev_mcp_server.py
 ```
 
-**Verify:**
+Verify:
 
 ```bash
 claude mcp list
 ```
 
-**Then just ask Claude naturally:**
+Then ask Claude naturally — no special syntax needed:
 
 ```
 List connected devices
-Power on the device on COM41
+Power on COM41
 Boot COM3 to fastboot
 ```
+
+> **Note:** Claude spawns the server automatically on startup. No manual server management needed.
 
 **Scope options:**
 
@@ -48,13 +70,6 @@ Boot COM3 to fastboot
 | *(default)* | `.claude/settings.local.json` | you, this project |
 | `--scope project` | `.mcp.json` (repo root) | whole team |
 | `--scope user` | `~/.claude/settings.json` | you, all projects |
-
-## Client demo
-
-```bash
-python examples/MCP/stdio/tacdev_mcp_client.py           # first available device
-python examples/MCP/stdio/tacdev_mcp_client.py COM41     # specific port
-```
 
 ## Troubleshooting
 

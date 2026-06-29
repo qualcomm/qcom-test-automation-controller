@@ -5,7 +5,7 @@
 setlocal enabledelayedexpansion
 
 set SCRIPT_DIR=%~dp0
-pushd "%SCRIPT_DIR%\..\.."
+pushd "%SCRIPT_DIR%\..\..\..\"
 set REPO_ROOT=%CD%
 popd
 
@@ -82,4 +82,4 @@ if errorlevel 1 exit /b 1
 
 echo.
 echo Setup complete. Start the MCP server:
-echo   python examples\MCP\tacdev_mcp_server.py
+echo   python examples\MCP\sse\tacdev_mcp_server.py

@@ -34,6 +34,15 @@ def _get_device(handle: int) -> TACDev.TACDevice:
     return device
 
 
+def _release_all() -> None:
+    for handle, device in list(handles.items()):
+        try:
+            device.Close()
+        except Exception:
+            pass
+    handles.clear()
+
+
 # --------------------------------------------------------------------------- #
 # Tools: device list
 # --------------------------------------------------------------------------- #
@@ -478,8 +487,12 @@ def boot_to_secondary_edl_button(handle: int) -> dict:
     return {"success": True}
 
 
+
 # --------------------------------------------------------------------------- #
 # Entry point
 # --------------------------------------------------------------------------- #
 if __name__ == "__main__":
-    mcp.run(transport="stdio")
+    try:
+        mcp.run(transport="stdio")
+    finally:
+        _release_all()

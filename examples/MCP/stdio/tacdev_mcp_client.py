@@ -36,20 +36,9 @@ from fastmcp import Client
 _SERVER_PATH = Path(__file__).with_name("tacdev_mcp_server.py")
 
 
-async def _call(client: Client, tool: str, **kwargs: Any) -> Any:
-    result = await client.call_tool(tool, kwargs)
-    if result.content:
-        text = result.content[0].text
-        try:
-            return json.loads(text)
-        except (ValueError, TypeError):
-            return text
-    return None
-
-
 class TACDevClient:
     def __init__(self) -> None:
-        self._client = Client({"command": sys.executable, "args": [str(_SERVER_PATH)]})
+        self._client = Client({"mcpServers": {"tacdev": {"command": sys.executable, "args": [str(_SERVER_PATH)]}}})
 
     async def __aenter__(self) -> TACDevClient:
         await self._client.__aenter__()
@@ -59,7 +48,14 @@ class TACDevClient:
         await self._client.__aexit__(*args)
 
     async def _call(self, tool: str, **kwargs: Any) -> Any:
-        return await _call(self._client, tool, **kwargs)
+        result = await self._client.call_tool(tool, kwargs)
+        if result.content:
+            text = result.content[0].text
+            try:
+                return json.loads(text)
+            except (ValueError, TypeError):
+                return text
+        return None
 
     async def list_devices(self) -> dict:
         return await self._call("list_devices")
@@ -270,7 +266,7 @@ class TACDevClient:
         await self._call("boot_to_secondary_edl_button", handle=handle)
 
 
-async def _demo(port_name: str | None = None) -> None:
+async def TACExample(port_name: str | None = None) -> None:
     async with TACDevClient() as tac:
         print(f"  Alpaca version : {await tac.get_alpaca_version()}")
         print(f"  TAC version    : {await tac.get_tac_version()}")
@@ -297,9 +293,13 @@ async def _demo(port_name: str | None = None) -> None:
 
             commands = await tac.list_commands(handle)
             if commands:
-                cmd = commands[0].split(";")[0]
+                # Extract short command names (e.g. "sedl" from "sedl(30), Secondary EDL")
+                cmd_names = [c.split("(")[0].strip() for c in commands]
+                print(f"\nCommand names: {cmd_names}")
+
+                cmd = cmd_names[0]
                 state_before = await tac.get_command_state(handle, cmd)
-                print(f"Command '{cmd}' state before toggle: {state_before}")
+                print(f"\nCommand '{cmd}' state before toggle: {state_before}")
                 await tac.send_command(handle, cmd, not state_before)
                 state_after = await tac.get_command_state(handle, cmd)
                 print(f"Command '{cmd}' state after  toggle: {state_after}")
@@ -313,4 +313,4 @@ async def _demo(port_name: str | None = None) -> None:
 
 
 if __name__ == "__main__":
-    asyncio.run(_demo(sys.argv[1] if len(sys.argv) > 1 else None))
+    asyncio.run(TACExample(sys.argv[1] if len(sys.argv) > 1 else None))

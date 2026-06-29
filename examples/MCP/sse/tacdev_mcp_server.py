@@ -3,6 +3,7 @@
 # Copyright (c) Qualcomm Technologies, Inc. and/or its subsidiaries.
 # SPDX-License-Identifier: BSD-3-Clause
 
+import asyncio
 import logging
 import logging.handlers
 from pathlib import Path
@@ -11,8 +12,6 @@ import yaml
 import TACDev
 from fastmcp import FastMCP, Context
 from fastmcp.server.middleware import Middleware, MiddlewareContext, CallNext
-
-import mcp.types as mt
 
 # --------------------------------------------------------------------------- #
 # Config
@@ -47,37 +46,46 @@ log = _setup_logging()
 # --------------------------------------------------------------------------- #
 # Device ownership registry
 # --------------------------------------------------------------------------- #
+_lock = asyncio.Lock()
+
 device_ownership: dict[str, str] = {}
 session_handles: dict[str, list[int]] = {}
-handles: dict[int, TACDev.TACDevice] = {}
+handles: dict[int, tuple[TACDev.TACDevice, str, str]] = {}  # handle -> (device, port, session_id)
 _next_handle = 1
 
 
-def _register(device: TACDev.TACDevice, session_id: str) -> int:
+def _register(device: TACDev.TACDevice, port: str, session_id: str) -> int:
     global _next_handle
     handle = _next_handle
     _next_handle += 1
-    handles[handle] = device
+    handles[handle] = (device, port, session_id)
     session_handles.setdefault(session_id, []).append(handle)
     return handle
 
 
-def _get_device(handle: int) -> TACDev.TACDevice:
-    device = handles.get(handle)
-    if device is None:
+def _get_device_owned(handle: int, session_id: str) -> TACDev.TACDevice:
+    entry = handles.get(handle)
+    if entry is None:
         raise RuntimeError(f"Invalid handle {handle}.")
+    device, port, owner = entry
+    if owner != session_id:
+        raise RuntimeError(f"Handle {handle} is owned by a different session.")
     return device
 
 
-def _release_session(session_id: str) -> None:
-    for handle in session_handles.pop(session_id, []):
-        device = handles.pop(handle, None)
-        if device:
-            port = next((p for p, s in device_ownership.items() if s == session_id), None)
+def _release_all() -> None:
+    log.info("Closing all open devices before shutdown...")
+    for handle, entry in list(handles.items()):
+        device, port, session_id = entry
+        try:
             device.Close()
-            if port:
-                del device_ownership[port]
-            log.info("session=%s handle=%d auto-closed on disconnect", session_id, handle)
+            log.info("session=%s handle=%d port=%s closed on shutdown", session_id, handle, port)
+        except Exception as e:
+            log.warning("session=%s handle=%d port=%s failed to close on shutdown: %s", session_id, handle, port, e)
+    handles.clear()
+    session_handles.clear()
+    device_ownership.clear()
+    log.info("All devices released.")
 
 
 def _device_list() -> dict:
@@ -98,33 +106,25 @@ def _device_list() -> dict:
 
 
 # --------------------------------------------------------------------------- #
-# Session connect middleware
+# Session lifecycle middleware
 # --------------------------------------------------------------------------- #
 class SessionMiddleware(Middleware):
     async def on_initialize(
         self,
-        context: MiddlewareContext[mt.InitializeRequest],
+        context: MiddlewareContext,
         call_next: CallNext,
     ):
         result = await call_next(context)
         ctx = context.fastmcp_context
         if ctx:
-            session_id = ctx.session_id
-            log.info("session=%s connected", session_id)
-            devices = _device_list()
-            await ctx.send_notification(
-                mt.ResourceListChangedNotification(
-                    method="notifications/resources/list_changed"
-                )
-            )
-            log.info("session=%s device list pushed: %s", session_id, devices)
+            log.info("session=%s connected", ctx.session_id)
         return result
 
 
 # --------------------------------------------------------------------------- #
 # MCP server
 # --------------------------------------------------------------------------- #
-mcp = FastMCP("TACDev", middleware=[SessionMiddleware()])
+mcp = FastMCP("TACDev-MCP", middleware=[SessionMiddleware()])
 
 
 # --------------------------------------------------------------------------- #
@@ -189,33 +189,41 @@ def get_port_data(device_index: int) -> dict:
 @mcp.tool()
 async def open_handle_by_description(port_name: str, ctx: Context) -> dict:
     session_id = ctx.session_id
-    if port_name in device_ownership:
-        owner = device_ownership[port_name]
-        log.warning("session=%s tried to open %s already owned by %s", session_id, port_name, owner)
-        raise RuntimeError(f"Device '{port_name}' is already in use by session {owner}.")
-    count = TACDev.GetDeviceCount()
-    for i in range(count):
-        device = TACDev.GetDevice(i)
-        if device and device.PortName() == port_name:
-            if not device.Open():
-                raise RuntimeError(f"Failed to open device '{port_name}'.")
-            handle = _register(device, session_id)
-            device_ownership[port_name] = session_id
-            log.info("session=%s opened %s handle=%d", session_id, port_name, handle)
-            return {"handle": handle}
+    async with _lock:
+        if port_name in device_ownership:
+            owner = device_ownership[port_name]
+            log.warning("session=%s tried to open %s already owned by %s", session_id, port_name, owner)
+            raise RuntimeError(
+                f"Device '{port_name}' is already in use by session {owner}. "
+                f"If that session crashed, restart the server (Ctrl+C) to release all devices."
+            )
+        count = TACDev.GetDeviceCount()
+        for i in range(count):
+            device = TACDev.GetDevice(i)
+            if device and device.PortName() == port_name:
+                if not device.Open():
+                    raise RuntimeError(f"Failed to open device '{port_name}'.")
+                handle = _register(device, port_name, session_id)
+                device_ownership[port_name] = session_id
+                log.info("session=%s opened %s handle=%d", session_id, port_name, handle)
+                return {"handle": handle}
     raise RuntimeError(f"No device with port name '{port_name}'.")
 
 
 @mcp.tool()
 async def close_tac_handle(handle: int, ctx: Context) -> dict:
     session_id = ctx.session_id
-    device = _get_device(handle)
-    port = next((p for p, s in device_ownership.items() if s == session_id), None)
-    device.Close()
-    del handles[handle]
-    if handle in session_handles.get(session_id, []):
-        session_handles[session_id].remove(handle)
-    if port:
+    async with _lock:
+        entry = handles.get(handle)
+        if entry is None:
+            raise RuntimeError(f"Invalid handle {handle}.")
+        device, port, owner = entry
+        if owner != session_id:
+            raise RuntimeError(f"Handle {handle} is owned by a different session.")
+        device.Close()
+        del handles[handle]
+        if handle in session_handles.get(session_id, []):
+            session_handles[session_id].remove(handle)
         del device_ownership[port]
     log.info("session=%s closed handle=%d port=%s", session_id, handle, port)
     return {"success": True}
@@ -225,36 +233,36 @@ async def close_tac_handle(handle: int, ctx: Context) -> dict:
 # Tools: device info
 # --------------------------------------------------------------------------- #
 @mcp.tool()
-def get_name(handle: int) -> dict:
-    return {"name": _get_device(handle).Get_Name()}
+async def get_name(handle: int, ctx: Context) -> dict:
+    return {"name": _get_device_owned(handle, ctx.session_id).Get_Name()}
 
 
 @mcp.tool()
-def get_firmware_version(handle: int) -> dict:
-    return {"firmware_version": _get_device(handle).GetFirmwareVersion()}
+async def get_firmware_version(handle: int, ctx: Context) -> dict:
+    return {"firmware_version": _get_device_owned(handle, ctx.session_id).GetFirmwareVersion()}
 
 
 @mcp.tool()
-def get_hardware(handle: int) -> dict:
-    return {"hardware": _get_device(handle).GetHardware()}
+async def get_hardware(handle: int, ctx: Context) -> dict:
+    return {"hardware": _get_device_owned(handle, ctx.session_id).GetHardware()}
 
 
 @mcp.tool()
-def get_hardware_version(handle: int) -> dict:
-    return {"hardware_version": _get_device(handle).Get_HardwareVersion()}
+async def get_hardware_version(handle: int, ctx: Context) -> dict:
+    return {"hardware_version": _get_device_owned(handle, ctx.session_id).Get_HardwareVersion()}
 
 
 @mcp.tool()
-def get_uuid(handle: int) -> dict:
-    return {"uuid": _get_device(handle).Get_UUID()}
+async def get_uuid(handle: int, ctx: Context) -> dict:
+    return {"uuid": _get_device_owned(handle, ctx.session_id).Get_UUID()}
 
 
 # --------------------------------------------------------------------------- #
 # Tools: external power
 # --------------------------------------------------------------------------- #
 @mcp.tool()
-def set_external_power_control(handle: int, state: bool) -> dict:
-    _get_device(handle).SetExternalPowerControl(state)
+async def set_external_power_control(handle: int, state: bool, ctx: Context) -> dict:
+    _get_device_owned(handle, ctx.session_id).SetExternalPowerControl(state)
     return {"success": True}
 
 
@@ -262,19 +270,19 @@ def set_external_power_control(handle: int, state: bool) -> dict:
 # Tools: dynamic commands
 # --------------------------------------------------------------------------- #
 @mcp.tool()
-def list_commands(handle: int) -> dict:
-    device = _get_device(handle)
+async def list_commands(handle: int, ctx: Context) -> dict:
+    device = _get_device_owned(handle, ctx.session_id)
     return {"commands": [device.GetCommand(i) for i in range(device.GetCommandCount())]}
 
 
 @mcp.tool()
-def get_command(handle: int, command_index: int) -> dict:
-    return {"command": _get_device(handle).GetCommand(command_index)}
+async def get_command(handle: int, command_index: int, ctx: Context) -> dict:
+    return {"command": _get_device_owned(handle, ctx.session_id).GetCommand(command_index)}
 
 
 @mcp.tool()
-def list_quick_commands(handle: int) -> dict:
-    device = _get_device(handle)
+async def list_quick_commands(handle: int, ctx: Context) -> dict:
+    device = _get_device_owned(handle, ctx.session_id)
     return {"quick_commands": [device.GetQuickCommand(i) for i in range(device.GetQuickCommandCount())]}
 
 
@@ -282,14 +290,14 @@ def list_quick_commands(handle: int) -> dict:
 # Tools: script variables
 # --------------------------------------------------------------------------- #
 @mcp.tool()
-def list_script_variables(handle: int) -> dict:
-    device = _get_device(handle)
+async def list_script_variables(handle: int, ctx: Context) -> dict:
+    device = _get_device_owned(handle, ctx.session_id)
     return {"script_variables": [device.GetScriptVariable(i) for i in range(device.GetScriptVariableCount())]}
 
 
 @mcp.tool()
-def update_script_variable(handle: int, variable: str, value: str) -> dict:
-    _get_device(handle).UpdateScriptVariableValue(variable, value)
+async def update_script_variable(handle: int, variable: str, value: str, ctx: Context) -> dict:
+    _get_device_owned(handle, ctx.session_id).UpdateScriptVariableValue(variable, value)
     return {"success": True}
 
 
@@ -297,13 +305,13 @@ def update_script_variable(handle: int, variable: str, value: str) -> dict:
 # Tools: core command interface
 # --------------------------------------------------------------------------- #
 @mcp.tool()
-def get_command_state(handle: int, command: str) -> dict:
-    return {"command": command, "state": _get_device(handle).GetCommandState(command)}
+async def get_command_state(handle: int, command: str, ctx: Context) -> dict:
+    return {"command": command, "state": _get_device_owned(handle, ctx.session_id).GetCommandState(command)}
 
 
 @mcp.tool()
-def send_command(handle: int, command: str, state: bool) -> dict:
-    _get_device(handle).SendCommand(command, state)
+async def send_command(handle: int, command: str, state: bool, ctx: Context) -> dict:
+    _get_device_owned(handle, ctx.session_id).SendCommand(command, state)
     return {"success": True}
 
 
@@ -311,21 +319,21 @@ def send_command(handle: int, command: str, state: bool) -> dict:
 # Tools: help / queue
 # --------------------------------------------------------------------------- #
 @mcp.tool()
-def get_help_text(handle: int) -> dict:
-    return {"help_text": _get_device(handle).GetHelpText()}
+async def get_help_text(handle: int, ctx: Context) -> dict:
+    return {"help_text": _get_device_owned(handle, ctx.session_id).GetHelpText()}
 
 
 @mcp.tool()
-def is_command_queue_clear(handle: int) -> dict:
-    return {"queue_clear": _get_device(handle).IsCommandQueueClear()}
+async def is_command_queue_clear(handle: int, ctx: Context) -> dict:
+    return {"queue_clear": _get_device_owned(handle, ctx.session_id).IsCommandQueueClear()}
 
 
 # --------------------------------------------------------------------------- #
 # Tools: raw pin
 # --------------------------------------------------------------------------- #
 @mcp.tool()
-def set_pin_state(handle: int, pin: int, state: bool) -> dict:
-    _get_device(handle).SetPin(pin, state)
+async def set_pin_state(handle: int, pin: int, state: bool, ctx: Context) -> dict:
+    _get_device_owned(handle, ctx.session_id).SetPin(pin, state)
     return {"success": True}
 
 
@@ -333,211 +341,211 @@ def set_pin_state(handle: int, pin: int, state: bool) -> dict:
 # Tools: battery
 # --------------------------------------------------------------------------- #
 @mcp.tool()
-def set_battery_state(handle: int, state: bool) -> dict:
-    _get_device(handle).SetBatteryState(state)
+async def set_battery_state(handle: int, state: bool, ctx: Context) -> dict:
+    _get_device_owned(handle, ctx.session_id).SetBatteryState(state)
     return {"success": True}
 
 
 @mcp.tool()
-def get_battery_state(handle: int) -> dict:
-    return {"state": _get_device(handle).GetBatteryState()}
+async def get_battery_state(handle: int, ctx: Context) -> dict:
+    return {"state": _get_device_owned(handle, ctx.session_id).GetBatteryState()}
 
 
 # --------------------------------------------------------------------------- #
 # Tools: USB
 # --------------------------------------------------------------------------- #
 @mcp.tool()
-def set_usb0(handle: int, state: bool) -> dict:
-    _get_device(handle).Usb0(state)
+async def set_usb0(handle: int, state: bool, ctx: Context) -> dict:
+    _get_device_owned(handle, ctx.session_id).Usb0(state)
     return {"success": True}
 
 
 @mcp.tool()
-def get_usb0_state(handle: int) -> dict:
-    return {"state": _get_device(handle).GetUsb0State()}
+async def get_usb0_state(handle: int, ctx: Context) -> dict:
+    return {"state": _get_device_owned(handle, ctx.session_id).GetUsb0State()}
 
 
 @mcp.tool()
-def set_usb1(handle: int, state: bool) -> dict:
-    _get_device(handle).Usb1(state)
+async def set_usb1(handle: int, state: bool, ctx: Context) -> dict:
+    _get_device_owned(handle, ctx.session_id).Usb1(state)
     return {"success": True}
 
 
 @mcp.tool()
-def get_usb1_state(handle: int) -> dict:
-    return {"state": _get_device(handle).GetUsb1State()}
+async def get_usb1_state(handle: int, ctx: Context) -> dict:
+    return {"state": _get_device_owned(handle, ctx.session_id).GetUsb1State()}
 
 
 # --------------------------------------------------------------------------- #
 # Tools: power key
 # --------------------------------------------------------------------------- #
 @mcp.tool()
-def set_power_key(handle: int, state: bool) -> dict:
-    _get_device(handle).PowerKey(state)
+async def set_power_key(handle: int, state: bool, ctx: Context) -> dict:
+    _get_device_owned(handle, ctx.session_id).PowerKey(state)
     return {"success": True}
 
 
 @mcp.tool()
-def get_power_key_state(handle: int) -> dict:
-    return {"state": _get_device(handle).GetPowerKeyState()}
+async def get_power_key_state(handle: int, ctx: Context) -> dict:
+    return {"state": _get_device_owned(handle, ctx.session_id).GetPowerKeyState()}
 
 
 # --------------------------------------------------------------------------- #
 # Tools: volume
 # --------------------------------------------------------------------------- #
 @mcp.tool()
-def set_volume_up(handle: int, state: bool) -> dict:
-    _get_device(handle).VolumeUp(state)
+async def set_volume_up(handle: int, state: bool, ctx: Context) -> dict:
+    _get_device_owned(handle, ctx.session_id).VolumeUp(state)
     return {"success": True}
 
 
 @mcp.tool()
-def get_volume_up_state(handle: int) -> dict:
-    return {"state": _get_device(handle).GetVolumeUpState()}
+async def get_volume_up_state(handle: int, ctx: Context) -> dict:
+    return {"state": _get_device_owned(handle, ctx.session_id).GetVolumeUpState()}
 
 
 @mcp.tool()
-def set_volume_down(handle: int, state: bool) -> dict:
-    _get_device(handle).VolumeDown(state)
+async def set_volume_down(handle: int, state: bool, ctx: Context) -> dict:
+    _get_device_owned(handle, ctx.session_id).VolumeDown(state)
     return {"success": True}
 
 
 @mcp.tool()
-def get_volume_down_state(handle: int) -> dict:
-    return {"state": _get_device(handle).GetVolumeDownState()}
+async def get_volume_down_state(handle: int, ctx: Context) -> dict:
+    return {"state": _get_device_owned(handle, ctx.session_id).GetVolumeDownState()}
 
 
 # --------------------------------------------------------------------------- #
 # Tools: SIM / SD
 # --------------------------------------------------------------------------- #
 @mcp.tool()
-def set_disconnect_uim1(handle: int, state: bool) -> dict:
-    _get_device(handle).DisconnectUIM1(state)
+async def set_disconnect_uim1(handle: int, state: bool, ctx: Context) -> dict:
+    _get_device_owned(handle, ctx.session_id).DisconnectUIM1(state)
     return {"success": True}
 
 
 @mcp.tool()
-def get_disconnect_uim1_state(handle: int) -> dict:
-    return {"state": _get_device(handle).GetDisconnectUIM1State()}
+async def get_disconnect_uim1_state(handle: int, ctx: Context) -> dict:
+    return {"state": _get_device_owned(handle, ctx.session_id).GetDisconnectUIM1State()}
 
 
 @mcp.tool()
-def set_disconnect_uim2(handle: int, state: bool) -> dict:
-    _get_device(handle).DisconnectUIM2(state)
+async def set_disconnect_uim2(handle: int, state: bool, ctx: Context) -> dict:
+    _get_device_owned(handle, ctx.session_id).DisconnectUIM2(state)
     return {"success": True}
 
 
 @mcp.tool()
-def get_disconnect_uim2_state(handle: int) -> dict:
-    return {"state": _get_device(handle).GetDisconnectUIM2State()}
+async def get_disconnect_uim2_state(handle: int, ctx: Context) -> dict:
+    return {"state": _get_device_owned(handle, ctx.session_id).GetDisconnectUIM2State()}
 
 
 @mcp.tool()
-def set_disconnect_sd_card(handle: int, state: bool) -> dict:
-    _get_device(handle).DisconnectSDCard(state)
+async def set_disconnect_sd_card(handle: int, state: bool, ctx: Context) -> dict:
+    _get_device_owned(handle, ctx.session_id).DisconnectSDCard(state)
     return {"success": True}
 
 
 @mcp.tool()
-def get_disconnect_sd_card_state(handle: int) -> dict:
-    return {"state": _get_device(handle).GetDisconnectSDCardState()}
+async def get_disconnect_sd_card_state(handle: int, ctx: Context) -> dict:
+    return {"state": _get_device_owned(handle, ctx.session_id).GetDisconnectSDCardState()}
 
 
 # --------------------------------------------------------------------------- #
 # Tools: EDL
 # --------------------------------------------------------------------------- #
 @mcp.tool()
-def set_primary_edl(handle: int, state: bool) -> dict:
-    _get_device(handle).PrimaryEDL(state)
+async def set_primary_edl(handle: int, state: bool, ctx: Context) -> dict:
+    _get_device_owned(handle, ctx.session_id).PrimaryEDL(state)
     return {"success": True}
 
 
 @mcp.tool()
-def get_primary_edl_state(handle: int) -> dict:
-    return {"state": _get_device(handle).GetPrimaryEDLState()}
+async def get_primary_edl_state(handle: int, ctx: Context) -> dict:
+    return {"state": _get_device_owned(handle, ctx.session_id).GetPrimaryEDLState()}
 
 
 @mcp.tool()
-def set_secondary_edl(handle: int, state: bool) -> dict:
-    _get_device(handle).SecondaryEDL(state)
+async def set_secondary_edl(handle: int, state: bool, ctx: Context) -> dict:
+    _get_device_owned(handle, ctx.session_id).SecondaryEDL(state)
     return {"success": True}
 
 
 @mcp.tool()
-def get_secondary_edl_state(handle: int) -> dict:
-    return {"state": _get_device(handle).GetSecondaryEDLState()}
+async def get_secondary_edl_state(handle: int, ctx: Context) -> dict:
+    return {"state": _get_device_owned(handle, ctx.session_id).GetSecondaryEDLState()}
 
 
 # --------------------------------------------------------------------------- #
 # Tools: PS_HOLD / RESIN_N
 # --------------------------------------------------------------------------- #
 @mcp.tool()
-def set_force_ps_hold_high(handle: int, state: bool) -> dict:
-    _get_device(handle).ForcePSHoldHigh(state)
+async def set_force_ps_hold_high(handle: int, state: bool, ctx: Context) -> dict:
+    _get_device_owned(handle, ctx.session_id).ForcePSHoldHigh(state)
     return {"success": True}
 
 
 @mcp.tool()
-def get_force_ps_hold_high_state(handle: int) -> dict:
-    return {"state": _get_device(handle).GetForcePSHoldHighState()}
+async def get_force_ps_hold_high_state(handle: int, ctx: Context) -> dict:
+    return {"state": _get_device_owned(handle, ctx.session_id).GetForcePSHoldHighState()}
 
 
 @mcp.tool()
-def set_secondary_pm_resin_n(handle: int, state: bool) -> dict:
-    _get_device(handle).SecondaryPM_RESIN_N(state)
+async def set_secondary_pm_resin_n(handle: int, state: bool, ctx: Context) -> dict:
+    _get_device_owned(handle, ctx.session_id).SecondaryPM_RESIN_N(state)
     return {"success": True}
 
 
 @mcp.tool()
-def get_secondary_pm_resin_n_state(handle: int) -> dict:
-    return {"state": _get_device(handle).GetSecondaryPM_RESIN_NState()}
+async def get_secondary_pm_resin_n_state(handle: int, ctx: Context) -> dict:
+    return {"state": _get_device_owned(handle, ctx.session_id).GetSecondaryPM_RESIN_NState()}
 
 
 # --------------------------------------------------------------------------- #
 # Tools: EUD
 # --------------------------------------------------------------------------- #
 @mcp.tool()
-def set_eud(handle: int, state: bool) -> dict:
-    _get_device(handle).Eud(state)
+async def set_eud(handle: int, state: bool, ctx: Context) -> dict:
+    _get_device_owned(handle, ctx.session_id).Eud(state)
     return {"success": True}
 
 
 @mcp.tool()
-def get_eud_state(handle: int) -> dict:
-    return {"state": _get_device(handle).GetEUDState()}
+async def get_eud_state(handle: int, ctx: Context) -> dict:
+    return {"state": _get_device_owned(handle, ctx.session_id).GetEUDState()}
 
 
 # --------------------------------------------------------------------------- #
 # Tools: headset
 # --------------------------------------------------------------------------- #
 @mcp.tool()
-def set_headset_disconnect(handle: int, state: bool) -> dict:
-    _get_device(handle).HeadsetDisconnect(state)
+async def set_headset_disconnect(handle: int, state: bool, ctx: Context) -> dict:
+    _get_device_owned(handle, ctx.session_id).HeadsetDisconnect(state)
     return {"success": True}
 
 
 @mcp.tool()
-def get_headset_disconnect_state(handle: int) -> dict:
-    return {"state": _get_device(handle).GetHeadsetDisconnectState()}
+async def get_headset_disconnect_state(handle: int, ctx: Context) -> dict:
+    return {"state": _get_device_owned(handle, ctx.session_id).GetHeadsetDisconnectState()}
 
 
 # --------------------------------------------------------------------------- #
 # Tools: name / reset count
 # --------------------------------------------------------------------------- #
 @mcp.tool()
-def set_name(handle: int, new_name: str) -> dict:
-    _get_device(handle).SetName(new_name)
+async def set_name(handle: int, new_name: str, ctx: Context) -> dict:
+    _get_device_owned(handle, ctx.session_id).SetName(new_name)
     return {"success": True}
 
 
 @mcp.tool()
-def get_reset_count(handle: int) -> dict:
-    return {"reset_count": _get_device(handle).GetResetCount()}
+async def get_reset_count(handle: int, ctx: Context) -> dict:
+    return {"reset_count": _get_device_owned(handle, ctx.session_id).GetResetCount()}
 
 
 @mcp.tool()
-def clear_reset_count(handle: int) -> dict:
-    _get_device(handle).ClearResetCount()
+async def clear_reset_count(handle: int, ctx: Context) -> dict:
+    _get_device_owned(handle, ctx.session_id).ClearResetCount()
     return {"success": True}
 
 
@@ -545,38 +553,38 @@ def clear_reset_count(handle: int) -> dict:
 # Tools: button sequences
 # --------------------------------------------------------------------------- #
 @mcp.tool()
-def power_on_button(handle: int) -> dict:
-    _get_device(handle).PowerOnButton()
+async def power_on_button(handle: int, ctx: Context) -> dict:
+    _get_device_owned(handle, ctx.session_id).PowerOnButton()
     return {"success": True}
 
 
 @mcp.tool()
-def power_off_button(handle: int) -> dict:
-    _get_device(handle).PowerOffButton()
+async def power_off_button(handle: int, ctx: Context) -> dict:
+    _get_device_owned(handle, ctx.session_id).PowerOffButton()
     return {"success": True}
 
 
 @mcp.tool()
-def boot_to_fastboot_button(handle: int) -> dict:
-    _get_device(handle).BootToFastBootButton()
+async def boot_to_fastboot_button(handle: int, ctx: Context) -> dict:
+    _get_device_owned(handle, ctx.session_id).BootToFastBootButton()
     return {"success": True}
 
 
 @mcp.tool()
-def boot_to_uefi_menu_button(handle: int) -> dict:
-    _get_device(handle).BootToUEFIMenuButton()
+async def boot_to_uefi_menu_button(handle: int, ctx: Context) -> dict:
+    _get_device_owned(handle, ctx.session_id).BootToUEFIMenuButton()
     return {"success": True}
 
 
 @mcp.tool()
-def boot_to_edl_button(handle: int) -> dict:
-    _get_device(handle).BootToEDLButton()
+async def boot_to_edl_button(handle: int, ctx: Context) -> dict:
+    _get_device_owned(handle, ctx.session_id).BootToEDLButton()
     return {"success": True}
 
 
 @mcp.tool()
-def boot_to_secondary_edl_button(handle: int) -> dict:
-    _get_device(handle).BootToSecondaryEDLButton()
+async def boot_to_secondary_edl_button(handle: int, ctx: Context) -> dict:
+    _get_device_owned(handle, ctx.session_id).BootToSecondaryEDLButton()
     return {"success": True}
 
 
@@ -586,6 +594,7 @@ def boot_to_secondary_edl_button(handle: int) -> dict:
 if __name__ == "__main__":
     server_cfg = cfg["server"]
     log.info("Starting TACDev MCP server on %s:%d", server_cfg["host"], server_cfg["port"])
+    log.info("Tip: if a client crashes and leaves a device locked, press Ctrl+C to restart the server — all devices will be released cleanly on shutdown.")
     try:
         mcp.run(
             transport="sse",
@@ -595,4 +604,5 @@ if __name__ == "__main__":
     except KeyboardInterrupt:
         pass
     finally:
+        _release_all()
         log.info("Server stopped.")
