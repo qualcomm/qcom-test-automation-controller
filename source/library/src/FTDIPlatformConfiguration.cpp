@@ -319,6 +319,29 @@ FTDIPinSets _FTDIPlatformConfiguration::getPinSet(ChipIndex chipIndex)
 }
 
 // -----------------------------------------------------------------------
+// Tab cascade operations
+// -----------------------------------------------------------------------
+
+void _FTDIPlatformConfiguration::cascadeTabDelete(const qtac::String& tabName)
+{
+    for (auto& pinEntry : _pinEntries)
+    {
+        if (pinEntry._tabName == tabName)
+            pinEntry._tabName = qtac::String();
+    }
+}
+
+void _FTDIPlatformConfiguration::cascadeTabRename(const qtac::String& oldName,
+                                                   const qtac::String& newName)
+{
+    for (auto& pinEntry : _pinEntries)
+    {
+        if (pinEntry._tabName == oldName)
+            pinEntry._tabName = newName;
+    }
+}
+
+// -----------------------------------------------------------------------
 // JSON I/O
 // -----------------------------------------------------------------------
 

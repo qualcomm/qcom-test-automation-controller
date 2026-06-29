@@ -128,6 +128,9 @@ public:
 
     PinID bitFromSetPin(PinID setPin);
 
+    void cascadeTabDelete(const qtac::String& tabName);
+    void cascadeTabRename(const qtac::String& oldName, const qtac::String& newName);
+
     bool read(json_t& parentLevel);
     void write(json_t& parentLevel);
 

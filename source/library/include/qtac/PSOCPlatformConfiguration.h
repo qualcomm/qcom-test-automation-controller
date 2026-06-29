@@ -133,6 +133,9 @@ public:
     qtac::Point getPinCellLocation(PinID pinId) const;
     void setPinCellLocation(PinID pinId, const qtac::Point& cellLocation);
 
+    void cascadeTabDelete(const qtac::String& tabName);
+    void cascadeTabRename(const qtac::String& oldName, const qtac::String& newName);
+
     bool read(json_t& parentLevel);
     void write(json_t& parentLevel);
 

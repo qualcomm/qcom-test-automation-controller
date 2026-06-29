@@ -217,6 +217,29 @@ PinID _PIC32CXPlatformConfiguration::bitFromSetPin(PinID setPin)
 }
 
 // ---------------------------------------------------------------------------
+// Tab cascade operations
+// ---------------------------------------------------------------------------
+
+void _PIC32CXPlatformConfiguration::cascadeTabDelete(const qtac::String& tabName)
+{
+    for (auto& pinEntry : _pinEntries)
+    {
+        if (pinEntry._tabName == tabName)
+            pinEntry._tabName = qtac::String();
+    }
+}
+
+void _PIC32CXPlatformConfiguration::cascadeTabRename(const qtac::String& oldName,
+                                                      const qtac::String& newName)
+{
+    for (auto& pinEntry : _pinEntries)
+    {
+        if (pinEntry._tabName == oldName)
+            pinEntry._tabName = newName;
+    }
+}
+
+// ---------------------------------------------------------------------------
 // JSON I/O
 // ---------------------------------------------------------------------------
 
