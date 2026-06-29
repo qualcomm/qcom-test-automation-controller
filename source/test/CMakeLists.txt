@@ -17,3 +17,12 @@ target_link_libraries(test_string PRIVATE qtac-core)
 
 add_executable(test_containers test_containers.cpp)
 target_link_libraries(test_containers PRIVATE qtac-core)
+
+add_executable(test_stringutils test_stringutils.cpp)
+target_link_libraries(test_stringutils PRIVATE qtac-core)
+
+add_executable(test_signal test_signal.cpp)
+target_link_libraries(test_signal PRIVATE qtac-core)
+
+add_executable(test_platform_configs test_platform_configs.cpp)
+target_link_libraries(test_platform_configs PRIVATE qtac-core)

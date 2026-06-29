@@ -184,6 +184,19 @@ public:
 		return *this;
 	}
 
+	void chop(int n)
+	{
+		if (n <= 0) return;
+		if (n >= size()) { _data.clear(); return; }
+		_data.erase(_data.size() - static_cast<size_t>(n));
+	}
+
+	void truncate(int pos)
+	{
+		if (pos <= 0) { _data.clear(); return; }
+		if (pos < size()) _data.resize(static_cast<size_t>(pos));
+	}
+
 	// --- Search ---
 
 	bool contains(const ByteArray& other) const
