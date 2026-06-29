@@ -53,6 +53,8 @@ public:
     TACPIC32CXDriveThread(const TACPIC32CXDriveThread&)            = delete;
     TACPIC32CXDriveThread& operator=(const TACPIC32CXDriveThread&) = delete;
 
+    qtac::String locked() { return {}; }
+
     // --- DriveThread ---
     void run() override;
 

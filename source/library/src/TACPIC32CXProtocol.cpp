@@ -101,6 +101,10 @@ void TACPIC32CXProtocol::endTransaction(ReceiveInterface* receiveInterface)
     ProtocolInterface::queueEndTransaction(receiveInterface);
 }
 
+void TACPIC32CXProtocol::sendHelpCommand()
+{
+}
+
 void TACPIC32CXProtocol::receive(FramePackage& framePackage)
 {
     _tacDriveTrain->receive(framePackage);

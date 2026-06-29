@@ -72,6 +72,7 @@ public:
                          bool shouldStore = true);
 
     void endTransaction(ReceiveInterface* receiveInterface = nullptr);
+    void sendHelpCommand();
 
     // ReceiveInterface
     void receive(FramePackage& framePackage) override;

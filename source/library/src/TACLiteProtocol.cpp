@@ -101,6 +101,10 @@ void TACLiteProtocol::endTransaction(ReceiveInterface* receiveInterface)
     ProtocolInterface::queueEndTransaction(receiveInterface);
 }
 
+void TACLiteProtocol::sendHelpCommand()
+{
+}
+
 void TACLiteProtocol::receive(FramePackage& framePackage)
 {
     _tacDriveTrain->receive(framePackage);

@@ -55,6 +55,8 @@ public:
     TACPSOCDriveThread(const TACPSOCDriveThread&)            = delete;
     TACPSOCDriveThread& operator=(const TACPSOCDriveThread&) = delete;
 
+    qtac::String locked() { return {}; }
+
     // --- DriveThread ---
     void run() override;
 
