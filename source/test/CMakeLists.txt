@@ -26,3 +26,6 @@ target_link_libraries(test_signal PRIVATE qtac-core)
 
 add_executable(test_platform_configs test_platform_configs.cpp)
 target_link_libraries(test_platform_configs PRIVATE qtac-core)
+
+add_executable(test_coders_commands test_coders_commands.cpp)
+target_link_libraries(test_coders_commands PRIVATE qtac-core)
