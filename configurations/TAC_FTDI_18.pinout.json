@@ -1,0 +1,363 @@
+{
+    "$schema": "https://qualcomm.github.io/tac/schemas/pinout-1.0.json",
+    "bus": [
+        {
+            "bus": "A",
+            "bus_function": 2,
+            "chip_index": 0
+        },
+        {
+            "bus": "B",
+            "bus_function": 2,
+            "chip_index": 0
+        },
+        {
+            "bus": "C",
+            "bus_function": 2,
+            "chip_index": 0
+        },
+        {
+            "bus": "D",
+            "bus_function": 2,
+            "chip_index": 0
+        }
+    ],
+    "chip_count": 1,
+    "description": "FTDI TAC for RIDE MX 4.0",
+    "format": "tac-pinout",
+    "name": "RIDE MX 4.0 Lite",
+    "pins": [
+        {
+            "bus": "A",
+            "chip_index": 0,
+            "command": "s2_force_md_ps_hold",
+            "initial_value": false,
+            "input": false,
+            "inverted": false,
+            "pin_number": "0",
+            "priority": -1
+        },
+        {
+            "bus": "B",
+            "chip_index": 0,
+            "command": "s2_uefi",
+            "initial_value": false,
+            "input": false,
+            "inverted": false,
+            "pin_number": "0",
+            "priority": -1
+        },
+        {
+            "bus": "C",
+            "chip_index": 0,
+            "command": "ms_ps_hold",
+            "initial_value": false,
+            "input": false,
+            "inverted": false,
+            "pin_number": "0",
+            "priority": -1
+        },
+        {
+            "bus": "D",
+            "chip_index": 0,
+            "command": "uefi",
+            "initial_value": false,
+            "input": false,
+            "inverted": false,
+            "pin_number": "0",
+            "priority": -1
+        },
+        {
+            "bus": "A",
+            "chip_index": 0,
+            "command": "s2_mode0",
+            "initial_value": false,
+            "input": false,
+            "inverted": false,
+            "pin_number": "1",
+            "priority": -1
+        },
+        {
+            "bus": "B",
+            "chip_index": 0,
+            "command": "s2_force_classic",
+            "initial_value": false,
+            "input": false,
+            "inverted": false,
+            "pin_number": "1",
+            "priority": -1
+        },
+        {
+            "bus": "C",
+            "chip_index": 0,
+            "command": "mode0",
+            "initial_value": false,
+            "input": false,
+            "inverted": false,
+            "pin_number": "1",
+            "priority": -1
+        },
+        {
+            "bus": "D",
+            "chip_index": 0,
+            "command": "pwr_off",
+            "initial_value": false,
+            "input": false,
+            "inverted": false,
+            "pin_number": "1",
+            "priority": -1
+        },
+        {
+            "bus": "A",
+            "chip_index": 0,
+            "command": "s2_md_resout",
+            "initial_value": false,
+            "input": false,
+            "inverted": false,
+            "pin_number": "2",
+            "priority": -1
+        },
+        {
+            "bus": "B",
+            "chip_index": 0,
+            "command": "s2_pmic_resin",
+            "initial_value": false,
+            "input": false,
+            "inverted": false,
+            "pin_number": "2",
+            "priority": -1
+        },
+        {
+            "bus": "C",
+            "chip_index": 0,
+            "command": "md_resout",
+            "initial_value": false,
+            "input": false,
+            "inverted": false,
+            "pin_number": "2",
+            "priority": -1
+        },
+        {
+            "bus": "D",
+            "chip_index": 0,
+            "command": "pmic_resin",
+            "initial_value": false,
+            "input": false,
+            "inverted": false,
+            "pin_number": "2",
+            "priority": -1
+        },
+        {
+            "bus": "A",
+            "chip_index": 0,
+            "command": "s2_mode1",
+            "initial_value": false,
+            "input": false,
+            "inverted": false,
+            "pin_number": "3",
+            "priority": -1
+        },
+        {
+            "bus": "B",
+            "chip_index": 0,
+            "command": "s2_kpd_pwr",
+            "initial_value": false,
+            "input": false,
+            "inverted": false,
+            "pin_number": "3",
+            "priority": -1
+        },
+        {
+            "bus": "C",
+            "chip_index": 0,
+            "command": "mode1",
+            "initial_value": false,
+            "input": false,
+            "inverted": false,
+            "pin_number": "3",
+            "priority": -1
+        },
+        {
+            "bus": "D",
+            "chip_index": 0,
+            "command": "kpd_pwr",
+            "initial_value": false,
+            "input": false,
+            "inverted": false,
+            "pin_number": "3",
+            "priority": -1
+        },
+        {
+            "bus": "A",
+            "chip_index": 0,
+            "command": "s2_ss_force_edl",
+            "initial_value": false,
+            "input": false,
+            "inverted": false,
+            "pin_number": "4",
+            "priority": -1
+        },
+        {
+            "bus": "B",
+            "chip_index": 0,
+            "command": "s2_eud_en",
+            "initial_value": false,
+            "input": false,
+            "inverted": false,
+            "pin_number": "4",
+            "priority": -1
+        },
+        {
+            "bus": "C",
+            "chip_index": 0,
+            "command": "ss_force_edl",
+            "initial_value": false,
+            "input": false,
+            "inverted": false,
+            "pin_number": "4",
+            "priority": -1
+        },
+        {
+            "bus": "D",
+            "chip_index": 0,
+            "command": "eud_en",
+            "initial_value": false,
+            "input": false,
+            "inverted": false,
+            "pin_number": "4",
+            "priority": -1
+        },
+        {
+            "bus": "A",
+            "chip_index": 0,
+            "command": "s2_usb2_disc",
+            "initial_value": false,
+            "input": false,
+            "inverted": false,
+            "pin_number": "5",
+            "priority": -1
+        },
+        {
+            "bus": "B",
+            "chip_index": 0,
+            "command": "s2_sw_dnld",
+            "initial_value": false,
+            "input": false,
+            "inverted": false,
+            "pin_number": "5",
+            "priority": -1
+        },
+        {
+            "bus": "C",
+            "chip_index": 0,
+            "command": "usb2",
+            "initial_value": false,
+            "input": false,
+            "inverted": false,
+            "pin_number": "5",
+            "priority": -1
+        },
+        {
+            "bus": "D",
+            "chip_index": 0,
+            "command": "sw_dnld",
+            "initial_value": false,
+            "input": false,
+            "inverted": false,
+            "pin_number": "5",
+            "priority": -1
+        },
+        {
+            "bus": "A",
+            "chip_index": 0,
+            "command": "s2_usb1_disc",
+            "initial_value": false,
+            "input": false,
+            "inverted": false,
+            "pin_number": "6",
+            "priority": -1
+        },
+        {
+            "bus": "B",
+            "chip_index": 0,
+            "command": "",
+            "initial_value": false,
+            "input": false,
+            "inverted": false,
+            "pin_number": "6",
+            "priority": -1
+        },
+        {
+            "bus": "C",
+            "chip_index": 0,
+            "command": "usb1",
+            "initial_value": false,
+            "input": false,
+            "inverted": false,
+            "pin_number": "6",
+            "priority": -1
+        },
+        {
+            "bus": "D",
+            "chip_index": 0,
+            "command": "oe",
+            "initial_value": true,
+            "input": false,
+            "inverted": false,
+            "pin_number": "6",
+            "priority": 1
+        },
+        {
+            "bus": "A",
+            "chip_index": 0,
+            "command": "s2_force_ss_ps_hold",
+            "initial_value": false,
+            "input": false,
+            "inverted": false,
+            "pin_number": "7",
+            "priority": -1
+        },
+        {
+            "bus": "B",
+            "chip_index": 0,
+            "command": "s2_usb0_disc",
+            "initial_value": false,
+            "input": false,
+            "inverted": false,
+            "pin_number": "7",
+            "priority": -1
+        },
+        {
+            "bus": "C",
+            "chip_index": 0,
+            "command": "sail_ps_hold",
+            "initial_value": false,
+            "input": false,
+            "inverted": false,
+            "pin_number": "7",
+            "priority": -1
+        },
+        {
+            "bus": "D",
+            "chip_index": 0,
+            "command": "usb0",
+            "initial_value": false,
+            "input": false,
+            "inverted": false,
+            "pin_number": "7",
+            "priority": -1
+        }
+    ],
+    "platform_id": 18,
+    "platform_type": "FTDI",
+    "reset_enabled": false,
+    "schema_version": "1.0",
+    "script": "def powerOn()\n\tlogComment ====== on start ======\n\t\n\tpwr_off 0\n\n\tlogComment ====== on finish ======\n\n\ndef powerOff() \n\tlogComment ====== off start ======\n\n\tpwr_off 1\n\n\tlogComment ====== off finish ======\n\n\ndef reset()\n\tlogComment ====== reset start ======\n\n\tpowerOff\n\tdelay 1500\n\tpowerOn\n\n\tlogComment ====== reset finish ======\n\n\ndef bootToEDL()\n\tlogComment ====== s1_md_sail_edl start ======\n\t\n\tsw_dnld 1\n\tss_force_edl 1\n\tpmic_resin 1\n\tdelay 1500\n\tpmic_resin 0\n\tdelay 1000\n\tpowerOn\n\tdelay 5000\n\tdelay $Optional_GPIO_Hold_Time\n\tsw_dnld 0\n\tss_force_edl 0\n\n\tlogComment ======  s1_md_sail_edl finish ======\n\n\ndef bootToUEFI()\n\tlogComment ====== s1_uefi start ======\n\t\n\tpmic_resin 1\n\tdelay 1500\n\tpmic_resin 0\n\tdelay 1000\n\tkpd_pwr 0\n\tuefi 1\n\tsw_dnld 0\n\tkpd_pwr 1\n\tdelay 8000\n\tdelay $Optional_GPIO_Hold_Time\n\tkpd_pwr 0\n\tuefi 0\n\n\tlogComment ====== s1_uefi finish ======\n\n\ndef bootToFastboot()\n\tlogComment ====== s1_fastboot start ======\n\n\tpmic_resin 1\n\tdelay 1500\n\tpmic_resin 0\n\tdelay 800\n\tpmic_resin 1\n\tdelay 8000\n\tdelay $Optional_GPIO_Hold_Time\n\tpmic_resin 0\n\n\tlogComment ====== s1_fastboot finish ======\n\n\ndef s1_reset()\n\tlogComment ====== s1_reset start ======\n\n\tpmic_resin 1\n\tdelay 1500\n\tpmic_resin 0\n\n\tlogComment ====== s1_reset end ======\n\n\ndef s2_reset()\n\tlogComment ====== s2_reset start ======\n\n\ts2_pmic_resin 1\n\tdelay 1500\n\ts2_pmic_resin 0\n\n\tlogComment ====== s2_reset end ======\n\n\ndef s2_md_sail_edl()\n\tlogComment ====== s2_md_sail_edl start ======\n\n\ts2_sw_dnld 1\n\ts2_ss_force_edl 1\n\ts2_pmic_resin 1\n\tdelay 1500\n\ts2_pmic_resin 0\n\tdelay 1000\n\tpowerOn\n\tdelay 5000\n\tdelay $Optional_GPIO_Hold_Time\n\ts2_sw_dnld 0\n\ts2_ss_force_edl 0\n\n\tlogComment ======  s2_md_sail_edl finish ======\n\n\ndef s2_uefi_sequence()\n\tlogComment ====== s2_uefi_sequence start ======\n\n\ts2_pmic_resin 1\n\tdelay 1500\n\ts2_pmic_resin 0\n\tdelay 1000\n\ts2_kpd_pwr 0\n\ts2_uefi 1\n\ts2_sw_dnld 0\n\ts2_kpd_pwr 1\n\tdelay 8000\n\tdelay $Optional_GPIO_Hold_Time\n\ts2_kpd_pwr 0\n\ts2_uefi 0\n\n\tlogComment ====== s2_uefi_sequence finish ======\n\n\ndef s2_fastboot()\n\tlogComment ====== s2_fastboot start ======\n\n\ts2_pmic_resin 1\n\tdelay 1500\n\ts2_pmic_resin 0\n\tdelay 800\n\ts2_pmic_resin 1\n\tdelay 8000\n\tdelay $Optional_GPIO_Hold_Time\n\ts2_pmic_resin 0\n\n\tlogComment ====== s2_fastboot finish ======\n\n\ndef s2_Hboot_EDL_HOLD()\n\tlogComment ====== s2_Hboot_EDL_HOLD start ======\n\n\ts2_sw_dnld 1\n\ts2_ss_force_edl 1\n\n\tlogComment ====== s2_Hboot_EDL_HOLD finish ======\n\n\ndef s2_Hboot_EDL_RELEASE()\n\tlogComment ====== s2_Hboot_EDL_RELEASE start ======\n\n\ts2_sw_dnld 0\n\ts2_ss_force_edl 0\n\n\tlogComment ====== s2_Hboot_EDL_RELEASE finish ======\n\n\ndef classic_mode_set()\n\tlogComment ====== classic_mode_set start ======\n\n\ts2_force_classic 1\n\tpowerOff\n\tdelay 1500\n\tpowerOn\n\n\tlogComment ====== classic_mode_set finish ======\n\n\ndef hboot_mode_set()\n\tlogComment ====== hboot_mode_set start ======\n\n\ts2_force_classic 0\n\n\tlogComment ====== hboot_mode_set finish ======",
+    "usb_descriptor": "RIDE MX 4.0 Lite",
+    "variables": [
+        {
+            "default_value": "0",
+            "name": "Optional_GPIO_Hold_Time"
+        }
+    ]
+}

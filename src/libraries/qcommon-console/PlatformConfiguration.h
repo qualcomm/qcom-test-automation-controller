@@ -184,6 +184,18 @@ protected:
 	virtual bool read(QJsonObject& parentLevel);
 	virtual void write(QJsonObject& parentLevel);
 
+	// On disk a configuration is stored as two files: a shared, self-describing
+	// hardware pinout file (pins, bus map, script, variable defaults) that
+	// external/3rd-party tools can consume directly, and a UI overlay (.tcnf)
+	// that references it (pinout_ref) and carries buttons, tabs and per-pin UI
+	// fields. In memory the model stays unified - the read()/write() pair still
+	// operate on a single combined JSON object. These helpers translate between
+	// the combined object and the two on-disk halves, so the split lives only at
+	// (de)serialization and the platform subclasses are unaffected.
+	static void splitConfiguration(const QJsonObject& combined, QJsonObject& pinout, QJsonObject& overlay);
+	static QJsonObject mergeConfiguration(const QJsonObject& pinout, const QJsonObject& overlay);
+	static QString pinoutFileNameFor(const QString& overlayFileName);
+
 	void defaultAlpacaScript();
 	void defaultScriptVariables();
 
@@ -193,6 +205,7 @@ protected:
 
 	QString						_platformPath;
 	QString						_platformFile;
+	QString						_pinoutFile;
 	PlatformID					_platformId{kDefaultPlatformId};
 	quint32						_fileVersion{0};
 	QString						_name;
