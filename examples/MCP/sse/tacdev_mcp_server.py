@@ -6,6 +6,7 @@
 import asyncio
 import logging
 import logging.handlers
+import time
 from pathlib import Path
 
 import yaml
@@ -32,8 +33,9 @@ def _setup_logging() -> logging.Logger:
     logger = logging.getLogger("tacdev_mcp")
     logger.setLevel(log_cfg["level"].upper())
 
+    log_path = _CONFIG_PATH.with_name(log_cfg["file"])
     handler = logging.handlers.RotatingFileHandler(
-        log_cfg["file"],
+        log_path,
         maxBytes=log_cfg["max_bytes"],
         backupCount=log_cfg["backup_count"],
     )
@@ -42,6 +44,14 @@ def _setup_logging() -> logging.Logger:
     return logger
 
 log = _setup_logging()
+
+# Suppress uvicorn SSE shutdown race: starlette sends http.response.start after
+# uvicorn has already torn down the connection on Ctrl+C.
+logging.getLogger("uvicorn.error").addFilter(
+    type("_suppress_sse_shutdown", (logging.Filter,), {
+        "filter": lambda self, r: "Expected ASGI message" not in r.getMessage()
+    })()
+)
 
 # --------------------------------------------------------------------------- #
 # Device ownership registry
@@ -80,6 +90,7 @@ def _release_all() -> None:
         try:
             device.Close()
             log.info("session=%s handle=%d port=%s closed on shutdown", session_id, handle, port)
+            time.sleep(2)
         except Exception as e:
             log.warning("session=%s handle=%d port=%s failed to close on shutdown: %s", session_id, handle, port, e)
     handles.clear()
@@ -594,12 +605,13 @@ async def boot_to_secondary_edl_button(handle: int, ctx: Context) -> dict:
 if __name__ == "__main__":
     server_cfg = cfg["server"]
     log.info("Starting TACDev MCP server on %s:%d", server_cfg["host"], server_cfg["port"])
-    log.info("Tip: if a client crashes and leaves a device locked, press Ctrl+C to restart the server — all devices will be released cleanly on shutdown.")
+    log.info("Tip: if a client crashes and leaves a device locked, press Ctrl+C to restart the server. All devices will be released cleanly on shutdown.")
     try:
         mcp.run(
             transport="sse",
             host=server_cfg["host"],
             port=server_cfg["port"],
+            uvicorn_config={"timeout_graceful_shutdown": 0},
         )
     except KeyboardInterrupt:
         pass

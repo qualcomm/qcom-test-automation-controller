@@ -494,5 +494,7 @@ def boot_to_secondary_edl_button(handle: int) -> dict:
 if __name__ == "__main__":
     try:
         mcp.run(transport="stdio")
+    except KeyboardInterrupt:
+        pass
     finally:
         _release_all()

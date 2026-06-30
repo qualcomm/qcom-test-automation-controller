@@ -1,4 +1,4 @@
-# QTAC MCP Server — SSE
+# QTAC MCP Server - SSE
 
 Persistent server supporting multiple concurrent clients. Each client session gets exclusive
 ownership of a device.
@@ -31,7 +31,7 @@ pip install -r examples/MCP/sse/requirements.txt
 
 ## Configuration
 
-`config.yaml` — all fields optional, defaults shown:
+`config.yaml` - all fields optional, defaults shown:
 
 | Parameter | Default | Description |
 | :-- | :-- | :-- |
@@ -50,14 +50,14 @@ The server must be started before any client connects:
 python examples/MCP/sse/tacdev_mcp_server.py
 ```
 
-### Option 1 — Python client
+### Option 1 - Python client
 
 ```bash
 python examples/MCP/sse/tacdev_mcp_client.py           # first available device
 python examples/MCP/sse/tacdev_mcp_client.py COM41     # specific port
 ```
 
-### Option 2 — Claude CLI
+### Option 2 - Claude CLI
 
 Register once (server must already be running):
 
@@ -71,7 +71,7 @@ Verify:
 claude mcp list
 ```
 
-Then ask Claude naturally — no special syntax needed:
+Then ask Claude naturally - no special syntax needed:
 
 ```
 List connected devices
@@ -100,5 +100,5 @@ python examples/MCP/sse/tacdev_mcp_server.py
 | `TACDev library not found` | Run `build.bat` / `build.sh` first |
 | `Architecture mismatch` | Use Python matching your OS architecture |
 | `No module named 'fastmcp'` | `pip install -r requirements.txt` (requires Python 3.10+) |
-| `cryptography` build failure on ARM64 | Re-run `setup.bat` — downloads OpenSSL automatically. Manual fallback: install [Win64ARMOpenSSL-4_0_1.msi](https://slproweb.com/download/Win64ARMOpenSSL-4_0_1.msi) (full, not Light) and set `OPENSSL_DIR=C:\Program Files\OpenSSL-Win64-ARM` |
+| `cryptography` build failure on ARM64 | Re-run `setup.bat` - downloads OpenSSL automatically. Manual fallback: install [Win64ARMOpenSSL-4_0_1.msi](https://slproweb.com/download/Win64ARMOpenSSL-4_0_1.msi) (full, not Light) and set `OPENSSL_DIR=C:\Program Files\OpenSSL-Win64-ARM` |
 | `get_device_count` returns 0 | Check board is connected. Windows: run `FTDICheck.exe` from `__Builds\x64\Release\bin`. Linux: `sudo cp udev-rules/99-QTAC-USB.rules /etc/udev/rules.d/ && sudo udevadm control --reload` |

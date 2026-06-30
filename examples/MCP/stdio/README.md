@@ -1,4 +1,4 @@
-# QTAC MCP Server — stdio
+# QTAC MCP Server - stdio
 
 Server is spawned automatically per-client process. No standalone server to manage.
 
@@ -30,16 +30,16 @@ pip install -r examples/MCP/stdio/requirements.txt
 
 ## Running
 
-No separate server process needed — the server is spawned automatically.
+No separate server process needed - the server is spawned automatically.
 
-### Option 1 — Python client
+### Option 1 - Python client
 
 ```bash
 python examples/MCP/stdio/tacdev_mcp_client.py           # first available device
 python examples/MCP/stdio/tacdev_mcp_client.py COM41     # specific port
 ```
 
-### Option 2 — Claude CLI
+### Option 2 - Claude CLI
 
 Register once from repo root:
 
@@ -53,7 +53,7 @@ Verify:
 claude mcp list
 ```
 
-Then ask Claude naturally — no special syntax needed:
+Then ask Claude naturally - no special syntax needed:
 
 ```
 List connected devices
@@ -79,5 +79,5 @@ Boot COM3 to fastboot
 | `TACDev library not found` | Run `build.bat` / `build.sh` first |
 | `Architecture mismatch` | Use Python matching your OS architecture |
 | `No module named 'fastmcp'` | `pip install -r requirements.txt` (requires Python 3.10+) |
-| `cryptography` build failure on ARM64 | Re-run `setup.bat` — downloads OpenSSL automatically. Manual fallback: install [Win64ARMOpenSSL-4_0_1.msi](https://slproweb.com/download/Win64ARMOpenSSL-4_0_1.msi) (full, not Light) and set `OPENSSL_DIR=C:\Program Files\OpenSSL-Win64-ARM` |
+| `cryptography` build failure on ARM64 | Re-run `setup.bat` - downloads OpenSSL automatically. Manual fallback: install [Win64ARMOpenSSL-4_0_1.msi](https://slproweb.com/download/Win64ARMOpenSSL-4_0_1.msi) (full, not Light) and set `OPENSSL_DIR=C:\Program Files\OpenSSL-Win64-ARM` |
 | `get_device_count` returns 0 | Check board is connected. Windows: run `FTDICheck.exe` from `__Builds\x64\Release\bin`. Linux: `sudo cp udev-rules/99-QTAC-USB.rules /etc/udev/rules.d/ && sudo udevadm control --reload` |

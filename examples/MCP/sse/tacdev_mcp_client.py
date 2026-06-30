@@ -299,17 +299,24 @@ async def TACExample(port_name: str | None = None) -> None:
 
             commands = await tac.list_commands(handle)
             if commands:
-                # Extract short command names (e.g. "sedl" from "sedl(30), Secondary EDL")
-                cmd_names = [c.split("(")[0].strip() for c in commands]
-                print(f"\nCommand names: {cmd_names}")
+                cmd_names = [c.split(";")[0].strip() for c in commands]
+                print(f"\nCommands      : {cmd_names}")
 
+            quick_commands = await tac.list_quick_commands(handle)
+            if quick_commands:
+                qc_names = [q.split(";")[1].strip() for q in quick_commands]
+                print(f"Quick commands: {qc_names}")
+
+            if commands:
                 cmd = cmd_names[0]
                 state_before = await tac.get_command_state(handle, cmd)
                 print(f"\nCommand '{cmd}' state before toggle: {state_before}")
                 await tac.send_command(handle, cmd, not state_before)
+                await asyncio.sleep(2)
                 state_after = await tac.get_command_state(handle, cmd)
                 print(f"Command '{cmd}' state after  toggle: {state_after}")
                 await tac.send_command(handle, cmd, state_before)
+                await asyncio.sleep(2)
                 print(f"Command '{cmd}' restored to        : {await tac.get_command_state(handle, cmd)}")
 
             await tac.close_tac_handle(handle)
