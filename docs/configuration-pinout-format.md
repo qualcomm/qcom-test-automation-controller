@@ -17,7 +17,15 @@ dragging UI concerns along.
 
 ## Pinout file (`*.pinout.json`) — the shared artifact
 
-Self-describing: tools should verify `format == "tac-pinout"` before parsing.
+Self-describing: tools should verify `format == "tac-pinout"` before parsing. A
+formal JSON Schema (Draft 2020-12) is provided at [`schemas/pinout-1.0.json`](../schemas/pinout-1.0.json)
+(published as `https://qualcomm.github.io/tac/schemas/pinout-1.0.json`); validate a
+pinout file against it with any standard JSON Schema validator, e.g.:
+
+```bash
+python3 -m pip install jsonschema
+python3 -c "import json,jsonschema,sys; jsonschema.validate(json.load(open(sys.argv[1])), json.load(open('schemas/pinout-1.0.json')))" configurations/TAC_FTDI_15.pinout.json
+```
 
 ```json
 {
