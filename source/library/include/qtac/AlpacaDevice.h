@@ -44,6 +44,7 @@
 #include <qtac/PlatformID.h>
 #include <qtac/TACCommand.h>
 #include <qtac/Size.h>
+#include <qtac/PinEntry.h>
 
 #include <cstdint>
 #include <memory>
@@ -133,6 +134,9 @@ public:
 	TACCommand commandEntry(uint32_t commandIndex);
 	TACCommands commandList();
 
+	// --- Pin list (populated after open() + buildMapping()) ---
+	virtual Pins getPins() { return {}; }
+
 	bool getCommandState(const qtac::ByteArray& command);
 	bool sendCommand(const qtac::ByteArray& command, bool state);
 	bool isCommandQueueClear();
@@ -182,6 +186,10 @@ public:
 	void i2CWriteRegister(uint32_t addr, uint32_t reg, uint32_t data);
 
 	void setActive(bool active = true) { _active = active; }
+
+	// Inject the concrete drive thread before calling open().
+	// The caller retains ownership; the device does NOT delete it.
+	void setDriveThread(IFTDIDriveThread* dt) { _driveThread = dt; }
 
 	// --- Signals (replaces Qt signals) ---
 	qtac::Signal<uint64_t, bool>               onPinStateChanged;

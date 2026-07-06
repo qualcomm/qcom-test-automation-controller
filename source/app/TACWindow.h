@@ -30,34 +30,54 @@
 // OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN
 // IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-// Author: Michael Simpson
+#pragma once
 
-#ifndef QTAC_FTDIDEVICE_H
-#define QTAC_FTDIDEVICE_H
+#include <TACDeviceBridge.h>
 
-#include <qtac/AlpacaDevice.h>
-#include <qtac/FTDIPlatformConfiguration.h>
+#include <QByteArray>
+#include <QMainWindow>
 
-class FTDIDevice : public _AlpacaDevice
+QT_BEGIN_NAMESPACE
+namespace Ui { class TACWindowClass; }
+QT_END_NAMESPACE
+
+namespace qtac { class TACLiteDriveThread; }
+class TACPinFrame;
+
+// ---------------------------------------------------------------------------
+// TACWindow — main window.
+//
+// Uses TACDeviceBridge (wraps qtac-core _AlpacaDevice + TACLiteDriveThread)
+// rather than the Qt-based _AlpacaDevice from QCommonConsole.
+// ---------------------------------------------------------------------------
+class TACWindow : public QMainWindow
 {
+    Q_OBJECT
+
 public:
-	FTDIDevice() = default;
-	virtual ~FTDIDevice() = default;
+    explicit TACWindow(QWidget* parent = nullptr);
+    ~TACWindow() override;
 
-	static bool programDevice(AlpacaDevice alpacaDevice,
-	                          PlatformID platformID,
-	                          qtac::ByteArray& errorMessage);
+    void openPort(const QByteArray& portName);
+    QByteArray portName() const;
+    bool inUse() const { return _bridge != nullptr; }
+    void shutDown();
 
-	static uint32_t updateAlpacaDevices();
+private slots:
+    void onConnectClicked();
+    void onDisconnectClicked();
 
-	virtual bool open() override;
-
-	void buildCommandList();
-	virtual void buildMapping() override;
-	virtual Pins getPins() override;
+    void onDeviceConnected();
+    void onDeviceDisconnected();
+    void onFirmwareVersionUpdated(const QString& version);
+    void onHardwareTypeUpdated(const QString& hwType);
+    void onNameUpdated(const QString& name);
+    void onPinStateChanged(quint64 pin, bool state);
+    void onError(const QByteArray& message);
 
 private:
-	_FTDIPlatformConfiguration* _ftdiPlatformConfiguration{nullptr};
+    Ui::TACWindowClass*          _ui{nullptr};
+    TACPinFrame*                 _pinFrame{nullptr};
+    TACDeviceBridge*             _bridge{nullptr};
+    qtac::TACLiteDriveThread*    _driveThread{nullptr};
 };
-
-#endif // QTAC_FTDIDEVICE_H

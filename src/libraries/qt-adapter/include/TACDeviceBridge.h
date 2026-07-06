@@ -30,16 +30,20 @@
 // OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN
 // IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-// TACDeviceBridge — Qt bridge for _AlpacaDevice.
+// TACDeviceBridge — Qt bridge for _AlpacaDevice + TACDriveThread.
 //
-// Wraps a shared_ptr<_AlpacaDevice> and forwards all qtac::Signal<> callbacks
-// to Qt signals, marshalled onto the GUI thread via QMetaObject::invokeMethod
-// with Qt::QueuedConnection.
+// Wraps a shared_ptr<_AlpacaDevice> and its drive thread, forwarding all
+// qtac::Signal<> callbacks to Qt signals via QMetaObject::invokeMethod with
+// Qt::QueuedConnection so they arrive safely on the GUI thread.
 //
 // Usage:
-//   auto device = ...; // shared_ptr<_AlpacaDevice>
-//   auto bridge = new TACDeviceBridge(device, parent);
-//   connect(bridge, &TACDeviceBridge::pinStateChanged, this, &MyWidget::onPinStateChanged);
+//   auto dev = _AlpacaDevice::findAlpacaDevice(portName);
+//   auto* dt = new qtac::TACLiteDriveThread(dev->hash());
+//   dev->setDriveThread(dt);
+//   dev->open();                                // starts drive thread
+//   auto* bridge = new TACDeviceBridge(dev, dt, parent);
+//   connect(bridge, &TACDeviceBridge::deviceConnected, ...);
+//   connect(bridge, &TACDeviceBridge::pinStateChanged, ...);
 
 #pragma once
 
@@ -47,6 +51,7 @@
 #include <qt_string_convert.h>
 
 #include <qtac/AlpacaDevice.h>
+#include <qtac/TACDriveThread.h>
 
 #include <QByteArray>
 #include <QObject>
@@ -59,11 +64,19 @@ class QT_ADAPTER_EXPORT TACDeviceBridge : public QObject
     Q_OBJECT
 
 public:
+    // Construct with device only (no drive thread signals).
     explicit TACDeviceBridge(std::shared_ptr<_AlpacaDevice> device,
                              QObject* parent = nullptr);
+
+    // Construct with device + drive thread (full signal set).
+    TACDeviceBridge(std::shared_ptr<_AlpacaDevice> device,
+                    qtac::TACDriveThread* driveThread,
+                    QObject* parent = nullptr);
+
     ~TACDeviceBridge() override = default;
 
     std::shared_ptr<_AlpacaDevice> device() const { return _device; }
+    qtac::TACDriveThread* driveThread() const { return _driveThread; }
 
 signals:
     // _AlpacaDevice signals
@@ -71,6 +84,18 @@ signals:
     void progress(quint8 value, int level);
     void errorEvent(const QByteArray& message);
 
+    // TACDriveThread signals (only emitted when a drive thread was provided)
+    void deviceConnected();
+    void deviceDisconnected();
+    void firmwareVersionUpdated(const QString& version);
+    void hardwareTypeUpdated(const QString& hwType);
+    void nameUpdated(const QString& name);
+    void serialNumberUpdated(const QString& sn);
+
 private:
+    void connectDeviceSignals();
+    void connectDriveThreadSignals();
+
     std::shared_ptr<_AlpacaDevice> _device;
+    qtac::TACDriveThread*          _driveThread{nullptr};
 };

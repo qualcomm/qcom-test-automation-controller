@@ -30,34 +30,51 @@
 // OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN
 // IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-// Author: Michael Simpson
+#pragma once
 
-#ifndef QTAC_FTDIDEVICE_H
-#define QTAC_FTDIDEVICE_H
+#include <TACDeviceBridge.h>
 
-#include <qtac/AlpacaDevice.h>
-#include <qtac/FTDIPlatformConfiguration.h>
+#include <qtac/PinEntry.h>
+#include <qtac/CommandGroup.h>
 
-class FTDIDevice : public _AlpacaDevice
+#include <QWidget>
+#include <QMap>
+#include <QPushButton>
+#include <QLabel>
+
+// ---------------------------------------------------------------------------
+// TACPinFrame — pin button panel.
+//
+// Reads the active Pins from the device's platform configuration and builds
+// a grid of toggle buttons (one per pin), grouped by command group and tab.
+// Pin-state updates from TACDeviceBridge are reflected by colouring the
+// button.
+//
+// This replaces ui-common/TACFrame and ui-common/PinLED for the parallel GUI.
+// ---------------------------------------------------------------------------
+class TACPinFrame : public QWidget
 {
+    Q_OBJECT
+
 public:
-	FTDIDevice() = default;
-	virtual ~FTDIDevice() = default;
+    explicit TACPinFrame(QWidget* parent = nullptr);
+    ~TACPinFrame() override = default;
 
-	static bool programDevice(AlpacaDevice alpacaDevice,
-	                          PlatformID platformID,
-	                          qtac::ByteArray& errorMessage);
+    void setDevice(TACDeviceBridge* bridge);
+    void clearDevice();
 
-	static uint32_t updateAlpacaDevices();
+    // Called by TACWindow when pinStateChanged arrives.
+    void updatePinState(quint64 pin, bool state);
 
-	virtual bool open() override;
-
-	void buildCommandList();
-	virtual void buildMapping() override;
-	virtual Pins getPins() override;
+private slots:
+    void onPinButtonToggled(bool checked);
 
 private:
-	_FTDIPlatformConfiguration* _ftdiPlatformConfiguration{nullptr};
-};
+    void buildPins(const Pins& pins);
+    void clearPins();
 
-#endif // QTAC_FTDIDEVICE_H
+    TACDeviceBridge*             _bridge{nullptr};
+
+    // pin hash → toggle button
+    QMap<quint64, QPushButton*>  _pinButtons;
+};

@@ -311,3 +311,10 @@ void FTDIDevice::buildCommandList()
 		_commands[tacCommand._command] = tacCommand;
 	}
 }
+
+Pins FTDIDevice::getPins()
+{
+	if (_ftdiPlatformConfiguration == nullptr)
+		return {};
+	return _ftdiPlatformConfiguration->getPins();
+}

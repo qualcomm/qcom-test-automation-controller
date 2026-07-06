@@ -30,34 +30,42 @@
 // OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN
 // IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-// Author: Michael Simpson
+#pragma once
 
-#ifndef QTAC_FTDIDEVICE_H
-#define QTAC_FTDIDEVICE_H
+#include <QDialog>
+#include <QByteArray>
 
-#include <qtac/AlpacaDevice.h>
-#include <qtac/FTDIPlatformConfiguration.h>
+QT_BEGIN_NAMESPACE
+namespace Ui { class TACDeviceSelectionClass; }
+QT_END_NAMESPACE
 
-class FTDIDevice : public _AlpacaDevice
+class QTimer;
+
+// ---------------------------------------------------------------------------
+// TACDeviceSelection — modal device picker.
+//
+// Polls FTDIDevice::updateAlpacaDevices() every 2.5 s and populates the
+// table.  Double-clicking or clicking OK accepts the dialog.
+// ---------------------------------------------------------------------------
+class TACDeviceSelection : public QDialog
 {
+    Q_OBJECT
+
 public:
-	FTDIDevice() = default;
-	virtual ~FTDIDevice() = default;
+    explicit TACDeviceSelection(QWidget* parent = nullptr);
+    ~TACDeviceSelection() override;
 
-	static bool programDevice(AlpacaDevice alpacaDevice,
-	                          PlatformID platformID,
-	                          qtac::ByteArray& errorMessage);
+    QByteArray selectedPortName() const { return _selectedPort; }
 
-	static uint32_t updateAlpacaDevices();
-
-	virtual bool open() override;
-
-	void buildCommandList();
-	virtual void buildMapping() override;
-	virtual Pins getPins() override;
+private slots:
+    void onTableClicked(const QModelIndex& index);
+    void onTableDoubleClicked(const QModelIndex& index);
+    void refreshDevices();
 
 private:
-	_FTDIPlatformConfiguration* _ftdiPlatformConfiguration{nullptr};
-};
+    void setOkEnabled(bool enabled);
 
-#endif // QTAC_FTDIDEVICE_H
+    Ui::TACDeviceSelectionClass* _ui{nullptr};
+    QTimer*                      _timer{nullptr};
+    QByteArray                   _selectedPort;
+};

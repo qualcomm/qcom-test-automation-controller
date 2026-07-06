@@ -30,34 +30,40 @@
 // OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN
 // IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-// Author: Michael Simpson
+#pragma once
 
-#ifndef QTAC_FTDIDEVICE_H
-#define QTAC_FTDIDEVICE_H
+#include <QApplication>
+#include <QList>
+#include <QPoint>
 
-#include <qtac/AlpacaDevice.h>
-#include <qtac/FTDIPlatformConfiguration.h>
+class TACWindow;
 
-class FTDIDevice : public _AlpacaDevice
+// ---------------------------------------------------------------------------
+// TACApplication — thin QApplication subclass.
+// Owns the list of open TACWindows and drives device selection/open.
+// ---------------------------------------------------------------------------
+class TACApplication : public QApplication
 {
+    Q_OBJECT
+
 public:
-	FTDIDevice() = default;
-	virtual ~FTDIDevice() = default;
+    TACApplication(int& argc, char** argv);
+    ~TACApplication() override;
 
-	static bool programDevice(AlpacaDevice alpacaDevice,
-	                          PlatformID platformID,
-	                          qtac::ByteArray& errorMessage);
+    static TACApplication* instance();
 
-	static uint32_t updateAlpacaDevices();
+    // Creates (and shows) a new blank TACWindow.
+    static TACWindow* createTACWindow(bool show = true);
 
-	virtual bool open() override;
+    // Removes a window from the tracking list; does NOT delete it.
+    static void disconnectTACWindow(TACWindow* w);
 
-	void buildCommandList();
-	virtual void buildMapping() override;
-	virtual Pins getPins() override;
+    // Returns true if any open window is already using portName.
+    static bool isPortInUse(const QByteArray& portName);
+
+    void quit();
 
 private:
-	_FTDIPlatformConfiguration* _ftdiPlatformConfiguration{nullptr};
+    static QList<TACWindow*> _windows;
+    static QPoint            _nextOrigin;
 };
-
-#endif // QTAC_FTDIDEVICE_H

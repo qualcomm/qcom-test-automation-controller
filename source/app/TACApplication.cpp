@@ -30,34 +30,56 @@
 // OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN
 // IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-// Author: Michael Simpson
+#include "TACApplication.h"
+#include "TACWindow.h"
 
-#ifndef QTAC_FTDIDEVICE_H
-#define QTAC_FTDIDEVICE_H
+QList<TACWindow*> TACApplication::_windows;
+QPoint            TACApplication::_nextOrigin(40, 40);
 
-#include <qtac/AlpacaDevice.h>
-#include <qtac/FTDIPlatformConfiguration.h>
-
-class FTDIDevice : public _AlpacaDevice
+TACApplication::TACApplication(int& argc, char** argv)
+    : QApplication(argc, argv)
 {
-public:
-	FTDIDevice() = default;
-	virtual ~FTDIDevice() = default;
+    setApplicationName("QTAC");
+    setApplicationVersion("1.0");
+    setOrganizationName("Qualcomm");
+}
 
-	static bool programDevice(AlpacaDevice alpacaDevice,
-	                          PlatformID platformID,
-	                          qtac::ByteArray& errorMessage);
+TACApplication::~TACApplication() = default;
 
-	static uint32_t updateAlpacaDevices();
+TACApplication* TACApplication::instance()
+{
+    return qobject_cast<TACApplication*>(QApplication::instance());
+}
 
-	virtual bool open() override;
+TACWindow* TACApplication::createTACWindow(bool show)
+{
+    auto* w = new TACWindow;
+    w->move(_nextOrigin);
+    _nextOrigin += QPoint(20, 20);
+    _windows.append(w);
+    if (show)
+        w->show();
+    return w;
+}
 
-	void buildCommandList();
-	virtual void buildMapping() override;
-	virtual Pins getPins() override;
+void TACApplication::disconnectTACWindow(TACWindow* w)
+{
+    _windows.removeAll(w);
+}
 
-private:
-	_FTDIPlatformConfiguration* _ftdiPlatformConfiguration{nullptr};
-};
+bool TACApplication::isPortInUse(const QByteArray& portName)
+{
+    for (TACWindow* w : _windows)
+        if (w->portName() == portName)
+            return true;
+    return false;
+}
 
-#endif // QTAC_FTDIDEVICE_H
+void TACApplication::quit()
+{
+    // Close all windows cleanly before exiting.
+    for (TACWindow* w : _windows)
+        w->close();
+    _windows.clear();
+    QApplication::quit();
+}

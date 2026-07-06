@@ -35,15 +35,32 @@
 
 #include <QMetaObject>
 
+// ---------------------------------------------------------------------------
+
 TACDeviceBridge::TACDeviceBridge(std::shared_ptr<_AlpacaDevice> device,
                                  QObject* parent)
     : QObject(parent)
     , _device(std::move(device))
 {
-    // Connect all _AlpacaDevice signals, marshalling onto the GUI thread.
-    // Each lambda captures `this` by value via a QPointer-guarded check so
-    // that callbacks arriving after the bridge is destroyed are silently dropped.
+    connectDeviceSignals();
+}
 
+TACDeviceBridge::TACDeviceBridge(std::shared_ptr<_AlpacaDevice> device,
+                                 qtac::TACDriveThread* driveThread,
+                                 QObject* parent)
+    : QObject(parent)
+    , _device(std::move(device))
+    , _driveThread(driveThread)
+{
+    connectDeviceSignals();
+    if (_driveThread)
+        connectDriveThreadSignals();
+}
+
+// ---------------------------------------------------------------------------
+
+void TACDeviceBridge::connectDeviceSignals()
+{
     _device->onPinStateChanged.connect([this](uint64_t pin, bool state) {
         QMetaObject::invokeMethod(this, [this, pin, state]() {
             emit pinStateChanged(static_cast<quint64>(pin), state);
@@ -60,6 +77,49 @@ TACDeviceBridge::TACDeviceBridge(std::shared_ptr<_AlpacaDevice> device,
         QByteArray msg = QtAdapter::toQByteArray(message);
         QMetaObject::invokeMethod(this, [this, msg]() {
             emit errorEvent(msg);
+        }, Qt::QueuedConnection);
+    });
+}
+
+void TACDeviceBridge::connectDriveThreadSignals()
+{
+    _driveThread->onDeviceConnected.connect([this]() {
+        QMetaObject::invokeMethod(this, [this]() {
+            emit deviceConnected();
+        }, Qt::QueuedConnection);
+    });
+
+    _driveThread->onDeviceDisconnected.connect([this]() {
+        QMetaObject::invokeMethod(this, [this]() {
+            emit deviceDisconnected();
+        }, Qt::QueuedConnection);
+    });
+
+    _driveThread->onFirmwareVersionUpdate.connect([this](const qtac::String& v) {
+        QString s = QtAdapter::toQString(v);
+        QMetaObject::invokeMethod(this, [this, s]() {
+            emit firmwareVersionUpdated(s);
+        }, Qt::QueuedConnection);
+    });
+
+    _driveThread->onHardwareTypeUpdate.connect([this](const qtac::String& v) {
+        QString s = QtAdapter::toQString(v);
+        QMetaObject::invokeMethod(this, [this, s]() {
+            emit hardwareTypeUpdated(s);
+        }, Qt::QueuedConnection);
+    });
+
+    _driveThread->onNameUpdate.connect([this](const qtac::String& v) {
+        QString s = QtAdapter::toQString(v);
+        QMetaObject::invokeMethod(this, [this, s]() {
+            emit nameUpdated(s);
+        }, Qt::QueuedConnection);
+    });
+
+    _driveThread->onSerialNumUpdate.connect([this](const qtac::String& v) {
+        QString s = QtAdapter::toQString(v);
+        QMetaObject::invokeMethod(this, [this, s]() {
+            emit serialNumberUpdated(s);
         }, Qt::QueuedConnection);
     });
 }

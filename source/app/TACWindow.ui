@@ -1,0 +1,137 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>TACWindowClass</class>
+ <widget class="QMainWindow" name="TACWindowClass">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>560</width>
+    <height>750</height>
+   </rect>
+  </property>
+  <property name="minimumSize">
+   <size>
+    <width>555</width>
+    <height>725</height>
+   </size>
+  </property>
+  <property name="windowTitle">
+   <string>%1 Test Automation Controller</string>
+  </property>
+  <property name="windowIcon">
+   <iconset resource="resources/TAC.qrc">
+    <normaloff>:/TAC.png</normaloff>:/TAC.png</iconset>
+  </property>
+  <widget class="QWidget" name="_centralWidget">
+   <layout class="QVBoxLayout" name="verticalLayout">
+    <item>
+     <layout class="QHBoxLayout" name="horizontalLayout">
+      <item>
+       <widget class="QPushButton" name="_connectButton">
+        <property name="text">
+         <string>Connect</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QPushButton" name="_disconnectButton">
+        <property name="enabled">
+         <bool>false</bool>
+        </property>
+        <property name="text">
+         <string>Disconnect</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QLabel" name="_statusTitleLabel">
+        <property name="text">
+         <string>&lt;b&gt;Status:&lt;/b&gt;</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QLabel" name="_deviceStatusLabel">
+        <property name="text">
+         <string>Disconnected</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <spacer name="horizontalSpacer">
+        <property name="orientation">
+         <enum>Qt::Horizontal</enum>
+        </property>
+        <property name="sizeHint" stdset="0">
+         <size>
+          <width>40</width>
+          <height>20</height>
+         </size>
+        </property>
+       </spacer>
+      </item>
+     </layout>
+    </item>
+    <item>
+     <widget class="QScrollArea" name="_pinScrollArea">
+      <property name="widgetResizable">
+       <bool>true</bool>
+      </property>
+      <widget class="QWidget" name="_pinScrollContents">
+       <property name="geometry">
+        <rect>
+         <x>0</x>
+         <y>0</y>
+         <width>540</width>
+         <height>690</height>
+        </rect>
+       </property>
+       <layout class="QVBoxLayout" name="_pinScrollLayout"/>
+      </widget>
+     </widget>
+    </item>
+   </layout>
+  </widget>
+  <widget class="QMenuBar" name="_menuBar">
+   <property name="geometry">
+    <rect>
+     <x>0</x>
+     <y>0</y>
+     <width>560</width>
+     <height>22</height>
+    </rect>
+   </property>
+   <widget class="QMenu" name="_fileMenu">
+    <property name="title">
+     <string>File</string>
+    </property>
+    <addaction name="_actionConnect"/>
+    <addaction name="_actionDisconnect"/>
+    <addaction name="separator"/>
+    <addaction name="_actionQuit"/>
+   </widget>
+   <addaction name="_fileMenu"/>
+  </widget>
+  <widget class="QStatusBar" name="_statusBar"/>
+  <action name="_actionConnect">
+   <property name="text">
+    <string>Connect</string>
+   </property>
+  </action>
+  <action name="_actionDisconnect">
+   <property name="text">
+    <string>Disconnect</string>
+   </property>
+  </action>
+  <action name="_actionQuit">
+   <property name="text">
+    <string>Quit</string>
+   </property>
+  </action>
+ </widget>
+ <resources>
+  <include location="resources/TAC.qrc"/>
+ </resources>
+ <connections/>
+</ui>

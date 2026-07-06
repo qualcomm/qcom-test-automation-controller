@@ -30,34 +30,15 @@
 // OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN
 // IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-// Author: Michael Simpson
+#include "TACApplication.h"
 
-#ifndef QTAC_FTDIDEVICE_H
-#define QTAC_FTDIDEVICE_H
+#include <QApplication>
 
-#include <qtac/AlpacaDevice.h>
-#include <qtac/FTDIPlatformConfiguration.h>
-
-class FTDIDevice : public _AlpacaDevice
+int main(int argc, char* argv[])
 {
-public:
-	FTDIDevice() = default;
-	virtual ~FTDIDevice() = default;
+    TACApplication app(argc, argv);
 
-	static bool programDevice(AlpacaDevice alpacaDevice,
-	                          PlatformID platformID,
-	                          qtac::ByteArray& errorMessage);
+    TACApplication::createTACWindow();
 
-	static uint32_t updateAlpacaDevices();
-
-	virtual bool open() override;
-
-	void buildCommandList();
-	virtual void buildMapping() override;
-	virtual Pins getPins() override;
-
-private:
-	_FTDIPlatformConfiguration* _ftdiPlatformConfiguration{nullptr};
-};
-
-#endif // QTAC_FTDIDEVICE_H
+    return app.exec();
+}
