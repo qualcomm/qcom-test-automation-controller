@@ -79,6 +79,7 @@ private slots:
 private:
     void buildPins(const Pins& pins);
     void clearPins();
+    void showNotice();
 
     QWidget* buildDeviceInfoTab(QWidget* parent);
     QWidget* buildTerminalTab(QWidget* parent);

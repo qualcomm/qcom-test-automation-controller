@@ -42,9 +42,11 @@
 #include <QFormLayout>
 #include <QGridLayout>
 #include <QGroupBox>
+#include <QHBoxLayout>
 #include <QLabel>
 #include <QMap>
 #include <QPlainTextEdit>
+#include <QPushButton>
 #include <QScrollBar>
 #include <QSpinBox>
 #include <QCheckBox>
@@ -75,6 +77,7 @@ TACPinFrame::TACPinFrame(QWidget* parent)
 {
     setLayout(new QVBoxLayout(this));
     layout()->setContentsMargins(0, 0, 0, 0);
+    showNotice();
 }
 
 void TACPinFrame::setDevice(TACDeviceBridge* bridge)
@@ -97,6 +100,7 @@ void TACPinFrame::clearDevice()
     _terminalLog = nullptr;
     _bridge = nullptr;
     clearPins();
+    showNotice();
 }
 
 void TACPinFrame::clearPins()
@@ -113,6 +117,94 @@ void TACPinFrame::clearPins()
 }
 
 // ---------------------------------------------------------------------------
+// Pre-connection notice
+// ---------------------------------------------------------------------------
+
+void TACPinFrame::showNotice()
+{
+    auto* tabs = new QTabWidget(this);
+    layout()->addWidget(tabs);
+
+    // --- General tab ---
+    auto* genWidget = new QWidget;
+    auto* genLayout = new QVBoxLayout(genWidget);
+    genLayout->setAlignment(Qt::AlignTop);
+
+    // Notice message
+    auto* noticeBox = new QGroupBox(genWidget);
+    auto* noticeLayout = new QVBoxLayout(noticeBox);
+    auto* noticeLabel = new QLabel(
+        "Open a device to begin. The UI will <span style='color:#ff4444;'><b>not</b></span> "
+        "be constructed until a device has been opened. TAC is now configuration driven."
+        "<br><br>"
+        "Your firmware must be at 15 or greater on a PSOC device. If your firmware is 8 or less, "
+        "TAC will just crash. Firmware 9-14 will result in a dialog asking you to update your firmware.",
+        noticeBox);
+    noticeLabel->setWordWrap(true);
+    noticeLabel->setTextFormat(Qt::RichText);
+    noticeLayout->addWidget(noticeLabel);
+    genLayout->addWidget(noticeBox);
+
+    // Empty placeholder group boxes
+    for (const QString& name : { "Connections", "Buttons", "Switches", "Quick Settings", "Variables" })
+    {
+        auto* box = new QGroupBox(name, genWidget);
+        (void)new QVBoxLayout(box);
+        genLayout->addWidget(box);
+    }
+
+    tabs->addTab(genWidget, "General");
+
+    // --- Device Info tab (placeholder — all dashes until connected) ---
+    auto* infoWidget = new QWidget;
+    auto* infoOuter  = new QVBoxLayout(infoWidget);
+    infoOuter->setAlignment(Qt::AlignTop);
+
+    auto* infoBox  = new QGroupBox("Alpaca Device Information", infoWidget);
+    auto* infoForm = new QFormLayout(infoBox);
+    infoForm->setLabelAlignment(Qt::AlignRight);
+
+    // Name row gets an extra Rename... button
+    static const char* kDash = "-";
+    auto addDash = [&](const QString& label) {
+        auto* val = new QLabel(kDash, infoBox);
+        val->setTextInteractionFlags(Qt::TextSelectableByMouse);
+        infoForm->addRow(label + ":", val);
+    };
+
+    addDash("Hardware Type");
+    addDash("HW Version");
+    addDash("Firmware Version");
+    addDash("Chipset");
+
+    // Name row with Rename button
+    {
+        auto* row    = new QWidget(infoBox);
+        auto* rowLay = new QHBoxLayout(row);
+        rowLay->setContentsMargins(0, 0, 0, 0);
+        auto* nameVal = new QLabel(kDash, row);
+        nameVal->setTextInteractionFlags(Qt::TextSelectableByMouse);
+        auto* renameBtn = new QPushButton("Rename...", row);
+        renameBtn->setEnabled(false);
+        rowLay->addWidget(nameVal);
+        rowLay->addWidget(renameBtn);
+        rowLay->addStretch();
+        infoForm->addRow("Name:", row);
+    }
+
+    addDash("UUID");
+    addDash("Serial Number");
+    addDash("Platform ID");
+    addDash("MAC Address");
+    addDash("Configuration File");
+    addDash("Configuration Date");
+    addDash("Configuration File Version");
+
+    infoOuter->addWidget(infoBox);
+    tabs->addTab(infoWidget, "Device Info");
+}
+
+// ---------------------------------------------------------------------------
 // Device Info tab
 // ---------------------------------------------------------------------------
 
@@ -122,7 +214,7 @@ QWidget* TACPinFrame::buildDeviceInfoTab(QWidget* parent)
     auto* outer  = new QVBoxLayout(w);
     outer->setAlignment(Qt::AlignTop);
 
-    auto* box    = new QGroupBox("Device Information", w);
+    auto* box    = new QGroupBox("Alpaca Device Information", w);
     auto* form   = new QFormLayout(box);
     form->setLabelAlignment(Qt::AlignRight);
 
@@ -136,14 +228,28 @@ QWidget* TACPinFrame::buildDeviceInfoTab(QWidget* parent)
     if (dt)
     {
         addRow("Hardware Type",     QtAdapter::toQString(dt->debugBoardTypeString()));
-        addRow("Hardware Version",  QtAdapter::toQString(dt->hardwareVersionString()));
+        addRow("HW Version",        QtAdapter::toQString(dt->hardwareVersionString()));
         addRow("Firmware Version",  QtAdapter::toQString(dt->firmwareVersion()));
         addRow("Chipset",           QString::number(dt->chipVersion()));
-        addRow("Device Name",       QString(dt->name().constData()));
-        addRow("UUID",              QtAdapter::toQString(dt->uuid()));
-        addRow("Serial Number",     QtAdapter::toQString(dt->serialNumber()));
-        addRow("Platform ID",       QString::number(static_cast<int>(dt->platformID())));
-        addRow("MAC Address",       QString(dt->macAddress().constData()));
+
+        // Name row with Rename button
+        {
+            auto* row    = new QWidget(box);
+            auto* rowLay = new QHBoxLayout(row);
+            rowLay->setContentsMargins(0, 0, 0, 0);
+            auto* nameVal = new QLabel(QString(dt->name().constData()), row);
+            nameVal->setTextInteractionFlags(Qt::TextSelectableByMouse);
+            auto* renameBtn = new QPushButton("Rename...", row);
+            rowLay->addWidget(nameVal);
+            rowLay->addWidget(renameBtn);
+            rowLay->addStretch();
+            form->addRow("Name:", row);
+        }
+
+        addRow("UUID",          QtAdapter::toQString(dt->uuid()));
+        addRow("Serial Number", QtAdapter::toQString(dt->serialNumber()));
+        addRow("Platform ID",   QString::number(static_cast<int>(dt->platformID())));
+        addRow("MAC Address",   QString(dt->macAddress().constData()));
     }
 
     // Config file path from the platform registry.
@@ -152,10 +258,14 @@ QWidget* TACPinFrame::buildDeviceInfoTab(QWidget* parent)
     {
         if (dt && entry && entry->_platformID == dt->platformID())
         {
-            addRow("Config File", QtAdapter::toQString(entry->_path));
+            addRow("Configuration File", QtAdapter::toQString(entry->_path));
             break;
         }
     }
+
+    // Placeholder rows — not yet wired to real data
+    addRow("Configuration Date",         "-");
+    addRow("Configuration File Version", "-");
 
     outer->addWidget(box);
     return w;
