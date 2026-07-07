@@ -111,7 +111,16 @@
     <addaction name="separator"/>
     <addaction name="_actionQuit"/>
    </widget>
+   <widget class="QMenu" name="_helpMenu">
+    <property name="title">
+     <string>Help</string>
+    </property>
+    <addaction name="_actionContents"/>
+    <addaction name="separator"/>
+    <addaction name="_actionAbout"/>
+   </widget>
    <addaction name="_fileMenu"/>
+   <addaction name="_helpMenu"/>
   </widget>
   <widget class="QStatusBar" name="_statusBar"/>
   <action name="_actionConnect">
@@ -127,6 +136,16 @@
   <action name="_actionQuit">
    <property name="text">
     <string>Quit</string>
+   </property>
+  </action>
+  <action name="_actionContents">
+   <property name="text">
+    <string>Contents</string>
+   </property>
+  </action>
+  <action name="_actionAbout">
+   <property name="text">
+    <string>About...</string>
    </property>
   </action>
  </widget>

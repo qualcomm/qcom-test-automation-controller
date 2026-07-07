@@ -45,6 +45,8 @@
 
 #include <QMessageBox>
 #include <QVBoxLayout>
+#include <QDesktopServices>
+#include <QUrl>
 
 #include <cstdio>
 extern FILE* gCrashLog;
@@ -72,6 +74,8 @@ TACWindow::TACWindow(QWidget* parent)
     connect(_ui->_actionConnect,    &QAction::triggered,   this, &TACWindow::onConnectClicked);
     connect(_ui->_actionDisconnect, &QAction::triggered,   this, &TACWindow::onDisconnectClicked);
     connect(_ui->_actionQuit,       &QAction::triggered,   this, []{ TACApplication::instance()->quit(); });
+    connect(_ui->_actionContents,   &QAction::triggered,   this, &TACWindow::onContentsTriggered);
+    connect(_ui->_actionAbout,      &QAction::triggered,   this, &TACWindow::onAboutTriggered);
 
     setWindowTitle(kWindowTitle.arg(""));
 }
@@ -266,4 +270,18 @@ void TACWindow::onPinStateChanged(quint64 pin, bool state)
 void TACWindow::onError(const QByteArray& message)
 {
     _ui->_statusBar->showMessage("Error: " + QString(message));
+}
+
+void TACWindow::onContentsTriggered()
+{
+    QDesktopServices::openUrl(QUrl("https://confluence.qualcomm.com/confluence/display/QTAC"));
+}
+
+void TACWindow::onAboutTriggered()
+{
+    QMessageBox::about(this,
+        "About Test Automation Controller",
+        "<b>Test Automation Controller</b><br>"
+        "Qt-free refactor build<br><br>"
+        "Copyright &copy; Qualcomm Technologies, Inc. and/or its subsidiaries.");
 }

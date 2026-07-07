@@ -75,6 +75,9 @@ private slots:
     void onPinStateChanged(quint64 pin, bool state);
     void onError(const QByteArray& message);
 
+    void onContentsTriggered();
+    void onAboutTriggered();
+
 private:
     Ui::TACWindowClass*          _ui{nullptr};
     TACPinFrame*                 _pinFrame{nullptr};
