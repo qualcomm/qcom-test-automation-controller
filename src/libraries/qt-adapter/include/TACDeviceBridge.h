@@ -91,6 +91,7 @@ signals:
     void hardwareTypeUpdated(const QString& hwType);
     void nameUpdated(const QString& name);
     void serialNumberUpdated(const QString& sn);
+    void logLine(const QByteArray& line);
 
 private:
     void connectDeviceSignals();

@@ -36,11 +36,16 @@
 
 #include <qtac/AlpacaDevice.h>
 #include <qtac/CommandGroup.h>
+#include <qtac/PlatformID.h>
+#include <qtac/TACDriveThread.h>
 
+#include <QFormLayout>
 #include <QGridLayout>
 #include <QGroupBox>
 #include <QLabel>
 #include <QMap>
+#include <QPlainTextEdit>
+#include <QScrollBar>
 #include <QTabWidget>
 #include <QVBoxLayout>
 
@@ -75,9 +80,9 @@ void TACPinFrame::setDevice(TACDeviceBridge* bridge)
     clearPins();
     _bridge = bridge;
 
-    // open() already called by TACWindow before we get here.
-    // buildMapping() populates the command list; getPins() returns PinEntry
-    // data directly from the platform config (full label, group, cell, etc.)
+    connect(_bridge, &TACDeviceBridge::logLine,
+            this,    &TACPinFrame::onLogLine);
+
     auto* dev = bridge->device().get();
     dev->buildMapping();
     Pins pins = dev->getPins();
@@ -87,6 +92,7 @@ void TACPinFrame::setDevice(TACDeviceBridge* bridge)
 
 void TACPinFrame::clearDevice()
 {
+    _terminalLog = nullptr;
     _bridge = nullptr;
     clearPins();
 }
@@ -102,6 +108,74 @@ void TACPinFrame::clearPins()
             w->deleteLater();
         delete item;
     }
+}
+
+// ---------------------------------------------------------------------------
+// Device Info tab
+// ---------------------------------------------------------------------------
+
+QWidget* TACPinFrame::buildDeviceInfoTab(QWidget* parent)
+{
+    auto* w      = new QWidget(parent);
+    auto* outer  = new QVBoxLayout(w);
+    outer->setAlignment(Qt::AlignTop);
+
+    auto* box    = new QGroupBox("Device Information", w);
+    auto* form   = new QFormLayout(box);
+    form->setLabelAlignment(Qt::AlignRight);
+
+    auto addRow = [&](const QString& label, const QString& value) {
+        auto* val = new QLabel(value, box);
+        val->setTextInteractionFlags(Qt::TextSelectableByMouse);
+        form->addRow(label + ":", val);
+    };
+
+    qtac::TACDriveThread* dt = _bridge->driveThread();
+    if (dt)
+    {
+        addRow("Hardware Type",     QtAdapter::toQString(dt->debugBoardTypeString()));
+        addRow("Hardware Version",  QtAdapter::toQString(dt->hardwareVersionString()));
+        addRow("Firmware Version",  QtAdapter::toQString(dt->firmwareVersion()));
+        addRow("Chipset",           QString::number(dt->chipVersion()));
+        addRow("Device Name",       QString(dt->name().constData()));
+        addRow("UUID",              QtAdapter::toQString(dt->uuid()));
+        addRow("Serial Number",     QtAdapter::toQString(dt->serialNumber()));
+        addRow("Platform ID",       QString::number(static_cast<int>(dt->platformID())));
+        addRow("MAC Address",       QString(dt->macAddress().constData()));
+    }
+
+    // Config file path from the platform registry.
+    PlatformIDList entries = PlatformContainer::getEntries();
+    for (const auto& entry : entries)
+    {
+        if (dt && entry && entry->_platformID == dt->platformID())
+        {
+            addRow("Config File", QtAdapter::toQString(entry->_path));
+            break;
+        }
+    }
+
+    outer->addWidget(box);
+    return w;
+}
+
+// ---------------------------------------------------------------------------
+// Terminal tab
+// ---------------------------------------------------------------------------
+
+QWidget* TACPinFrame::buildTerminalTab(QWidget* parent)
+{
+    auto* w      = new QWidget(parent);
+    auto* layout = new QVBoxLayout(w);
+    layout->setContentsMargins(4, 4, 4, 4);
+
+    _terminalLog = new QPlainTextEdit(w);
+    _terminalLog->setReadOnly(true);
+    _terminalLog->setMaximumBlockCount(2000);
+    _terminalLog->setFont(QFont("Courier New", 8));
+    layout->addWidget(_terminalLog);
+
+    return w;
 }
 
 // ---------------------------------------------------------------------------
@@ -145,17 +219,21 @@ void TACPinFrame::buildPins(const Pins& pins)
 
     for (const QString& tabName : tabOrder)
     {
+        if (tabName == "Device Info")
+        {
+            tabs->addTab(buildDeviceInfoTab(tabs), tabName);
+            continue;
+        }
+
+        if (tabName == "Terminal")
+        {
+            tabs->addTab(buildTerminalTab(tabs), tabName);
+            continue;
+        }
+
         auto* tabWidget = new QWidget;
         auto* tabLayout = new QVBoxLayout(tabWidget);
         tabLayout->setAlignment(Qt::AlignTop);
-
-        // "Device Info" and "Terminal" are fixed app tabs with no pin content.
-        if (tabName == "Device Info" || tabName == "Terminal")
-        {
-            tabLayout->addWidget(new QLabel(tabName + " (not yet implemented)", tabWidget));
-            tabs->addTab(tabWidget, tabName);
-            continue;
-        }
 
         // Group pins by command group within this tab.
         QMap<CommandGroups, QList<PinEntry>> grouped;
@@ -230,6 +308,16 @@ void TACPinFrame::onPinButtonToggled(bool checked)
         : "");
 
     _bridge->device()->setPinState(static_cast<PinID>(hash), checked);
+}
+
+void TACPinFrame::onLogLine(const QByteArray& line)
+{
+    if (!_terminalLog) return;
+    if (line.trimmed().isEmpty()) return;
+
+    _terminalLog->appendPlainText(QString(line));
+    _terminalLog->verticalScrollBar()->setValue(
+        _terminalLog->verticalScrollBar()->maximum());
 }
 
 void TACPinFrame::updatePinState(quint64 pin, bool state)

@@ -122,4 +122,11 @@ void TACDeviceBridge::connectDriveThreadSignals()
             emit serialNumberUpdated(s);
         }, Qt::QueuedConnection);
     });
+
+    _driveThread->onLogLine.connect([this](const qtac::ByteArray& line) {
+        QByteArray ba = QtAdapter::toQByteArray(line);
+        QMetaObject::invokeMethod(this, [this, ba]() {
+            emit logLine(ba);
+        }, Qt::QueuedConnection);
+    });
 }

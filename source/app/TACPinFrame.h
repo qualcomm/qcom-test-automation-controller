@@ -41,6 +41,7 @@
 #include <QMap>
 #include <QPushButton>
 #include <QLabel>
+#include <QPlainTextEdit>
 
 // ---------------------------------------------------------------------------
 // TACPinFrame — pin button panel.
@@ -68,13 +69,20 @@ public:
 
 private slots:
     void onPinButtonToggled(bool checked);
+    void onLogLine(const QByteArray& line);
 
 private:
     void buildPins(const Pins& pins);
     void clearPins();
 
+    QWidget*        buildDeviceInfoTab(QWidget* parent);
+    QWidget*        buildTerminalTab(QWidget* parent);
+
     TACDeviceBridge*             _bridge{nullptr};
 
     // pin hash → toggle button
     QMap<quint64, QPushButton*>  _pinButtons;
+
+    // Terminal tab log widget (nullptr when no device connected)
+    QPlainTextEdit*              _terminalLog{nullptr};
 };
