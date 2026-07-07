@@ -116,15 +116,25 @@ void TACPinFrame::buildPins(const Pins& pins)
         return;
     }
 
-    // Collect unique tab names in order of first appearance.
-    QList<QString> tabOrder;
+    // Collect unique tab names from pins, then build the canonical tab order:
+    // "General" always first, then other tcnf-defined tabs in sorted order,
+    // then fixed app tabs "Device Info" and "Terminal" at the end.
+    QList<QString> dynamicTabs;
     for (const auto& pin : pins)
     {
         QString tab = QtAdapter::toQString(pin._tabName);
         if (tab.isEmpty()) tab = "General";
-        if (!tabOrder.contains(tab))
-            tabOrder.append(tab);
+        if (tab != "General" && tab != "Device Info" && tab != "Terminal"
+            && !dynamicTabs.contains(tab))
+            dynamicTabs.append(tab);
     }
+    std::sort(dynamicTabs.begin(), dynamicTabs.end());
+
+    QList<QString> tabOrder;
+    tabOrder.append("General");
+    tabOrder.append("Device Info");
+    tabOrder += dynamicTabs;
+    tabOrder.append("Terminal");
 
     auto* tabs = new QTabWidget(this);
     layout()->addWidget(tabs);
@@ -138,6 +148,14 @@ void TACPinFrame::buildPins(const Pins& pins)
         auto* tabWidget = new QWidget;
         auto* tabLayout = new QVBoxLayout(tabWidget);
         tabLayout->setAlignment(Qt::AlignTop);
+
+        // "Device Info" and "Terminal" are fixed app tabs with no pin content.
+        if (tabName == "Device Info" || tabName == "Terminal")
+        {
+            tabLayout->addWidget(new QLabel(tabName + " (not yet implemented)", tabWidget));
+            tabs->addTab(tabWidget, tabName);
+            continue;
+        }
 
         // Group pins by command group within this tab.
         QMap<CommandGroups, QList<PinEntry>> grouped;

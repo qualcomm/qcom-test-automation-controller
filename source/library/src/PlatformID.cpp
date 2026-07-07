@@ -117,6 +117,15 @@ static std::string findDeviceList()
             auto candidate = exeDir / kFilename;
             if (std::filesystem::exists(candidate))
                 return candidate.string();
+
+            // 4a. Four levels up from exe / configurations/ (development repo layout)
+            {
+                auto c2 = exeDir / ".." / ".." / ".." / ".." / "configurations" / kFilename;
+                std::error_code ec;
+                auto canonical = std::filesystem::canonical(c2, ec);
+                if (!ec && std::filesystem::exists(canonical))
+                    return canonical.string();
+            }
         }
     }
 #endif
@@ -196,12 +205,24 @@ void PlatformContainer::initializeDynamic()
             std::filesystem::path p(configPath);
             if (p.is_relative())
             {
+                // Primary: resolve relative to devicelist.json's directory
+                // (works in the repo where devicelist.json sits next to configurations/)
                 std::error_code ec;
                 auto resolved = std::filesystem::canonical(deviceListDir / p, ec);
-                if (!ec)
+                if (!ec && std::filesystem::exists(resolved))
+                {
                     configPath = resolved.string();
+                }
                 else
-                    configPath = (deviceListDir / p).string();
+                {
+                    // Fallback: look for just the filename alongside devicelist.json
+                    // (deployed layout where all configs are copied to the exe dir)
+                    auto fallback = deviceListDir / p.filename();
+                    if (std::filesystem::exists(fallback))
+                        configPath = fallback.string();
+                    else
+                        configPath = (deviceListDir / p).string(); // keep original for error reporting
+                }
             }
         }
 

@@ -46,6 +46,13 @@
 #include <QMessageBox>
 #include <QVBoxLayout>
 
+#include <cstdio>
+extern FILE* gCrashLog;
+static inline void twCrashLog(const char* msg)
+{
+    if (gCrashLog) { fputs(msg, gCrashLog); fputc('\n', gCrashLog); fflush(gCrashLog); }
+}
+
 static const QString kWindowTitle = QStringLiteral("Test Automation Controller%1");
 
 TACWindow::TACWindow(QWidget* parent)
@@ -97,16 +104,20 @@ void TACWindow::openPort(const QByteArray& portName)
     _driveThread = new qtac::TACLiteDriveThread(dev->hash());
     dev->setDriveThread(_driveThread);
 
-    if (!dev->open())
-    {
-        _ui->_statusBar->showMessage("Failed to open: " + QString(portName)
-            + " — " + QString::fromStdString(dev->getLastError().toStdString()));
-        delete _driveThread;
-        _driveThread = nullptr;
-        return;
-    }
+    // Route drive-thread log lines to our crash/diagnostic log file.
+    _driveThread->onLogLine.connect([](const qtac::ByteArray& line) {
+        twCrashLog(line.constData());
+    });
 
-    // Wrap device + drive thread in the Qt bridge.
+    twCrashLog(("openPort: " + portName.toStdString()).c_str());
+    twCrashLog(("  usbDescriptor: \"" + dev->usbDescriptor().toStdString() + "\"").c_str());
+    twCrashLog(("  platformID: " + std::to_string(static_cast<int>(dev->platformID()))).c_str());
+    twCrashLog(("  description: " + dev->description().toStdString()).c_str());
+
+    // Create the bridge and connect its Qt signals BEFORE calling open().
+    // The drive thread's run() fires onDeviceConnected (via setupConnected) immediately
+    // after startRunning() — which can happen before open() even returns. If the bridge
+    // is created after open(), those signals fire into the void and "Opening..." persists.
     _bridge = new TACDeviceBridge(dev, _driveThread, this);
 
     connect(_bridge, &TACDeviceBridge::deviceConnected,
@@ -123,6 +134,19 @@ void TACWindow::openPort(const QByteArray& portName)
             this,    &TACWindow::onPinStateChanged);
     connect(_bridge, &TACDeviceBridge::errorEvent,
             this,    &TACWindow::onError);
+
+    if (!dev->open())
+    {
+        twCrashLog(("open() failed: " + dev->getLastError().toStdString()).c_str());
+        _ui->_statusBar->showMessage("Failed to open: " + QString(portName)
+            + " — " + QString::fromStdString(dev->getLastError().toStdString()));
+        dev->setDriveThread(nullptr);  // clear dangling pointer before deleting
+        delete _driveThread;
+        _driveThread = nullptr;
+        delete _bridge;
+        _bridge = nullptr;
+        return;
+    }
 
     // Populate the pin panel.
     _pinFrame->setDevice(_bridge);

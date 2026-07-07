@@ -203,7 +203,7 @@ bool _FTDIChipset::open(FTDIPinSets pinsets)
 	uint8_t mode = FT_BITMODE_ASYNC_BITBANG;
 	FT_STATUS ftStatus;
 
-	if (testFlag(pinsets, eA))
+	if (testFlag(pinsets, eA) && !_aSerialNumber.isEmpty())
 	{
 		ftStatus = FT_OpenEx(_aSerialNumber.data(), FT_OPEN_BY_SERIAL_NUMBER, &_aHandle);
 		if (ftStatus == FT_OK)
@@ -215,7 +215,7 @@ bool _FTDIChipset::open(FTDIPinSets pinsets)
 			_aHandle = nullptr;
 	}
 
-	if (testFlag(pinsets, eB))
+	if (testFlag(pinsets, eB) && !_bSerialNumber.isEmpty())
 	{
 		ftStatus = FT_OpenEx(_bSerialNumber.data(), FT_OPEN_BY_SERIAL_NUMBER, &_bHandle);
 		if (ftStatus == FT_OK)
@@ -227,7 +227,7 @@ bool _FTDIChipset::open(FTDIPinSets pinsets)
 			_bHandle = nullptr;
 	}
 
-	if (testFlag(pinsets, eC))
+	if (testFlag(pinsets, eC) && !_cSerialNumber.isEmpty())
 	{
 		ftStatus = FT_OpenEx(_cSerialNumber.data(), FT_OPEN_BY_SERIAL_NUMBER, &_cHandle);
 		if (ftStatus == FT_OK)
@@ -239,7 +239,7 @@ bool _FTDIChipset::open(FTDIPinSets pinsets)
 			_cHandle = nullptr;
 	}
 
-	if (testFlag(pinsets, eD))
+	if (testFlag(pinsets, eD) && !_dSerialNumber.isEmpty())
 	{
 		ftStatus = FT_OpenEx(_dSerialNumber.data(), FT_OPEN_BY_SERIAL_NUMBER, &_dHandle);
 		if (ftStatus == FT_OK)

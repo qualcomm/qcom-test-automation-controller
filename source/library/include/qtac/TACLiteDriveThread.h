@@ -104,7 +104,7 @@ protected:
 private:
     TACLiteProtocol _tacProtocol;
     bool            _connected{false};
-    FTDIPinSets     _pinsets{eC | eD};
+    FTDIPinSets     _pinsets{eA | eB | eC | eD};  // try all; empty segments are skipped
     FTDIChipset     _ftdiChipset;   // std::shared_ptr<_FTDIChipset>
 
     void handleIdle(FramePackage& framePackage);

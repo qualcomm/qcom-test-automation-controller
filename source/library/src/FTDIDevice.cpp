@@ -249,7 +249,18 @@ bool FTDIDevice::open()
 
 	// Give the drive thread the correct pin-set mask before it opens the FTDI device.
 	if (_ftdiPlatformConfiguration != nullptr)
-		_driveThread->setPinSets(_ftdiPlatformConfiguration->getPinSet(0));
+	{
+		FTDIPinSets ps = _ftdiPlatformConfiguration->getPinSet(0);
+		_driveThread->onLogLine(qtac::ByteArray("FTDIDevice::open tcnf loaded, pinset=") + qtac::ByteArray::number(static_cast<int>(ps)));
+		_driveThread->setPinSets(ps);
+	}
+	else
+	{
+		_driveThread->onLogLine(
+		    qtac::ByteArray("FTDIDevice::open no tcnf - platformID=")
+		    + qtac::ByteArray::number(static_cast<int>(_platformID))
+		    + " usbDescriptor=\"" + _usbDescriptor + "\"");
+	}
 
 	_driveThread->start();
 
