@@ -45,6 +45,7 @@
 #include <qtac/TACCommand.h>
 #include <qtac/Size.h>
 #include <qtac/PinEntry.h>
+#include <qtac/AlpacaScript.h>
 
 #include <cstdint>
 #include <memory>
@@ -93,6 +94,10 @@ public:
 	// --- Pin list (populated after open() + buildMapping()) ---
 	virtual Pins getPins() { return {}; }
 
+	// --- Quick Settings buttons / variables (FTDI devices) ---
+	virtual const qtac::ButtonEntries&   getButtons()   const { static qtac::ButtonEntries   empty; return empty; }
+	virtual const qtac::VariableEntries& getVariables() const { static qtac::VariableEntries empty; return empty; }
+
 	bool getCommandState(const qtac::ByteArray& command);
 	bool sendCommand(const qtac::ByteArray& command, bool state);
 	bool isCommandQueueClear();
@@ -102,6 +107,13 @@ public:
 	void setWaitForCompletion();
 	bool active();
 	HashType hash();
+
+	// Execute a named Quick Settings script function.
+	virtual void quickCommand(const qtac::ByteArray& /*command*/) {}
+
+	// Update a variable value for script token substitution.
+	virtual void setVariableValue(const qtac::String& /*name*/,
+	                              const qtac::Variant& /*value*/) {}
 
 	// --- Port / name ---
 	qtac::ByteArray portName() const;

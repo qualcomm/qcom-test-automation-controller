@@ -36,12 +36,16 @@
 
 #include <qtac/PinEntry.h>
 #include <qtac/CommandGroup.h>
+#include <qtac/AlpacaScript.h>
 
 #include <QWidget>
 #include <QMap>
 #include <QPushButton>
 #include <QLabel>
 #include <QPlainTextEdit>
+#include <QSpinBox>
+#include <QCheckBox>
+#include <QVBoxLayout>
 
 // ---------------------------------------------------------------------------
 // TACPinFrame — pin button panel.
@@ -69,14 +73,23 @@ public:
 
 private slots:
     void onPinButtonToggled(bool checked);
+    void onQuickButtonClicked();
     void onLogLine(const QByteArray& line);
 
 private:
     void buildPins(const Pins& pins);
     void clearPins();
 
-    QWidget*        buildDeviceInfoTab(QWidget* parent);
-    QWidget*        buildTerminalTab(QWidget* parent);
+    QWidget* buildDeviceInfoTab(QWidget* parent);
+    QWidget* buildTerminalTab(QWidget* parent);
+
+    // Appends Quick Settings and Variables group boxes to tabLayout if the
+    // device has buttons/variables for this tab.
+    void appendQuickSettings(QVBoxLayout*                        tabLayout,
+                             QWidget*                            parent,
+                             const QString&                      tabName,
+                             const qtac::ButtonEntries&          buttons,
+                             const qtac::VariableEntries&        variables);
 
     TACDeviceBridge*             _bridge{nullptr};
 

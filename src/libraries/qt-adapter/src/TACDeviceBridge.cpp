@@ -130,3 +130,13 @@ void TACDeviceBridge::connectDriveThreadSignals()
         }, Qt::QueuedConnection);
     });
 }
+
+void TACDeviceBridge::setVariableValue(const QString& name, int value)
+{
+    _device->setVariableValue(QtAdapter::toQtacString(name), qtac::Variant(value));
+}
+
+void TACDeviceBridge::setVariableValue(const QString& name, bool value)
+{
+    _device->setVariableValue(QtAdapter::toQtacString(name), qtac::Variant(value));
+}

@@ -46,6 +46,8 @@
 #include <QMap>
 #include <QPlainTextEdit>
 #include <QScrollBar>
+#include <QSpinBox>
+#include <QCheckBox>
 #include <QTabWidget>
 #include <QVBoxLayout>
 
@@ -179,12 +181,112 @@ QWidget* TACPinFrame::buildTerminalTab(QWidget* parent)
 }
 
 // ---------------------------------------------------------------------------
+// Quick Settings / Variables helpers
+// ---------------------------------------------------------------------------
+
+void TACPinFrame::appendQuickSettings(QVBoxLayout*                 tabLayout,
+                                       QWidget*                    parent,
+                                       const QString&              tabName,
+                                       const qtac::ButtonEntries&  buttons,
+                                       const qtac::VariableEntries& variables)
+{
+    // --- Quick Settings group box ---
+    // Collect buttons for this tab with command_group == 4 (eQuickSettingsGroup)
+    std::vector<const qtac::ButtonEntry*> tabButtons;
+    for (const auto& btn : buttons)
+    {
+        QString btnTab = QtAdapter::toQString(btn._tab);
+        if (btnTab.isEmpty()) btnTab = "General";
+        if (btnTab == tabName && btn._commandGroup == 4)
+            tabButtons.push_back(&btn);
+    }
+
+    if (!tabButtons.empty())
+    {
+        auto* box  = new QGroupBox("Quick Settings", parent);
+        auto* grid = new QGridLayout(box);
+
+        int autoRow = 0, autoCol = 0;
+        for (const auto* btnEntry : tabButtons)
+        {
+            int row = (btnEntry->_cellY >= 0) ? btnEntry->_cellY : autoRow;
+            int col = (btnEntry->_cellX >= 0) ? btnEntry->_cellX : autoCol;
+
+            QString label = QtAdapter::toQString(btnEntry->_name);
+            auto* btn = new QPushButton(label, box);
+            btn->setCheckable(false);  // momentary, not toggle
+            btn->setToolTip(QtAdapter::toQString(btnEntry->_tooltip));
+
+            // Store the script command name in the object name so the slot
+            // can retrieve it.
+            btn->setObjectName(QtAdapter::toQString(btnEntry->_command));
+
+            connect(btn, &QPushButton::clicked,
+                    this, &TACPinFrame::onQuickButtonClicked);
+
+            grid->addWidget(btn, row, col);
+
+            ++autoCol;
+            if (autoCol >= 4) { autoCol = 0; ++autoRow; }
+        }
+        tabLayout->addWidget(box);
+    }
+
+    // --- Variables group box ---
+    if (!variables.isEmpty())
+    {
+        auto* box  = new QGroupBox("Variables", parent);
+        auto* form = new QFormLayout(box);
+        form->setLabelAlignment(Qt::AlignRight);
+
+        for (const auto& kv : variables)
+        {
+            const qtac::VariableEntry& var = kv.second;
+            QString label = QtAdapter::toQString(var._label);
+            if (label.isEmpty()) label = QtAdapter::toQString(var._name);
+            QString varName = QtAdapter::toQString(var._name);
+
+            if (var._type == qtac::VariableType::Boolean)
+            {
+                auto* cb = new QCheckBox(box);
+                cb->setChecked(var._defaultValue.toBool());
+                cb->setToolTip(QtAdapter::toQString(var._tooltip));
+                cb->setObjectName(varName);
+                connect(cb, &QCheckBox::toggled, this, [this, varName](bool checked) {
+                    if (_bridge) _bridge->setVariableValue(varName, checked);
+                });
+                form->addRow(label + ":", cb);
+            }
+            else
+            {
+                // Integer or Float — use a QSpinBox (floats rounded to int for now)
+                auto* sb = new QSpinBox(box);
+                sb->setRange(0, 30000);
+                sb->setValue(static_cast<int>(var._defaultValue.toUInt()));
+                sb->setToolTip(QtAdapter::toQString(var._tooltip));
+                sb->setObjectName(varName);
+                connect(sb, QOverload<int>::of(&QSpinBox::valueChanged),
+                        this, [this, varName](int val) {
+                    if (_bridge) _bridge->setVariableValue(varName, val);
+                });
+                form->addRow(label + ":", sb);
+            }
+        }
+        tabLayout->addWidget(box);
+    }
+}
+
+// ---------------------------------------------------------------------------
 // Build pin grid
 // ---------------------------------------------------------------------------
 
 void TACPinFrame::buildPins(const Pins& pins)
 {
-    if (pins.isEmpty())
+    // Collect buttons and variables from the device's platform config.
+    const qtac::ButtonEntries&   allButtons   = _bridge->device()->getButtons();
+    const qtac::VariableEntries& allVariables = _bridge->device()->getVariables();
+
+    if (pins.isEmpty() && allButtons.empty() && allVariables.isEmpty())
     {
         layout()->addWidget(new QLabel("No active pins for this device.", this));
         return;
@@ -197,6 +299,15 @@ void TACPinFrame::buildPins(const Pins& pins)
     for (const auto& pin : pins)
     {
         QString tab = QtAdapter::toQString(pin._tabName);
+        if (tab.isEmpty()) tab = "General";
+        if (tab != "General" && tab != "Device Info" && tab != "Terminal"
+            && !dynamicTabs.contains(tab))
+            dynamicTabs.append(tab);
+    }
+    // Also collect tabs from buttons
+    for (const auto& btn : allButtons)
+    {
+        QString tab = QtAdapter::toQString(btn._tab);
         if (tab.isEmpty()) tab = "General";
         if (tab != "General" && tab != "Device Info" && tab != "Terminal"
             && !dynamicTabs.contains(tab))
@@ -288,6 +399,9 @@ void TACPinFrame::buildPins(const Pins& pins)
             tabLayout->addWidget(box);
         }
 
+        // Append Quick Settings buttons and Variables for this tab
+        appendQuickSettings(tabLayout, tabWidget, tabName, allButtons, allVariables);
+
         tabs->addTab(tabWidget, tabName);
     }
 }
@@ -308,6 +422,17 @@ void TACPinFrame::onPinButtonToggled(bool checked)
         : "");
 
     _bridge->device()->setPinState(static_cast<PinID>(hash), checked);
+}
+
+void TACPinFrame::onQuickButtonClicked()
+{
+    if (!_bridge) return;
+
+    auto* btn = qobject_cast<QPushButton*>(sender());
+    if (!btn) return;
+
+    QByteArray cmd = btn->objectName().toLatin1();
+    _bridge->quickCommand(cmd);
 }
 
 void TACPinFrame::onLogLine(const QByteArray& line)

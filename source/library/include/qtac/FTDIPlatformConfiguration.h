@@ -44,6 +44,7 @@
 #include <qtac/FTDIPinSet.h>
 #include <qtac/StringUtilities.h>
 #include <qtac/CommandGroup.h>
+#include <qtac/AlpacaScript.h>
 
 // Disable nlohmann versioned inline namespace so 'nlohmann::json' is unambiguous
 #ifndef NLOHMANN_JSON_NAMESPACE_NO_VERSION
@@ -225,6 +226,18 @@ public:
 	void cascadeTabDelete(const qtac::String& tabName);
 	void cascadeTabRename(const qtac::String& oldName, const qtac::String& newName);
 
+	// --- Quick Settings buttons and script variables ---
+	const qtac::ButtonEntries&   getButtons()   const { return _buttons;   }
+	const qtac::VariableEntries& getVariables() const { return _variables; }
+	const qtac::AlpacaScript&    getScript()    const { return _script;    }
+
+	// Variable value setters (called from UI widgets)
+	void setVariableValue(const qtac::String& name, const qtac::Variant& value)
+	{
+		auto it = _variables.find(name);
+		if (it != _variables.end()) it->second._defaultValue = value;
+	}
+
 	bool read(json_t& parentLevel);
 	void write(json_t& parentLevel);
 
@@ -234,6 +247,9 @@ private:
 	int             _chipCount{1};
 	FTDIPinEntries  _pinEntries;
 	FTDIBusFunctions _busFunctions;
+	qtac::ButtonEntries   _buttons;
+	qtac::VariableEntries _variables;
+	qtac::AlpacaScript    _script;
 };
 
 using FTDIPlatformConfiguration = std::shared_ptr<_FTDIPlatformConfiguration>;

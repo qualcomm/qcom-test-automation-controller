@@ -150,6 +150,8 @@ add_library(qtac-core STATIC
     # Platform registry / devicelist.json loader (Phase 4)
     src/PlatformID.cpp
     src/TcnfLoader.cpp
+    # AlpacaScript engine (Qt-free port of qcommon-console AlpacaScript)
+    src/AlpacaScript.cpp
 )
 
 # Platform-specific SerialPortInfo enumeration

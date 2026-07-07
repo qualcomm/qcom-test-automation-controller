@@ -51,6 +51,7 @@
 #include <qt_string_convert.h>
 
 #include <qtac/AlpacaDevice.h>
+#include <qtac/AlpacaScript.h>
 #include <qtac/TACDriveThread.h>
 
 #include <QByteArray>
@@ -77,6 +78,16 @@ public:
 
     std::shared_ptr<_AlpacaDevice> device() const { return _device; }
     qtac::TACDriveThread* driveThread() const { return _driveThread; }
+
+    // Execute a Quick Settings script command by name.
+    void quickCommand(const QByteArray& command)
+    {
+        _device->quickCommand(qtac::ByteArray(command.data(), command.size()));
+    }
+
+    // Update a variable value (called from UI widgets before running a command).
+    void setVariableValue(const QString& name, int value);
+    void setVariableValue(const QString& name, bool value);
 
 signals:
     // _AlpacaDevice signals

@@ -350,3 +350,39 @@ Pins FTDIDevice::getPins()
 		return {};
 	return _ftdiPlatformConfiguration->getPins();
 }
+
+void FTDIDevice::quickCommand(const qtac::ByteArray& command)
+{
+	if (_ftdiPlatformConfiguration == nullptr || _driveThread == nullptr)
+		return;
+
+	const qtac::AlpacaScript& script = _ftdiPlatformConfiguration->getScript();
+	if (!script.hasCommand(command))
+		return;
+
+	qtac::CommandEntries entries = script.getCommandEntries(command);
+	entries = qtac::AlpacaScript::replaceTokens(
+	    _ftdiPlatformConfiguration->getVariables(), entries);
+
+	_driveThread->sendCommandSequence(entries);
+}
+
+void FTDIDevice::setVariableValue(const qtac::String& name, const qtac::Variant& value)
+{
+	if (_ftdiPlatformConfiguration != nullptr)
+		_ftdiPlatformConfiguration->setVariableValue(name, value);
+}
+
+const qtac::ButtonEntries& FTDIDevice::getButtons() const
+{
+	static qtac::ButtonEntries empty;
+	if (_ftdiPlatformConfiguration == nullptr) return empty;
+	return _ftdiPlatformConfiguration->getButtons();
+}
+
+const qtac::VariableEntries& FTDIDevice::getVariables() const
+{
+	static qtac::VariableEntries empty;
+	if (_ftdiPlatformConfiguration == nullptr) return empty;
+	return _ftdiPlatformConfiguration->getVariables();
+}
