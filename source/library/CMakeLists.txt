@@ -183,6 +183,8 @@ if(QTAC_BUILD_FTDI)
             HINTS
                 "$ENV{PROGRAMFILES}/FTDI/CDM Driver Package - Bus D2XX (v2.12.28)/Static/amd64"
                 "${CMAKE_CURRENT_SOURCE_DIR}/../../third-party/ftd2xx/win64"
+                "${CMAKE_SOURCE_DIR}/__Builds/x64/Release/lib"
+                "${CMAKE_SOURCE_DIR}/__Builds/x64/Debug/lib"
         )
         if(FTD2XX_LIB)
             target_link_libraries(qtac-core PUBLIC ${FTD2XX_LIB})

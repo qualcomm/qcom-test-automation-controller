@@ -34,8 +34,5 @@
 
 #include <QtCore/QtGlobal>
 
-#if defined(QT_ADAPTER_LIBRARY)
-#  define QT_ADAPTER_EXPORT Q_DECL_EXPORT
-#else
-#  define QT_ADAPTER_EXPORT Q_DECL_IMPORT
-#endif
+// qt-adapter is built as a static library; no dllexport/dllimport needed.
+#define QT_ADAPTER_EXPORT

@@ -41,6 +41,7 @@ qt_standard_project_setup()
 
 add_library(qt-adapter STATIC
     src/TACDeviceBridge.cpp
+    include/TACDeviceBridge.h
 )
 
 target_include_directories(qt-adapter

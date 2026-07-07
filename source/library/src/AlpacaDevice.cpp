@@ -152,7 +152,8 @@ void _AlpacaDevice::close()
 	if (_driveThread != nullptr)
 	{
 		_driveThread->shutDown();
-		delete _driveThread;
+		// Ownership of the injected drive thread belongs to the caller (see setDriveThread).
+		// We only shut it down here; the caller is responsible for deletion.
 		_driveThread = nullptr;
 	}
 	if (_serialDriveThread != nullptr)

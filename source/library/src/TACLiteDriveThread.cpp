@@ -141,11 +141,11 @@ void TACLiteDriveThread::externalPowerControl(bool state)
     waitForCompletion();
 }
 
-void TACLiteDriveThread::setPinState(uint16_t pin, bool state)
+void TACLiteDriveThread::setPinState(uint64_t pin, bool state)
 {
     {
         TACLiteCommand cmd(this, this);
-        cmd.setPinState(pin, state);
+        cmd.setPinState(static_cast<uint16_t>(pin), state);
     }
     waitForCompletion();
 }

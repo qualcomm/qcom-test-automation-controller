@@ -168,11 +168,11 @@ void TACPSOCDriveThread::endTransaction(ReceiveInterface* receiveInterface)
 // Public command methods
 // -----------------------------------------------------------------------
 
-void TACPSOCDriveThread::setPinState(uint16_t pin, bool state)
+void TACPSOCDriveThread::setPinState(uint64_t pin, bool state)
 {
     {
         TACPSOCCommand cmd(this, this);
-        cmd.setPinState(pin, state);
+        cmd.setPinState(static_cast<uint16_t>(pin), state);
     }
     waitForCompletion();
 }

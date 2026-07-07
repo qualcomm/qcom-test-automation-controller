@@ -183,7 +183,9 @@ private:
 };
 
 // QStringLiteral equivalent — just constructs a String
+#ifndef QStringLiteral
 #define QStringLiteral(str) qtac::String(str)
+#endif
 
 } // namespace qtac
 

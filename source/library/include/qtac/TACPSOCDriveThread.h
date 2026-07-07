@@ -68,7 +68,7 @@ public:
 
     void endTransaction(ReceiveInterface* receiveInterface = nullptr);
 
-    void setPinState(uint16_t pin, bool state) override;
+    void setPinState(uint64_t pin, bool state) override;
     void sendCommandSequence(CommandEntries& commandEntries) override;
 
     int  getResetCount()  override;

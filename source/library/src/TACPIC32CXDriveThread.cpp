@@ -174,11 +174,11 @@ void TACPIC32CXDriveThread::endTransaction(ReceiveInterface* receiveInterface)
 // Public command methods
 // -----------------------------------------------------------------------
 
-void TACPIC32CXDriveThread::setPinState(uint16_t pin, bool state)
+void TACPIC32CXDriveThread::setPinState(uint64_t pin, bool state)
 {
     {
         TACPIC32CXCommand cmd(this, this);
-        cmd.setPinState(pin, state);
+        cmd.setPinState(static_cast<uint16_t>(pin), state);
     }
     waitForCompletion();
 }

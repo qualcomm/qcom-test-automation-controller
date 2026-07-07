@@ -44,6 +44,7 @@
 #include <qtac/PlatformID.h>
 #include <qtac/StringUtilities.h>
 #include <qtac/Variant.h>
+#include <qtac/FTDIPinSet.h>
 
 #include <qtac/Signal.h>
 
@@ -132,7 +133,8 @@ public:
     virtual void sendCommand(const qtac::ByteArray& command, bool console = false,
                              ReceiveInterface* receiveInterface = nullptr, bool shouldStore = true) = 0;
 
-    virtual void setPinState(uint16_t pin, bool state) = 0;
+    virtual void setPinState(uint64_t pin, bool state) = 0;
+    virtual void setPinSets(FTDIPinSets /*pinsets*/) {} // no-op for non-FTDI threads
     virtual void sendCommandSequence(CommandEntries& commandEntries)    = 0;
 
     virtual int  getResetCount()   = 0;

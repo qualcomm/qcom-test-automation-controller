@@ -42,7 +42,7 @@ class FTDIDevice : public _AlpacaDevice
 {
 public:
 	FTDIDevice() = default;
-	virtual ~FTDIDevice() = default;
+	virtual ~FTDIDevice() { delete _ftdiPlatformConfiguration; }
 
 	static bool programDevice(AlpacaDevice alpacaDevice,
 	                          PlatformID platformID,

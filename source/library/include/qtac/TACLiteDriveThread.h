@@ -60,7 +60,7 @@ public:
     TACLiteDriveThread(const TACLiteDriveThread&)            = delete;
     TACLiteDriveThread& operator=(const TACLiteDriveThread&) = delete;
 
-    void setPinSets(FTDIPinSets pinsets) { _pinsets = pinsets; }
+    void setPinSets(FTDIPinSets pinsets) override { _pinsets = pinsets; }
 
     // DriveThread
     void run() override;
@@ -72,7 +72,7 @@ public:
 
     void externalPowerControl(bool state);
 
-    void setPinState(uint16_t pin, bool state)             override;
+    void setPinState(uint64_t pin, bool state)             override;
     void sendCommandSequence(CommandEntries& commandEntries) override;
 
     int  getResetCount()  override;

@@ -35,6 +35,8 @@
 #include <qtac/FTDIDevice.h>
 #include <qtac/FTDIChipset.h>
 #include <qtac/StringUtilities.h>
+#include <qtac/PlatformID.h>
+#include <qtac/TcnfLoader.h>
 
 // FTDI D2XX
 #include "ftd2xx.h"
@@ -227,11 +229,29 @@ bool FTDIDevice::open()
 		return false;
 	}
 
-	if (!_driveThread->start())
+	// Load the platform configuration from the .tcnf file if not already done.
+	if (_ftdiPlatformConfiguration == nullptr)
 	{
-		_lastError = "Drive thread failed to start";
-		return false;
+		PlatformIDList entries = PlatformContainer::getEntries();
+		for (auto& entry : entries)
+		{
+			if (entry && entry->_platformID == _platformID && !entry->_path.isEmpty())
+			{
+				auto* cfg = new _FTDIPlatformConfiguration(0);
+				if (TcnfLoader::loadFTDI(entry->_path.toStdString(), cfg))
+					_ftdiPlatformConfiguration = cfg;
+				else
+					delete cfg;
+				break;
+			}
+		}
 	}
+
+	// Give the drive thread the correct pin-set mask before it opens the FTDI device.
+	if (_ftdiPlatformConfiguration != nullptr)
+		_driveThread->setPinSets(_ftdiPlatformConfiguration->getPinSet(0));
+
+	_driveThread->start();
 
 	for (int count = 0; count < maxIterations; ++count)
 	{
@@ -277,7 +297,8 @@ bool FTDIDevice::open()
 
 void FTDIDevice::buildMapping()
 {
-	assert(_ftdiPlatformConfiguration != nullptr);
+	if (_ftdiPlatformConfiguration == nullptr)
+		return;
 	buildCommandList();
 }
 

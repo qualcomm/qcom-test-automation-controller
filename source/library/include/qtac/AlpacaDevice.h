@@ -50,51 +50,7 @@
 #include <memory>
 #include <mutex>
 
-namespace qtac { class TACDriveThread; }
-
-// -----------------------------------------------------------------------
-// Minimal drive-thread interface — no Qt, no QThread.
-// Concrete implementations (e.g. TACLiteDriveThread) live in qcommon-console.
-// -----------------------------------------------------------------------
-class IFTDIDriveThread
-{
-public:
-	virtual ~IFTDIDriveThread() = default;
-
-	virtual bool start()  = 0;
-	virtual void shutDown() = 0;
-	virtual bool weAreRunning() const = 0;
-
-	virtual void setPinState(uint64_t pin, bool state) = 0;
-	virtual void clearWaitForCompletion() = 0;
-	virtual void setWaitForCompletion() = 0;
-	virtual bool waitForCompletionStatus() const = 0;
-
-	virtual qtac::ByteArray portName() const = 0;
-	virtual void setPortName(const qtac::ByteArray& portName) = 0;
-	virtual qtac::ByteArray name() const = 0;
-	virtual void setName(const qtac::ByteArray& name) = 0;
-	virtual qtac::ByteArray macAddress() const = 0;
-	virtual qtac::String description() const = 0;
-	virtual void setDescription(const qtac::String& description) = 0;
-	virtual qtac::String serialNumber() const = 0;
-	virtual void setSerialNumber(const qtac::String& serialNumber) = 0;
-	virtual qtac::String uuid() const = 0;
-	virtual DebugBoardType debugBoardType() const = 0;
-	virtual qtac::String debugBoardTypeString() const = 0;
-	virtual qtac::String hardwareVersionString() const = 0;
-	virtual qtac::String firmwareVersion() const = 0;
-	virtual unsigned int majorVersion() const = 0;
-	virtual unsigned int minorVersion() const = 0;
-	virtual unsigned int revisionVersion() const = 0;
-	virtual int getResetCount() = 0;
-	virtual void clearResetCount() = 0;
-	virtual void i2CReadRegister(uint32_t addr, uint32_t reg) = 0;
-	virtual void i2CWriteRegister(uint32_t addr, uint32_t reg, uint32_t data) = 0;
-
-	// Signal set by _AlpacaDevice after open()
-	qtac::Signal<uint64_t, bool> onPinStateChanged;
-};
+#include <qtac/TACDriveThread.h>
 
 // -----------------------------------------------------------------------
 
@@ -189,7 +145,7 @@ public:
 
 	// Inject the concrete drive thread before calling open().
 	// The caller retains ownership; the device does NOT delete it.
-	void setDriveThread(IFTDIDriveThread* dt) { _driveThread = dt; }
+	void setDriveThread(qtac::TACDriveThread* dt) { _driveThread = dt; }
 
 	// --- Signals (replaces Qt signals) ---
 	qtac::Signal<uint64_t, bool>               onPinStateChanged;
@@ -216,7 +172,7 @@ protected:
 	PlatformID      _platformID{MICRO_EPM_BOARD_ID_UNKNOWN};
 	qtac::ByteArray _helpText;
 
-	IFTDIDriveThread*  _driveThread{nullptr};
+	qtac::TACDriveThread*  _driveThread{nullptr};
 	qtac::TACDriveThread* _serialDriveThread{nullptr};
 
 	TACCommandMap   _commands;
