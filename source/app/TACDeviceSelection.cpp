@@ -36,6 +36,7 @@
 #include <qt_string_convert.h>
 
 #include <qtac/FTDIDevice.h>
+#include <qtac/PSOCDevice.h>
 #include <qtac/AlpacaDevice.h>
 
 #include <QPushButton>
@@ -102,6 +103,7 @@ void TACDeviceSelection::refreshDevices()
     _ui->_tacDevices->blockSignals(true);
 
     FTDIDevice::updateAlpacaDevices();
+    PSOCDevice::updateAlpacaDevices();
 
     AlpacaDevices devices;
     _AlpacaDevice::getAlpacaDevices(devices);
