@@ -57,7 +57,8 @@ static constexpr int kOpenInitMs{100};
 uint32_t PSOCDevice::updateAlpacaDevices()
 {
     for (auto& dev : _alpacaDevices)
-        dev->setActive(false);
+        if (dev->debugBoardType() == ePSOC)
+            dev->setActive(false);
 
     SerialPortInfos ports = SerialPortInfo::availablePorts();
     for (const auto& info : ports)
