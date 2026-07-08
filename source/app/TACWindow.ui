@@ -108,6 +108,7 @@
     </property>
     <addaction name="_actionConnect"/>
     <addaction name="_actionDisconnect"/>
+    <addaction name="_actionPreferences"/>
     <addaction name="separator"/>
     <addaction name="_actionQuit"/>
    </widget>
@@ -123,6 +124,11 @@
    <addaction name="_helpMenu"/>
   </widget>
   <widget class="QStatusBar" name="_statusBar"/>
+  <action name="_actionPreferences">
+   <property name="text">
+    <string>Preferences…</string>
+   </property>
+  </action>
   <action name="_actionConnect">
    <property name="text">
     <string>Connect</string>

@@ -138,6 +138,7 @@ int main(int argc, char* argv[])
     TACApplication app(argc, argv);
 
     TACApplication::createTACWindow();
+    TACApplication::instance()->tryOpenLastDevice();
 
     int ret = app.exec();
 

@@ -61,6 +61,9 @@ public:
     // Returns true if any open window is already using portName.
     static bool isPortInUse(const QByteArray& portName);
 
+    // If "open last device" is enabled in preferences, tries to reconnect.
+    void tryOpenLastDevice();
+
     void quit();
 
 private:

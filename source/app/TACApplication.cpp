@@ -31,7 +31,11 @@
 // IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include "TACApplication.h"
+#include "TACPreferences.h"
 #include "TACWindow.h"
+
+#include <qtac/FTDIDevice.h>
+#include <qtac/AlpacaDevice.h>
 
 QList<TACWindow*> TACApplication::_windows;
 QPoint            TACApplication::_nextOrigin(40, 40);
@@ -82,4 +86,24 @@ void TACApplication::quit()
         w->close();
     _windows.clear();
     QApplication::quit();
+}
+
+void TACApplication::tryOpenLastDevice()
+{
+    TACPreferences prefs;
+    if (!prefs.openLastDevice()) return;
+    QString last = prefs.lastDevice();
+    if (last.isEmpty()) return;
+
+    FTDIDevice::updateAlpacaDevices();
+    QByteArray port = last.toLatin1();
+    AlpacaDevice dev = _AlpacaDevice::findAlpacaDevice(
+        qtac::ByteArray(port.constData(), port.size()));
+    if (!dev)
+    {
+        prefs.setLastDevice("");   // device gone — clear it
+        return;
+    }
+    if (!_windows.isEmpty())
+        _windows.first()->openPort(port);
 }

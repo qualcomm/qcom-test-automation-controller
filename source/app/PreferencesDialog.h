@@ -32,67 +32,33 @@
 
 #pragma once
 
-#include "TACPreferences.h"
+#include <QDialog>
 
-#include <TACDeviceBridge.h>
-
-#include <QByteArray>
-#include <QElapsedTimer>
-#include <QMainWindow>
-#include <QTimer>
-
-QT_BEGIN_NAMESPACE
-namespace Ui { class TACWindowClass; }
-QT_END_NAMESPACE
-
-namespace qtac { class TACLiteDriveThread; }
-class TACPinFrame;
+class TACPreferences;
+class QCheckBox;
+class QDoubleSpinBox;
 
 // ---------------------------------------------------------------------------
-// TACWindow — main window.
-//
-// Uses TACDeviceBridge (wraps qtac-core _AlpacaDevice + TACLiteDriveThread)
-// rather than the Qt-based _AlpacaDevice from QCommonConsole.
+// PreferencesDialog — modal dialog for editing TACPreferences.
+// Built programmatically; no .ui file.
 // ---------------------------------------------------------------------------
-class TACWindow : public QMainWindow
+class PreferencesDialog : public QDialog
 {
     Q_OBJECT
 
 public:
-    explicit TACWindow(QWidget* parent = nullptr);
-    ~TACWindow() override;
-
-    void openPort(const QByteArray& portName);
-    QByteArray portName() const;
-    bool inUse() const { return _bridge != nullptr; }
-    void shutDown();
+    explicit PreferencesDialog(TACPreferences* prefs, QWidget* parent = nullptr);
 
 private slots:
-    void onConnectClicked();
-    void onDisconnectClicked();
-
-    void onDeviceConnected();
-    void onDeviceDisconnected();
-    void onFirmwareVersionUpdated(const QString& version);
-    void onHardwareTypeUpdated(const QString& hwType);
-    void onNameUpdated(const QString& name);
-    void onPinStateChanged(quint64 pin, bool state);
-    void onError(const QByteArray& message);
-
-    void onContentsTriggered();
-    void onAboutTriggered();
-    void onPreferencesTriggered();
-    void onAutoShutdownTimeout();
+    void onSetToDefaults();
+    void accept() override;
 
 private:
-    void setupAutoShutdownTimer();
+    void loadFromPrefs();
 
-    Ui::TACWindowClass*          _ui{nullptr};
-    TACPinFrame*                 _pinFrame{nullptr};
-    TACDeviceBridge*             _bridge{nullptr};
-    qtac::TACLiteDriveThread*    _driveThread{nullptr};
+    TACPreferences* _prefs{nullptr};
 
-    TACPreferences               _prefs;
-    QTimer                       _autoShutdownTimer;
-    QElapsedTimer                _autoShutdownDeadline;
+    QCheckBox*      _openLastDevice{nullptr};
+    QCheckBox*      _autoShutdown{nullptr};
+    QDoubleSpinBox* _hours{nullptr};
 };

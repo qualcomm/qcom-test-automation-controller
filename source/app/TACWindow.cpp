@@ -36,6 +36,7 @@
 #include "TACApplication.h"
 #include "TACDeviceSelection.h"
 #include "TACPinFrame.h"
+#include "PreferencesDialog.h"
 
 #include <qt_string_convert.h>
 
@@ -76,6 +77,10 @@ TACWindow::TACWindow(QWidget* parent)
     connect(_ui->_actionQuit,       &QAction::triggered,   this, []{ TACApplication::instance()->quit(); });
     connect(_ui->_actionContents,   &QAction::triggered,   this, &TACWindow::onContentsTriggered);
     connect(_ui->_actionAbout,      &QAction::triggered,   this, &TACWindow::onAboutTriggered);
+    connect(_ui->_actionPreferences,&QAction::triggered,   this, &TACWindow::onPreferencesTriggered);
+    connect(&_autoShutdownTimer,    &QTimer::timeout,      this, &TACWindow::onAutoShutdownTimeout);
+
+    setupAutoShutdownTimer();
 
     setWindowTitle(kWindowTitle.arg(""));
 }
@@ -154,6 +159,9 @@ void TACWindow::openPort(const QByteArray& portName)
 
     // Populate the pin panel.
     _pinFrame->setDevice(_bridge);
+
+    // Remember this port for "open last device" feature.
+    _prefs.setLastDevice(QString(portName));
 
     setWindowTitle(kWindowTitle.arg(" — " + QString(portName)));
     _ui->_deviceStatusLabel->setText("Opening…");
@@ -284,4 +292,34 @@ void TACWindow::onAboutTriggered()
         "<b>Test Automation Controller</b><br>"
         "Qt-free refactor build<br><br>"
         "Copyright &copy; Qualcomm Technologies, Inc. and/or its subsidiaries.");
+}
+
+void TACWindow::onPreferencesTriggered()
+{
+    PreferencesDialog dlg(&_prefs, this);
+    if (dlg.exec() == QDialog::Accepted)
+        setupAutoShutdownTimer();
+}
+
+void TACWindow::setupAutoShutdownTimer()
+{
+    if (_prefs.autoShutdown())
+    {
+        _autoShutdownTimer.start(60000);   // check every 60s
+        _autoShutdownDeadline.restart();
+    }
+    else
+    {
+        _autoShutdownTimer.stop();
+    }
+}
+
+void TACWindow::onAutoShutdownTimeout()
+{
+    qint64 limitMs = static_cast<qint64>(_prefs.autoShutdownHours() * 3600000.0);
+    if (_autoShutdownDeadline.elapsed() > limitMs)
+    {
+        shutDown();
+        deleteLater();
+    }
 }

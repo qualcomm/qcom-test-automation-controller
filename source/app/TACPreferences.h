@@ -32,67 +32,27 @@
 
 #pragma once
 
-#include "TACPreferences.h"
-
-#include <TACDeviceBridge.h>
-
-#include <QByteArray>
-#include <QElapsedTimer>
-#include <QMainWindow>
-#include <QTimer>
-
-QT_BEGIN_NAMESPACE
-namespace Ui { class TACWindowClass; }
-QT_END_NAMESPACE
-
-namespace qtac { class TACLiteDriveThread; }
-class TACPinFrame;
+#include <QString>
 
 // ---------------------------------------------------------------------------
-// TACWindow — main window.
-//
-// Uses TACDeviceBridge (wraps qtac-core _AlpacaDevice + TACLiteDriveThread)
-// rather than the Qt-based _AlpacaDevice from QCommonConsole.
+// TACPreferences — thin QSettings wrapper for per-user application settings.
+// Uses the default QSettings constructor which picks up org/app name from
+// TACApplication (QApplication::setOrganizationName / setApplicationName).
 // ---------------------------------------------------------------------------
-class TACWindow : public QMainWindow
+class TACPreferences
 {
-    Q_OBJECT
-
 public:
-    explicit TACWindow(QWidget* parent = nullptr);
-    ~TACWindow() override;
+    bool    openLastDevice() const;
+    void    setOpenLastDevice(bool value);
 
-    void openPort(const QByteArray& portName);
-    QByteArray portName() const;
-    bool inUse() const { return _bridge != nullptr; }
-    void shutDown();
+    QString lastDevice() const;
+    void    setLastDevice(const QString& portName);
 
-private slots:
-    void onConnectClicked();
-    void onDisconnectClicked();
+    bool    autoShutdown() const;
+    void    setAutoShutdown(bool value);
 
-    void onDeviceConnected();
-    void onDeviceDisconnected();
-    void onFirmwareVersionUpdated(const QString& version);
-    void onHardwareTypeUpdated(const QString& hwType);
-    void onNameUpdated(const QString& name);
-    void onPinStateChanged(quint64 pin, bool state);
-    void onError(const QByteArray& message);
+    double  autoShutdownHours() const;
+    void    setAutoShutdownHours(double hours);
 
-    void onContentsTriggered();
-    void onAboutTriggered();
-    void onPreferencesTriggered();
-    void onAutoShutdownTimeout();
-
-private:
-    void setupAutoShutdownTimer();
-
-    Ui::TACWindowClass*          _ui{nullptr};
-    TACPinFrame*                 _pinFrame{nullptr};
-    TACDeviceBridge*             _bridge{nullptr};
-    qtac::TACLiteDriveThread*    _driveThread{nullptr};
-
-    TACPreferences               _prefs;
-    QTimer                       _autoShutdownTimer;
-    QElapsedTimer                _autoShutdownDeadline;
+    void    resetToDefaults();
 };

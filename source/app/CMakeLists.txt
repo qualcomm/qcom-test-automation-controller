@@ -56,6 +56,10 @@ qt_add_executable(qtac-app WIN32
     TACDeviceSelection.ui
     TACPinFrame.h
     TACPinFrame.cpp
+    TACPreferences.h
+    TACPreferences.cpp
+    PreferencesDialog.h
+    PreferencesDialog.cpp
     ${QTAC_APP_RESOURCES}
 )
 
