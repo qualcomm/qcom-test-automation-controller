@@ -282,7 +282,7 @@ void TACPIC32CXDriveThread::receive(FramePackage& framePackage)
     {
         switch (framePackage->requestHash)
         {
-        case kPIC32CXVersionCommandHash: handleVersionResponse(framePackage); break;
+        case kVersionCommandHash: handleVersionResponse(framePackage); break;
         case kPIC32CXSetPinCommandHash:  handleSetPin(framePackage);          break;
         case kPIC32CXClearBufferHash:    handleClearBuffer(framePackage);     break;
         default: break;
@@ -294,7 +294,7 @@ void TACPIC32CXDriveThread::receive(FramePackage& framePackage)
 
         switch (framePackage->requestHash)
         {
-        case kPIC32CXVersionCommandHash:
+        case kVersionCommandHash:
         {
             TACPIC32CXCommand cmd(this, this);
             cmd.platformID();
@@ -359,7 +359,7 @@ void TACPIC32CXDriveThread::run()
                     writeLogLine("TACPIC32CXDriveTrain::run()::Write: " + framePackage->codedRequest.toStdString());
 
                     // Clear serial buffer before sending the version/identify command.
-                    if (framePackage->requestHash == kPIC32CXVersionCommandHash)
+                    if (framePackage->requestHash == kVersionCommandHash)
                     {
                         if (_serialPort->clear())
                             writeLogLine("Buffer cleared before identifying PIC32CX board");

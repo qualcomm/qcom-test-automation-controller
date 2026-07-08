@@ -136,6 +136,11 @@ bool PSOCDevice::open()
                 break;
             }
         }
+
+        // Firmware that doesn't support 'Get Platform ID' leaves platformID UNKNOWN
+        // but the device is still usable if it connected and returned a version string.
+        if (!result && thread->connected())
+            result = true;
     }
     else
     {

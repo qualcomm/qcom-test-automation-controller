@@ -43,6 +43,7 @@
 #include <qtac/FTDIDevice.h>
 #include <qtac/AlpacaDevice.h>
 #include <qtac/TACLiteDriveThread.h>
+#include <qtac/TACPSOCDriveThread.h>
 
 #include <QMessageBox>
 #include <QVBoxLayout>
@@ -109,8 +110,17 @@ void TACWindow::openPort(const QByteArray& portName)
         return;
     }
 
-    // Create and inject the concrete drive thread.
-    _driveThread = new qtac::TACLiteDriveThread(dev->hash());
+    // Create and inject the concrete drive thread based on board type.
+    switch (dev->debugBoardType())
+    {
+    case ePSOC:
+        _driveThread = new qtac::TACPSOCDriveThread(dev->hash());
+        break;
+    case eFTDI:
+    default:
+        _driveThread = new qtac::TACLiteDriveThread(dev->hash());
+        break;
+    }
     dev->setDriveThread(_driveThread);
 
     // Route drive-thread log lines to our crash/diagnostic log file.

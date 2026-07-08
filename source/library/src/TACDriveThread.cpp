@@ -285,14 +285,6 @@ bool TACDriveThread::checkLocalStore(FramePackage& framePackage)
         }
         break;
 
-    case kPIC32CXVersionCommandHash:
-        if (!_versionString.isEmpty())
-        {
-            framePackage->responses.push_back(_versionString);
-            return true;
-        }
-        break;
-
     default:
         break;
     }

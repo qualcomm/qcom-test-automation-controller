@@ -349,7 +349,13 @@ void TACPSOCDriveThread::receive(FramePackage& framePackage)
     }
 
     log(framePackage);
-    _protocolInterface->clearPendingFrame();
+    // Don't clear the pending frame on end-transaction — a command response
+    // may still be in flight (e.g. Version sent from the invalid-platformID
+    // handler whose destructor queues the end transaction before the reply
+    // arrives). Other cases (valid/invalid frames) commit or discard the
+    // pending frame via frameComplete() before receive() is called.
+    if (!framePackage->endTransaction)
+        _protocolInterface->clearPendingFrame();
 }
 
 // -----------------------------------------------------------------------
@@ -547,8 +553,6 @@ void TACPSOCDriveThread::handleUUIDResponse(FramePackage& framePackage)
 
 void TACPSOCDriveThread::handleVersionResponse(FramePackage& framePackage)
 {
-    static int retryCount{1};
-
     if (framePackage->responses.size() > 1)
     {
         bool        isEPM{false};
@@ -567,7 +571,7 @@ void TACPSOCDriveThread::handleVersionResponse(FramePackage& framePackage)
         _versionString = qtac::ByteArray(versionString);
         writeLogLine("Version String: " + versionString);
 
-        retryCount = 1;
+        _versionRetryCount = 1;
 
         _hardwareType = isEPM ? ePSOC : eSpiderBoard;
 
@@ -625,12 +629,12 @@ void TACPSOCDriveThread::handleVersionResponse(FramePackage& framePackage)
         if (onDeviceStatusChange) onDeviceStatusChange(qtac::String("TAC Version Good"));
         setupConnected();
     }
-    else if (retryCount < 4)
+    else if (_versionRetryCount < 4)
     {
-        writeLogLine("Version Failed Retry " + std::to_string(retryCount));
+        writeLogLine("Version Failed Retry " + std::to_string(_versionRetryCount));
         TACPSOCCommand cmd(this, this);
         cmd.version();
-        ++retryCount;
+        ++_versionRetryCount;
     }
 }
 

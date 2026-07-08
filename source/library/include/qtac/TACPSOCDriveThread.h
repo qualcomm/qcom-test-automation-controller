@@ -85,6 +85,8 @@ public:
                   bool store = true) override;
     bool ready() override;
 
+    bool connected() const { return _connected; }
+
     // --- ReceiveInterface ---
     void receive(FramePackage& framePackage) override;
 
@@ -100,6 +102,7 @@ private:
     SerialPortInfo               _tacPortInfo;
     std::unique_ptr<SerialPort>  _serialPort;
     bool                         _readyRead{false};
+    int                          _versionRetryCount{1};
 
     bool readSerialData();
 

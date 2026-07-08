@@ -32,3 +32,6 @@ target_link_libraries(test_coders_commands PRIVATE qtac-core)
 
 add_executable(test_hardware_ftdi test_hardware_ftdi.cpp)
 target_link_libraries(test_hardware_ftdi PRIVATE qtac-core)
+
+add_executable(test_hardware_psoc test_hardware_psoc.cpp)
+target_link_libraries(test_hardware_psoc PRIVATE qtac-core)

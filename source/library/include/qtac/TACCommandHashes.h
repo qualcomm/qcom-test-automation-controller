@@ -37,20 +37,22 @@
 
 #include <qtac/StringUtilities.h>
 
-// Command hash constants — numeric values match the original Qt implementation.
-constexpr HashType kVersionCommandHash          {178099058};
-constexpr HashType kGetNameCommandHash          {639527594};
-constexpr HashType kSetNameCommandHash          {639527606};
-constexpr HashType kGetUUIDCommandHash          {583302694};
-constexpr HashType kGetPlatformIDCommandHash    {441876121};
-constexpr HashType kGetResetCountCommandHash    {432158534};
-constexpr HashType kClearResetCountCommandHash  {845787175};
-constexpr HashType kI2CReadRegisterCommandHash  {333696227};
-constexpr HashType kI2CReadRegisterValueCommandHash {675332837};
-constexpr HashType kI2CWriteRegisterCommandHash {533512490};
-constexpr HashType kSetPinCommandHash           {703510564};
+// Command hash constants — computed by arrayHash() from the command strings below.
+// arrayHash uses polynomial hashing with p=257, m=1000000009, char offset 'a'+1.
+// Upper-case chars wrap as uint64 (char-'a'+1 can be negative for A-Z when char is signed).
+constexpr HashType kVersionCommandHash              {866955479};  // "Version"
+constexpr HashType kGetNameCommandHash              {547685476};  // "Get Name"
+constexpr HashType kSetNameCommandHash              {547685488};  // "Set Name"
+constexpr HashType kGetUUIDCommandHash              {635137362};  // "Get UUID"
+constexpr HashType kGetPlatformIDCommandHash        {902869137};  // "Get Platform ID"
+constexpr HashType kGetResetCountCommandHash        {952487881};  // "Get Reset Count"
+constexpr HashType kClearResetCountCommandHash      {490033140};  // "Clear Reset Count"
+constexpr HashType kI2CReadRegisterCommandHash      {180907982};  // "I2C Read Register"
+constexpr HashType kI2CReadRegisterValueCommandHash {61693687};   // "I2C Read Register Value"
+constexpr HashType kI2CWriteRegisterCommandHash     {451600976};  // "I2C Write Register"
+constexpr HashType kSetPinCommandHash               {669041116};  // "SetPin"
 
 // PIC32CX hashes
-constexpr HashType kPIC32CXClearBufferHash      {81534733};
-constexpr HashType kPIC32CXVersionCommandHash   {22031998};
-constexpr HashType kPIC32CXSetPinCommandHash    {15032008};
+constexpr HashType kPIC32CXClearBufferHash          {488213724};  // "echo 1"
+// kPIC32CXVersionCommandHash == kVersionCommandHash (both "Version")
+constexpr HashType kPIC32CXSetPinCommandHash        {262261912};  // "CONF:DIG:ON"

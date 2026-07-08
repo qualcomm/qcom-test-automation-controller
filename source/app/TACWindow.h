@@ -45,7 +45,7 @@ QT_BEGIN_NAMESPACE
 namespace Ui { class TACWindowClass; }
 QT_END_NAMESPACE
 
-namespace qtac { class TACLiteDriveThread; }
+namespace qtac { class TACDriveThread; }
 class TACPinFrame;
 
 // ---------------------------------------------------------------------------
@@ -90,7 +90,7 @@ private:
     Ui::TACWindowClass*          _ui{nullptr};
     TACPinFrame*                 _pinFrame{nullptr};
     TACDeviceBridge*             _bridge{nullptr};
-    qtac::TACLiteDriveThread*    _driveThread{nullptr};
+    qtac::TACDriveThread*        _driveThread{nullptr};
 
     TACPreferences               _prefs;
     QTimer                       _autoShutdownTimer;

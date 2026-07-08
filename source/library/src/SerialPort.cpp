@@ -148,14 +148,24 @@ bool SerialPort::waitForReadyRead(uint32_t timeout_ms)
 	while (elapsed < timeout_ms)
 	{
 		sp_return waiting = sp_input_waiting(_port);
-		if (waiting > 0) return true;
+		if (waiting > 0)
+		{
+			if (onReadyRead) onReadyRead();
+			return true;
+		}
 		if (waiting < 0) return false; // error
 
 		std::this_thread::sleep_for(std::chrono::milliseconds(pollInterval));
 		elapsed += pollInterval;
 	}
 
-	return sp_input_waiting(_port) > 0;
+	sp_return waiting = sp_input_waiting(_port);
+	if (waiting > 0)
+	{
+		if (onReadyRead) onReadyRead();
+		return true;
+	}
+	return false;
 }
 
 bool SerialPort::clear()
