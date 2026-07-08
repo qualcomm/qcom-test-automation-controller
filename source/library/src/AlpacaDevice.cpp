@@ -149,6 +149,11 @@ bool _AlpacaDevice::isOpen()
 
 void _AlpacaDevice::close()
 {
+	// Remember the injected drive thread pointer before clearing it, so we can
+	// detect the PSoC GUI aliasing case (where open() stored _driveThread into
+	// _serialDriveThread) and avoid a double-free/double-shutdown.
+	qtac::TACDriveThread* injected = _driveThread;
+
 	if (_driveThread != nullptr)
 	{
 		_driveThread->shutDown();
@@ -158,8 +163,14 @@ void _AlpacaDevice::close()
 	}
 	if (_serialDriveThread != nullptr)
 	{
-		_serialDriveThread->shutDown();
-		delete _serialDriveThread;
+		if (_serialDriveThread != injected)
+		{
+			// Self-owned thread (created inside open()) — shut down and delete.
+			_serialDriveThread->shutDown();
+			delete _serialDriveThread;
+		}
+		// If _serialDriveThread == injected, it was aliased from _driveThread and was
+		// already shut down above. Don't delete — caller owns that pointer.
 		_serialDriveThread = nullptr;
 	}
 }

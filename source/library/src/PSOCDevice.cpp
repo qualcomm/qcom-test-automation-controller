@@ -97,8 +97,23 @@ bool PSOCDevice::open()
 
     if (_serialDriveThread == nullptr)
     {
-        TACPSOCDriveThread* thread = new TACPSOCDriveThread(_hash);
-        _serialDriveThread = thread;
+        TACPSOCDriveThread* thread;
+
+        if (_driveThread != nullptr)
+        {
+            // GUI path: caller already created and injected a TACPSOCDriveThread via
+            // setDriveThread(). Alias it so all the open() logic below works uniformly.
+            // Ownership stays with the caller; AlpacaDevice::close() detects this alias
+            // and skips the delete for _serialDriveThread.
+            thread = static_cast<TACPSOCDriveThread*>(_driveThread);
+            _serialDriveThread = thread;
+        }
+        else
+        {
+            // Headless / test path: create our own thread (self-owned, deleted by close()).
+            thread = new TACPSOCDriveThread(_hash);
+            _serialDriveThread = thread;
+        }
 
         _serialDriveThread->start();
 
