@@ -50,12 +50,13 @@
 
 namespace {
 
-// Read VID/PID from the Windows registry for a given COM port name.
-// Parses the hardware ID string, e.g. "USB\VID_05C6&PID_9302\...".
-static bool readVidPidFromRegistry(const std::string& portName, uint16_t& vid, uint16_t& pid)
+// Read VID/PID and revision from the Windows registry for a given COM port name.
+// Parses the hardware ID string, e.g. "USB\VID_05C6&PID_9302&REV_0055\...".
+static bool readVidPidFromRegistry(const std::string& portName, uint16_t& vid, uint16_t& pid, uint16_t& rev)
 {
 	vid = 0;
 	pid = 0;
+	rev = 0;
 
 	HDEVINFO devInfo = SetupDiGetClassDevsA(&GUID_DEVINTERFACE_COMPORT, nullptr, nullptr,
 		DIGCF_PRESENT | DIGCF_DEVICEINTERFACE);
@@ -97,6 +98,12 @@ static bool readVidPidFromRegistry(const std::string& portName, uint16_t& vid, u
 		{
 			vid = static_cast<uint16_t>(std::stoul(hwId.substr(vidPos + 4, 4), nullptr, 16));
 			pid = static_cast<uint16_t>(std::stoul(hwId.substr(pidPos + 4, 4), nullptr, 16));
+		}
+		auto revPos = hwId.find("REV_");
+		if (revPos != std::string::npos)
+		{
+			try { rev = static_cast<uint16_t>(std::stoul(hwId.substr(revPos + 4, 4), nullptr, 16)); }
+			catch (...) {}
 		}
 		break;
 	}
@@ -182,11 +189,12 @@ SerialPortInfos SerialPortInfo::availablePorts()
 		// regardless of driver (FTDI, usbser.sys, etc.).
 		if (name)
 		{
-			uint16_t vid = 0, pid = 0;
-			if (readVidPidFromRegistry(name, vid, pid))
+			uint16_t vid = 0, pid = 0, rev = 0;
+			if (readVidPidFromRegistry(name, vid, pid, rev))
 			{
 				info.setVendorIdentifier(vid);
 				info.setProductIdentifier(pid);
+				info.setRevision(rev);
 			}
 
 			std::string serial = readSerialFromRegistry(name);

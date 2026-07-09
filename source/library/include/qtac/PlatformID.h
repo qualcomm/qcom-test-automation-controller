@@ -79,6 +79,8 @@ struct _PlatformEntry
 	qtac::ByteArray _usbDescriptor;
 	qtac::String    _path;
 	FTDIPinSets     _pinSets[kMaxPinSetCount];
+	uint32_t        _revision{0};
+	uint32_t        _firmwareChip{0};
 };
 
 using PlatformEntry    = std::shared_ptr<_PlatformEntry>;
@@ -98,6 +100,8 @@ public:
 
 	static qtac::String toString(PlatformID platformID);
 	static PlatformID fromUSBDescriptor(const qtac::ByteArray& usbDescriptor);
+	static PlatformID fromRevision(uint32_t revision, DebugBoardType boardType);
+	static PlatformID fromFirmwareChip(uint32_t firmwareChip, DebugBoardType boardType);
 	static DebugBoardType getDebugBoardType(PlatformID platformID);
 	static PlatformIDList getDebugBoards();
 	static PlatformIDList getDebugBoardsOfType(DebugBoardType debugBoardType);

@@ -81,6 +81,7 @@ uint32_t PSOCDevice::updateAlpacaDevices()
             dev->_platformID   = MICRO_EPM_BOARD_ID_UNKNOWN;
             dev->_description  = info.description().toLatin1();
             dev->_serialNumber = info.serialNumber().toLatin1();
+            dev->_usbRevision  = info.revision();
             _alpacaDevices.append(AlpacaDevice(dev));
         }
         else
@@ -157,6 +158,33 @@ bool PSOCDevice::open()
         // but the device is still usable if it connected and returned a version string.
         if (!result && thread->connected())
             result = true;
+
+        // If platformID is still UNKNOWN but the device is connected, attempt to
+        // identify the platform by the USB bcdDevice revision value stored during
+        // enumeration.  This handles older firmware that doesn't implement the
+        // 'Get Platform ID' command.
+        if (result && _platformID == MICRO_EPM_BOARD_ID_UNKNOWN && _usbRevision != 0)
+        {
+            PlatformContainer::initialize();
+            PlatformID fallback = PlatformContainer::fromRevision(_usbRevision, ePSOC);
+            if (fallback != MICRO_EPM_BOARD_ID_UNKNOWN)
+                _platformID = fallback;
+        }
+
+        // Second fallback: match by firmware chip version when the entry in devicelist.json
+        // has a "firmware_chip" field.  Used for devices where the USB revision is 0 but
+        // the firmware chip identifier uniquely maps to a platform.
+        if (result && _platformID == MICRO_EPM_BOARD_ID_UNKNOWN)
+        {
+            unsigned int chip = thread->chipVersion();
+            if (chip != 0)
+            {
+                PlatformContainer::initialize();
+                PlatformID fallback = PlatformContainer::fromFirmwareChip(chip, ePSOC);
+                if (fallback != MICRO_EPM_BOARD_ID_UNKNOWN)
+                    _platformID = fallback;
+            }
+        }
     }
     else
     {

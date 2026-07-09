@@ -61,12 +61,14 @@ public:
 	qtac::String description()  const { return _description; }
 	uint16_t vendorIdentifier()  const { return _vendorId; }
 	uint16_t productIdentifier() const { return _productId; }
+	uint16_t revision()          const { return _revision; }
 
 	void setPortName(const qtac::String& s)     { _portName = s; }
 	void setSerialNumber(const qtac::String& s) { _serialNumber = s; }
 	void setDescription(const qtac::String& s)  { _description = s; }
 	void setVendorIdentifier(uint16_t vid)      { _vendorId = vid; }
 	void setProductIdentifier(uint16_t pid)     { _productId = pid; }
+	void setRevision(uint16_t rev)              { _revision = rev; }
 
 	bool matchesVidPid(uint16_t vid, uint16_t pid) const
 	{
@@ -87,6 +89,7 @@ private:
 	qtac::String _description;
 	uint16_t     _vendorId{0};
 	uint16_t     _productId{0};
+	uint16_t     _revision{0};
 };
 
 bool equal(const SerialPortInfos& si1, const SerialPortInfos& si2);

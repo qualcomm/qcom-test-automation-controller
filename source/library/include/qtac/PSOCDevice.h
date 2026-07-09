@@ -48,4 +48,5 @@ public:
 
 private:
     _PSOCPlatformConfiguration* _psocPlatformConfiguration{nullptr};
+    uint32_t                    _usbRevision{0};
 };

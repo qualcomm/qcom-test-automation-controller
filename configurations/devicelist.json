@@ -635,6 +635,7 @@
             "configPath": "../../../../configurations/TAC_PSOC_66.tcnf",
             "debugBoardType": 2,
             "description": "Hawi MTP8975 - PSoC",
+            "firmware_chip": 4,
             "name": "Hawi MTP8975",
             "platform_id": 66,
             "revision": 85,

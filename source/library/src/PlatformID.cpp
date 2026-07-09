@@ -67,6 +67,8 @@ static const char* kDescription    = "description";
 static const char* kName           = "name";
 static const char* kUsbDescriptor  = "usb_descriptor";
 static const char* kConfigPath     = "configPath";
+static const char* kRevision       = "revision";
+static const char* kFirmwareChip   = "firmware_chip";
 static const char* kChip1BusSet    = "chip1BusSet";
 static const char* kChip2BusSet    = "chip2BusSet";
 static const char* kChip3BusSet    = "chip3BusSet";
@@ -234,6 +236,9 @@ void PlatformContainer::initializeDynamic()
             qtac::ByteArray(usbDesc.c_str())
         );
 
+        platformEntry->_revision     = static_cast<uint32_t>(entry.value(kRevision, 0));
+        platformEntry->_firmwareChip = static_cast<uint32_t>(entry.value(kFirmwareChip, 0));
+
         // FTDI bus set bitmasks (chip1..chip4, 0-indexed internally as [0..3])
         static const char* kBusSets[kMaxPinSetCount] = {
             kChip1BusSet, kChip2BusSet, kChip3BusSet, kChip4BusSet
@@ -287,8 +292,37 @@ PlatformID PlatformContainer::fromUSBDescriptor(const qtac::ByteArray& usbDescri
     return MICRO_EPM_BOARD_ID_UNKNOWN;
 }
 
-DebugBoardType PlatformContainer::getDebugBoardType(PlatformID platformID)
+PlatformID PlatformContainer::fromRevision(uint32_t revision, DebugBoardType boardType)
 {
+    initialize();
+    if (revision == 0)
+        return MICRO_EPM_BOARD_ID_UNKNOWN;
+    for (const auto& kv : _platformIds)
+    {
+        if (!kv.second) continue;
+        if (kv.second->_revision == revision && kv.second->_boardtype == boardType)
+            return kv.second->_platformID;
+    }
+    return MICRO_EPM_BOARD_ID_UNKNOWN;
+}
+
+PlatformID PlatformContainer::fromFirmwareChip(uint32_t firmwareChip, DebugBoardType boardType)
+{
+    initialize();
+    if (firmwareChip == 0)
+        return MICRO_EPM_BOARD_ID_UNKNOWN;
+    for (const auto& kv : _platformIds)
+    {
+        if (!kv.second) continue;
+        if (kv.second->_firmwareChip == firmwareChip &&
+            kv.second->_boardtype    == boardType     &&
+            !kv.second->_path.isEmpty())
+            return kv.second->_platformID;
+    }
+    return MICRO_EPM_BOARD_ID_UNKNOWN;
+}
+
+DebugBoardType PlatformContainer::getDebugBoardType(PlatformID platformID){
     initialize();
     auto it = _platformIds.find(platformID);
     if (it != _platformIds.end() && it->second)
