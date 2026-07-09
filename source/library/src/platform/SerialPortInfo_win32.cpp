@@ -46,7 +46,9 @@
 #include <windows.h>
 #include <setupapi.h>
 #include <devguid.h>
+#include <cfgmgr32.h>
 #pragma comment(lib, "setupapi.lib")
+#pragma comment(lib, "cfgmgr32.lib")
 
 namespace {
 
@@ -114,6 +116,9 @@ static bool readVidPidFromRegistry(const std::string& portName, uint16_t& vid, u
 
 // Read serial number from the device instance ID for a COM port.
 // Instance ID format: "USB\VID_XXXX&PID_YYYY\SERIALNUMBER"
+// For composite USB devices the MI_xx interface instance ID ends with
+// an auto-generated "N&xxxxxxxx&0&xxxx" segment that contains '&'.
+// In that case walk up to the parent device which carries the real serial.
 static std::string readSerialFromRegistry(const std::string& portName)
 {
 	HDEVINFO devInfo = SetupDiGetClassDevsA(&GUID_DEVINTERFACE_COMPORT, nullptr, nullptr,
@@ -151,9 +156,31 @@ static std::string readSerialFromRegistry(const std::string& portName)
 			if (lastSlash != std::string::npos)
 			{
 				std::string serial = id.substr(lastSlash + 1);
-				// Windows-generated instance IDs contain '&'; real serials do not
 				if (serial.find('&') == std::string::npos)
+				{
+					// Direct serial on this node
 					result = serial;
+				}
+				else
+				{
+					// Composite device interface — walk up to parent to get real serial
+					DEVINST parent = 0;
+					if (CM_Get_Parent(&parent, devInfoData.DevInst, 0) == CR_SUCCESS)
+					{
+						char parentId[256]{};
+						if (CM_Get_Device_IDA(parent, parentId, sizeof(parentId), 0) == CR_SUCCESS)
+						{
+							std::string pid(parentId);
+							auto pSlash = pid.rfind('\\');
+							if (pSlash != std::string::npos)
+							{
+								std::string parentSerial = pid.substr(pSlash + 1);
+								if (parentSerial.find('&') == std::string::npos)
+									result = parentSerial;
+							}
+						}
+					}
+				}
 			}
 		}
 		break;
