@@ -41,6 +41,7 @@
 #include <qtac/Point.h>
 #include <qtac/String.h>
 #include <qtac/StringUtilities.h>
+#include <qtac/AlpacaScript.h>
 
 // Disable nlohmann versioned inline namespace so 'nlohmann::json' is unambiguous
 #ifndef NLOHMANN_JSON_NAMESPACE_NO_VERSION
@@ -131,13 +132,26 @@ public:
     void cascadeTabDelete(const qtac::String& tabName);
     void cascadeTabRename(const qtac::String& oldName, const qtac::String& newName);
 
+    const qtac::ButtonEntries&   getButtons()   const { return _buttons;   }
+    const qtac::VariableEntries& getVariables() const { return _variables; }
+    const qtac::AlpacaScript&    getScript()    const { return _script;    }
+
+    void setVariableValue(const qtac::String& name, const qtac::Variant& value)
+    {
+        auto it = _variables.find(name);
+        if (it != _variables.end()) it->second._defaultValue = value;
+    }
+
     bool read(json_t& parentLevel);
     void write(json_t& parentLevel);
 
 private:
     void initialize();
 
-    PIC32CXPinEntries _pinEntries;
+    PIC32CXPinEntries     _pinEntries;
+    qtac::ButtonEntries   _buttons;
+    qtac::VariableEntries _variables;
+    qtac::AlpacaScript    _script;
 };
 
 using PIC32CXPlatformConfiguration = std::shared_ptr<_PIC32CXPlatformConfiguration>;

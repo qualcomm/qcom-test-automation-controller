@@ -186,3 +186,33 @@ Pins PIC32CXDevice::getPins()
         return {};
     return _pic32cxPlatformConfiguration->getPins();
 }
+
+void PIC32CXDevice::quickCommand(const qtac::ByteArray& command)
+{
+    if (_pic32cxPlatformConfiguration == nullptr || _driveThread == nullptr) return;
+    const qtac::AlpacaScript& script = _pic32cxPlatformConfiguration->getScript();
+    if (!script.hasCommand(command)) return;
+    qtac::CommandEntries entries = script.getCommandEntries(command);
+    entries = qtac::AlpacaScript::replaceTokens(_pic32cxPlatformConfiguration->getVariables(), entries);
+    _driveThread->sendCommandSequence(entries);
+}
+
+void PIC32CXDevice::setVariableValue(const qtac::String& name, const qtac::Variant& value)
+{
+    if (_pic32cxPlatformConfiguration != nullptr)
+        _pic32cxPlatformConfiguration->setVariableValue(name, value);
+}
+
+const qtac::ButtonEntries& PIC32CXDevice::getButtons() const
+{
+    static qtac::ButtonEntries empty;
+    if (_pic32cxPlatformConfiguration == nullptr) return empty;
+    return _pic32cxPlatformConfiguration->getButtons();
+}
+
+const qtac::VariableEntries& PIC32CXDevice::getVariables() const
+{
+    static qtac::VariableEntries empty;
+    if (_pic32cxPlatformConfiguration == nullptr) return empty;
+    return _pic32cxPlatformConfiguration->getVariables();
+}

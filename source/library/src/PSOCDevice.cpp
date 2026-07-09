@@ -273,3 +273,33 @@ Pins PSOCDevice::getPins()
         return {};
     return _psocPlatformConfiguration->getPins();
 }
+
+void PSOCDevice::quickCommand(const qtac::ByteArray& command)
+{
+    if (_psocPlatformConfiguration == nullptr || _driveThread == nullptr) return;
+    const qtac::AlpacaScript& script = _psocPlatformConfiguration->getScript();
+    if (!script.hasCommand(command)) return;
+    qtac::CommandEntries entries = script.getCommandEntries(command);
+    entries = qtac::AlpacaScript::replaceTokens(_psocPlatformConfiguration->getVariables(), entries);
+    _driveThread->sendCommandSequence(entries);
+}
+
+void PSOCDevice::setVariableValue(const qtac::String& name, const qtac::Variant& value)
+{
+    if (_psocPlatformConfiguration != nullptr)
+        _psocPlatformConfiguration->setVariableValue(name, value);
+}
+
+const qtac::ButtonEntries& PSOCDevice::getButtons() const
+{
+    static qtac::ButtonEntries empty;
+    if (_psocPlatformConfiguration == nullptr) return empty;
+    return _psocPlatformConfiguration->getButtons();
+}
+
+const qtac::VariableEntries& PSOCDevice::getVariables() const
+{
+    static qtac::VariableEntries empty;
+    if (_psocPlatformConfiguration == nullptr) return empty;
+    return _psocPlatformConfiguration->getVariables();
+}

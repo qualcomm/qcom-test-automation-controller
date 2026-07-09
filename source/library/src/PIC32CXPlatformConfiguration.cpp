@@ -47,6 +47,14 @@ static const char* kCommand         = "command";
 static const char* kCommandGroup    = "command_group";
 static const char* kTabName         = "tab_name";
 static const char* kRunPriority     = "run_priority";
+static const char* kButtons         = "buttons";
+static const char* kVariables       = "variables";
+static const char* kScript          = "script";
+static const char* kLabel           = "label";
+static const char* kTab             = "tab";
+static const char* kCellLocation    = "cellLocation";
+static const char* kDefaultValue    = "default_value";
+static const char* kType            = "type";
 
 // ---------------------------------------------------------------------------
 
@@ -269,6 +277,84 @@ bool _PIC32CXPlatformConfiguration::read(json_t& j)
             _pinEntries[pinData._hash] = pinData;
         }
     }
+
+    // --- Load buttons ---
+    _buttons.clear();
+    if (j.contains(kButtons) && j[kButtons].is_array())
+    {
+        for (const auto& jb : j[kButtons])
+        {
+            qtac::ButtonEntry btn;
+            if (jb.contains(kName))         btn._name         = jb[kName].get<std::string>();
+            if (jb.contains(kCommand))      btn._command      = jb[kCommand].get<std::string>();
+            if (jb.contains(kCommandGroup)) btn._commandGroup = jb[kCommandGroup].get<int>();
+            if (jb.contains(kTab))          btn._tab          = jb[kTab].get<std::string>();
+            if (jb.contains(kToolTip))      btn._tooltip      = jb[kToolTip].get<std::string>();
+            if (jb.contains(kCellLocation))
+            {
+                qtac::Point pt = toPoint(qtac::String(jb[kCellLocation].get<std::string>()));
+                btn._cellX = pt.x();
+                btn._cellY = pt.y();
+            }
+            if (!btn._command.isEmpty() && !btn._name.isEmpty())
+                _buttons.push_back(btn);
+        }
+    }
+
+    // --- Load variables ---
+    _variables.clear();
+    if (j.contains(kVariables) && j[kVariables].is_array())
+    {
+        for (const auto& jv : j[kVariables])
+        {
+            qtac::VariableEntry var;
+            if (jv.contains(kName))    var._name    = jv[kName].get<std::string>();
+            if (jv.contains(kLabel))   var._label   = jv[kLabel].get<std::string>();
+            if (jv.contains(kToolTip)) var._tooltip = jv[kToolTip].get<std::string>();
+            if (jv.contains(kType))    var._type    = static_cast<qtac::VariableType>(jv[kType].get<int>());
+            if (jv.contains(kDefaultValue))
+            {
+                std::string dv = jv[kDefaultValue].get<std::string>();
+                if (var._type == qtac::VariableType::Boolean)
+                    var._defaultValue = (dv == "1" || dv == "true");
+                else if (var._type == qtac::VariableType::Float)
+                {
+                    try { var._defaultValue = std::stof(dv); } catch (...) {}
+                }
+                else
+                {
+                    try { var._defaultValue = static_cast<unsigned int>(std::stoul(dv)); }
+                    catch (...) { var._defaultValue = 0u; }
+                }
+            }
+            if (jv.contains(kCellLocation))
+            {
+                qtac::Point pt = toPoint(qtac::String(jv[kCellLocation].get<std::string>()));
+                var._cellX = pt.x();
+                var._cellY = pt.y();
+            }
+            if (!var._name.isEmpty())
+                _variables[var._name] = var;
+        }
+    }
+
+    // --- Load and parse script ---
+    if (j.contains(kScript) && j[kScript].is_string())
+    {
+        qtac::String scriptText = j[kScript].get<std::string>();
+        TACCommands cmds;
+        PIC32CXPinList activePins = getActivePins();
+        for (const auto& p : activePins)
+        {
+            if (p._pinCommand.isEmpty()) continue;
+            TACCommand tc;
+            tc._pin     = p._setPin;
+            tc._command = p._pinCommand;
+            cmds.append(tc);
+        }
+        _script.parseScript(scriptText, _variables, cmds);
+    }
+
     return true;
 }
 
