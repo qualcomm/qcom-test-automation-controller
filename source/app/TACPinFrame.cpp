@@ -409,7 +409,7 @@ void TACPinFrame::buildPins(const Pins& pins)
     for (const auto& pin : pins)
     {
         QString tab = QtAdapter::toQString(pin._tabName);
-        if (tab.isEmpty()) tab = "General";
+        if (tab.isEmpty() || tab.startsWith('<')) tab = "General";
         if (tab != "General" && tab != "Device Info" && tab != "Terminal"
             && !dynamicTabs.contains(tab))
             dynamicTabs.append(tab);
@@ -418,7 +418,7 @@ void TACPinFrame::buildPins(const Pins& pins)
     for (const auto& btn : allButtons)
     {
         QString tab = QtAdapter::toQString(btn._tab);
-        if (tab.isEmpty()) tab = "General";
+        if (tab.isEmpty() || tab.startsWith('<')) tab = "General";
         if (tab != "General" && tab != "Device Info" && tab != "Terminal"
             && !dynamicTabs.contains(tab))
             dynamicTabs.append(tab);
@@ -461,7 +461,7 @@ void TACPinFrame::buildPins(const Pins& pins)
         for (const auto& pin : pins)
         {
             QString t = QtAdapter::toQString(pin._tabName);
-            if (t.isEmpty()) t = "General";
+            if (t.isEmpty() || t.startsWith('<')) t = "General";
             if (t == tabName)
                 grouped[pin._commandGroup].append(pin);
         }

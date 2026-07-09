@@ -533,15 +533,15 @@
         {
             "bus": "D",
             "chip_index": 0,
-            "command": "<type a command>",
+            "command": "ftdi_en",
             "command_group": 0,
             "enabled": true,
-            "group": "<select a group>",
+            "group": "Fusion",
             "help_hint": "SW must program it to 1 to enable some output signals. False - Disables the control on some of the FTDI pins: DDBUS 0/2/4/7, CDBUS 0/2/4/7. True - Enable the control on all the FTDI pins.",
             "initial_value": true,
             "input": false,
             "inverted": false,
-            "name": "<type a label name>",
+            "name": "FTDI Enable",
             "pin_number": "6",
             "priority": 1,
             "run_priority": "-1,-1"
