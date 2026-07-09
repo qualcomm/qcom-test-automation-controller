@@ -90,6 +90,7 @@ TACWindow::TACWindow(QWidget* parent)
 TACWindow::~TACWindow()
 {
     shutDown();
+    TACApplication::disconnectTACWindow(this);
     delete _ui;
 }
 
@@ -218,8 +219,6 @@ void TACWindow::shutDown()
     _ui->_connectButton->setEnabled(true);
     _ui->_disconnectButton->setEnabled(false);
     setWindowTitle(kWindowTitle.arg(""));
-
-    TACApplication::disconnectTACWindow(this);
 }
 
 // ---------------------------------------------------------------------------
@@ -252,7 +251,6 @@ void TACWindow::onConnectClicked()
 void TACWindow::onDisconnectClicked()
 {
     shutDown();
-    deleteLater();
 }
 
 void TACWindow::onDeviceConnected()
