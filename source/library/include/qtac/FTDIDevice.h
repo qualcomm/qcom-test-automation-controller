@@ -59,8 +59,8 @@ public:
 	virtual void setVariableValue(const qtac::String& name, const qtac::Variant& value) override;
 	virtual const qtac::ButtonEntries&   getButtons()             const override;
 	virtual const qtac::VariableEntries& getVariables()           const override;
-	qtac::String                         configModificationDate() const;
-	int                                  configFileVersion()      const;
+	qtac::String configModificationDate() const override;
+	int          configFileVersion()      const override;
 
 private:
 	_FTDIPlatformConfiguration* _ftdiPlatformConfiguration{nullptr};

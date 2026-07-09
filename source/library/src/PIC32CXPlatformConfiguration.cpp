@@ -50,6 +50,8 @@ static const char* kRunPriority     = "run_priority";
 static const char* kButtons         = "buttons";
 static const char* kVariables       = "variables";
 static const char* kScript          = "script";
+static const char* kModificationDate = "modification_date";
+static const char* kFileVersion     = "fileVersion";
 static const char* kLabel           = "label";
 static const char* kTab             = "tab";
 static const char* kCellLocation    = "cellLocation";
@@ -354,6 +356,11 @@ bool _PIC32CXPlatformConfiguration::read(json_t& j)
         }
         _script.parseScript(scriptText, _variables, cmds);
     }
+
+    if (j.contains(kModificationDate) && j[kModificationDate].is_string())
+        _modificationDate = qtac::String(j[kModificationDate].get<std::string>());
+    if (j.contains(kFileVersion) && j[kFileVersion].is_number_integer())
+        _fileVersion = j[kFileVersion].get<int>();
 
     return true;
 }

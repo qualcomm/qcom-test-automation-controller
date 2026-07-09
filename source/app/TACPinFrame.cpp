@@ -36,7 +36,6 @@
 
 #include <qtac/AlpacaDevice.h>
 #include <qtac/CommandGroup.h>
-#include <qtac/FTDIDevice.h>
 #include <qtac/PlatformID.h>
 #include <qtac/TACDriveThread.h>
 
@@ -276,7 +275,7 @@ QWidget* TACPinFrame::buildDeviceInfoTab(QWidget* parent)
     }
 
     // Config file path, date, and version from the platform registry + device.
-    FTDIDevice* ftdiDev = dynamic_cast<FTDIDevice*>(_bridge->device().get());
+    auto* dev = _bridge->device().get();
     PlatformIDList entries = PlatformContainer::getEntries();
     for (const auto& entry : entries)
     {
@@ -287,17 +286,11 @@ QWidget* TACPinFrame::buildDeviceInfoTab(QWidget* parent)
         }
     }
 
-    if (ftdiDev)
     {
-        QString date = QtAdapter::toQString(ftdiDev->configModificationDate());
+        QString date = QtAdapter::toQString(dev->configModificationDate());
         addRow("Configuration Date",         date.isEmpty() ? "-" : date);
-        int ver = ftdiDev->configFileVersion();
+        int ver = dev->configFileVersion();
         addRow("Configuration File Version", ver > 0 ? QString::number(ver) : "-");
-    }
-    else
-    {
-        addRow("Configuration Date",         "-");
-        addRow("Configuration File Version", "-");
     }
 
     outer->addWidget(box);

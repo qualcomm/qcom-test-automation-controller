@@ -115,6 +115,10 @@ public:
 	virtual void setVariableValue(const qtac::String& /*name*/,
 	                              const qtac::Variant& /*value*/) {}
 
+	// Config file metadata (populated from tcnf top-level fields).
+	virtual qtac::String configModificationDate() const { return {}; }
+	virtual int          configFileVersion()      const { return 0;  }
+
 	// --- Port / name ---
 	qtac::ByteArray portName() const;
 	void setPortName(const qtac::ByteArray& portName);

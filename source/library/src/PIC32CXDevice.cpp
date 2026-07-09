@@ -216,3 +216,15 @@ const qtac::VariableEntries& PIC32CXDevice::getVariables() const
     if (_pic32cxPlatformConfiguration == nullptr) return empty;
     return _pic32cxPlatformConfiguration->getVariables();
 }
+
+qtac::String PIC32CXDevice::configModificationDate() const
+{
+    if (_pic32cxPlatformConfiguration == nullptr) return {};
+    return _pic32cxPlatformConfiguration->modificationDate();
+}
+
+int PIC32CXDevice::configFileVersion() const
+{
+    if (_pic32cxPlatformConfiguration == nullptr) return 0;
+    return _pic32cxPlatformConfiguration->fileVersion();
+}

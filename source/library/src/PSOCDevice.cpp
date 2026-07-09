@@ -303,3 +303,15 @@ const qtac::VariableEntries& PSOCDevice::getVariables() const
     if (_psocPlatformConfiguration == nullptr) return empty;
     return _psocPlatformConfiguration->getVariables();
 }
+
+qtac::String PSOCDevice::configModificationDate() const
+{
+    if (_psocPlatformConfiguration == nullptr) return {};
+    return _psocPlatformConfiguration->modificationDate();
+}
+
+int PSOCDevice::configFileVersion() const
+{
+    if (_psocPlatformConfiguration == nullptr) return 0;
+    return _psocPlatformConfiguration->fileVersion();
+}

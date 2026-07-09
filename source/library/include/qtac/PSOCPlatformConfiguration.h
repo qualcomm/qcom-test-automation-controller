@@ -141,6 +141,9 @@ public:
     const qtac::VariableEntries& getVariables() const { return _variables; }
     const qtac::AlpacaScript&    getScript()    const { return _script;    }
 
+    qtac::String modificationDate() const { return _modificationDate; }
+    int          fileVersion()      const { return _fileVersion;      }
+
     void setVariableValue(const qtac::String& name, const qtac::Variant& value)
     {
         auto it = _variables.find(name);
@@ -157,6 +160,8 @@ private:
     qtac::ButtonEntries   _buttons;
     qtac::VariableEntries _variables;
     qtac::AlpacaScript    _script;
+    qtac::String          _modificationDate;
+    int                   _fileVersion{0};
 
     static PSOCPinEntries _classicActions;
 };

@@ -50,6 +50,8 @@ public:
     void setVariableValue(const qtac::String& name, const qtac::Variant& value) override;
     const qtac::ButtonEntries&   getButtons()   const override;
     const qtac::VariableEntries& getVariables() const override;
+    qtac::String configModificationDate() const override;
+    int          configFileVersion()      const override;
 
 private:
     _PIC32CXPlatformConfiguration* _pic32cxPlatformConfiguration{nullptr};
