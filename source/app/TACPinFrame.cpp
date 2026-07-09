@@ -116,6 +116,7 @@ void TACPinFrame::clearDevice()
 void TACPinFrame::clearPins()
 {
     _pinButtons.clear();
+    _pinInverted.clear();
 
     QLayout* l = layout();
     while (QLayoutItem* item = l->takeAt(0))
@@ -515,6 +516,7 @@ void TACPinFrame::buildPins(const Pins& pins)
 
                 grid->addWidget(btn, row, col);
                 _pinButtons.insert(static_cast<quint64>(pe._hash), btn);
+                _pinInverted.insert(static_cast<quint64>(pe._hash), pe._inverted);
 
                 if (displayState)
                     btn->setStyleSheet("QPushButton { background-color: #4CAF50; color: white; }");
@@ -545,7 +547,9 @@ void TACPinFrame::onPinButtonToggled(bool checked)
         ? "QPushButton { background-color: #4CAF50; color: white; }"
         : "");
 
-    _bridge->device()->setPinState(static_cast<PinID>(hash), checked);
+    bool inverted = _pinInverted.value(hash, false);
+    bool hwState  = inverted ? !checked : checked;
+    _bridge->device()->setPinState(static_cast<PinID>(hash), hwState);
 }
 
 void TACPinFrame::onQuickButtonClicked()
@@ -574,10 +578,13 @@ void TACPinFrame::updatePinState(quint64 pin, bool state)
     auto it = _pinButtons.find(pin);
     if (it == _pinButtons.end()) return;
 
+    bool inverted    = _pinInverted.value(pin, false);
+    bool displayState = inverted ? !state : state;
+
     QPushButton* btn = it.value();
     btn->blockSignals(true);
-    btn->setChecked(state);
-    btn->setStyleSheet(state
+    btn->setChecked(displayState);
+    btn->setStyleSheet(displayState
         ? "QPushButton { background-color: #4CAF50; color: white; }"
         : "");
     btn->blockSignals(false);

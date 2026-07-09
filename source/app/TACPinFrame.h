@@ -96,6 +96,8 @@ private:
 
     // pin hash → toggle button
     QMap<quint64, QPushButton*>  _pinButtons;
+    // pin hash → inverted flag (logical state is opposite of hardware state)
+    QMap<quint64, bool>          _pinInverted;
 
     // Terminal tab log widget (nullptr when no device connected)
     QPlainTextEdit*              _terminalLog{nullptr};
