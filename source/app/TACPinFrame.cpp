@@ -95,6 +95,14 @@ void TACPinFrame::setDevice(TACDeviceBridge* bridge)
     Pins pins = dev->getPins();
 
     buildPins(pins);
+
+    // Sync button highlights to initial pin values set during open()
+    for (const auto& pin : pins)
+    {
+        bool displayState = pin._inverted ? !pin._initialValue : pin._initialValue;
+        if (displayState)
+            updatePinState(static_cast<quint64>(pin._hash), true);
+    }
 }
 
 void TACPinFrame::clearDevice()
@@ -489,9 +497,13 @@ void TACPinFrame::buildPins(const Pins& pins)
                 if (label.isEmpty())
                     label = QString("Pin %1").arg(pe._pin);
 
+                // Logical display state accounts for inverted pins:
+                // inverted pin with initial_value:false is logically "on" (e.g. battery connected).
+                bool displayState = pe._inverted ? !pe._initialValue : pe._initialValue;
+
                 auto* btn = new QPushButton(label, box);
                 btn->setCheckable(true);
-                btn->setChecked(pe._initialValue);
+                btn->setChecked(displayState);
                 btn->setEnabled(pe._enabled);
                 btn->setToolTip(QtAdapter::toQString(pe._pinTooltip));
 
@@ -504,7 +516,7 @@ void TACPinFrame::buildPins(const Pins& pins)
                 grid->addWidget(btn, row, col);
                 _pinButtons.insert(static_cast<quint64>(pe._hash), btn);
 
-                if (pe._initialValue)
+                if (displayState)
                     btn->setStyleSheet("QPushButton { background-color: #4CAF50; color: white; }");
             }
 
