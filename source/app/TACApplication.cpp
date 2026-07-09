@@ -35,6 +35,8 @@
 #include "TACWindow.h"
 
 #include <qtac/FTDIDevice.h>
+#include <qtac/PSOCDevice.h>
+#include <qtac/PIC32CXDevice.h>
 #include <qtac/AlpacaDevice.h>
 
 QList<TACWindow*> TACApplication::_windows;
@@ -96,6 +98,8 @@ void TACApplication::tryOpenLastDevice()
     if (last.isEmpty()) return;
 
     FTDIDevice::updateAlpacaDevices();
+    PSOCDevice::updateAlpacaDevices();
+    PIC32CXDevice::updateAlpacaDevices();
     QByteArray port = last.toLatin1();
     AlpacaDevice dev = _AlpacaDevice::findAlpacaDevice(
         qtac::ByteArray(port.constData(), port.size()));
