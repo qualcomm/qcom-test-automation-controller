@@ -87,6 +87,8 @@ void TACPinFrame::setDevice(TACDeviceBridge* bridge)
 
     connect(_bridge, &TACDeviceBridge::logLine,
             this,    &TACPinFrame::onLogLine);
+    connect(_bridge, &TACDeviceBridge::pinStateChanged,
+            this,    &TACPinFrame::updatePinState);
 
     auto* dev = bridge->device().get();
     dev->buildMapping();
