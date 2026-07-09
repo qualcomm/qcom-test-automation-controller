@@ -95,14 +95,6 @@ void TACPinFrame::setDevice(TACDeviceBridge* bridge)
     Pins pins = dev->getPins();
 
     buildPins(pins);
-
-    // Sync button highlights to initial pin values set during open()
-    for (const auto& pin : pins)
-    {
-        bool displayState = pin._inverted ? !pin._initialValue : pin._initialValue;
-        if (displayState)
-            updatePinState(static_cast<quint64>(pin._hash), true);
-    }
 }
 
 void TACPinFrame::clearDevice()
