@@ -44,6 +44,7 @@
 #include <qtac/AlpacaDevice.h>
 #include <qtac/TACLiteDriveThread.h>
 #include <qtac/TACPSOCDriveThread.h>
+#include <qtac/TACPIC32CXDriveThread.h>
 
 #include <QMessageBox>
 #include <QVBoxLayout>
@@ -115,6 +116,9 @@ void TACWindow::openPort(const QByteArray& portName)
     {
     case ePSOC:
         _driveThread = new qtac::TACPSOCDriveThread(dev->hash());
+        break;
+    case ePIC32CXAuto:
+        _driveThread = new qtac::TACPIC32CXDriveThread(dev->hash());
         break;
     case eFTDI:
     default:

@@ -37,6 +37,7 @@
 
 #include <qtac/FTDIDevice.h>
 #include <qtac/PSOCDevice.h>
+#include <qtac/PIC32CXDevice.h>
 #include <qtac/AlpacaDevice.h>
 
 #include <QPushButton>
@@ -104,6 +105,7 @@ void TACDeviceSelection::refreshDevices()
 
     FTDIDevice::updateAlpacaDevices();
     PSOCDevice::updateAlpacaDevices();
+    PIC32CXDevice::updateAlpacaDevices();
 
     AlpacaDevices devices;
     _AlpacaDevice::getAlpacaDevices(devices);
