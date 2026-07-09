@@ -41,6 +41,8 @@
 #include <qt_string_convert.h>
 
 #include <qtac/FTDIDevice.h>
+#include <qtac/PSOCDevice.h>
+#include <qtac/PIC32CXDevice.h>
 #include <qtac/AlpacaDevice.h>
 #include <qtac/TACLiteDriveThread.h>
 #include <qtac/TACPSOCDriveThread.h>
@@ -100,8 +102,10 @@ TACWindow::~TACWindow()
 
 void TACWindow::openPort(const QByteArray& portName)
 {
-    // Ensure device list is current.
+    // Ensure device list is current for all device types.
     FTDIDevice::updateAlpacaDevices();
+    PSOCDevice::updateAlpacaDevices();
+    PIC32CXDevice::updateAlpacaDevices();
 
     AlpacaDevice dev = _AlpacaDevice::findAlpacaDevice(
         qtac::ByteArray(portName.constData(), portName.size()));

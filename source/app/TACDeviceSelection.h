@@ -44,8 +44,8 @@ class QTimer;
 // ---------------------------------------------------------------------------
 // TACDeviceSelection — modal device picker.
 //
-// Polls FTDIDevice::updateAlpacaDevices() every 2.5 s and populates the
-// table.  Double-clicking or clicking OK accepts the dialog.
+// Polls all device types (FTDI, PSoC, PIC32CX) every 2.5 s and populates
+// the table.  Double-clicking or clicking OK accepts the dialog.
 // ---------------------------------------------------------------------------
 class TACDeviceSelection : public QDialog
 {
