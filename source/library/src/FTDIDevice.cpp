@@ -386,3 +386,15 @@ const qtac::VariableEntries& FTDIDevice::getVariables() const
 	if (_ftdiPlatformConfiguration == nullptr) return empty;
 	return _ftdiPlatformConfiguration->getVariables();
 }
+
+qtac::String FTDIDevice::configModificationDate() const
+{
+	if (_ftdiPlatformConfiguration == nullptr) return {};
+	return _ftdiPlatformConfiguration->modificationDate();
+}
+
+int FTDIDevice::configFileVersion() const
+{
+	if (_ftdiPlatformConfiguration == nullptr) return 0;
+	return _ftdiPlatformConfiguration->fileVersion();
+}

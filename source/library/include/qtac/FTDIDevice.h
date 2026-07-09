@@ -57,8 +57,10 @@ public:
 	virtual Pins getPins() override;
 	virtual void quickCommand(const qtac::ByteArray& command) override;
 	virtual void setVariableValue(const qtac::String& name, const qtac::Variant& value) override;
-	virtual const qtac::ButtonEntries&   getButtons()   const override;
-	virtual const qtac::VariableEntries& getVariables() const override;
+	virtual const qtac::ButtonEntries&   getButtons()             const override;
+	virtual const qtac::VariableEntries& getVariables()           const override;
+	qtac::String                         configModificationDate() const;
+	int                                  configFileVersion()      const;
 
 private:
 	_FTDIPlatformConfiguration* _ftdiPlatformConfiguration{nullptr};

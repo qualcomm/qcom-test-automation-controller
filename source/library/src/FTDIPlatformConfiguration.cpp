@@ -58,6 +58,8 @@ static const char* kBusFunction = "bus_function";
 static const char* kPinEntries  = "pins";
 static const char* kBusEntries  = "bus";
 static const char* kButtons     = "buttons";
+static const char* kModificationDate = "modification_date";
+static const char* kFileVersion      = "fileVersion";
 static const char* kVariables   = "variables";
 static const char* kScript      = "script";
 static const char* kLabel       = "label";
@@ -357,6 +359,11 @@ bool _FTDIPlatformConfiguration::read(json_t& j)
 {
 	if (j.contains(kChipCount))
 		_chipCount = j[kChipCount].get<int>();
+
+	if (j.contains(kModificationDate) && j[kModificationDate].is_string())
+		_modificationDate = qtac::String(j[kModificationDate].get<std::string>());
+	if (j.contains(kFileVersion) && j[kFileVersion].is_number_integer())
+		_fileVersion = j[kFileVersion].get<int>();
 
 	if (j.contains(kPinEntries) && j[kPinEntries].is_array())
 	{

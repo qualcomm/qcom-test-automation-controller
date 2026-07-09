@@ -231,6 +231,10 @@ public:
 	const qtac::VariableEntries& getVariables() const { return _variables; }
 	const qtac::AlpacaScript&    getScript()    const { return _script;    }
 
+	// --- Config file metadata ---
+	qtac::String modificationDate() const { return _modificationDate; }
+	int          fileVersion()      const { return _fileVersion;      }
+
 	// Variable value setters (called from UI widgets)
 	void setVariableValue(const qtac::String& name, const qtac::Variant& value)
 	{
@@ -250,6 +254,8 @@ private:
 	qtac::ButtonEntries   _buttons;
 	qtac::VariableEntries _variables;
 	qtac::AlpacaScript    _script;
+	qtac::String          _modificationDate;
+	int                   _fileVersion{0};
 };
 
 using FTDIPlatformConfiguration = std::shared_ptr<_FTDIPlatformConfiguration>;
