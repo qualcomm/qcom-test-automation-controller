@@ -56,6 +56,10 @@ static constexpr unsigned int kOpenThreadDelay{300};
 
 uint32_t PIC32CXDevice::updateAlpacaDevices()
 {
+    for (auto& dev : _alpacaDevices)
+        if (dev->debugBoardType() == ePIC32CXAuto)
+            dev->setActive(false);
+
     SerialPortInfos ports = SerialPortInfo::availablePorts();
     for (const auto& info : ports)
     {
