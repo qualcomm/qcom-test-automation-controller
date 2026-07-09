@@ -257,6 +257,7 @@ void TACWindow::onDeviceConnected()
     _ui->_statusBar->showMessage("Device connected.");
     // Rebuild pin panel now that device is fully initialised.
     _pinFrame->setDevice(_bridge);
+    _autoShutdownDeadline.restart();
 }
 
 void TACWindow::onDeviceDisconnected()
@@ -283,6 +284,7 @@ void TACWindow::onNameUpdated(const QString& name)
 void TACWindow::onPinStateChanged(quint64 pin, bool state)
 {
     _pinFrame->updatePinState(pin, state);
+    _autoShutdownDeadline.restart();
 }
 
 void TACWindow::onError(const QByteArray& message)
