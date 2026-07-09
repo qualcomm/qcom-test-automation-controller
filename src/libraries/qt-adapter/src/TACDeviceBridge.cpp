@@ -140,3 +140,14 @@ void TACDeviceBridge::setVariableValue(const QString& name, bool value)
 {
     _device->setVariableValue(QtAdapter::toQtacString(name), qtac::Variant(value));
 }
+
+bool TACDeviceBridge::supportsRename() const
+{
+    return _driveThread && _device->debugBoardType() != eFTDI;
+}
+
+void TACDeviceBridge::renameDevice(const QString& newName)
+{
+    if (!_driveThread) return;
+    _driveThread->setName(QtAdapter::toQtacByteArray(newName));
+}

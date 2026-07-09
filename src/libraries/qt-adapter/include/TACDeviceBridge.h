@@ -89,6 +89,10 @@ public:
     void setVariableValue(const QString& name, int value);
     void setVariableValue(const QString& name, bool value);
 
+    // Rename the device (PSoC/PIC32CX only; no-op for FTDI).
+    bool supportsRename() const;
+    void renameDevice(const QString& newName);
+
 signals:
     // _AlpacaDevice signals
     void pinStateChanged(quint64 pin, bool state);

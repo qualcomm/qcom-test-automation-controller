@@ -44,7 +44,9 @@
 #include <QGridLayout>
 #include <QGroupBox>
 #include <QHBoxLayout>
+#include <QInputDialog>
 #include <QLabel>
+#include <QLineEdit>
 #include <QMap>
 #include <QPlainTextEdit>
 #include <QPushButton>
@@ -244,10 +246,27 @@ QWidget* TACPinFrame::buildDeviceInfoTab(QWidget* parent)
             auto* nameVal = new QLabel(QString(dt->name().constData()), row);
             nameVal->setTextInteractionFlags(Qt::TextSelectableByMouse);
             auto* renameBtn = new QPushButton("Rename...", row);
+            renameBtn->setEnabled(_bridge->supportsRename());
             rowLay->addWidget(nameVal);
             rowLay->addWidget(renameBtn);
             rowLay->addStretch();
             form->addRow("Name:", row);
+
+            if (_bridge->supportsRename())
+            {
+                connect(renameBtn, &QPushButton::clicked, this, [this, nameVal]() {
+                    bool ok = false;
+                    QString current = nameVal->text();
+                    QString newName = QInputDialog::getText(
+                        this, "Rename Device", "New name (alphanumeric, max 32 chars):",
+                        QLineEdit::Normal, current, &ok);
+                    if (ok && !newName.isEmpty() && newName != current)
+                    {
+                        _bridge->renameDevice(newName);
+                        nameVal->setText(newName);
+                    }
+                });
+            }
         }
 
         addRow("UUID",          QtAdapter::toQString(dt->uuid()));
