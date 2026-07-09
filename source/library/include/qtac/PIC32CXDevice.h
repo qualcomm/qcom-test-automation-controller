@@ -45,6 +45,7 @@ public:
 
     bool open() override;
     void buildMapping() override;
+    Pins getPins() override;
 
 private:
     _PIC32CXPlatformConfiguration* _pic32cxPlatformConfiguration{nullptr};

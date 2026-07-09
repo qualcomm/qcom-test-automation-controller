@@ -266,3 +266,10 @@ void PSOCDevice::buildMapping()
         _commandList.append(tacCommand);
     }
 }
+
+Pins PSOCDevice::getPins()
+{
+    if (_psocPlatformConfiguration == nullptr)
+        return {};
+    return _psocPlatformConfiguration->getPins();
+}

@@ -179,3 +179,10 @@ void PIC32CXDevice::buildMapping()
         _commandList.append(tacCommand);
     }
 }
+
+Pins PIC32CXDevice::getPins()
+{
+    if (_pic32cxPlatformConfiguration == nullptr)
+        return {};
+    return _pic32cxPlatformConfiguration->getPins();
+}

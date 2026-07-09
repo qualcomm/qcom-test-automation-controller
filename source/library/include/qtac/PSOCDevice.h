@@ -45,6 +45,7 @@ public:
 
     bool open() override;
     void buildMapping() override;
+    Pins getPins() override;
 
 private:
     _PSOCPlatformConfiguration* _psocPlatformConfiguration{nullptr};
