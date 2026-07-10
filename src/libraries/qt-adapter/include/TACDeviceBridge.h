@@ -74,7 +74,9 @@ public:
                     qtac::TACDriveThread* driveThread,
                     QObject* parent = nullptr);
 
-    ~TACDeviceBridge() override = default;
+    ~TACDeviceBridge() override;
+
+    void disconnectSignals();
 
     std::shared_ptr<_AlpacaDevice> device() const { return _device; }
     qtac::TACDriveThread* driveThread() const { return _driveThread; }
@@ -114,4 +116,18 @@ private:
 
     std::shared_ptr<_AlpacaDevice> _device;
     qtac::TACDriveThread*          _driveThread{nullptr};
+
+    // Connection IDs for device signals (disconnected in destructor)
+    int _connPinState{0};
+    int _connProgress{0};
+    int _connError{0};
+
+    // Connection IDs for drive thread signals (disconnected in destructor)
+    int _connDeviceConnected{0};
+    int _connDeviceDisconnected{0};
+    int _connFirmwareVersion{0};
+    int _connHardwareType{0};
+    int _connName{0};
+    int _connSerialNum{0};
+    int _connLogLine{0};
 };

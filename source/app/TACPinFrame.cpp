@@ -117,8 +117,7 @@ void TACPinFrame::clearPins()
     QLayout* l = layout();
     while (QLayoutItem* item = l->takeAt(0))
     {
-        if (QWidget* w = item->widget())
-            w->deleteLater();
+        delete item->widget();
         delete item;
     }
 }
