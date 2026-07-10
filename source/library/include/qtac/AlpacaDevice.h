@@ -38,6 +38,7 @@
 #include <qtac/ByteArray.h>
 #include <qtac/String.h>
 #include <qtac/List.h>
+#include <qtac/StringList.h>
 #include <qtac/Signal.h>
 #include <qtac/StringUtilities.h>
 #include <qtac/DebugBoardType.h>
@@ -93,6 +94,9 @@ public:
 
 	// --- Pin list (populated after open() + buildMapping()) ---
 	virtual Pins getPins() { return {}; }
+
+	// --- Tab list from tcnf (visible tabs in display order, excluding Device Info and Terminal) ---
+	virtual qtac::StringList getTabs() const { return {}; }
 
 	// --- Quick Settings buttons / variables (FTDI devices) ---
 	virtual const qtac::ButtonEntries&   getButtons()   const { static qtac::ButtonEntries   empty; return empty; }

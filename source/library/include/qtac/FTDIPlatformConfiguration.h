@@ -39,6 +39,7 @@
 #include <qtac/ByteArray.h>
 #include <qtac/Map.h>
 #include <qtac/List.h>
+#include <qtac/StringList.h>
 #include <qtac/Point.h>
 #include <qtac/PinEntry.h>
 #include <qtac/FTDIPinSet.h>
@@ -231,6 +232,9 @@ public:
 	const qtac::VariableEntries& getVariables() const { return _variables; }
 	const qtac::AlpacaScript&    getScript()    const { return _script;    }
 
+	// --- Tab list from tcnf "tabs" array (visible tabs in ordinal order) ---
+	const qtac::StringList& getTabs() const { return _tabs; }
+
 	// --- Config file metadata ---
 	qtac::String modificationDate() const { return _modificationDate; }
 	int          fileVersion()      const { return _fileVersion;      }
@@ -254,6 +258,7 @@ private:
 	qtac::ButtonEntries   _buttons;
 	qtac::VariableEntries _variables;
 	qtac::AlpacaScript    _script;
+	qtac::StringList      _tabs;
 	qtac::String          _modificationDate;
 	int                   _fileVersion{0};
 };

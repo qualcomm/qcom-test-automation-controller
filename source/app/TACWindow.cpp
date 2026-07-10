@@ -176,9 +176,6 @@ void TACWindow::openPort(const QByteArray& portName)
         return;
     }
 
-    // Populate the pin panel.
-    _pinFrame->setDevice(_bridge);
-
     // Remember this port for "open last device" feature.
     _prefs.setLastDevice(QString(portName));
 

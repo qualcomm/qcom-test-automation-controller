@@ -351,6 +351,13 @@ Pins FTDIDevice::getPins()
 	return _ftdiPlatformConfiguration->getPins();
 }
 
+qtac::StringList FTDIDevice::getTabs() const
+{
+	if (_ftdiPlatformConfiguration == nullptr)
+		return {};
+	return _ftdiPlatformConfiguration->getTabs();
+}
+
 void FTDIDevice::quickCommand(const qtac::ByteArray& command)
 {
 	if (_ftdiPlatformConfiguration == nullptr || _driveThread == nullptr)

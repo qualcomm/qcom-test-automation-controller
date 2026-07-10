@@ -88,9 +88,11 @@ void TACPinFrame::setDevice(TACDeviceBridge* bridge)
     _bridge = bridge;
 
     connect(_bridge, &TACDeviceBridge::logLine,
-            this,    &TACPinFrame::onLogLine);
+            this,    &TACPinFrame::onLogLine,
+            Qt::UniqueConnection);
     connect(_bridge, &TACDeviceBridge::pinStateChanged,
-            this,    &TACPinFrame::updatePinState);
+            this,    &TACPinFrame::updatePinState,
+            Qt::UniqueConnection);
 
     auto* dev = bridge->device().get();
     dev->buildMapping();
@@ -428,28 +430,38 @@ void TACPinFrame::buildPins(const Pins& pins)
         return;
     }
 
-    // Collect unique tab names from pins, then build the canonical tab order:
-    // "General" always first, then other tcnf-defined tabs in sorted order,
-    // then fixed app tabs "Device Info" and "Terminal" at the end.
+    // Collect unique tab names in display order.
+    // For FTDI devices, the tcnf "tabs" array defines the canonical tab list
+    // (ordinal-sorted, visible-only, excluding the fixed General/Device Info/Terminal).
+    // For other device types, fall back to organic discovery from pins and buttons.
+    // "General" is always first; "Device Info" is always second; "Terminal" is always last.
     QList<QString> dynamicTabs;
-    for (const auto& pin : pins)
+    qtac::StringList deviceTabs = _bridge->device()->getTabs();
+    if (!deviceTabs.isEmpty())
     {
-        QString tab = QtAdapter::toQString(pin._tabName);
-        if (tab.isEmpty() || tab.startsWith('<')) tab = "General";
-        if (tab != "General" && tab != "Device Info" && tab != "Terminal"
-            && !dynamicTabs.contains(tab))
-            dynamicTabs.append(tab);
+        for (const auto& t : deviceTabs)
+            dynamicTabs.append(QtAdapter::toQString(t));
     }
-    // Also collect tabs from buttons
-    for (const auto& btn : allButtons)
+    else
     {
-        QString tab = QtAdapter::toQString(btn._tab);
-        if (tab.isEmpty() || tab.startsWith('<')) tab = "General";
-        if (tab != "General" && tab != "Device Info" && tab != "Terminal"
-            && !dynamicTabs.contains(tab))
-            dynamicTabs.append(tab);
+        for (const auto& pin : pins)
+        {
+            QString tab = QtAdapter::toQString(pin._tabName);
+            if (tab.isEmpty() || tab.startsWith('<')) tab = "General";
+            if (tab != "General" && tab != "Device Info" && tab != "Terminal"
+                && !dynamicTabs.contains(tab))
+                dynamicTabs.append(tab);
+        }
+        for (const auto& btn : allButtons)
+        {
+            QString tab = QtAdapter::toQString(btn._tab);
+            if (tab.isEmpty() || tab.startsWith('<')) tab = "General";
+            if (tab != "General" && tab != "Device Info" && tab != "Terminal"
+                && !dynamicTabs.contains(tab))
+                dynamicTabs.append(tab);
+        }
+        std::sort(dynamicTabs.begin(), dynamicTabs.end());
     }
-    std::sort(dynamicTabs.begin(), dynamicTabs.end());
 
     QList<QString> tabOrder;
     tabOrder.append("General");
@@ -461,7 +473,7 @@ void TACPinFrame::buildPins(const Pins& pins)
     layout()->addWidget(tabs);
 
     static const CommandGroups kGroupOrder[] = {
-        eConnectionGroup, eButtonGroup, eSwitchGroup, eUnknownCommandGroup
+        eConnectionGroup, eButtonGroup, eSwitchGroup
     };
 
     for (const QString& tabName : tabOrder)

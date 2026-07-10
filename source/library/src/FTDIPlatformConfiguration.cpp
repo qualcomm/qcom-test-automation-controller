@@ -39,6 +39,8 @@
 #include <stdexcept>
 
 // JSON key constants
+static const char* kTabs           = "tabs";
+
 static const char* kChipCount   = "chip_count";
 static const char* kChipIndex   = "chip_index";
 static const char* kBus         = "bus";
@@ -57,7 +59,8 @@ static const char* kTabName     = "group";
 static const char* kBusFunction = "bus_function";
 static const char* kPinEntries  = "pins";
 static const char* kBusEntries  = "bus";
-static const char* kButtons     = "buttons";
+static const char* kButtons          = "buttons";
+static const char* kButtonToolTip    = "tooltip";
 static const char* kModificationDate = "modification_date";
 static const char* kFileVersion      = "fileVersion";
 static const char* kVariables   = "variables";
@@ -365,6 +368,34 @@ bool _FTDIPlatformConfiguration::read(json_t& j)
 	if (j.contains(kFileVersion) && j[kFileVersion].is_number_integer())
 		_fileVersion = j[kFileVersion].get<int>();
 
+	// --- Parse tabs array: collect visible tabs sorted by ordinal ---
+	// Skip the fixed app tabs (General, Device Info, Terminal) — those are always present.
+	_tabs.clear();
+	if (j.contains(kTabs) && j[kTabs].is_array())
+	{
+		// Collect (ordinal, name) pairs for visible, non-fixed tabs
+		using TabEntry = std::pair<int, std::string>;
+		std::vector<TabEntry> tabEntries;
+		for (const auto& jt : j[kTabs])
+		{
+			bool visible = true;
+			if (jt.contains("visible")) visible = jt["visible"].get<bool>();
+			if (!visible) continue;
+
+			std::string name;
+			if (jt.contains("name")) name = jt["name"].get<std::string>();
+			if (name.empty() || name == "General" || name == "Device Info" || name == "Terminal")
+				continue;
+
+			int ordinal = 999;
+			if (jt.contains("ordinal")) ordinal = jt["ordinal"].get<int>();
+			tabEntries.push_back({ordinal, name});
+		}
+		std::sort(tabEntries.begin(), tabEntries.end());
+		for (const auto& te : tabEntries)
+			_tabs.append(qtac::String(te.second));
+	}
+
 	if (j.contains(kPinEntries) && j[kPinEntries].is_array())
 	{
 		_pinEntries.clear();
@@ -445,7 +476,7 @@ bool _FTDIPlatformConfiguration::read(json_t& j)
 			if (jb.contains(kCommand))      btn._command      = jb[kCommand].get<std::string>();
 			if (jb.contains(kCommandGroup)) btn._commandGroup = jb[kCommandGroup].get<int>();
 			if (jb.contains(kTab))          btn._tab          = jb[kTab].get<std::string>();
-			if (jb.contains(kToolTip))      btn._tooltip      = jb[kToolTip].get<std::string>();
+			if (jb.contains(kButtonToolTip)) btn._tooltip     = jb[kButtonToolTip].get<std::string>();
 			if (jb.contains(kCellLocation))
 			{
 				qtac::Point pt = toPoint(qtac::String(jb[kCellLocation].get<std::string>()));
