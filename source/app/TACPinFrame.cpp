@@ -371,7 +371,8 @@ void TACPinFrame::appendQuickSettings(QVBoxLayout*                 tabLayout,
     }
 
     // --- Variables group box ---
-    if (!variables.isEmpty())
+    // Variables have no tab assignment — show them only on "General".
+    if (tabName == "General" && !variables.isEmpty())
     {
         auto* box  = new QGroupBox("Variables", parent);
         auto* form = new QFormLayout(box);
