@@ -55,6 +55,36 @@ qtac::Point  toPoint(const qtac::String& value);
 HashType strHash(const qtac::String& hashMe);
 HashType arrayHash(const qtac::ByteArray& hashMe);
 
+// Compile-time version of arrayHash for use in constexpr constants.
+// Implements the identical polynomial hash: p=257, m=1e9+9, offset c-'a'+1.
+// Wrapping of upper-case chars is reproduced via unsigned 64-bit arithmetic
+// (c as unsigned + (2^64 - 96)) which equals static_cast<uint64_t>(c-'a'+1)
+// for any char value, including negative ones on signed-char platforms.
+constexpr HashType computeHashStr(const char* str, std::size_t len) noexcept
+{
+    constexpr uint64_t p = 257;
+    constexpr uint64_t m = 1000000009ULL;
+    // (uint64_t)c + (uint64_t)(-'a'+1)  ==  (uint64_t)(c - 'a' + 1) under wrapping
+    constexpr uint64_t kOffset = static_cast<uint64_t>(-static_cast<int>('a') + 1);
+    uint64_t result = 0;
+    uint64_t p_pow  = 1;
+    for (std::size_t i = 0; i < len; ++i)
+    {
+        const uint64_t cu     = static_cast<uint64_t>(static_cast<unsigned char>(str[i]));
+        const uint64_t offset = cu + kOffset;            // wraps naturally in uint64
+        result = (result + offset * p_pow) % m;
+        p_pow  = (p_pow * p) % m;
+    }
+    return result;
+}
+
+constexpr HashType computeHashStr(const char* str) noexcept
+{
+    std::size_t len = 0;
+    while (str[len]) ++len;
+    return computeHashStr(str, len);
+}
+
 } // namespace qtac
 
 // Bring into global namespace for unqualified use in migrated code
@@ -65,5 +95,6 @@ using qtac::fromPoint;
 using qtac::toPoint;
 using qtac::toCamelCase;
 using qtac::isAlphaNumeric;
+using qtac::computeHashStr;
 
 #endif // QTAC_STRINGUTILITIES_H

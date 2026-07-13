@@ -276,9 +276,21 @@ Pins PSOCDevice::getPins()
 
 void PSOCDevice::quickCommand(const qtac::ByteArray& command)
 {
-    if (_psocPlatformConfiguration == nullptr || _driveThread == nullptr) return;
+    if (_psocPlatformConfiguration == nullptr || _driveThread == nullptr)
+    {
+        if (_serialDriveThread && _serialDriveThread->onLogLine)
+            _serialDriveThread->onLogLine("quickCommand: config or thread not ready for '" + command + "'");
+        return;
+    }
     const qtac::AlpacaScript& script = _psocPlatformConfiguration->getScript();
-    if (!script.hasCommand(command)) return;
+    if (!script.hasCommand(command))
+    {
+        if (_serialDriveThread->onLogLine)
+            _serialDriveThread->onLogLine("quickCommand: command not found in script: '" + command + "'");
+        return;
+    }
+    if (_serialDriveThread->onLogLine)
+        _serialDriveThread->onLogLine("quickCommand: executing '" + command + "'");
     qtac::CommandEntries entries = script.getCommandEntries(command);
     entries = qtac::AlpacaScript::replaceTokens(_psocPlatformConfiguration->getVariables(), entries);
     _driveThread->sendCommandSequence(entries);

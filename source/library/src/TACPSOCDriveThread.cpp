@@ -406,8 +406,6 @@ void TACPSOCDriveThread::run()
                 }
                 else
                 {
-                    writeLogLine("TACPSOCDriveThread::run()::Write: " + framePackage->codedRequest.toStdString());
-
                     const int bytesWritten = _serialPort->write(framePackage->codedRequest);
 
                     if (bytesWritten == -1)

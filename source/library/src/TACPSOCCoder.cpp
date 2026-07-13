@@ -134,7 +134,9 @@ qtac::ByteArray TACPSOCCoder::encode(const qtac::ByteArray& encodeMe, const Argu
 {
     qtac::ByteArray result = encodeMe;
 
-    switch (arrayHash(encodeMe))
+    const HashType h = arrayHash(encodeMe);
+
+    switch (h)
     {
     case kVersionCommandHash:
         result = "version\r";
