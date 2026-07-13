@@ -31,70 +31,32 @@
 # IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 cmake_minimum_required(VERSION 3.16)
-project(qtac-app VERSION 1.0 LANGUAGES CXX)
+project(qt-adapter VERSION 0.1.0 LANGUAGES CXX)
 
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
-set(CMAKE_AUTOUIC ON)
-set(CMAKE_AUTOMOC ON)
-set(CMAKE_AUTORCC ON)
 
-find_package(Qt6 REQUIRED COMPONENTS Core Gui Widgets)
+find_package(Qt6 REQUIRED COMPONENTS Core)
 qt_standard_project_setup()
 
-qt_add_resources(QTAC_APP_RESOURCES resources/TAC.qrc)
-
-qt_add_executable(qtac-app WIN32
-    main.cpp
-    TACApplication.h
-    TACApplication.cpp
-    TACWindow.h
-    TACWindow.cpp
-    TACWindow.ui
-    TACDeviceSelection.h
-    TACDeviceSelection.cpp
-    TACDeviceSelection.ui
-    TACPinFrame.h
-    TACPinFrame.cpp
-    TACPreferences.h
-    TACPreferences.cpp
-    PreferencesDialog.h
-    PreferencesDialog.cpp
-    ${QTAC_APP_RESOURCES}
+add_library(qt-adapter STATIC
+    src/TACDeviceBridge.cpp
+    include/TACDeviceBridge.h
 )
 
-target_include_directories(qtac-app PRIVATE
-    ${CMAKE_CURRENT_SOURCE_DIR}
-    ${CMAKE_CURRENT_SOURCE_DIR}/../library/include
-    ${CMAKE_CURRENT_SOURCE_DIR}/../../source/libraries/qt-adapter/include
+target_include_directories(qt-adapter
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+        $<INSTALL_INTERFACE:include>
+    PRIVATE
+        ${CMAKE_CURRENT_SOURCE_DIR}/src
 )
 
-if(WIN32)
-    target_link_directories(qtac-app PRIVATE
-        "${CMAKE_SOURCE_DIR}/__Builds/x64/Release/lib"
-        "${CMAKE_SOURCE_DIR}/__Builds/x64/Debug/lib"
-    )
-endif()
-
-target_link_libraries(qtac-app PRIVATE
-    Qt6::Core
-    Qt6::Gui
-    Qt6::Widgets
-    qt-adapter
-    qtac-core
+# Bring in the Qt-free core library and its public headers (qtac:: types, Signal<>, etc.)
+target_link_libraries(qt-adapter
+    PUBLIC
+        Qt6::Core
+        qtac-core
 )
 
-if(WIN32)
-    target_link_libraries(qtac-app PRIVATE
-        ftd2xx
-        Advapi32
-        SetupAPI
-    )
-    # RC compilation with Ninja requires special handling; disabled for now.
-    # target_sources(qtac-app PRIVATE resources/TAC.rc)
-endif()
-
-install(TARGETS qtac-app
-    BUNDLE  DESTINATION .
-    RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
-)
+target_compile_features(qt-adapter PUBLIC cxx_std_20)

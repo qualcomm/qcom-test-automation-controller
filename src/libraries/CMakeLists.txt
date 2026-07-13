@@ -10,4 +10,4 @@ qt_standard_project_setup()
 add_subdirectory(qcommon-console)
 add_subdirectory(qcommon)
 add_subdirectory(ui-common)
-add_subdirectory(qt-adapter)
+# qt-adapter moved to source/libraries/qt-adapter

@@ -207,9 +207,8 @@ if(QTAC_BUILD_FTDI)
         endif()
     endif()
 
-    # ftd2xx.h location — expected alongside this CMakeLists.txt or in the
-    # qcommon-console source tree that is a sibling of source/
+    # ftd2xx.h lives alongside this CMakeLists.txt (copied from the FTDI SDK).
     target_include_directories(qtac-core PRIVATE
-        ${CMAKE_CURRENT_SOURCE_DIR}/../../src/libraries/qcommon-console
+        ${CMAKE_CURRENT_SOURCE_DIR}
     )
 endif()

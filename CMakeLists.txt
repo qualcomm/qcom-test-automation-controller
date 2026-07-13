@@ -49,6 +49,7 @@ qt_standard_project_setup(REQUIRES 6.9)
 
 add_subdirectory(third-party)
 add_subdirectory(source/library)
+add_subdirectory(source/libraries/qt-adapter)
 add_subdirectory(source/tacdev)
 add_subdirectory(src/libraries)
 add_subdirectory(source/app)
