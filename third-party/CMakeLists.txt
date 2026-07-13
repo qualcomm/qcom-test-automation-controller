@@ -74,7 +74,7 @@ endif()
 
 file(REMOVE_RECURSE "${TEMP_DIR}")
 file(MAKE_DIRECTORY "${TEMP_DIR}")
-execute_process(COMMAND ${CMAKE_COMMAND} -E tar xzf "${ARCHIVE_PATH}" WORKING_DIRECTORY "${TEMP_DIR}")
+execute_process(COMMAND ${CMAKE_COMMAND} -E tar xf "${ARCHIVE_PATH}" WORKING_DIRECTORY "${TEMP_DIR}")
 
 if(WIN32)
     file(MAKE_DIRECTORY "${CMAKE_SOURCE_DIR}/__Builds/${FTDI_WIN_ARCH}/Debug/lib")
@@ -139,36 +139,6 @@ else()
         IMPORTED_LOCATION_RELEASE "${RELEASE_LIB}"
         IMPORTED_LOCATION         "${RELEASE_LIB}"
     )
-endif()
-
-if(WIN32 AND DEFINED ENV{QTBIN})
-    set(QT_BIN_DIR "$ENV{QTBIN}")
-    set(QT_PLUGINS_DIR "$ENV{QTBIN}/../plugins")
-    set(DEBUG_BIN_DIR "${CMAKE_SOURCE_DIR}/__Builds/${FTDI_WIN_ARCH}/Debug/bin")
-    set(RELEASE_BIN_DIR "${CMAKE_SOURCE_DIR}/__Builds/${FTDI_WIN_ARCH}/Release/bin")
-    
-    set(QT_DLLS Qt6Core Qt6Gui Qt6Widgets Qt6SerialPort Qt6Concurrent Qt6Network Qt6Xml Qt6Multimedia Qt6MultimediaWidgets)
-    
-    file(MAKE_DIRECTORY "${DEBUG_BIN_DIR}")
-    file(MAKE_DIRECTORY "${RELEASE_BIN_DIR}")
-    file(MAKE_DIRECTORY "${DEBUG_BIN_DIR}/platforms")
-    file(MAKE_DIRECTORY "${RELEASE_BIN_DIR}/platforms")
-    
-    foreach(QT_DLL ${QT_DLLS})
-        if(EXISTS "${QT_BIN_DIR}/${QT_DLL}d.dll")
-            file(COPY "${QT_BIN_DIR}/${QT_DLL}d.dll" DESTINATION "${DEBUG_BIN_DIR}")
-        endif()
-        if(EXISTS "${QT_BIN_DIR}/${QT_DLL}.dll")
-            file(COPY "${QT_BIN_DIR}/${QT_DLL}.dll" DESTINATION "${RELEASE_BIN_DIR}")
-        endif()
-    endforeach()
-    
-    if(EXISTS "${QT_PLUGINS_DIR}/platforms/qwindowsd.dll")
-        file(COPY "${QT_PLUGINS_DIR}/platforms/qwindowsd.dll" DESTINATION "${DEBUG_BIN_DIR}/platforms")
-    endif()
-    if(EXISTS "${QT_PLUGINS_DIR}/platforms/qwindows.dll")
-        file(COPY "${QT_PLUGINS_DIR}/platforms/qwindows.dll" DESTINATION "${RELEASE_BIN_DIR}/platforms")
-    endif()
 endif()
 
 function(link_ftd2xx target_name)

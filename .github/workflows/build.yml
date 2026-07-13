@@ -132,7 +132,7 @@ jobs:
 
     - name: Build
       shell: cmd
-      run: build.bat x64
+      run: build.bat
 
   build-windows-arm64:
     needs: fetch-ftdi-windows-arm64
@@ -169,4 +169,4 @@ jobs:
 
     - name: Build
       shell: cmd
-      run: build.bat ARM64
+      run: build.bat

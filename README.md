@@ -109,11 +109,10 @@ git clone https://github.com/qualcomm/qcom-test-automation-controller.git
 
 ### Build & Usage
 
-Execute `build.bat` to generate executables:
+Execute `build.bat` to generate executables. The build targets the host architecture automatically (x64 on an x64 host, ARM64 on an ARM64 host):
 
 ```cmd
-build.bat        (x64, default)
-build.bat ARM64  (ARM64)
+build.bat
 ```
 
 **Build output**:
