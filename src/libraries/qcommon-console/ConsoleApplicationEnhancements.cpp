@@ -28,6 +28,10 @@ const QString kAppName("QTAC");
 
 QString applicationBinPath()
 {
+	const QString appDir = QDir::cleanPath(QCoreApplication::applicationDirPath());
+	if (!appDir.isEmpty() && QDir(appDir).exists())
+		return appDir + "/";
+
 	QString result;
 
 #ifdef Q_OS_WIN
@@ -51,7 +55,15 @@ QString applicationDataPath()
 	QString result = "../../../../configurations/";
 
 	if (QDir(result).exists() == false)
-		QDir().mkpath(result);
+		{
+			#ifdef Q_OS_WIN
+				result = "C:/ProgramData/Qualcomm/" + kAppName + "/configurations/";
+			#endif
+
+			#ifdef Q_OS_LINUX
+				result = "/var/lib/qcom/data/" + kAppName + "/configurations/";
+			#endif
+		}
 
 	return result;
 }
