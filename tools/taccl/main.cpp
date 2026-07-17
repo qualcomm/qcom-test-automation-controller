@@ -11,6 +11,10 @@
 #include <iostream>
 #include <string>
 
+#ifdef _WIN32
+#  include <crtdbg.h>
+#endif
+
 #include <CLI/CLI.hpp>
 
 #include "TACDev.h"
@@ -43,6 +47,15 @@ std::string alpacaVersionString()
 
 int main(int argc, char** argv)
 {
+#ifdef _WIN32
+    // Suppress the MSVC debug CRT "Abort/Retry/Ignore" dialog.
+    // Without this, any abort() call (e.g. from Qt assertions or CRT errors)
+    // pops an interactive dialog and blocks automated test runs.
+    _CrtSetReportMode(_CRT_ASSERT, _CRTDBG_MODE_DEBUG);
+    _CrtSetReportMode(_CRT_ERROR,  _CRTDBG_MODE_DEBUG);
+    _CrtSetReportMode(_CRT_WARN,   _CRTDBG_MODE_DEBUG);
+#endif
+
     // ---------------------------------------------------------------------
     // Initialize TACDev up front. All subcommands assume this has succeeded.
     // ---------------------------------------------------------------------

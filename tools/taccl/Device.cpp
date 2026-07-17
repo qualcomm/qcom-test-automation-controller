@@ -69,6 +69,11 @@ std::vector<DeviceEntry> enumerateDevices()
 std::string resolvePortName(const std::string& deviceOpt,
                             const std::string& serialOpt)
 {
+    // Calling enumerateDevices() populates TACDev's internal device list,
+    // which is required before OpenHandleByDescription() will succeed.
+    // Do this unconditionally so the --device fast path also works.
+    enumerateDevices();
+
     // Explicit --device wins.
     if (!deviceOpt.empty())
         return deviceOpt;
