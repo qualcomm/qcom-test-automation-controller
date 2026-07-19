@@ -28,25 +28,8 @@ const QString kAppName("QTAC");
 
 QString applicationBinPath()
 {
-	const QString appDir = QDir::cleanPath(QCoreApplication::applicationDirPath());
-	if (!appDir.isEmpty() && QDir(appDir).exists())
-		return appDir + "/";
-
-	QString result;
-
-#ifdef Q_OS_WIN
-	result = "C:/Program Files (x86)/Qualcomm/" + kAppName + "/";
-#endif
-
-#ifdef Q_OS_LINUX
-	result = "/opt/qcom/" + kAppName + "/bin/";
-#endif
-
-	result = QDir::cleanPath(result);
-
-	if (QDir(result).exists() == false)
-		QDir().mkpath(result);
-
+	const QString result = QDir::cleanPath(QCoreApplication::applicationDirPath())
+	                       + QDir::separator();
 	return result;
 }
 
