@@ -558,6 +558,15 @@
             "usb_descriptor": "KARUSSELL"
         },
         {
+            "configPath": "../../../../configurations/TAC_PIC32CXAuto_54.tcnf",
+            "debugBoardType": 4,
+            "description": "IQ10 Robotics Reference Design",
+            "name": "IQ10 RRD",
+            "platform_id": 54,
+            "revision": 6,
+            "usb_descriptor": "IQ10RRD"
+        },
+        {
             "chip1BusSet": 12,
             "chip2BusSet": 0,
             "chip3BusSet": 0,
