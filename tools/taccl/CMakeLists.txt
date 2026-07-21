@@ -60,6 +60,8 @@ add_executable(taccl
     Device.h
     Output.cpp
     Output.h
+    QuickCommands.cpp
+    QuickCommands.h
     StateControls.cpp
     StateControls.h
     Errors.h

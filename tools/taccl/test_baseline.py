@@ -231,6 +231,17 @@ def build_cases(device: str) -> list:
     # -----------------------------------------------------------------------
     add("env_device_query",     ["__ENV__", "battery"],                      0)
 
+    # -----------------------------------------------------------------------
+    # 8. Quick commands
+    # -----------------------------------------------------------------------
+    add("help_quick_commands",        ["quick-commands", "--help"],          0)
+    add("quick_commands",             ["quick-commands", f"--device={D}"],   0)
+    add("quick_commands_json",        ["quick-commands", f"--device={D}", "--json"], 0)
+    add("quick_commands_quiet",       ["quick-commands", f"--device={D}", "--quiet"], 0)
+    add("quick_commands_bad_port",    ["quick-commands", "--device=COM99"],   2)
+    add("quick_commands_bad_port_json", ["quick-commands", "--device=COM99", "--json"], 2)
+    add("quick_commands_missing_device", ["quick-commands"],                 3)
+
     return cases
 
 

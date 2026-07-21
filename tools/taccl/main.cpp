@@ -21,11 +21,12 @@
 
 #include "Errors.h"
 #include "Output.h"
+#include "QuickCommands.h"
 #include "StateControls.h"
 
 namespace {
 
-constexpr const char* kVersion = "taccl 0.1.0 (Section 5 - State Controls)";
+constexpr const char* kVersion = "taccl 0.2.0 (Sections 5, 7 - State Controls, Quick Commands)";
 
 std::string tacVersionString()
 {
@@ -94,6 +95,7 @@ int main(int argc, char** argv)
     int exitCode = taccl::ExitCode::Success;
 
     taccl::registerStateControls(app, output, exitCode);
+    taccl::registerQuickCommands(app, output, exitCode);
 
     // ---------------------------------------------------------------------
     // Parse & run
