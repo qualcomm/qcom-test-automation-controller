@@ -242,6 +242,64 @@ def build_cases(device: str) -> list:
     add("quick_commands_bad_port_json", ["quick-commands", "--device=COM99", "--json"], 2)
     add("quick_commands_missing_device", ["quick-commands"],                 3)
 
+    # -----------------------------------------------------------------------
+    # 9. Device discovery (list, version subcommand)
+    # -----------------------------------------------------------------------
+    add("list",                  ["list"],                                    0)
+    add("list_json",             ["list", "--json"],                          0)
+    add("list_quiet",            ["list", "--quiet"],                         0)
+    add("version_sub",           ["version"],                                 0)
+    add("version_sub_json",      ["version", "--json"],                       0)
+    add("version_sub_quiet",     ["version", "--quiet"],                      0)
+
+    # -----------------------------------------------------------------------
+    # 10. Device info
+    # -----------------------------------------------------------------------
+    add("info",                  ["info", f"--device={D}"],                   0)
+    add("info_json",             ["info", f"--device={D}", "--json"],         0)
+    add("info_firmware",         ["info", f"--device={D}", "--firmware"],     0)
+    add("info_uuid",             ["info", f"--device={D}", "--uuid"],         0)
+    add("info_reset_count",      ["info", f"--device={D}", "--reset-count"],  0)
+    add("info_bad_port",         ["info", "--device=COM99"],                  2)
+    add("info_missing_device",   ["info"],                                    3)
+
+    # -----------------------------------------------------------------------
+    # 11. Dynamic commands
+    # -----------------------------------------------------------------------
+    add("help_commands",         ["commands", "--help"],                      0)
+    add("commands",              ["commands", f"--device={D}"],               0)
+    add("commands_json",         ["commands", f"--device={D}", "--json"],     0)
+    add("commands_bad_port",     ["commands", "--device=COM99"],               2)
+    add("commands_missing_device", ["commands"],                              3)
+    add("command_battery_query", ["command", f"--device={D}", "--name=battery"], 0)
+    add("command_battery_json",  ["command", f"--device={D}", "--name=battery", "--json"], 0)
+    add("command_bad_name",      ["command", f"--device={D}", "--name=__bogus__"], None)
+    add("command_missing_name",  ["command", f"--device={D}"],               None)   # CLI11 error
+
+    # -----------------------------------------------------------------------
+    # 12. Script variables
+    # -----------------------------------------------------------------------
+    add("vars",                  ["vars", f"--device={D}"],                   0)
+    add("vars_json",             ["vars", f"--device={D}", "--json"],         0)
+    add("vars_bad_port",         ["vars", "--device=COM99"],                  2)
+    add("vars_missing_device",   ["vars"],                                    3)
+    add("var_edl",               ["var", f"--device={D}", "--name=edl"],      0)
+    add("var_edl_json",          ["var", f"--device={D}", "--name=edl", "--json"], 0)
+    add("var_bad_name",          ["var", f"--device={D}", "--name=__bogus__"], 4)
+
+    # -----------------------------------------------------------------------
+    # 13. Utility
+    # -----------------------------------------------------------------------
+    add("help_text",             ["help-text", f"--device={D}"],              0)
+    add("help_text_json",        ["help-text", f"--device={D}", "--json"],    0)
+    add("help_text_bad_port",    ["help-text", "--device=COM99"],              2)
+    add("queue_clear",           ["queue-clear", f"--device={D}"],            0)
+    add("queue_clear_json",      ["queue-clear", f"--device={D}", "--json"],  0)
+    add("logging_query",         ["logging"],                                 0)
+    add("logging_query_json",    ["logging", "--json"],                       0)
+    add("logging_set_off",       ["logging", "--state=off"],                  0)
+    add("logging_set_on",        ["logging", "--state=on"],                   0)
+
     return cases
 
 

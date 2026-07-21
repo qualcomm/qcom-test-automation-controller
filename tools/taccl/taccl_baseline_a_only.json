@@ -1,0 +1,1474 @@
+{
+  "exe_a": "build\\Debug\\taccl.exe",
+  "exe_b": null,
+  "device": "COM16",
+  "results_a": [
+    {
+      "name": "version",
+      "args": [
+        "--version"
+      ],
+      "expected_exit": 0,
+      "exit_code": 0,
+      "stdout": "taccl 0.3.0 (Sections 1-9 - Device Discovery, Info, State Controls, Boot, Commands, Script Variables, Utility)\nQTAC: 5.5.2\nTAC:  7.0.1",
+      "stderr": "",
+      "elapsed_ms": 1828.0
+    },
+    {
+      "name": "help",
+      "args": [
+        "--help"
+      ],
+      "expected_exit": 0,
+      "exit_code": 0,
+      "stdout": "taccl - command-line interface for TAC devices\nUsage: build\\Debug\\taccl.exe [OPTIONS] SUBCOMMAND\n\nOptions:\n  -h,--help                   Print this help message and exit\n  --version                   Display program version information and exit\n  -j,--json                   Output in JSON format\n  -q,--quiet                  Suppress non-essential output\n\nSubcommands:\n  list                        List all connected TAC devices\n  version                     Show QTAC and TAC library versions\n  info                        Show device information\n  set                         Configure device settings\n  battery                     Battery power (query/set)\n  usb0                        USB0 line (query/set)\n  usb1                        USB1 line (query/set)\n  power-key                   Power key (query/set)\n  volume-up                   Volume-up key (query/set)\n  volume-down                 Volume-down key (query/set)\n  disconnect-uim1             Disconnect UIM1 (query/set)\n  disconnect-uim2             Disconnect UIM2 (query/set)\n  disconnect-sdcard           Disconnect SD card (query/set)\n  disconnect-headset          Disconnect headset (query/set)\n  primary-edl                 Primary EDL (query/set)\n  secondary-edl               Secondary EDL (query/set)\n  force-pshold                Force PS-Hold high (query/set)\n  secondary-pm-resin          Secondary PM RESIN_N (query/set)\n  eud                         EUD (query/set)\n  external-power              External power (set-only)\n  pin                         Raw pin state (set-only)\n  boot                        Trigger a boot sequence on the device\n  commands                    List available commands on the device\n  command                     Query or set a dynamic command state\n  quick-commands              List quick commands available on the device\n  vars                        List all script variables on the device\n  var                         Get or set a script variable\n  help-text                   Retrieve device help text\n  queue-clear                 Check if command queue is clear\n  logging                     Get or set TACDev logging state",
+      "stderr": "",
+      "elapsed_ms": 265.0
+    },
+    {
+      "name": "help_battery",
+      "args": [
+        "battery",
+        "--help"
+      ],
+      "expected_exit": 0,
+      "exit_code": 0,
+      "stdout": "Battery power (query/set)\nUsage: build\\Debug\\taccl.exe battery [OPTIONS]\n\nOptions:\n  -h,--help                   Print this help message and exit\n  -d,--device TEXT            Device port name\n  -s,--serial TEXT            Device serial number\n  --state TEXT:{on,off}       on|off (omit to query current state)",
+      "stderr": "",
+      "elapsed_ms": 297.0
+    },
+    {
+      "name": "help_usb0",
+      "args": [
+        "usb0",
+        "--help"
+      ],
+      "expected_exit": 0,
+      "exit_code": 0,
+      "stdout": "USB0 line (query/set)\nUsage: build\\Debug\\taccl.exe usb0 [OPTIONS]\n\nOptions:\n  -h,--help                   Print this help message and exit\n  -d,--device TEXT            Device port name\n  -s,--serial TEXT            Device serial number\n  --state TEXT:{on,off}       on|off (omit to query current state)",
+      "stderr": "",
+      "elapsed_ms": 328.0
+    },
+    {
+      "name": "help_pin",
+      "args": [
+        "pin",
+        "--help"
+      ],
+      "expected_exit": 0,
+      "exit_code": 0,
+      "stdout": "Raw pin state (set-only)\nUsage: build\\Debug\\taccl.exe pin [OPTIONS]\n\nOptions:\n  -h,--help                   Print this help message and exit\n  -d,--device TEXT            Device port name\n  -s,--serial TEXT            Device serial number\n  --state TEXT:{on,off} REQUIRED\n                              on|off (omit to query current state)\n  --pin INT REQUIRED          Pin number",
+      "stderr": "",
+      "elapsed_ms": 266.0
+    },
+    {
+      "name": "no_subcommand",
+      "args": [],
+      "expected_exit": null,
+      "exit_code": 106,
+      "stdout": "",
+      "stderr": "A subcommand is required\nRun with --help for more information.",
+      "elapsed_ms": 266.0
+    },
+    {
+      "name": "bad_port_text",
+      "args": [
+        "battery",
+        "--device=COM99"
+      ],
+      "expected_exit": 2,
+      "exit_code": 2,
+      "stdout": "",
+      "stderr": "taccl: device 'COM99' not found",
+      "elapsed_ms": 765.0
+    },
+    {
+      "name": "bad_port_json",
+      "args": [
+        "battery",
+        "--device=COM99",
+        "--json"
+      ],
+      "expected_exit": 2,
+      "exit_code": 2,
+      "stdout": "",
+      "stderr": "{\"error\":\"device 'COM99' not found\"}",
+      "elapsed_ms": 844.0
+    },
+    {
+      "name": "missing_device",
+      "args": [
+        "battery"
+      ],
+      "expected_exit": 3,
+      "exit_code": 3,
+      "stdout": "",
+      "stderr": "taccl: no device specified (use --device / --serial or TACCL_DEVICE / TACCL_SERIAL)",
+      "elapsed_ms": 672.0
+    },
+    {
+      "name": "bad_state_value",
+      "args": [
+        "battery",
+        "--device=COM16",
+        "--state=bogus"
+      ],
+      "expected_exit": 105,
+      "exit_code": 105,
+      "stdout": "",
+      "stderr": "--state: bogus not in {on,off}\nRun with --help for more information.",
+      "elapsed_ms": 234.0
+    },
+    {
+      "name": "pin_missing_pin",
+      "args": [
+        "pin",
+        "--device=COM16",
+        "--state=on"
+      ],
+      "expected_exit": 106,
+      "exit_code": 106,
+      "stdout": "",
+      "stderr": "--pin is required\nRun with --help for more information.",
+      "elapsed_ms": 250.0
+    },
+    {
+      "name": "pin_missing_state",
+      "args": [
+        "pin",
+        "--device=COM16",
+        "--pin=7"
+      ],
+      "expected_exit": 106,
+      "exit_code": 106,
+      "stdout": "",
+      "stderr": "--state is required\nRun with --help for more information.",
+      "elapsed_ms": 219.0
+    },
+    {
+      "name": "ext_power_no_state",
+      "args": [
+        "external-power",
+        "--device=COM16"
+      ],
+      "expected_exit": 106,
+      "exit_code": 106,
+      "stdout": "",
+      "stderr": "--state is required\nRun with --help for more information.",
+      "elapsed_ms": 297.0
+    },
+    {
+      "name": "query_battery",
+      "args": [
+        "battery",
+        "--device=COM16"
+      ],
+      "expected_exit": 0,
+      "exit_code": 0,
+      "stdout": "off",
+      "stderr": "",
+      "elapsed_ms": 1812.0
+    },
+    {
+      "name": "query_battery_json",
+      "args": [
+        "battery",
+        "--device=COM16",
+        "--json"
+      ],
+      "expected_exit": 0,
+      "exit_code": 0,
+      "stdout": "{\"state\":false}",
+      "stderr": "",
+      "elapsed_ms": 2000.0
+    },
+    {
+      "name": "query_battery_quiet",
+      "args": [
+        "battery",
+        "--device=COM16",
+        "--quiet"
+      ],
+      "expected_exit": 0,
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": "",
+      "elapsed_ms": 2032.0
+    },
+    {
+      "name": "query_usb0",
+      "args": [
+        "usb0",
+        "--device=COM16"
+      ],
+      "expected_exit": 0,
+      "exit_code": 0,
+      "stdout": "off",
+      "stderr": "",
+      "elapsed_ms": 2234.0
+    },
+    {
+      "name": "query_usb0_json",
+      "args": [
+        "usb0",
+        "--device=COM16",
+        "--json"
+      ],
+      "expected_exit": 0,
+      "exit_code": 0,
+      "stdout": "{\"state\":false}",
+      "stderr": "",
+      "elapsed_ms": 2031.0
+    },
+    {
+      "name": "query_usb0_quiet",
+      "args": [
+        "usb0",
+        "--device=COM16",
+        "--quiet"
+      ],
+      "expected_exit": 0,
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": "",
+      "elapsed_ms": 2094.0
+    },
+    {
+      "name": "query_usb1",
+      "args": [
+        "usb1",
+        "--device=COM16"
+      ],
+      "expected_exit": null,
+      "exit_code": 4,
+      "stdout": "",
+      "stderr": "taccl: usb1 query failed:",
+      "elapsed_ms": 2141.0
+    },
+    {
+      "name": "query_usb1_json",
+      "args": [
+        "usb1",
+        "--device=COM16",
+        "--json"
+      ],
+      "expected_exit": null,
+      "exit_code": 4,
+      "stdout": "",
+      "stderr": "{\"error\":\"usb1 query failed: \"}",
+      "elapsed_ms": 2031.0
+    },
+    {
+      "name": "query_usb1_quiet",
+      "args": [
+        "usb1",
+        "--device=COM16",
+        "--quiet"
+      ],
+      "expected_exit": null,
+      "exit_code": 4,
+      "stdout": "",
+      "stderr": "taccl: usb1 query failed:",
+      "elapsed_ms": 2141.0
+    },
+    {
+      "name": "query_power_key",
+      "args": [
+        "power-key",
+        "--device=COM16"
+      ],
+      "expected_exit": 0,
+      "exit_code": 0,
+      "stdout": "off",
+      "stderr": "",
+      "elapsed_ms": 2031.0
+    },
+    {
+      "name": "query_power_key_json",
+      "args": [
+        "power-key",
+        "--device=COM16",
+        "--json"
+      ],
+      "expected_exit": 0,
+      "exit_code": 0,
+      "stdout": "{\"state\":false}",
+      "stderr": "",
+      "elapsed_ms": 2015.0
+    },
+    {
+      "name": "query_power_key_quiet",
+      "args": [
+        "power-key",
+        "--device=COM16",
+        "--quiet"
+      ],
+      "expected_exit": 0,
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": "",
+      "elapsed_ms": 2110.0
+    },
+    {
+      "name": "query_volume_up",
+      "args": [
+        "volume-up",
+        "--device=COM16"
+      ],
+      "expected_exit": 0,
+      "exit_code": 0,
+      "stdout": "off",
+      "stderr": "",
+      "elapsed_ms": 2094.0
+    },
+    {
+      "name": "query_volume_up_json",
+      "args": [
+        "volume-up",
+        "--device=COM16",
+        "--json"
+      ],
+      "expected_exit": 0,
+      "exit_code": 0,
+      "stdout": "{\"state\":false}",
+      "stderr": "",
+      "elapsed_ms": 1953.0
+    },
+    {
+      "name": "query_volume_up_quiet",
+      "args": [
+        "volume-up",
+        "--device=COM16",
+        "--quiet"
+      ],
+      "expected_exit": 0,
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": "",
+      "elapsed_ms": 1672.0
+    },
+    {
+      "name": "query_volume_down",
+      "args": [
+        "volume-down",
+        "--device=COM16"
+      ],
+      "expected_exit": 0,
+      "exit_code": 0,
+      "stdout": "off",
+      "stderr": "",
+      "elapsed_ms": 1921.0
+    },
+    {
+      "name": "query_volume_down_json",
+      "args": [
+        "volume-down",
+        "--device=COM16",
+        "--json"
+      ],
+      "expected_exit": 0,
+      "exit_code": 0,
+      "stdout": "{\"state\":false}",
+      "stderr": "",
+      "elapsed_ms": 1797.0
+    },
+    {
+      "name": "query_volume_down_quiet",
+      "args": [
+        "volume-down",
+        "--device=COM16",
+        "--quiet"
+      ],
+      "expected_exit": 0,
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": "",
+      "elapsed_ms": 2110.0
+    },
+    {
+      "name": "query_disconnect_uim1",
+      "args": [
+        "disconnect-uim1",
+        "--device=COM16"
+      ],
+      "expected_exit": 0,
+      "exit_code": 0,
+      "stdout": "off",
+      "stderr": "",
+      "elapsed_ms": 2062.0
+    },
+    {
+      "name": "query_disconnect_uim1_json",
+      "args": [
+        "disconnect-uim1",
+        "--device=COM16",
+        "--json"
+      ],
+      "expected_exit": 0,
+      "exit_code": 0,
+      "stdout": "{\"state\":false}",
+      "stderr": "",
+      "elapsed_ms": 2078.0
+    },
+    {
+      "name": "query_disconnect_uim1_quiet",
+      "args": [
+        "disconnect-uim1",
+        "--device=COM16",
+        "--quiet"
+      ],
+      "expected_exit": 0,
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": "",
+      "elapsed_ms": 2110.0
+    },
+    {
+      "name": "query_disconnect_uim2",
+      "args": [
+        "disconnect-uim2",
+        "--device=COM16"
+      ],
+      "expected_exit": 0,
+      "exit_code": 0,
+      "stdout": "off",
+      "stderr": "",
+      "elapsed_ms": 1844.0
+    },
+    {
+      "name": "query_disconnect_uim2_json",
+      "args": [
+        "disconnect-uim2",
+        "--device=COM16",
+        "--json"
+      ],
+      "expected_exit": 0,
+      "exit_code": 0,
+      "stdout": "{\"state\":false}",
+      "stderr": "",
+      "elapsed_ms": 1890.0
+    },
+    {
+      "name": "query_disconnect_uim2_quiet",
+      "args": [
+        "disconnect-uim2",
+        "--device=COM16",
+        "--quiet"
+      ],
+      "expected_exit": 0,
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": "",
+      "elapsed_ms": 1922.0
+    },
+    {
+      "name": "query_disconnect_sdcard",
+      "args": [
+        "disconnect-sdcard",
+        "--device=COM16"
+      ],
+      "expected_exit": 0,
+      "exit_code": 0,
+      "stdout": "off",
+      "stderr": "",
+      "elapsed_ms": 2391.0
+    },
+    {
+      "name": "query_disconnect_sdcard_json",
+      "args": [
+        "disconnect-sdcard",
+        "--device=COM16",
+        "--json"
+      ],
+      "expected_exit": 0,
+      "exit_code": 0,
+      "stdout": "{\"state\":false}",
+      "stderr": "",
+      "elapsed_ms": 2203.0
+    },
+    {
+      "name": "query_disconnect_sdcard_quiet",
+      "args": [
+        "disconnect-sdcard",
+        "--device=COM16",
+        "--quiet"
+      ],
+      "expected_exit": 0,
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": "",
+      "elapsed_ms": 2031.0
+    },
+    {
+      "name": "query_disconnect_headset",
+      "args": [
+        "disconnect-headset",
+        "--device=COM16"
+      ],
+      "expected_exit": 0,
+      "exit_code": 0,
+      "stdout": "off",
+      "stderr": "",
+      "elapsed_ms": 1938.0
+    },
+    {
+      "name": "query_disconnect_headset_json",
+      "args": [
+        "disconnect-headset",
+        "--device=COM16",
+        "--json"
+      ],
+      "expected_exit": 0,
+      "exit_code": 0,
+      "stdout": "{\"state\":false}",
+      "stderr": "",
+      "elapsed_ms": 2250.0
+    },
+    {
+      "name": "query_disconnect_headset_quiet",
+      "args": [
+        "disconnect-headset",
+        "--device=COM16",
+        "--quiet"
+      ],
+      "expected_exit": 0,
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": "",
+      "elapsed_ms": 2140.0
+    },
+    {
+      "name": "query_primary_edl",
+      "args": [
+        "primary-edl",
+        "--device=COM16"
+      ],
+      "expected_exit": 0,
+      "exit_code": 0,
+      "stdout": "off",
+      "stderr": "",
+      "elapsed_ms": 1782.0
+    },
+    {
+      "name": "query_primary_edl_json",
+      "args": [
+        "primary-edl",
+        "--device=COM16",
+        "--json"
+      ],
+      "expected_exit": 0,
+      "exit_code": 0,
+      "stdout": "{\"state\":false}",
+      "stderr": "",
+      "elapsed_ms": 1703.0
+    },
+    {
+      "name": "query_primary_edl_quiet",
+      "args": [
+        "primary-edl",
+        "--device=COM16",
+        "--quiet"
+      ],
+      "expected_exit": 0,
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": "",
+      "elapsed_ms": 2093.0
+    },
+    {
+      "name": "query_secondary_edl",
+      "args": [
+        "secondary-edl",
+        "--device=COM16"
+      ],
+      "expected_exit": null,
+      "exit_code": 4,
+      "stdout": "",
+      "stderr": "taccl: secondary-edl query failed:",
+      "elapsed_ms": 2000.0
+    },
+    {
+      "name": "query_secondary_edl_json",
+      "args": [
+        "secondary-edl",
+        "--device=COM16",
+        "--json"
+      ],
+      "expected_exit": null,
+      "exit_code": 4,
+      "stdout": "",
+      "stderr": "{\"error\":\"secondary-edl query failed: \"}",
+      "elapsed_ms": 1954.0
+    },
+    {
+      "name": "query_secondary_edl_quiet",
+      "args": [
+        "secondary-edl",
+        "--device=COM16",
+        "--quiet"
+      ],
+      "expected_exit": null,
+      "exit_code": 4,
+      "stdout": "",
+      "stderr": "taccl: secondary-edl query failed:",
+      "elapsed_ms": 2062.0
+    },
+    {
+      "name": "query_force_pshold",
+      "args": [
+        "force-pshold",
+        "--device=COM16"
+      ],
+      "expected_exit": 0,
+      "exit_code": 0,
+      "stdout": "off",
+      "stderr": "",
+      "elapsed_ms": 2109.0
+    },
+    {
+      "name": "query_force_pshold_json",
+      "args": [
+        "force-pshold",
+        "--device=COM16",
+        "--json"
+      ],
+      "expected_exit": 0,
+      "exit_code": 0,
+      "stdout": "{\"state\":false}",
+      "stderr": "",
+      "elapsed_ms": 2016.0
+    },
+    {
+      "name": "query_force_pshold_quiet",
+      "args": [
+        "force-pshold",
+        "--device=COM16",
+        "--quiet"
+      ],
+      "expected_exit": 0,
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": "",
+      "elapsed_ms": 2312.0
+    },
+    {
+      "name": "query_secondary_pm_resin",
+      "args": [
+        "secondary-pm-resin",
+        "--device=COM16"
+      ],
+      "expected_exit": null,
+      "exit_code": 4,
+      "stdout": "",
+      "stderr": "taccl: secondary-pm-resin query failed:",
+      "elapsed_ms": 1891.0
+    },
+    {
+      "name": "query_secondary_pm_resin_json",
+      "args": [
+        "secondary-pm-resin",
+        "--device=COM16",
+        "--json"
+      ],
+      "expected_exit": null,
+      "exit_code": 4,
+      "stdout": "",
+      "stderr": "{\"error\":\"secondary-pm-resin query failed: \"}",
+      "elapsed_ms": 2000.0
+    },
+    {
+      "name": "query_secondary_pm_resin_quiet",
+      "args": [
+        "secondary-pm-resin",
+        "--device=COM16",
+        "--quiet"
+      ],
+      "expected_exit": null,
+      "exit_code": 4,
+      "stdout": "",
+      "stderr": "taccl: secondary-pm-resin query failed:",
+      "elapsed_ms": 1969.0
+    },
+    {
+      "name": "query_eud",
+      "args": [
+        "eud",
+        "--device=COM16"
+      ],
+      "expected_exit": 0,
+      "exit_code": 0,
+      "stdout": "off",
+      "stderr": "",
+      "elapsed_ms": 2125.0
+    },
+    {
+      "name": "query_eud_json",
+      "args": [
+        "eud",
+        "--device=COM16",
+        "--json"
+      ],
+      "expected_exit": 0,
+      "exit_code": 0,
+      "stdout": "{\"state\":false}",
+      "stderr": "",
+      "elapsed_ms": 2000.0
+    },
+    {
+      "name": "query_eud_quiet",
+      "args": [
+        "eud",
+        "--device=COM16",
+        "--quiet"
+      ],
+      "expected_exit": 0,
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": "",
+      "elapsed_ms": 1640.0
+    },
+    {
+      "name": "battery_set_off",
+      "args": [
+        "battery",
+        "--device=COM16",
+        "--state=off"
+      ],
+      "expected_exit": 0,
+      "exit_code": 0,
+      "stdout": "off",
+      "stderr": "",
+      "elapsed_ms": 2063.0
+    },
+    {
+      "name": "battery_read_after_off",
+      "args": [
+        "battery",
+        "--device=COM16"
+      ],
+      "expected_exit": 0,
+      "exit_code": 0,
+      "stdout": "off",
+      "stderr": "",
+      "elapsed_ms": 1968.0
+    },
+    {
+      "name": "battery_set_on",
+      "args": [
+        "battery",
+        "--device=COM16",
+        "--state=on"
+      ],
+      "expected_exit": 0,
+      "exit_code": 0,
+      "stdout": "on",
+      "stderr": "",
+      "elapsed_ms": 2344.0
+    },
+    {
+      "name": "battery_read_after_on",
+      "args": [
+        "battery",
+        "--device=COM16"
+      ],
+      "expected_exit": 0,
+      "exit_code": 0,
+      "stdout": "off",
+      "stderr": "",
+      "elapsed_ms": 2031.0
+    },
+    {
+      "name": "usb0_set_off",
+      "args": [
+        "usb0",
+        "--device=COM16",
+        "--state=off"
+      ],
+      "expected_exit": 0,
+      "exit_code": 0,
+      "stdout": "off",
+      "stderr": "",
+      "elapsed_ms": 2079.0
+    },
+    {
+      "name": "usb0_read_after_off",
+      "args": [
+        "usb0",
+        "--device=COM16"
+      ],
+      "expected_exit": 0,
+      "exit_code": 0,
+      "stdout": "off",
+      "stderr": "",
+      "elapsed_ms": 1953.0
+    },
+    {
+      "name": "usb0_set_on",
+      "args": [
+        "usb0",
+        "--device=COM16",
+        "--state=on"
+      ],
+      "expected_exit": 0,
+      "exit_code": 0,
+      "stdout": "on",
+      "stderr": "",
+      "elapsed_ms": 2093.0
+    },
+    {
+      "name": "usb0_read_after_on",
+      "args": [
+        "usb0",
+        "--device=COM16"
+      ],
+      "expected_exit": 0,
+      "exit_code": 0,
+      "stdout": "off",
+      "stderr": "",
+      "elapsed_ms": 1875.0
+    },
+    {
+      "name": "external_power_on",
+      "args": [
+        "external-power",
+        "--device=COM16",
+        "--state=on"
+      ],
+      "expected_exit": null,
+      "exit_code": 3,
+      "stdout": "",
+      "stderr": "",
+      "elapsed_ms": 579.0
+    },
+    {
+      "name": "external_power_off",
+      "args": [
+        "external-power",
+        "--device=COM16",
+        "--state=off"
+      ],
+      "expected_exit": null,
+      "exit_code": 3,
+      "stdout": "",
+      "stderr": "",
+      "elapsed_ms": 687.0
+    },
+    {
+      "name": "pin7_on",
+      "args": [
+        "pin",
+        "--device=COM16",
+        "--pin=7",
+        "--state=on"
+      ],
+      "expected_exit": 0,
+      "exit_code": 0,
+      "stdout": "on",
+      "stderr": "",
+      "elapsed_ms": 1813.0
+    },
+    {
+      "name": "pin7_off",
+      "args": [
+        "pin",
+        "--device=COM16",
+        "--pin=7",
+        "--state=off"
+      ],
+      "expected_exit": 0,
+      "exit_code": 0,
+      "stdout": "off",
+      "stderr": "",
+      "elapsed_ms": 1640.0
+    },
+    {
+      "name": "battery_json_shape",
+      "args": [
+        "battery",
+        "--device=COM16",
+        "--json"
+      ],
+      "expected_exit": 0,
+      "exit_code": 0,
+      "stdout": "{\"state\":false}",
+      "stderr": "",
+      "elapsed_ms": 1766.0
+    },
+    {
+      "name": "bad_port_json_shape",
+      "args": [
+        "battery",
+        "--device=COM99",
+        "--json"
+      ],
+      "expected_exit": 2,
+      "exit_code": 2,
+      "stdout": "",
+      "stderr": "{\"error\":\"device 'COM99' not found\"}",
+      "elapsed_ms": 500.0
+    },
+    {
+      "name": "env_device_query",
+      "args": [
+        "battery"
+      ],
+      "expected_exit": 0,
+      "exit_code": 0,
+      "stdout": "off",
+      "stderr": "",
+      "elapsed_ms": 1734.0
+    },
+    {
+      "name": "help_quick_commands",
+      "args": [
+        "quick-commands",
+        "--help"
+      ],
+      "expected_exit": 0,
+      "exit_code": 0,
+      "stdout": "List quick commands available on the device\nUsage: build\\Debug\\taccl.exe quick-commands [OPTIONS]\n\nOptions:\n  -h,--help                   Print this help message and exit\n  -d,--device TEXT            Device port name\n  -s,--serial TEXT            Device serial number",
+      "stderr": "",
+      "elapsed_ms": 203.0
+    },
+    {
+      "name": "quick_commands",
+      "args": [
+        "quick-commands",
+        "--device=COM16"
+      ],
+      "expected_exit": 0,
+      "exit_code": 0,
+      "stdout": "Boot to Fastboot;bootToFastboot;Boots the device to fastboot;0,1\nBoot to UEFI;bootToUEFI;Boots the device to UEFI Menu;1,1\nBoot to EDL;bootToEDL;Boots the device to emergency download mode;2,0\nBattery Boot to EDL;bootToBatteryEDL;REQUIRES 20 SECONDS;2,1\nPower On;powerOn;Powers on the MTP/Device;0,0\nPower Off;powerOff;Powers off the MTP/Device;1,0\nBattery Reset;batteryReset;REQUIRES 20 SECONDS;1,2",
+      "stderr": "",
+      "elapsed_ms": 1610.0
+    },
+    {
+      "name": "quick_commands_json",
+      "args": [
+        "quick-commands",
+        "--device=COM16",
+        "--json"
+      ],
+      "expected_exit": 0,
+      "exit_code": 0,
+      "stdout": "[\"Boot to Fastboot;bootToFastboot;Boots the device to fastboot;0,1\",\"Boot to UEFI;bootToUEFI;Boots the device to UEFI Menu;1,1\",\"Boot to EDL;bootToEDL;Boots the device to emergency download mode;2,0\",\"Battery Boot to EDL;bootToBatteryEDL;REQUIRES 20 SECONDS;2,1\",\"Power On;powerOn;Powers on the MTP/Device;0,0\",\"Power Off;powerOff;Powers off the MTP/Device;1,0\",\"Battery Reset;batteryReset;REQUIRES 20 SECONDS;1,2\"]",
+      "stderr": "",
+      "elapsed_ms": 1484.0
+    },
+    {
+      "name": "quick_commands_quiet",
+      "args": [
+        "quick-commands",
+        "--device=COM16",
+        "--quiet"
+      ],
+      "expected_exit": 0,
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": "",
+      "elapsed_ms": 1562.0
+    },
+    {
+      "name": "quick_commands_bad_port",
+      "args": [
+        "quick-commands",
+        "--device=COM99"
+      ],
+      "expected_exit": 2,
+      "exit_code": 2,
+      "stdout": "",
+      "stderr": "taccl: device 'COM99' not found",
+      "elapsed_ms": 344.0
+    },
+    {
+      "name": "quick_commands_bad_port_json",
+      "args": [
+        "quick-commands",
+        "--device=COM99",
+        "--json"
+      ],
+      "expected_exit": 2,
+      "exit_code": 2,
+      "stdout": "",
+      "stderr": "{\"error\":\"device 'COM99' not found\"}",
+      "elapsed_ms": 500.0
+    },
+    {
+      "name": "quick_commands_missing_device",
+      "args": [
+        "quick-commands"
+      ],
+      "expected_exit": 3,
+      "exit_code": 3,
+      "stdout": "",
+      "stderr": "taccl: no device specified (use --device / --serial or TACCL_DEVICE / TACCL_SERIAL)",
+      "elapsed_ms": 500.0
+    },
+    {
+      "name": "list",
+      "args": [
+        "list"
+      ],
+      "expected_exit": 0,
+      "exit_code": 0,
+      "stdout": "PORT     SERIAL\nCOM16    E20302130E080F24\nVTP1     FTC085ZV",
+      "stderr": "",
+      "elapsed_ms": 453.0
+    },
+    {
+      "name": "list_json",
+      "args": [
+        "list",
+        "--json"
+      ],
+      "expected_exit": 0,
+      "exit_code": 0,
+      "stdout": "[{\"port\":\"COM16\",\"serial\":\"E20302130E080F24\"},{\"port\":\"VTP1\",\"serial\":\"FTC085ZV\"}]",
+      "stderr": "",
+      "elapsed_ms": 297.0
+    },
+    {
+      "name": "list_quiet",
+      "args": [
+        "list",
+        "--quiet"
+      ],
+      "expected_exit": 0,
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": "",
+      "elapsed_ms": 484.0
+    },
+    {
+      "name": "version_sub",
+      "args": [
+        "version"
+      ],
+      "expected_exit": 0,
+      "exit_code": 0,
+      "stdout": "QTAC: 5.5.2\nTAC:  7.0.1",
+      "stderr": "",
+      "elapsed_ms": 235.0
+    },
+    {
+      "name": "version_sub_json",
+      "args": [
+        "version",
+        "--json"
+      ],
+      "expected_exit": 0,
+      "exit_code": 0,
+      "stdout": "{\"qtac\":\"5.5.2\",\"tac\":\"7.0.1\"}",
+      "stderr": "",
+      "elapsed_ms": 281.0
+    },
+    {
+      "name": "version_sub_quiet",
+      "args": [
+        "version",
+        "--quiet"
+      ],
+      "expected_exit": 0,
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": "",
+      "elapsed_ms": 250.0
+    },
+    {
+      "name": "info",
+      "args": [
+        "info",
+        "--device=COM16"
+      ],
+      "expected_exit": 0,
+      "exit_code": 0,
+      "stdout": "name: TDC00002NLZU\nfirmware: 1.4.17.0.\nhardware: PSOC\nhardware-version: Hawi MTP8975 - PSoC\nuuid: 33FE10AE-A03B-4D5B-AF8B-9482D42CBE75\nreset-count: 0",
+      "stderr": "",
+      "elapsed_ms": 1641.0
+    },
+    {
+      "name": "info_json",
+      "args": [
+        "info",
+        "--device=COM16",
+        "--json"
+      ],
+      "expected_exit": 0,
+      "exit_code": 0,
+      "stdout": "{\"firmware\":\"1.4.17.0.\",\"hardware\":\"PSOC\",\"hardwareVersion\":\"Hawi MTP8975 - PSoC\",\"name\":\"TDC00002NLZU\",\"resetCount\":0,\"uuid\":\"33FE10AE-A03B-4D5B-AF8B-9482D42CBE75\"}",
+      "stderr": "",
+      "elapsed_ms": 1796.0
+    },
+    {
+      "name": "info_firmware",
+      "args": [
+        "info",
+        "--device=COM16",
+        "--firmware"
+      ],
+      "expected_exit": 0,
+      "exit_code": 0,
+      "stdout": "firmware: 1.4.17.0.",
+      "stderr": "",
+      "elapsed_ms": 1704.0
+    },
+    {
+      "name": "info_uuid",
+      "args": [
+        "info",
+        "--device=COM16",
+        "--uuid"
+      ],
+      "expected_exit": 0,
+      "exit_code": 0,
+      "stdout": "uuid: 33FE10AE-A03B-4D5B-AF8B-9482D42CBE75",
+      "stderr": "",
+      "elapsed_ms": 1593.0
+    },
+    {
+      "name": "info_reset_count",
+      "args": [
+        "info",
+        "--device=COM16",
+        "--reset-count"
+      ],
+      "expected_exit": 0,
+      "exit_code": 0,
+      "stdout": "reset-count: 0",
+      "stderr": "",
+      "elapsed_ms": 1875.0
+    },
+    {
+      "name": "info_bad_port",
+      "args": [
+        "info",
+        "--device=COM99"
+      ],
+      "expected_exit": 2,
+      "exit_code": 2,
+      "stdout": "",
+      "stderr": "taccl: device 'COM99' not found",
+      "elapsed_ms": 328.0
+    },
+    {
+      "name": "info_missing_device",
+      "args": [
+        "info"
+      ],
+      "expected_exit": 3,
+      "exit_code": 3,
+      "stdout": "",
+      "stderr": "taccl: no device specified (use --device / --serial or TACCL_DEVICE / TACCL_SERIAL)",
+      "elapsed_ms": 454.0
+    },
+    {
+      "name": "help_commands",
+      "args": [
+        "commands",
+        "--help"
+      ],
+      "expected_exit": 0,
+      "exit_code": 0,
+      "stdout": "List available commands on the device\nUsage: build\\Debug\\taccl.exe commands [OPTIONS]\n\nOptions:\n  -h,--help                   Print this help message and exit\n  -d,--device TEXT            Device port name\n  -s,--serial TEXT            Device serial number",
+      "stderr": "",
+      "elapsed_ms": 203.0
+    },
+    {
+      "name": "commands",
+      "args": [
+        "commands",
+        "--device=COM16"
+      ],
+      "expected_exit": 0,
+      "exit_code": 0,
+      "stdout": "battery;Battery Disconnect;53;General;Connections;0,0\nusb0;Disconnnects VBUS for USB 0;55;General;Connections;1,0\nvolup;Presses the volume up button;34;General;Buttons;0,1\npkey;Presses the power key button;50;General;Buttons;0,0\nvoldn;Presses the volume down button;51;General;Buttons;0,2\neud;Enabled the embedded USB debugger;16;General;Switches;1,1\nuim1;Disconnects UIM 0;18;General;Switches;0,0\nuim2;Disconnects UIM 1;19;General;Switches;1,0\npshold;Forces PSHold high;37;General;Switches;0,2\nrcmsel;RCM MUX Select;46;General;Switches;0,4\nsdcard;Disconnects the SD card slot;47;General;Switches;0,3\nheadset;Disconnects the headset;48;General;Switches;1,3\nmsmreset;Reset the MSM by pulling PS_HOLD low;49;General;Switches;1,2\npedl;Enables Primary Emergency Download Mode;54;General;Switches;0,1",
+      "stderr": "",
+      "elapsed_ms": 1422.0
+    },
+    {
+      "name": "commands_json",
+      "args": [
+        "commands",
+        "--device=COM16",
+        "--json"
+      ],
+      "expected_exit": 0,
+      "exit_code": 0,
+      "stdout": "[\"battery;Battery Disconnect;53;General;Connections;0,0\",\"usb0;Disconnnects VBUS for USB 0;55;General;Connections;1,0\",\"volup;Presses the volume up button;34;General;Buttons;0,1\",\"pkey;Presses the power key button;50;General;Buttons;0,0\",\"voldn;Presses the volume down button;51;General;Buttons;0,2\",\"eud;Enabled the embedded USB debugger;16;General;Switches;1,1\",\"uim1;Disconnects UIM 0;18;General;Switches;0,0\",\"uim2;Disconnects UIM 1;19;General;Switches;1,0\",\"pshold;Forces PSHold high;37;General;Switches;0,2\",\"rcmsel;RCM MUX Select;46;General;Switches;0,4\",\"sdcard;Disconnects the SD card slot;47;General;Switches;0,3\",\"headset;Disconnects the headset;48;General;Switches;1,3\",\"msmreset;Reset the MSM by pulling PS_HOLD low;49;General;Switches;1,2\",\"pedl;Enables Primary Emergency Download Mode;54;General;Switches;0,1\"]",
+      "stderr": "",
+      "elapsed_ms": 1515.0
+    },
+    {
+      "name": "commands_bad_port",
+      "args": [
+        "commands",
+        "--device=COM99"
+      ],
+      "expected_exit": 2,
+      "exit_code": 2,
+      "stdout": "",
+      "stderr": "taccl: device 'COM99' not found",
+      "elapsed_ms": 516.0
+    },
+    {
+      "name": "commands_missing_device",
+      "args": [
+        "commands"
+      ],
+      "expected_exit": 3,
+      "exit_code": 3,
+      "stdout": "",
+      "stderr": "taccl: no device specified (use --device / --serial or TACCL_DEVICE / TACCL_SERIAL)",
+      "elapsed_ms": 406.0
+    },
+    {
+      "name": "command_battery_query",
+      "args": [
+        "command",
+        "--device=COM16",
+        "--name=battery"
+      ],
+      "expected_exit": 0,
+      "exit_code": 0,
+      "stdout": "off",
+      "stderr": "",
+      "elapsed_ms": 1609.0
+    },
+    {
+      "name": "command_battery_json",
+      "args": [
+        "command",
+        "--device=COM16",
+        "--name=battery",
+        "--json"
+      ],
+      "expected_exit": 0,
+      "exit_code": 0,
+      "stdout": "{\"state\":false}",
+      "stderr": "",
+      "elapsed_ms": 1672.0
+    },
+    {
+      "name": "command_bad_name",
+      "args": [
+        "command",
+        "--device=COM16",
+        "--name=__bogus__"
+      ],
+      "expected_exit": null,
+      "exit_code": 4,
+      "stdout": "",
+      "stderr": "taccl: command '__bogus__' query failed:",
+      "elapsed_ms": 1594.0
+    },
+    {
+      "name": "command_missing_name",
+      "args": [
+        "command",
+        "--device=COM16"
+      ],
+      "expected_exit": null,
+      "exit_code": 106,
+      "stdout": "",
+      "stderr": "--name is required\nRun with --help for more information.",
+      "elapsed_ms": 250.0
+    },
+    {
+      "name": "vars",
+      "args": [
+        "vars",
+        "--device=COM16"
+      ],
+      "expected_exit": 0,
+      "exit_code": 0,
+      "stdout": "edl=1300\nfastboot=8000\nuefi=8000",
+      "stderr": "",
+      "elapsed_ms": 1531.0
+    },
+    {
+      "name": "vars_json",
+      "args": [
+        "vars",
+        "--device=COM16",
+        "--json"
+      ],
+      "expected_exit": 0,
+      "exit_code": 0,
+      "stdout": "{\"edl\":\"1300\",\"fastboot\":\"8000\",\"uefi\":\"8000\"}",
+      "stderr": "",
+      "elapsed_ms": 1641.0
+    },
+    {
+      "name": "vars_bad_port",
+      "args": [
+        "vars",
+        "--device=COM99"
+      ],
+      "expected_exit": 2,
+      "exit_code": 2,
+      "stdout": "",
+      "stderr": "taccl: device 'COM99' not found",
+      "elapsed_ms": 375.0
+    },
+    {
+      "name": "vars_missing_device",
+      "args": [
+        "vars"
+      ],
+      "expected_exit": 3,
+      "exit_code": 3,
+      "stdout": "",
+      "stderr": "taccl: no device specified (use --device / --serial or TACCL_DEVICE / TACCL_SERIAL)",
+      "elapsed_ms": 500.0
+    },
+    {
+      "name": "var_edl",
+      "args": [
+        "var",
+        "--device=COM16",
+        "--name=edl"
+      ],
+      "expected_exit": 0,
+      "exit_code": 0,
+      "stdout": "1300",
+      "stderr": "",
+      "elapsed_ms": 1671.0
+    },
+    {
+      "name": "var_edl_json",
+      "args": [
+        "var",
+        "--device=COM16",
+        "--name=edl",
+        "--json"
+      ],
+      "expected_exit": 0,
+      "exit_code": 0,
+      "stdout": "{\"name\":\"edl\",\"value\":\"1300\"}",
+      "stderr": "",
+      "elapsed_ms": 1641.0
+    },
+    {
+      "name": "var_bad_name",
+      "args": [
+        "var",
+        "--device=COM16",
+        "--name=__bogus__"
+      ],
+      "expected_exit": 4,
+      "exit_code": 4,
+      "stdout": "",
+      "stderr": "taccl: variable '__bogus__' not found",
+      "elapsed_ms": 1609.0
+    },
+    {
+      "name": "help_text",
+      "args": [
+        "help-text",
+        "--device=COM16"
+      ],
+      "expected_exit": 0,
+      "exit_code": 0,
+      "stdout": "Name: Hawi MTP8975\n\nPlatform: PSOC\nAuthor: kurtb kurtb@qti.qualcomm.com\nDescription: Hawi MTP8975 - PSoC\nModification Date: Wed Apr 22 10:25:41 2026\n\nCommands\n\n\tBattery Command: battery(53), Battery Disconnect\n\tUSB 0 (VBUS Only) Command: usb0(55), Disconnnects VBUS for USB 0\n\tVolume Up Command: volup(34), Presses the volume up button\n\tPower Key Command: pkey(50), Presses the power key button\n\tVolume Down Command: voldn(51), Presses the volume down button\n\tEUD (Embedded USB Debug) Command: eud(16), Enabled the embedded USB debugger\n\tDisconnect UIM 0 Command: uim1(18), Disconnects UIM 0\n\tDisconnect UIM 1 Command: uim2(19), Disconnects UIM 1\n\tForce PS_HOLD High Command: pshold(37), Forces PSHold high\n\tRCM MUX Select Command: rcmsel(46), RCM MUX Select\n\tDisconnect SD Card Command: sdcard(47), Disconnects the SD card slot\n\tHeadset Disconnect Command: headset(48), Disconnects the headset\n\tMSM RESET Command: msmreset(49), Reset the MSM by pulling PS_HOLD low\n\tEDL (Emergency Download Mode) Command: pedl(54), Enables Primary Emergency Download Mode\n\nQuick Commands\n\n\tBoot to Fastboot Command: bootToFastboot, Boots the device to fastboot\n\tBoot to UEFI Command: bootToUEFI, Boots the device to UEFI Menu\n\tBoot to EDL Command: bootToEDL, Boots the device to emergency download mode\n\tBattery Boot to EDL Command: bootToBatteryEDL, REQUIRES 20 SECONDS\n\tPower On Command: powerOn, Powers on the MTP/Device\n\tPower Off Command: powerOff, Powers off the MTP/Device\n\tBattery Reset Command: batteryReset, REQUIRES 20 SECONDS",
+      "stderr": "",
+      "elapsed_ms": 1672.0
+    },
+    {
+      "name": "help_text_json",
+      "args": [
+        "help-text",
+        "--device=COM16",
+        "--json"
+      ],
+      "expected_exit": 0,
+      "exit_code": 0,
+      "stdout": "{\"text\":\"Name: Hawi MTP8975\\n\\nPlatform: PSOC\\nAuthor: kurtb kurtb@qti.qualcomm.com\\nDescription: Hawi MTP8975 - PSoC\\nModification Date: Wed Apr 22 10:25:41 2026\\n\\nCommands\\n\\n\\tBattery Command: battery(53), Battery Disconnect\\n\\tUSB 0 (VBUS Only) Command: usb0(55), Disconnnects VBUS for USB 0\\n\\tVolume Up Command: volup(34), Presses the volume up button\\n\\tPower Key Command: pkey(50), Presses the power key button\\n\\tVolume Down Command: voldn(51), Presses the volume down button\\n\\tEUD (Embedded USB Debug) Command: eud(16), Enabled the embedded USB debugger\\n\\tDisconnect UIM 0 Command: uim1(18), Disconnects UIM 0\\n\\tDisconnect UIM 1 Command: uim2(19), Disconnects UIM 1\\n\\tForce PS_HOLD High Command: pshold(37), Forces PSHold high\\n\\tRCM MUX Select Command: rcmsel(46), RCM MUX Select\\n\\tDisconnect SD Card Command: sdcard(47), Disconnects the SD card slot\\n\\tHeadset Disconnect Command: headset(48), Disconnects the headset\\n\\tMSM RESET Command: msmreset(49), Reset the MSM by pulling PS_HOLD low\\n\\tEDL (Emergency Download Mode) Command: pedl(54), Enables Primary Emergency Download Mode\\n\\nQuick Commands\\n\\n\\tBoot to Fastboot Command: bootToFastboot, Boots the device to fastboot\\n\\tBoot to UEFI Command: bootToUEFI, Boots the device to UEFI Menu\\n\\tBoot to EDL Command: bootToEDL, Boots the device to emergency download mode\\n\\tBattery Boot to EDL Command: bootToBatteryEDL, REQUIRES 20 SECONDS\\n\\tPower On Command: powerOn, Powers on the MTP/Device\\n\\tPower Off Command: powerOff, Powers off the MTP/Device\\n\\tBattery Reset Command: batteryReset, REQUIRES 20 SECONDS\\n\"}",
+      "stderr": "",
+      "elapsed_ms": 1547.0
+    },
+    {
+      "name": "help_text_bad_port",
+      "args": [
+        "help-text",
+        "--device=COM99"
+      ],
+      "expected_exit": 2,
+      "exit_code": 2,
+      "stdout": "",
+      "stderr": "taccl: device 'COM99' not found",
+      "elapsed_ms": 485.0
+    },
+    {
+      "name": "queue_clear",
+      "args": [
+        "queue-clear",
+        "--device=COM16"
+      ],
+      "expected_exit": 0,
+      "exit_code": 0,
+      "stdout": "on",
+      "stderr": "",
+      "elapsed_ms": 1640.0
+    },
+    {
+      "name": "queue_clear_json",
+      "args": [
+        "queue-clear",
+        "--device=COM16",
+        "--json"
+      ],
+      "expected_exit": 0,
+      "exit_code": 0,
+      "stdout": "{\"state\":true}",
+      "stderr": "",
+      "elapsed_ms": 1578.0
+    },
+    {
+      "name": "logging_query",
+      "args": [
+        "logging"
+      ],
+      "expected_exit": 0,
+      "exit_code": 0,
+      "stdout": "off",
+      "stderr": "",
+      "elapsed_ms": 313.0
+    },
+    {
+      "name": "logging_query_json",
+      "args": [
+        "logging",
+        "--json"
+      ],
+      "expected_exit": 0,
+      "exit_code": 0,
+      "stdout": "{\"state\":false}",
+      "stderr": "",
+      "elapsed_ms": 250.0
+    },
+    {
+      "name": "logging_set_off",
+      "args": [
+        "logging",
+        "--state=off"
+      ],
+      "expected_exit": 0,
+      "exit_code": 0,
+      "stdout": "off",
+      "stderr": "",
+      "elapsed_ms": 266.0
+    },
+    {
+      "name": "logging_set_on",
+      "args": [
+        "logging",
+        "--state=on"
+      ],
+      "expected_exit": 0,
+      "exit_code": 0,
+      "stdout": "on",
+      "stderr": "",
+      "elapsed_ms": 297.0
+    }
+  ]
+}

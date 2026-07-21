@@ -19,14 +19,21 @@
 
 #include "TACDev.h"
 
+#include "BootSequences.h"
+#include "Commands.h"
+#include "DeviceList.h"
 #include "Errors.h"
 #include "Output.h"
 #include "QuickCommands.h"
+#include "ScriptVars.h"
 #include "StateControls.h"
+#include "Utility.h"
 
 namespace {
 
-constexpr const char* kVersion = "taccl 0.2.0 (Sections 5, 7 - State Controls, Quick Commands)";
+constexpr const char* kVersion =
+    "taccl 0.3.0 (Sections 1-9 - Device Discovery, Info, State Controls, "
+    "Boot, Commands, Script Variables, Utility)";
 
 std::string tacVersionString()
 {
@@ -94,8 +101,31 @@ int main(int argc, char** argv)
     // ---------------------------------------------------------------------
     int exitCode = taccl::ExitCode::Success;
 
+    // Sections 1-4: Device Discovery, Version, Info, Set
+    taccl::registerList(app, output, exitCode);
+    taccl::registerVersion(app, output, exitCode);
+    taccl::registerInfo(app, output, exitCode);
+    taccl::registerSet(app, output, exitCode);
+
+    // Section 5: State Controls
     taccl::registerStateControls(app, output, exitCode);
+
+    // Section 6: Boot Sequences
+    taccl::registerBoot(app, output, exitCode);
+
+    // Section 7: Commands + Quick Commands
+    taccl::registerCommands(app, output, exitCode);
+    taccl::registerCommand(app, output, exitCode);
     taccl::registerQuickCommands(app, output, exitCode);
+
+    // Section 8: Script Variables
+    taccl::registerVars(app, output, exitCode);
+    taccl::registerVar(app, output, exitCode);
+
+    // Section 9: Utility
+    taccl::registerHelpText(app, output, exitCode);
+    taccl::registerQueueClear(app, output, exitCode);
+    taccl::registerLogging(app, output, exitCode);
 
     // ---------------------------------------------------------------------
     // Parse & run

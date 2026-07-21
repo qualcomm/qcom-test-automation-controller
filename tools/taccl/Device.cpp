@@ -10,11 +10,9 @@ namespace taccl {
 
 namespace {
 
-// TACDev's GetPortData returns a semicolon-separated record.
-// The reference implementation in examples/C++/TACExample.cpp treats the
-// first token as the port name. Empirically the second token (if present)
-// is the device serial number. We defensively fall back to empty strings
-// when tokens are missing.
+// TACDev's GetPortData returns a semicolon-separated record:
+// "PORT;DESCRIPTION;SERIAL;FLAGS"
+// Index 0 = port name, index 1 = description, index 2 = serial number.
 DeviceEntry parsePortData(const char* raw)
 {
     DeviceEntry entry;
@@ -25,7 +23,7 @@ DeviceEntry parsePortData(const char* raw)
     int index = 0;
     while (std::getline(ss, token, ';')) {
         if (index == 0) entry.port   = token;
-        else if (index == 1) entry.serial = token;
+        else if (index == 2) entry.serial = token;
         ++index;
     }
     return entry;
@@ -60,7 +58,10 @@ std::vector<DeviceEntry> enumerateDevices()
 
     for (int i = 0; i < count; ++i) {
         char buffer[1024]{};
-        if (GetPortData(i, buffer, static_cast<int>(sizeof(buffer))) == NO_TAC_ERROR)
+        // GetPortData returns the number of bytes written (not an error code).
+        // Accept any non-empty result.
+        GetPortData(i, buffer, static_cast<int>(sizeof(buffer)));
+        if (buffer[0] != '\0')
             devices.push_back(parsePortData(buffer));
     }
     return devices;

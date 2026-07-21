@@ -1,7 +1,7 @@
-# taccl — Section 5: State Controls
+# taccl — Complete CLI for TACDev
 
-Standalone command-line front end for `TACDev.dll` implementing **Section 5
-(State Controls)** of [`docs/taccl-plan.md`](../../docs/taccl-plan.md).
+Standalone command-line front end for `TACDev.dll` implementing **all sections
+(1–9)** of [`docs/taccl-plan.md`](../../docs/taccl-plan.md).
 
 The binary is intentionally **Qt-free** — it links only against the C ABI
 exported by `TACDev.h`, so the same `taccl.exe` can be dropped next to either
@@ -11,7 +11,31 @@ the Qt or non-Qt build of `TACDev.dll` to verify parity.
 
 ## What's implemented
 
-All Section 5 subcommands:
+### Section 1 – Device Discovery
+
+| Subcommand | Description                  |
+|------------|------------------------------|
+| `list`     | List all connected TAC devices |
+
+### Section 2 – Version
+
+| Subcommand | Description                          |
+|------------|--------------------------------------|
+| `version`  | Show QTAC and TAC library versions   |
+
+### Section 3 – Device Information
+
+| Subcommand | Description          | Filter flags                                          |
+|------------|----------------------|-------------------------------------------------------|
+| `info`     | Show device info     | `--name --firmware --hardware --hardware-version --uuid --reset-count` |
+
+### Section 4 – Device Configuration
+
+| Subcommand | Description              | Options                              |
+|------------|--------------------------|--------------------------------------|
+| `set`      | Configure device settings | `--name=<new-name>` `--clear-reset-count` |
+
+### Section 5 – State Controls
 
 | Subcommand           | Type         | TACDev calls                                   |
 |----------------------|--------------|------------------------------------------------|
@@ -32,11 +56,44 @@ All Section 5 subcommands:
 | `eud`                | query / set  | `GetEUDState` / `Eud`                          |
 | `pin`                | **set only** | `SetPinState`                                  |
 
-Every subcommand accepts:
+### Section 6 – Boot Sequences
+
+| Subcommand | Mode options                                                     |
+|------------|------------------------------------------------------------------|
+| `boot`     | `power-on`, `power-off`, `fastboot`, `uefi`, `edl`, `secondary-edl` |
+
+Requires `--mode=<mode>` (or `-m`).
+
+### Section 7 – Commands
+
+| Subcommand      | Description                          |
+|-----------------|--------------------------------------|
+| `commands`      | List all device commands             |
+| `command`       | Query or set a command state (`--name` + optional `--state=on\|off`) |
+| `quick-commands`| List quick commands                  |
+
+### Section 8 – Script Variables
+
+| Subcommand | Description                                                    |
+|------------|----------------------------------------------------------------|
+| `vars`     | List all script variables (`name=value`)                       |
+| `var`      | Get (`--name`) or set (`--name` + `--value`) a script variable |
+
+### Section 9 – Utility
+
+| Subcommand    | Description                                                 |
+|---------------|-------------------------------------------------------------|
+| `help-text`   | Retrieve device help text                                   |
+| `queue-clear` | Check if command queue is clear (returns `on`/`off`)        |
+| `logging`     | Get or set TACDev logging state (`--state=on\|off` to set)  |
+
+
+
+Device-targeting subcommands accept:
 
 - `-d, --device=<port>` — device port name (e.g. `COM3`)
 - `-s, --serial=<serial>` — device serial number (looked up via `GetDeviceCount` + `GetPortData`)
-- `--state=on|off` — omit to query, provide to set
+- `--state=on|off` — omit to query, provide to set (where applicable)
 
 Global flags on `taccl`:
 
@@ -64,13 +121,19 @@ Exit codes (from `Errors.h`, matches the plan):
 
 ```
 tools/taccl/
-├── CMakeLists.txt        # standalone project, fetches CLI11 + nlohmann/json
-├── Errors.h              # ExitCode enum
-├── Device.h / .cpp       # RAII TAC_HANDLE + port/serial resolution
-├── Output.h / .cpp       # human + JSON output helpers
-├── StateControls.h / .cpp# table-driven Section 5 dispatcher
-├── main.cpp              # entry point + global options
-└── README.md             # this file
+├── CMakeLists.txt           # standalone project, fetches CLI11 + nlohmann/json
+├── Errors.h                 # ExitCode enum
+├── Device.h / .cpp          # RAII TAC_HANDLE + port/serial resolution
+├── Output.h / .cpp          # human + JSON output helpers
+├── DeviceList.h / .cpp      # Sections 1-4: list, version, info, set
+├── StateControls.h / .cpp   # Section 5: state controls (battery, usb0, ...)
+├── BootSequences.h / .cpp   # Section 6: boot sequences
+├── Commands.h / .cpp        # Section 7: commands, command (+ QuickCommands)
+├── QuickCommands.h / .cpp   # Section 7: quick-commands
+├── ScriptVars.h / .cpp      # Section 8: vars, var
+├── Utility.h / .cpp         # Section 9: help-text, queue-clear, logging
+├── main.cpp                 # entry point + global options
+└── README.md                # this file
 ```
 
 ---

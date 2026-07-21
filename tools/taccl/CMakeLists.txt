@@ -60,10 +60,20 @@ add_executable(taccl
     Device.h
     Output.cpp
     Output.h
+    BootSequences.cpp
+    BootSequences.h
+    Commands.cpp
+    Commands.h
+    DeviceList.cpp
+    DeviceList.h
     QuickCommands.cpp
     QuickCommands.h
+    ScriptVars.cpp
+    ScriptVars.h
     StateControls.cpp
     StateControls.h
+    Utility.cpp
+    Utility.h
     Errors.h
 )
 
