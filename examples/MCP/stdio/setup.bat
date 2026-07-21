@@ -66,7 +66,7 @@ if /i "%ARCH%"=="ARM64" (
 set BUILD_DIR=%REPO_ROOT%\__Builds
 if not exist "%BUILD_DIR%" (
     echo [1/3] Build not found. Running root build...
-    call "%REPO_ROOT%\build.bat" %ARCH%
+    call "%REPO_ROOT%\build.bat"
     if errorlevel 1 exit /b 1
 ) else (
     echo [1/3] Build found at %BUILD_DIR%, skipping recompile.

@@ -231,12 +231,12 @@ bool USBDescriptors::read(QJsonObject& parentLevel)
 					if (catalogData.contains(kRevisionNumber))
 						usbDescriptor._revision = static_cast<quint32>(catalogData[kRevisionNumber].toInt());
 
-		            if (catalogData.contains(kConfigFilePath) && catalogData[kConfigFilePath].isString())
+					if (catalogData.contains(kConfigFilePath) && catalogData[kConfigFilePath].isString())
 						usbDescriptor._configurationFilePath = catalogData[kConfigFilePath].toString().toLatin1();
 
-					#ifdef Q_OS_LINUX
-						usbDescriptor._configurationFilePath = expandPath(QString(usbDescriptor._configurationFilePath)).toLatin1();
-					#endif
+#ifdef Q_OS_LINUX
+					usbDescriptor._configurationFilePath = expandPath(QString(usbDescriptor._configurationFilePath)).toLatin1();
+#endif
 
 					if (usbDescriptor._debugBoardType == eFTDI)
 					{
