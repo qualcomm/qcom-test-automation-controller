@@ -134,6 +134,26 @@ jobs:
       shell: cmd
       run: build.bat x64
 
+    - name: Regenerate devicelist.json with installed-path configPath entries
+      shell: pwsh
+      run: |
+        $configRoot = "C:\ProgramData\Qualcomm\QTAC\configurations"
+        New-Item -ItemType Directory -Force -Path $configRoot | Out-Null
+        Copy-Item "configurations\*.tcnf" $configRoot -Force
+        & "__Builds\x64\Release\bin\UpdateDeviceList.exe" "dir=$configRoot"
+        Copy-Item (Join-Path $configRoot "devicelist.json") "configurations\devicelist.json" -Force
+
+    - name: Build installer (QTAC-Setup-x64.exe)
+      shell: pwsh
+      run: .\packaging\windows\build-installer.ps1 -Arch x64
+
+    - name: Upload installer artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: QTAC-Setup-x64-qt${{ matrix.qt_version }}
+        path: __Builds\installer\QTAC-Setup-x64.exe
+        if-no-files-found: error
+
   build-windows-arm64:
     needs: fetch-ftdi-windows-arm64
     runs-on: windows-11-arm
@@ -170,3 +190,23 @@ jobs:
     - name: Build
       shell: cmd
       run: build.bat ARM64
+
+    - name: Regenerate devicelist.json with installed-path configPath entries
+      shell: pwsh
+      run: |
+        $configRoot = "C:\ProgramData\Qualcomm\QTAC\configurations"
+        New-Item -ItemType Directory -Force -Path $configRoot | Out-Null
+        Copy-Item "configurations\*.tcnf" $configRoot -Force
+        & "__Builds\ARM64\Release\bin\UpdateDeviceList.exe" "dir=$configRoot"
+        Copy-Item (Join-Path $configRoot "devicelist.json") "configurations\devicelist.json" -Force
+
+    - name: Build installer (QTAC-Setup-arm64.exe)
+      shell: pwsh
+      run: .\packaging\windows\build-installer.ps1 -Arch arm64
+
+    - name: Upload installer artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: QTAC-Setup-arm64-qt${{ matrix.qt_version }}
+        path: __Builds\installer\QTAC-Setup-arm64.exe
+        if-no-files-found: error
