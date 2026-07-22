@@ -112,6 +112,93 @@ void _FTDIPlatformConfiguration::initialize(uint16_t chipCount)
 			}
 		}
 	}
+
+	// When chipCount == 1 (generic ALPACA-LITE board with no tcnf), apply the
+	// same hardcoded default pin mappings that the Qt build uses.  This ensures
+	// the device is usable before its EEPROM has been programmed with a specific
+	// USB descriptor.
+	if (chipCount != 1)
+		return;
+
+	// Helper lambda to insert a pin + D2XX bus entry
+	auto addPin = [&](PinID chipPin, Bus bus,
+	                  bool enabled, bool input, bool initialValue, bool inverted,
+	                  int priority, const char* label, const char* cmd,
+	                  const char* tooltip, CommandGroups group,
+	                  const char* tab, qtac::Point cell)
+	{
+		FTDIPinData pd(static_cast<ChipIndex>(0), bus, chipPin);
+		pd._setPin                = getSetPinIndex(0, bus, chipPin);
+		pd._enabled               = enabled;
+		pd._input                 = input;
+		pd._initialValue          = initialValue;
+		pd._inverted              = inverted;
+		pd._initializationPriority = priority;
+		pd._pinLabel              = label;
+		pd._pinCommand            = cmd;
+		pd._pinTooltip            = tooltip;
+		pd._commandGroup          = group;
+		pd._tabName               = tab;
+		pd._cellLocation          = cell;
+		_pinEntries.insert(pd._hash, pd);
+
+		FTDIBusData bd(static_cast<ChipIndex>(0), bus, eBusFunctionD2XX);
+		_busFunctions.insert(bd._hash, bd);
+	};
+
+	// C-bus pins
+	addPin(0, 'C', true, true, false, false, -1,
+	       "Force PS_HOLD High", "pshold", "Force PS_HOLD to high",
+	       eSwitchGroup, "General", {0, 2});
+	addPin(1, 'C', true, true, false, false, -1,
+	       "Disconnect UIM1", "uim1", "Disconnects the UIM 1",
+	       eSwitchGroup, "General", {0, 0});
+	addPin(2, 'C', true, true, false, false, -1,
+	       "Headset Disconnect", "headset", "Disconnects headset",
+	       eSwitchGroup, "General", {0, 5});
+	addPin(3, 'C', true, true, false, false, -1,
+	       "Disconnect UIM2", "uim2", "Disconnects the UIM 2",
+	       eSwitchGroup, "General", {1, 0});
+	addPin(4, 'C', true, true, false, false, -1,
+	       "Disconnect SD Card", "sdcard", "Disconnects the SD Card",
+	       eSwitchGroup, "General", {0, 3});
+	addPin(5, 'C', true, true, false, false, -1,
+	       "Secondary Emergency Download Mode (EDL)", "sedl", "Secondary Emergency Download Mode",
+	       eSwitchGroup, "Fusion", {0, 0});
+	addPin(6, 'C', true, true, false, true, 2,
+	       "USB 1 (VBUS Only)", "usb1", "Disconnects VBUS 1",
+	       eConnectionGroup, "General", {2, 0});
+	addPin(7, 'C', true, true, false, false, -1,
+	       "Secondary PM_RESIN_N_SEC", "sresn", "Fusion Secondary PM_RESIN_N",
+	       eSwitchGroup, "Fusion", {0, 1});
+
+	// D-bus pins
+	addPin(0, 'D', true, true, false, false, -1,
+	       "Volume Up", "volup", "VOL_UP + PWR_ON = Held for boot to UEFI menu",
+	       eButtonGroup, "General", {0, 1});
+	addPin(1, 'D', true, true, false, true, 2,
+	       "Battery", "battery", "Battery power off/on",
+	       eConnectionGroup, "General", {0, 0});
+	addPin(2, 'D', true, true, false, false, -1,
+	       "Volume Down", "voldn", "(PM_RESIN_N) (Held to boot to fastboot)",
+	       eButtonGroup, "General", {0, 2});
+	addPin(3, 'D', true, true, false, false, -1,
+	       "Power Key", "pkey", "Power On (VOL_UP + PWR_ON = Held for boot to UEFI menu)",
+	       eButtonGroup, "General", {0, 0});
+	addPin(4, 'D', true, true, false, false, -1,
+	       "EUD", "eud", "Embedded USB Debug (EUD)",
+	       eSwitchGroup, "General", {0, 4});
+	addPin(5, 'D', true, true, false, false, -1,
+	       "EDL", "pedl", "Primary Emergency Download Mode",
+	       eSwitchGroup, "General", {0, 1});
+	addPin(6, 'D', true, true, true, false, 1,
+	       "<type a label name>", "TC_READY_N",
+	       "SW must program it to 1 to enable some output signals. False - Disables the control on some "
+	       "of the FTDI pins: DDBUS 0/2/4/7, CDBUS 0/2/4/7. True - Enable the control on all the FTDI pins.",
+	       eUnknownCommandGroup, "<select a group>", {-1, -1});
+	addPin(7, 'D', true, false, false, true, 2,
+	       "USB 0 (VBUS Only)", "usb0", "Disconnects VBUS0",
+	       eConnectionGroup, "General", {1, 0});
 }
 
 // -----------------------------------------------------------------------

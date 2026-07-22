@@ -475,6 +475,11 @@ void _FTDIChipset::linuxTraversal()
 			    || usbDescriptor.startsWith("ALPACA-LITE "))
 			{
 				PlatformID platformID = PlatformContainer::fromUSBDescriptor(usbDescriptor);
+				// Unprogrammed ALPACA-LITE boards have a generic factory descriptor not in
+				// devicelist.json.  Fall back to the generic ALPACA_LITE_ID so the device
+				// is still usable with the default pin configuration.
+				if (platformID == MICRO_EPM_BOARD_ID_UNKNOWN && usbDescriptor.startsWith("ALPACA-LITE "))
+					platformID = ALPACA_LITE_ID;
 				qtac::ByteArray deviceSerialNumber(SerialNumber);
 				qtac::ByteArray serialNumber = normalizeSerialNumber(deviceSerialNumber);
 
@@ -541,6 +546,11 @@ void _FTDIChipset::windowsTraversal()
 			    || usbDescriptor.startsWith("ALPACA-LITE "))
 			{
 				PlatformID platformID = PlatformContainer::fromUSBDescriptor(usbDescriptor);
+				// Unprogrammed ALPACA-LITE boards have a generic factory descriptor not in
+				// devicelist.json.  Fall back to the generic ALPACA_LITE_ID so the device
+				// is still usable with the default pin configuration.
+				if (platformID == MICRO_EPM_BOARD_ID_UNKNOWN && usbDescriptor.startsWith("ALPACA-LITE "))
+					platformID = ALPACA_LITE_ID;
 				qtac::ByteArray deviceSerialNumber(devInfoList[i].SerialNumber);
 				qtac::ByteArray serialNumber = normalizeSerialNumber(deviceSerialNumber);
 

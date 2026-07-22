@@ -44,7 +44,6 @@
 #include <cstring>
 #include <thread>
 #include <chrono>
-#include <cassert>
 
 // -----------------------------------------------------------------------
 // FTDI library lifetime management (static init/finalise for static D2XX)
@@ -216,50 +215,11 @@ bool FTDIDevice::open()
 	const int maxIterations{50};
 	bool result{false};
 
-	// We need a concrete drive thread; since we are in source/library (Qt-free),
-	// the caller is responsible for injecting a concrete IFTDIDriveThread before
-	// calling open(), OR subclasses override open() to create the thread.
-	// For the FTDI path the concrete thread (TACLiteDriveThread) lives in
-	// qcommon-console and is injected by setting _driveThread before calling
-	// this method.
-
+	// The drive thread must be injected by the caller before calling open().
 	if (_driveThread == nullptr)
 	{
 		_lastError = "No drive thread set";
 		return false;
-	}
-
-	// Load the platform configuration from the .tcnf file if not already done.
-	if (_ftdiPlatformConfiguration == nullptr)
-	{
-		PlatformIDList entries = PlatformContainer::getEntries();
-		for (auto& entry : entries)
-		{
-			if (entry && entry->_platformID == _platformID && !entry->_path.isEmpty())
-			{
-				auto* cfg = new _FTDIPlatformConfiguration(0);
-				if (TcnfLoader::loadFTDI(entry->_path.toStdString(), cfg))
-					_ftdiPlatformConfiguration = cfg;
-				else
-					delete cfg;
-				break;
-			}
-		}
-	}
-
-	// Give the drive thread the correct pin-set mask before it opens the FTDI device.
-	if (_ftdiPlatformConfiguration != nullptr)
-	{
-		FTDIPinSets ps = _ftdiPlatformConfiguration->getPinSet(0);
-		_driveThread->onLogLine(qtac::ByteArray("FTDIDevice::open tcnf loaded, pinset=") + qtac::ByteArray::number(static_cast<int>(ps)));
-		_driveThread->setPinSets(ps);
-	}
-	else
-	{
-		_driveThread->onLogLine(
-		    qtac::ByteArray("FTDIDevice::open no tcnf - platformID=")
-		    + qtac::ByteArray::number(static_cast<int>(_platformID))
-		    + " usbDescriptor=\"" + _usbDescriptor + "\"");
 	}
 
 	_driveThread->start();
@@ -272,7 +232,42 @@ bool FTDIDevice::open()
 	}
 
 	if (!result)
+	{
 		_lastError = "Device did not become ready after open";
+		return false;
+	}
+
+	// For FTDI devices the platform ID is determined during USB enumeration
+	// (stored in _platformID by updateAlpacaDevices()), not from firmware.
+	// Load the platform configuration from the .tcnf file using that ID.
+	if (_ftdiPlatformConfiguration == nullptr && _platformID != MICRO_EPM_BOARD_ID_UNKNOWN)
+	{
+		PlatformIDList entries = PlatformContainer::getEntries();
+		for (auto& entry : entries)
+		{
+			if (entry && entry->_platformID == _platformID)
+			{
+				if (!entry->_path.isEmpty())
+				{
+					auto* cfg = new _FTDIPlatformConfiguration(0);
+					if (TcnfLoader::loadFTDI(entry->_path.toStdString(), cfg))
+						_ftdiPlatformConfiguration = cfg;
+					else
+						delete cfg;
+				}
+				else if (_platformID == ALPACA_LITE_ID)
+				{
+					// Generic ALPACA-LITE board: no tcnf registered, use hardcoded
+					// default pin configuration (same as Qt's initialize(chipCount=1)).
+					_ftdiPlatformConfiguration = new _FTDIPlatformConfiguration(1);
+				}
+				break;
+			}
+		}
+	}
+
+	if (_ftdiPlatformConfiguration != nullptr)
+		buildMapping();
 
 	if (result)
 	{
