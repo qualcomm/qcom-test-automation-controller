@@ -102,10 +102,11 @@ public:
 	virtual const qtac::ButtonEntries&   getButtons()   const { static qtac::ButtonEntries   empty; return empty; }
 	virtual const qtac::VariableEntries& getVariables() const { static qtac::VariableEntries empty; return empty; }
 
+	bool hasCommand(const qtac::ByteArray& command) const;
 	bool getCommandState(const qtac::ByteArray& command);
 	bool sendCommand(const qtac::ByteArray& command, bool state);
 	bool isCommandQueueClear();
-	qtac::ByteArray getHelp();
+	virtual qtac::ByteArray getHelp();
 
 	virtual void setPinState(PinID pin, bool state);
 	void setWaitForCompletion();

@@ -214,6 +214,11 @@ TAC_ERROR SetExternalPowerControl(TAC_HANDLE tacHandle, bool state)
 {
     AlpacaDevice dev = gCore.getAlpacaDevice(tacHandle);
     if (!dev) { gCore.setLastError(kHandleNotOpen); return TACDEV_BAD_TAC_HANDLE; }
+    if (!dev->hasCommand(qtac::ByteArray("extpower")))
+    {
+        gCore.setLastError(qtac::ByteArray("External power control not supported on this device"));
+        return TACDEV_COMMAND_NOT_FOUND;
+    }
     dev->externalPowerControl(state);
     return NO_TAC_ERROR;
 }
@@ -283,8 +288,17 @@ TAC_ERROR GetQuickCommand(TAC_HANDLE tacHandle, unsigned long commandIndex,
         return TACDEV_BAD_INDEX;
     }
 
-    return safeCopy(commandBuffer, bufferSize,
-                    buttons[commandIndex]._command.toLatin1());
+    const qtac::ButtonEntry& btn = buttons[commandIndex];
+    qtac::ByteArray data = btn._name.toLatin1();
+    data += ";";
+    data += btn._command.toLatin1();
+    data += ";";
+    data += btn._tooltip.toLatin1();
+    data += ";";
+    data += qtac::ByteArray::number(btn._cellX);
+    data += ",";
+    data += qtac::ByteArray::number(btn._cellY);
+    return safeCopy(commandBuffer, bufferSize, data);
 }
 
 // ---------------------------------------------------------------------------
@@ -315,7 +329,38 @@ TAC_ERROR GetScriptVariable(TAC_HANDLE tacHandle, unsigned long scriptVariableIn
     // Iterate to the requested index (qtac::Map iterates in sorted order).
     auto it = vars.begin();
     std::advance(it, scriptVariableIndex);
-    return safeCopy(scriptVariableBuffer, bufferSize, it->second._name.toLatin1());
+    const qtac::VariableEntry& var = it->second;
+
+    // Build the semicolon-separated payload:
+    // name;label;tooltip;type;defaultValue;cellX,cellY
+    qtac::ByteArray defaultVal;
+    switch (var._type)
+    {
+    case qtac::VariableType::Boolean:
+        defaultVal = var._defaultValue.toBool() ? "1" : "0";
+        break;
+    case qtac::VariableType::Float:
+        defaultVal = var._defaultValue.toString().toLatin1();
+        break;
+    default:
+        defaultVal = qtac::ByteArray::number(static_cast<int>(var._defaultValue.toUInt()));
+        break;
+    }
+
+    qtac::ByteArray data = var._name.toLatin1();
+    data += ";";
+    data += var._label.toLatin1();
+    data += ";";
+    data += var._tooltip.toLatin1();
+    data += ";";
+    data += qtac::ByteArray::number(static_cast<int>(var._type));
+    data += ";";
+    data += defaultVal;
+    data += ";";
+    data += qtac::ByteArray::number(var._cellX);
+    data += ",";
+    data += qtac::ByteArray::number(var._cellY);
+    return safeCopy(scriptVariableBuffer, bufferSize, data);
 }
 
 TAC_ERROR UpdateScriptVariableValue(TAC_HANDLE tacHandle,
@@ -362,7 +407,13 @@ TAC_ERROR GetCommandState(TAC_HANDLE tacHandle, const char* command, bool* state
     AlpacaDevice dev = gCore.getAlpacaDevice(tacHandle);
     if (!dev) { gCore.setLastError(kHandleNotOpen); return TACDEV_BAD_TAC_HANDLE; }
 
-    *state = dev->getCommandState(qtac::ByteArray(command));
+    qtac::ByteArray cmd(command);
+    if (!dev->hasCommand(cmd))
+    {
+        gCore.setLastError(qtac::ByteArray("Command '") + cmd + "' not found");
+        return TACDEV_COMMAND_NOT_FOUND;
+    }
+    *state = dev->getCommandState(cmd);
     return NO_TAC_ERROR;
 }
 
@@ -371,12 +422,14 @@ TAC_ERROR SendCommand(TAC_HANDLE tacHandle, const char* command, bool state)
     AlpacaDevice dev = gCore.getAlpacaDevice(tacHandle);
     if (!dev) { gCore.setLastError(kHandleNotOpen); return TACDEV_BAD_TAC_HANDLE; }
 
-    dev->setWaitForCompletion();
-    if (!dev->sendCommand(qtac::ByteArray(command), state))
+    qtac::ByteArray cmd(command);
+    if (!dev->hasCommand(cmd))
     {
-        gCore.setLastError(kHandleNotOpen);
-        return TACDEV_BAD_TAC_HANDLE;
+        gCore.setLastError(qtac::ByteArray("Command '") + cmd + "' not found");
+        return TACDEV_COMMAND_NOT_FOUND;
     }
+    dev->setWaitForCompletion();
+    dev->sendCommand(cmd, state);
     return NO_TAC_ERROR;
 }
 
@@ -440,12 +493,14 @@ static TAC_RESULT setCmd(TAC_HANDLE h, const char* cmd, bool state)
 {
     AlpacaDevice dev = gCore.getAlpacaDevice(h);
     if (!dev) { gCore.setLastError(kHandleNotOpen); return TACDEV_BAD_TAC_HANDLE; }
-    dev->setWaitForCompletion();
-    if (!dev->sendCommand(qtac::ByteArray(cmd), state))
+    qtac::ByteArray command(cmd);
+    if (!dev->hasCommand(command))
     {
-        gCore.setLastError(kHandleNotOpen);
-        return TACDEV_BAD_TAC_HANDLE;
+        gCore.setLastError(qtac::ByteArray("Command '") + command + "' not found");
+        return TACDEV_COMMAND_NOT_FOUND;
     }
+    dev->setWaitForCompletion();
+    dev->sendCommand(command, state);
     return NO_TAC_ERROR;
 }
 
@@ -453,7 +508,13 @@ static TAC_RESULT getCmd(TAC_HANDLE h, const char* cmd, bool* state)
 {
     AlpacaDevice dev = gCore.getAlpacaDevice(h);
     if (!dev) { gCore.setLastError(kHandleNotOpen); return TACDEV_BAD_TAC_HANDLE; }
-    *state = dev->getCommandState(qtac::ByteArray(cmd));
+    qtac::ByteArray command(cmd);
+    if (!dev->hasCommand(command))
+    {
+        gCore.setLastError(qtac::ByteArray("Command '") + command + "' not found");
+        return TACDEV_COMMAND_NOT_FOUND;
+    }
+    *state = dev->getCommandState(command);
     return NO_TAC_ERROR;
 }
 

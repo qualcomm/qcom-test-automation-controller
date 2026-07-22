@@ -143,6 +143,9 @@ public:
 
     qtac::String modificationDate() const { return _modificationDate; }
     int          fileVersion()      const { return _fileVersion;      }
+    qtac::String name()             const { return _name;             }
+    qtac::String author()           const { return _author;           }
+    qtac::String description()      const { return _description;      }
 
     void setVariableValue(const qtac::String& name, const qtac::Variant& value)
     {
@@ -162,6 +165,9 @@ private:
     qtac::AlpacaScript    _script;
     qtac::String          _modificationDate;
     int                   _fileVersion{0};
+    qtac::String          _name;
+    qtac::String          _author;
+    qtac::String          _description;
 
     static PSOCPinEntries _classicActions;
 };

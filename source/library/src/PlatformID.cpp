@@ -86,6 +86,40 @@ static const char* kChip4BusSet    = "chip4BusSet";
 //       "configPath": "../../../../configurations/...")
 // -----------------------------------------------------------------------
 
+// Walk upward from |start| up to |maxLevels| looking for
+// configurations/devicelist.json.  Returns the canonical path on success.
+static std::string walkUpForDeviceList(const std::filesystem::path& start,
+                                       int maxLevels)
+{
+    static const char* kFilename = "devicelist.json";
+    static const char* kSubdir   = "configurations";
+
+    std::filesystem::path dir = start;
+    for (int i = 0; i <= maxLevels; ++i)
+    {
+        // Direct file alongside the directory
+        {
+            auto candidate = dir / kFilename;
+            if (std::filesystem::exists(candidate))
+                return candidate.string();
+        }
+        // configurations/ subdirectory
+        {
+            auto candidate = dir / kSubdir / kFilename;
+            std::error_code ec;
+            auto canonical = std::filesystem::canonical(candidate, ec);
+            if (!ec && std::filesystem::exists(canonical))
+                return canonical.string();
+        }
+
+        std::filesystem::path parent = dir.parent_path();
+        if (parent == dir)
+            break; // reached filesystem root
+        dir = parent;
+    }
+    return {};
+}
+
 static std::string findDeviceList()
 {
     // 1. Environment variable override
@@ -93,9 +127,7 @@ static std::string findDeviceList()
     if (envPath && std::filesystem::exists(envPath))
         return envPath;
 
-    static const char* kFilename = "devicelist.json";
-
-    // 2. Executable directory (best-effort via /proc/self/exe on Linux)
+    // 2. Walk upward from executable directory (up to 8 levels)
 #ifdef __linux__
     {
         char buf[4096]{};
@@ -103,9 +135,8 @@ static std::string findDeviceList()
         if (len > 0)
         {
             std::filesystem::path exeDir = std::filesystem::path(buf).parent_path();
-            auto candidate = exeDir / kFilename;
-            if (std::filesystem::exists(candidate))
-                return candidate.string();
+            std::string found = walkUpForDeviceList(exeDir, 8);
+            if (!found.empty()) return found;
         }
     }
 #endif
@@ -116,37 +147,16 @@ static std::string findDeviceList()
         if (len > 0)
         {
             std::filesystem::path exeDir = std::filesystem::path(buf).parent_path();
-            auto candidate = exeDir / kFilename;
-            if (std::filesystem::exists(candidate))
-                return candidate.string();
-
-            // 4a. Four levels up from exe / configurations/ (development repo layout)
-            {
-                auto c2 = exeDir / ".." / ".." / ".." / ".." / "configurations" / kFilename;
-                std::error_code ec;
-                auto canonical = std::filesystem::canonical(c2, ec);
-                if (!ec && std::filesystem::exists(canonical))
-                    return canonical.string();
-            }
+            std::string found = walkUpForDeviceList(exeDir, 8);
+            if (!found.empty()) return found;
         }
     }
 #endif
 
-    // 3. Current working directory
+    // 3. Walk upward from current working directory (up to 8 levels)
     {
-        auto candidate = std::filesystem::current_path() / kFilename;
-        if (std::filesystem::exists(candidate))
-            return candidate.string();
-    }
-
-    // 4. Four levels up / configurations/ (repository layout)
-    {
-        auto candidate = std::filesystem::current_path()
-                         / ".." / ".." / ".." / ".." / "configurations" / kFilename;
-        std::error_code ec;
-        auto canonical = std::filesystem::canonical(candidate, ec);
-        if (!ec && std::filesystem::exists(canonical))
-            return canonical.string();
+        std::string found = walkUpForDeviceList(std::filesystem::current_path(), 8);
+        if (!found.empty()) return found;
     }
 
     return {};

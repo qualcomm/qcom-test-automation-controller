@@ -44,7 +44,9 @@ static const char* kInitialValue           = "initial_value";
 static const char* kPriority               = "initialization_priority";
 static const char* kInverted               = "inverted";
 static const char* kName                   = "name";
-static const char* kToolTip                = "help_hint";
+static const char* kToolTip                = "tooltip";
+static const char* kAuthor                 = "author";
+static const char* kDescription           = "description";
 static const char* kCommand                = "command";
 static const char* kCommandGroup           = "command_group";
 static const char* kClassicAction          = "classic_action";
@@ -407,6 +409,12 @@ bool _PSOCPlatformConfiguration::read(json_t& j)
         _modificationDate = qtac::String(j[kModificationDate].get<std::string>());
     if (j.contains(kFileVersion) && j[kFileVersion].is_number_integer())
         _fileVersion = j[kFileVersion].get<int>();
+    if (j.contains(kName) && j[kName].is_string())
+        _name = qtac::String(j[kName].get<std::string>());
+    if (j.contains(kAuthor) && j[kAuthor].is_string())
+        _author = qtac::String(j[kAuthor].get<std::string>());
+    if (j.contains(kDescription) && j[kDescription].is_string())
+        _description = qtac::String(j[kDescription].get<std::string>());
 
     return true;
 }

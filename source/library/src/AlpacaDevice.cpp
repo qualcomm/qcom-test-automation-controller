@@ -201,6 +201,12 @@ TACCommands _AlpacaDevice::commandList()
 	return _commandList;
 }
 
+bool _AlpacaDevice::hasCommand(const qtac::ByteArray& command) const
+{
+	qtac::String key(command.toStdString());
+	return _commands.contains(key);
+}
+
 bool _AlpacaDevice::getCommandState(const qtac::ByteArray& command)
 {
 	qtac::String key(command.toStdString());
@@ -211,24 +217,26 @@ bool _AlpacaDevice::getCommandState(const qtac::ByteArray& command)
 
 bool _AlpacaDevice::sendCommand(const qtac::ByteArray& command, bool state)
 {
-	if (_driveThread == nullptr)
+	qtac::TACDriveThread* dt = _driveThread ? _driveThread : _serialDriveThread;
+	if (dt == nullptr)
 		return false;
 
 	qtac::String key(command.toStdString());
 	if (_commands.contains(key))
 	{
 		setPinState(_commands.value(key)._pin, state);
-		_driveThread->clearWaitForCompletion();
+		dt->clearWaitForCompletion();
 		return true;
 	}
-	_driveThread->clearWaitForCompletion();
+	dt->clearWaitForCompletion();
 	return false;
 }
 
 bool _AlpacaDevice::isCommandQueueClear()
 {
-	if (_driveThread != nullptr && active())
-		return _driveThread->waitForCompletionStatus();
+	qtac::TACDriveThread* dt = _driveThread ? _driveThread : _serialDriveThread;
+	if (dt != nullptr && active())
+		return dt->waitForCompletionStatus();
 	return false;
 }
 
@@ -239,14 +247,16 @@ qtac::ByteArray _AlpacaDevice::getHelp()
 
 void _AlpacaDevice::setPinState(PinID pin, bool state)
 {
-	if (_driveThread != nullptr && active())
-		_driveThread->setPinState(pin, state);
+	qtac::TACDriveThread* dt = _driveThread ? _driveThread : _serialDriveThread;
+	if (dt != nullptr && active())
+		dt->setPinState(pin, state);
 }
 
 void _AlpacaDevice::setWaitForCompletion()
 {
-	if (_driveThread != nullptr)
-		_driveThread->setWaitForCompletion();
+	qtac::TACDriveThread* dt = _driveThread ? _driveThread : _serialDriveThread;
+	if (dt != nullptr)
+		dt->setWaitForCompletion();
 }
 
 bool _AlpacaDevice::active()

@@ -46,6 +46,7 @@ public:
     bool open() override;
     void buildMapping() override;
     Pins getPins() override;
+    qtac::ByteArray getHelp() override;
     void quickCommand(const qtac::ByteArray& command) override;
     void setVariableValue(const qtac::String& name, const qtac::Variant& value) override;
     const qtac::ButtonEntries&   getButtons()   const override;

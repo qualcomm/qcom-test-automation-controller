@@ -267,6 +267,52 @@ void PSOCDevice::buildMapping()
     }
 }
 
+qtac::ByteArray PSOCDevice::getHelp()
+{
+    if (!_helpText.isEmpty())
+        return _helpText;
+
+    if (_psocPlatformConfiguration == nullptr)
+        return {};
+
+    qtac::String result;
+
+    result += "Name: " + _psocPlatformConfiguration->name() + "\n\n";
+    result += "Platform: " + qtac::String(debugBoardTypeToString(_boardType)) + "\n";
+    result += "Author: " + _psocPlatformConfiguration->author() + "\n";
+    result += "Description: " + _psocPlatformConfiguration->description() + "\n";
+    result += "Modification Date: " + _psocPlatformConfiguration->modificationDate() + "\n";
+
+    Pins pins = _psocPlatformConfiguration->getPins();
+    if (!pins.isEmpty())
+    {
+        result += "\nCommands\n\n";
+        for (const auto& pin : pins)
+        {
+            if (!pin._pinCommand.isEmpty())
+            {
+                result += "\t" + pin._pinLabel + " Command: "
+                        + pin._pinCommand + "(" + qtac::String::number(static_cast<unsigned long long>(pin._pin)) + ")"
+                        + ", " + pin._pinTooltip + "\n";
+            }
+        }
+    }
+
+    const qtac::ButtonEntries& buttons = _psocPlatformConfiguration->getButtons();
+    if (!buttons.empty())
+    {
+        result += "\nQuick Commands\n\n";
+        for (const auto& btn : buttons)
+        {
+            result += "\t" + btn._name + " Command: " + btn._command
+                    + ", " + btn._tooltip + "\n";
+        }
+    }
+
+    _helpText = result.toLatin1();
+    return _helpText;
+}
+
 Pins PSOCDevice::getPins()
 {
     if (_psocPlatformConfiguration == nullptr)

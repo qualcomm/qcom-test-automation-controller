@@ -63,6 +63,7 @@ endif()
 
 target_link_libraries(TACDev PRIVATE
     qtac-core
+    serialport
 )
 
 if(WIN32)
