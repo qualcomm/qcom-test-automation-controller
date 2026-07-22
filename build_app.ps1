@@ -1,5 +1,9 @@
 $ErrorActionPreference = 'Continue'
-$vcvars = 'C:\Program Files (x86)\Microsoft Visual Studio\2022\BuildTools\VC\Auxiliary\Build\vcvars64.bat'
+$vswhere = "${env:ProgramFiles(x86)}\Microsoft Visual Studio\Installer\vswhere.exe"
+if (-not (Test-Path $vswhere)) { Write-Error "vswhere.exe not found — is Visual Studio installed?"; exit 1 }
+$vsInstallPath = & $vswhere -latest -products * -requires Microsoft.VisualCpp.Tools.HostX64.TargetX64 -property installationPath
+if (-not $vsInstallPath) { Write-Error "No VS install with VC++ x64 tools found"; exit 1 }
+$vcvars = "$vsInstallPath\VC\Auxiliary\Build\vcvars64.bat"
 $qtbin = 'C:\Qt\6.11.1\msvc2022_64\bin'
 $root = 'C:\ProdTools\qtac-refactor'
 
