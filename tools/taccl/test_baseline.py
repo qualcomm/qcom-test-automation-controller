@@ -67,9 +67,10 @@ class CaseResult:
 # ---------------------------------------------------------------------------
 
 def run(exe: str, args: list, timeout: int = 10) -> RunResult:
-    cmd = [exe] + [str(a) for a in args]
+    abs_exe = str(Path(exe).resolve())
+    cmd = [abs_exe] + [str(a) for a in args]
     # Run from the exe's directory so Windows DLL search finds sibling DLLs.
-    cwd = str(Path(exe).resolve().parent)
+    cwd = str(Path(abs_exe).parent)
     t0 = time.monotonic()
     try:
         proc = subprocess.run(
@@ -126,7 +127,7 @@ def compare(case: CaseResult) -> None:
 # Test case definitions
 # ---------------------------------------------------------------------------
 
-def build_cases(device: str) -> list:
+def build_cases(device: str, ftdi_device: str = None) -> list:
     """
     Returns a list of (name, args, expected_exit) tuples.
     expected_exit=None means "don't assert, just record".
@@ -139,6 +140,7 @@ def build_cases(device: str) -> list:
       5. Set-only commands        - external-power, pin
       6. Error paths              - bad port, bad state value, missing args
       7. Output format            - --json and --quiet variants
+      F. FTDI device tests        - only added when --ftdi-device is given
     """
     D = device  # shorthand
 
@@ -300,6 +302,87 @@ def build_cases(device: str) -> list:
     add("logging_set_off",       ["logging", "--state=off"],                  0)
     add("logging_set_on",        ["logging", "--state=on"],                   0)
 
+    # -----------------------------------------------------------------------
+    # F. FTDI device tests (only when --ftdi-device is provided)
+    # -----------------------------------------------------------------------
+    if ftdi_device:
+        F = ftdi_device
+
+        # F1. State queries — controls present on MTP8975 (Hawi) FTDI board
+        for ctrl in [
+            "battery", "usb0", "usb1",
+            "power-key", "volume-up", "volume-down",
+            "disconnect-uim1", "disconnect-uim2",
+            "disconnect-sdcard", "disconnect-headset",
+            "primary-edl", "secondary-edl",
+            "force-pshold",
+            "secondary-pm-resin",
+            "eud",
+        ]:
+            add(f"ftdi_query_{ctrl.replace('-', '_')}",
+                [ctrl, f"--device={F}"],
+                0)
+            add(f"ftdi_query_{ctrl.replace('-', '_')}_json",
+                [ctrl, f"--device={F}", "--json"],
+                0)
+            add(f"ftdi_query_{ctrl.replace('-', '_')}_quiet",
+                [ctrl, f"--device={F}", "--quiet"],
+                0)
+
+        # F2. Round-trip set/get
+        #     NOTE: FTDI _currentState is not updated after write, so readback
+        #     always returns the initial value — assert exit=0 but not stdout.
+        add("ftdi_battery_set_off",       ["battery", f"--device={F}", "--state=off"], 0)
+        add("ftdi_battery_read_after_off",["battery", f"--device={F}"],               None)
+        add("ftdi_battery_set_on",        ["battery", f"--device={F}", "--state=on"],  0)
+        add("ftdi_battery_read_after_on", ["battery", f"--device={F}"],               None)
+
+        add("ftdi_usb0_set_off",          ["usb0", f"--device={F}", "--state=off"],   0)
+        add("ftdi_usb0_read_after_off",   ["usb0", f"--device={F}"],                  None)
+        add("ftdi_usb0_set_on",           ["usb0", f"--device={F}", "--state=on"],    0)
+        add("ftdi_usb0_read_after_on",    ["usb0", f"--device={F}"],                  None)
+
+        # F3. Set-only / unsupported commands
+        add("ftdi_pin7_on",         ["pin", f"--device={F}", "--pin=7", "--state=on"],  0)
+        add("ftdi_pin7_off",        ["pin", f"--device={F}", "--pin=7", "--state=off"], 0)
+        # FTDI does not support external-power
+        add("ftdi_external_power",  ["external-power", f"--device={F}", "--state=on"], 4)
+
+        # F4. Info
+        add("ftdi_info",            ["info", f"--device={F}"],                         0)
+        add("ftdi_info_json",       ["info", f"--device={F}", "--json"],               0)
+        add("ftdi_info_firmware",   ["info", f"--device={F}", "--firmware"],            0)
+        add("ftdi_info_uuid",       ["info", f"--device={F}", "--uuid"],               0)
+        add("ftdi_info_reset_count",["info", f"--device={F}", "--reset-count"],        0)
+
+        # F5. Dynamic commands
+        add("ftdi_commands",        ["commands", f"--device={F}"],                     0)
+        add("ftdi_commands_json",   ["commands", f"--device={F}", "--json"],           0)
+        add("ftdi_command_battery", ["command", f"--device={F}", "--name=battery"],    0)
+        add("ftdi_command_battery_json", ["command", f"--device={F}", "--name=battery", "--json"], 0)
+        add("ftdi_command_bad_name",["command", f"--device={F}", "--name=__bogus__"],  4)
+
+        # F6. Quick commands — FTDI board has no quick commands (empty list)
+        add("ftdi_quick_commands",      ["quick-commands", f"--device={F}"],           0)
+        add("ftdi_quick_commands_json", ["quick-commands", f"--device={F}", "--json"], 0)
+
+        # F7. Script variables — FTDI board has no variables (empty dict)
+        add("ftdi_vars",            ["vars", f"--device={F}"],                         0)
+        add("ftdi_vars_json",       ["vars", f"--device={F}", "--json"],               0)
+        # FTDI has no 'edl' variable
+        add("ftdi_var_bad_name",    ["var", f"--device={F}", "--name=edl"],            4)
+
+        # F8. Help text — FTDI returns empty string
+        add("ftdi_help_text",       ["help-text", f"--device={F}"],                    0)
+        add("ftdi_help_text_json",  ["help-text", f"--device={F}", "--json"],          0)
+
+        # F9. Queue clear
+        add("ftdi_queue_clear",     ["queue-clear", f"--device={F}"],                  0)
+        add("ftdi_queue_clear_json",["queue-clear", f"--device={F}", "--json"],        0)
+
+        # F10. Env-var path
+        add("ftdi_env_device_query",["__FTDI_ENV__", "battery"],                       0)
+
     return cases
 
 
@@ -307,7 +390,8 @@ def build_cases(device: str) -> list:
 # Runner
 # ---------------------------------------------------------------------------
 
-def run_cases(exe: str, cases: list, device: str, delay: float = 0.5) -> list:
+def run_cases(exe: str, cases: list, device: str, delay: float = 0.5,
+              ftdi_device: str = None) -> list:
     results = []
     for name, args, _expect in cases:
         env = None
@@ -317,13 +401,18 @@ def run_cases(exe: str, cases: list, device: str, delay: float = 0.5) -> list:
             # Pass device via TACCL_DEVICE instead of --device flag
             env = {**os.environ, "TACCL_DEVICE": device}
             actual_args = args[1:]
+        elif args and args[0] == "__FTDI_ENV__":
+            # Pass FTDI device via TACCL_DEVICE instead of --device flag
+            env = {**os.environ, "TACCL_DEVICE": ftdi_device or device}
+            actual_args = args[1:]
 
         if env:
             t0 = time.monotonic()
-            cwd = str(Path(exe).resolve().parent)
+            abs_exe = str(Path(exe).resolve())
+            cwd = str(Path(abs_exe).parent)
             try:
                 proc = subprocess.run(
-                    [exe] + actual_args,
+                    [abs_exe] + actual_args,
                     capture_output=True,
                     text=True,
                     timeout=10,
@@ -348,7 +437,9 @@ def run_cases(exe: str, cases: list, device: str, delay: float = 0.5) -> list:
 
         # Throttle cases that touch the real device to avoid serial port
         # contention between successive taccl processes.
-        touches_device = any(device in a for a in actual_args) or env is not None
+        touches_device = (any(device in a for a in actual_args)
+                          or (ftdi_device and any(ftdi_device in a for a in actual_args))
+                          or env is not None)
         if touches_device and delay > 0:
             time.sleep(delay)
 
@@ -431,6 +522,9 @@ def main():
     )
     parser.add_argument("--device", required=True,
                         help="COM port of the connected TAC device (e.g. COM3)")
+    parser.add_argument("--ftdi-device", dest="ftdi_device", default=None,
+                        help="Port name of a connected FTDI device (e.g. VTP1). "
+                             "If provided, FTDI-specific test cases are added.")
     parser.add_argument("--exe-a", required=True, dest="exe_a",
                         help="Path to taccl.exe (build A, e.g. Qt-backed)")
     parser.add_argument("--exe-b", dest="exe_b",
@@ -444,13 +538,13 @@ def main():
                              "(default: 0.5). Prevents serial port contention.")
     args = parser.parse_args()
 
-    cases = build_cases(args.device)
+    cases = build_cases(args.device, args.ftdi_device)
 
     # -----------------------------------------------------------------------
     # Run A
     # -----------------------------------------------------------------------
     print(f"\nRunning build A: {args.exe_a}")
-    results_a = run_cases(args.exe_a, cases, args.device, args.delay)
+    results_a = run_cases(args.exe_a, cases, args.device, args.delay, args.ftdi_device)
     print_run_summary(f"Build A — {args.exe_a}", results_a)
     validate_json_cases(results_a)
 
@@ -460,7 +554,7 @@ def main():
     results_b = None
     if args.exe_b:
         print(f"\nRunning build B: {args.exe_b}")
-        results_b = run_cases(args.exe_b, cases, args.device, args.delay)
+        results_b = run_cases(args.exe_b, cases, args.device, args.delay, args.ftdi_device)
         print_run_summary(f"Build B — {args.exe_b}", results_b)
         validate_json_cases(results_b)
 
