@@ -281,25 +281,28 @@ bool FTDIDevice::open()
 			this->on_pinStateChanged(pin, state);
 		});
 
-		// Initialize pins with their initial values, sorted by priority
-		Pins initialPins;
+		// Initialize pins with their initial values, sorted by priority.
+		// Use getAllPins() (not getPins()/getActivePins()) so that disabled
+		// pins with initial_value=true — e.g. TC_READY_N — are also written.
+		// TC_READY_N must be driven HIGH before any script pin writes take effect.
+		FTDIPinList initialFtdiPins;
 		if (_ftdiPlatformConfiguration != nullptr)
 		{
-			Pins allPins = _ftdiPlatformConfiguration->getPins();
-			for (const auto& pin : allPins)
+			FTDIPinList allFtdiPins = _ftdiPlatformConfiguration->getAllPins();
+			for (const auto& pin : allFtdiPins)
 				if (pin._initialValue)
-					initialPins.append(pin);
+					initialFtdiPins.append(pin);
 		}
 
-		if (!initialPins.isEmpty())
+		if (!initialFtdiPins.isEmpty())
 		{
-			std::sort(initialPins.begin(), initialPins.end(),
-				[](const PinEntry& a, const PinEntry& b) {
+			std::sort(initialFtdiPins.begin(), initialFtdiPins.end(),
+				[](const FTDIPinData& a, const FTDIPinData& b) {
 					return a._initializationPriority < b._initializationPriority;
 				});
 
-			for (const auto& initPin : initialPins)
-				_driveThread->setPinState(initPin._pin, initPin._initialValue);
+			for (const auto& initPin : initialFtdiPins)
+				_driveThread->setPinState(initPin._setPin, initPin._initialValue);
 		}
 	}
 
