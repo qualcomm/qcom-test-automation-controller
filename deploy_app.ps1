@@ -12,6 +12,8 @@ Copy-Item "$confDir\devicelist.json" $appDir -Force
 Write-Output "Copied devicelist.json"
 Copy-Item "$confDir\*.tcnf" $appDir -Force
 Write-Output "Copied *.tcnf files"
+Copy-Item "$confDir\DefaultScript.txt" $appDir -Force
+Write-Output "Copied DefaultScript.txt"
 
 # Run windeployqt to copy Qt DLLs
 $windeployqt = "$qtbin\windeployqt.exe"

@@ -40,28 +40,6 @@
 
 namespace qtac {
 
-// Map design-schematic pin numbers to the zero-based bus index that
-// _FTDIChipset::write() uses.
-static uint32_t designToPin(uint32_t designPin)
-{
-    switch (designPin)
-    {
-    // Bus A
-    case 16: return 0;  case 17: return 1;  case 18: return 2;  case 19: return 3;
-    case 21: return 4;  case 22: return 5;  case 23: return 6;  case 24: return 7;
-    // Bus B
-    case 26: return 8;  case 27: return 9;  case 28: return 10; case 29: return 11;
-    case 30: return 12; case 32: return 13; case 33: return 14; case 34: return 15;
-    // Bus C
-    case 38: return 16; case 39: return 17; case 40: return 18; case 41: return 19;
-    case 43: return 20; case 44: return 21; case 45: return 22; case 46: return 23;
-    // Bus D
-    case 48: return 24; case 52: return 25; case 53: return 26; case 54: return 27;
-    case 55: return 28; case 57: return 29; case 58: return 30; case 59: return 31;
-    default: return 0xFFFFFFF;
-    }
-}
-
 TACLiteCoder::TACLiteCoder()  = default;
 TACLiteCoder::~TACLiteCoder() = default;
 
@@ -78,15 +56,15 @@ void TACLiteCoder::decode(const qtac::ByteArray& /*decodeMe*/)
 qtac::ByteArray TACLiteCoder::encode(const qtac::ByteArray& encodeMe, const Arguments& arguments)
 {
     // The only command with a meaningful encode is SetPin:
-    // arguments[1] holds the pin number (uint32_t design-schematic value).
-    // We convert it to the bus index string that the run() loop passes to
-    // _FTDIChipset::write(pin, state).
+    // arguments[1] holds the bus index (0-31) computed by getSetPinIndex().
+    // We write it as a string so the run() loop can parse it with stoi() and
+    // pass it directly to _FTDIChipset::write(pin, state).
     if (arrayHash(encodeMe) == kSetPinCommandHash)
     {
         if (arguments.size() >= 2)
         {
             const uint32_t pin = std::get<uint32_t>(arguments.at(1));
-            return qtac::ByteArray(std::to_string(designToPin(pin)));
+            return qtac::ByteArray(std::to_string(pin));
         }
     }
     return qtac::ByteArray("Invalid");

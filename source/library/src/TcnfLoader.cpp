@@ -33,6 +33,7 @@
 #include <qtac/TcnfLoader.h>
 
 #include <fstream>
+#include <sstream>
 
 // -----------------------------------------------------------------------
 
@@ -44,6 +45,22 @@ static bool openAndParse(const std::string& path, json_t& out)
     try { out = json_t::parse(file); }
     catch (...) { return false; }
     return true;
+}
+
+static std::string readTextFile(const std::string& path)
+{
+    std::ifstream f(path);
+    if (!f.is_open()) return {};
+    std::ostringstream ss;
+    ss << f.rdbuf();
+    return ss.str();
+}
+
+// Derive the directory component from a file path (includes trailing slash).
+static std::string dirOf(const std::string& path)
+{
+    auto pos = path.find_last_of("/\\");
+    return (pos == std::string::npos) ? std::string() : path.substr(0, pos + 1);
 }
 
 bool TcnfLoader::loadPSOC(const std::string& path, _PSOCPlatformConfiguration* cfg)
@@ -59,7 +76,19 @@ bool TcnfLoader::loadFTDI(const std::string& path, _FTDIPlatformConfiguration* c
     if (!cfg) return false;
     json_t j;
     if (!openAndParse(path, j)) return false;
-    return cfg->read(j);
+    if (!cfg->read(j)) return false;
+
+    // If the tcnf defined no script, load the sibling DefaultScript.txt so that
+    // the default Quick Settings buttons (powerOn, bootToEDL, etc.) are functional.
+    if (cfg->getScript().isEmpty())
+    {
+        std::string defaultScriptPath = dirOf(path) + "DefaultScript.txt";
+        std::string text = readTextFile(defaultScriptPath);
+        if (!text.empty())
+            cfg->loadDefaultScript(qtac::String(text));
+    }
+
+    return true;
 }
 
 bool TcnfLoader::loadPIC32CX(const std::string& path, _PIC32CXPlatformConfiguration* cfg)

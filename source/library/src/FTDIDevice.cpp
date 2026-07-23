@@ -222,24 +222,8 @@ bool FTDIDevice::open()
 		return false;
 	}
 
-	_driveThread->start();
-
-	for (int count = 0; count < maxIterations; ++count)
-	{
-		std::this_thread::sleep_for(std::chrono::milliseconds(20));
-		result = _driveThread->weAreRunning();
-		if (result) break;
-	}
-
-	if (!result)
-	{
-		_lastError = "Device did not become ready after open";
-		return false;
-	}
-
-	// For FTDI devices the platform ID is determined during USB enumeration
-	// (stored in _platformID by updateAlpacaDevices()), not from firmware.
-	// Load the platform configuration from the .tcnf file using that ID.
+	// Load platform configuration before starting the drive thread so we can
+	// configure the correct bus pinset (D2XX-only, skipping VCP buses).
 	if (_ftdiPlatformConfiguration == nullptr && _platformID != MICRO_EPM_BOARD_ID_UNKNOWN)
 	{
 		PlatformIDList entries = PlatformContainer::getEntries();
@@ -264,6 +248,27 @@ bool FTDIDevice::open()
 				break;
 			}
 		}
+	}
+
+	// Only open D2XX buses (skip VCP buses A/B for devices like platform 13).
+	// Mirrors legacy FTDIDevice::open() which calls setPinSets(getPinSet(0)).
+	// Must be set before start() so FTDIChipset::open() uses the correct mask.
+	if (_ftdiPlatformConfiguration != nullptr)
+		_driveThread->setPinSets(_ftdiPlatformConfiguration->getPinSet(0));
+
+	_driveThread->start();
+
+	for (int count = 0; count < maxIterations; ++count)
+	{
+		std::this_thread::sleep_for(std::chrono::milliseconds(20));
+		result = _driveThread->weAreRunning();
+		if (result) break;
+	}
+
+	if (!result)
+	{
+		_lastError = "Device did not become ready after open";
+		return false;
 	}
 
 	if (_ftdiPlatformConfiguration != nullptr)

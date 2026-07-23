@@ -577,6 +577,35 @@ bool _FTDIPlatformConfiguration::read(json_t& j)
 		}
 	}
 
+	// If no buttons were defined in the tcnf, inject the classic default Quick Settings.
+	// The legacy app achieves the same effect via _classicButtons set in the base constructor,
+	// which survive only when no tcnf is loaded (configPath == "").  Devices like platform 13
+	// have a tcnf for pin layout but no buttons — mirror the legacy behaviour here.
+	if (_buttons.empty())
+	{
+		static const struct { const char* name; const char* cmd; const char* tip; int col; int row; }
+		kDefaultButtons[] = {
+			{ "Power On",              "powerOn",              "Powers on the MTP/Device",                        0, 0 },
+			{ "Power Off",             "powerOff",             "Powers off the MTP/Device",                       1, 0 },
+			{ "Boot to EDL",           "bootToEDL",            "Boots the device to emergency download",          2, 0 },
+			{ "Boot to Fastboot",      "bootToFastboot",       "Boots the device to fastboot",                    0, 1 },
+			{ "Boot to UEFI",          "bootToUEFI",           "Boots the device to UEFI Menu",                   1, 1 },
+			{ "Boot to Secondary EDL", "bootToSecondaryEDL",   "Boots the device to secondary emergency download",2, 1 },
+		};
+		for (const auto& d : kDefaultButtons)
+		{
+			qtac::ButtonEntry btn;
+			btn._name         = d.name;
+			btn._command      = d.cmd;
+			btn._tooltip      = d.tip;
+			btn._commandGroup = 4;  // eQuickSettingsGroup
+			btn._tab          = "General";
+			btn._cellX        = d.col;
+			btn._cellY        = d.row;
+			_buttons.push_back(btn);
+		}
+	}
+
 	// --- Load variables ---
 	_variables.clear();
 	if (j.contains(kVariables) && j[kVariables].is_array())
@@ -615,6 +644,28 @@ bool _FTDIPlatformConfiguration::read(json_t& j)
 		}
 	}
 
+	// Inject defaults for script timing variables if not defined in the tcnf.
+	// Mirrors _PlatformConfiguration::defaultScriptVariables() in the legacy app.
+	auto ensureVar = [&](const char* name, const char* label, const char* tooltip,
+	                     unsigned int defaultMs, int cellX, int cellY)
+	{
+		if (_variables.find(qtac::String(name)) == _variables.end())
+		{
+			qtac::VariableEntry v;
+			v._name         = name;
+			v._label        = label;
+			v._tooltip      = tooltip;
+			v._type         = qtac::VariableType::Integer;
+			v._defaultValue = defaultMs;
+			v._cellX        = cellX;
+			v._cellY        = cellY;
+			_variables[v._name] = v;
+		}
+	};
+	ensureVar("edl",      "EDL timing (ms)",      "Configurable Boot to EDL timing in milliseconds",      1300, 0, 0);
+	ensureVar("uefi",     "UEFI timing (ms)",      "Configurable Boot to UEFI timing in milliseconds",     8000, 0, 1);
+	ensureVar("fastboot", "Fastboot timing (ms)",  "Configurable Boot to fastboot timing in milliseconds", 8000, 1, 0);
+
 	// --- Load and parse script ---
 	if (j.contains(kScript) && j[kScript].is_string())
 	{
@@ -636,6 +687,24 @@ bool _FTDIPlatformConfiguration::read(json_t& j)
 	}
 
 	return true;
+}
+
+void _FTDIPlatformConfiguration::loadDefaultScript(const qtac::String& scriptText)
+{
+	if (scriptText.isEmpty() || !_script.isEmpty())
+		return;
+
+	TACCommands cmds;
+	FTDIPinList activePins = getActivePins();
+	for (const auto& fp : activePins)
+	{
+		if (fp._pinCommand.isEmpty()) continue;
+		TACCommand tc;
+		tc._pin     = fp._setPin;
+		tc._command = fp._pinCommand;
+		cmds.append(tc);
+	}
+	_script.parseScript(scriptText, _variables, cmds);
 }
 
 void _FTDIPlatformConfiguration::write(json_t& j)

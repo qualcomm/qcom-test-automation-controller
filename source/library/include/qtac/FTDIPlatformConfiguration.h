@@ -248,6 +248,7 @@ public:
 
 	bool read(json_t& parentLevel);
 	void write(json_t& parentLevel);
+	void loadDefaultScript(const qtac::String& scriptText);
 
 private:
 	PinID getSetPinIndex(int chipIndex, Bus bus, PinID pinId);

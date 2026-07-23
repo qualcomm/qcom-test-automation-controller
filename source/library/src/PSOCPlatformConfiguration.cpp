@@ -44,7 +44,8 @@ static const char* kInitialValue           = "initial_value";
 static const char* kPriority               = "initialization_priority";
 static const char* kInverted               = "inverted";
 static const char* kName                   = "name";
-static const char* kToolTip                = "tooltip";
+static const char* kToolTip                = "help_hint";
+static const char* kButtonTooltip          = "tooltip";
 static const char* kAuthor                 = "author";
 static const char* kDescription           = "description";
 static const char* kCommand                = "command";
@@ -339,7 +340,7 @@ bool _PSOCPlatformConfiguration::read(json_t& j)
             if (jb.contains(kCommand))      btn._command      = jb[kCommand].get<std::string>();
             if (jb.contains(kCommandGroup)) btn._commandGroup = jb[kCommandGroup].get<int>();
             if (jb.contains(kTab))          btn._tab          = jb[kTab].get<std::string>();
-            if (jb.contains(kToolTip))      btn._tooltip      = jb[kToolTip].get<std::string>();
+            if (jb.contains(kButtonTooltip)) btn._tooltip      = jb[kButtonTooltip].get<std::string>();
             if (jb.contains(kCellLocation))
             {
                 qtac::Point pt = toPoint(qtac::String(jb[kCellLocation].get<std::string>()));
@@ -360,7 +361,7 @@ bool _PSOCPlatformConfiguration::read(json_t& j)
             qtac::VariableEntry var;
             if (jv.contains(kName))    var._name    = jv[kName].get<std::string>();
             if (jv.contains(kLabel))   var._label   = jv[kLabel].get<std::string>();
-            if (jv.contains(kToolTip)) var._tooltip = jv[kToolTip].get<std::string>();
+            if (jv.contains(kButtonTooltip)) var._tooltip = jv[kButtonTooltip].get<std::string>();
             if (jv.contains(kType))    var._type    = static_cast<qtac::VariableType>(jv[kType].get<int>());
             if (jv.contains(kDefaultValue))
             {

@@ -117,6 +117,7 @@ public:
                      const TACCommands&      tacCommands);
 
     bool hasCommand(const qtac::ByteArray& command) const;
+    bool isEmpty() const { return _scriptCommands.isEmpty(); }
 
     // Retrieve the flat CommandEntries for a named function, resolving
     // sub-function calls up to 7 levels deep.
