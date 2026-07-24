@@ -48,7 +48,10 @@
 #include <qtac/TACPSOCDriveThread.h>
 #include <qtac/TACPIC32CXDriveThread.h>
 
+#include <QDateTime>
+#include <QDir>
 #include <QMessageBox>
+#include <QStandardPaths>
 #include <QVBoxLayout>
 #include <QDesktopServices>
 #include <QUrl>
@@ -61,6 +64,54 @@ static inline void twCrashLog(const char* msg)
 }
 
 static const QString kWindowTitle = QStringLiteral("Test Automation Controller%1");
+
+// ---------------------------------------------------------------------------
+// File logging helpers
+// ---------------------------------------------------------------------------
+
+void TACWindow::openLogFile()
+{
+    // Mirror the legacy TAC.exe log path:
+    //   %USERPROFILE%\Documents\QTAC\qtac-app\logs\qtac_MMDD_HHmmss.log
+    QString docs = QStandardPaths::writableLocation(QStandardPaths::DocumentsLocation);
+#ifdef Q_OS_WIN
+    // Avoid OneDrive redirection — same workaround as legacy AppCore.cpp.
+    docs = QDir::homePath() + "/Documents";
+#endif
+    QString logDir = QDir::cleanPath(docs + "/QTAC/qtac-app/logs");
+    QDir().mkpath(logDir);
+
+    QString ts = QDateTime::currentDateTime().toString("MMdd_HHmmss");
+    QString path = logDir + "/qtac_" + ts + ".log";
+
+    _logFile.setFileName(path);
+    if (_logFile.open(QIODevice::WriteOnly | QIODevice::Text))
+    {
+        _logStream.setDevice(&_logFile);
+        QString header = QString("[%1]: qtac-app log started\n")
+            .arg(QDateTime::currentDateTime().toString("hh:mm:ss:zzz"));
+        _logStream << header;
+        _logStream.flush();
+    }
+}
+
+void TACWindow::closeLogFile()
+{
+    if (_logFile.isOpen())
+    {
+        _logStream.flush();
+        _logStream.setDevice(nullptr);
+        _logFile.close();
+    }
+}
+
+void TACWindow::writeLogLine(const QByteArray& line)
+{
+    if (!_logFile.isOpen()) return;
+    QString ts = QDateTime::currentDateTime().toString("hh:mm:ss:zzz");
+    _logStream << "[" << ts << "]: " << QString(line) << "\n";
+    _logStream.flush();
+}
 
 TACWindow::TACWindow(QWidget* parent)
     : QMainWindow(parent)
@@ -132,7 +183,7 @@ void TACWindow::openPort(const QByteArray& portName)
     }
     dev->setDriveThread(_driveThread);
 
-    // Route drive-thread log lines to our crash/diagnostic log file.
+    // Route drive-thread log lines to crash log only (called on drive thread — crash log is file-safe).
     _driveThread->onLogLine.connect([](const qtac::ByteArray& line) {
         twCrashLog(line.constData());
     });
@@ -162,6 +213,8 @@ void TACWindow::openPort(const QByteArray& portName)
             this,    &TACWindow::onPinStateChanged);
     connect(_bridge, &TACDeviceBridge::errorEvent,
             this,    &TACWindow::onError);
+    connect(_bridge, &TACDeviceBridge::logLine,
+            this,    &TACWindow::onLogLine);
 
     if (!dev->open())
     {
@@ -178,6 +231,8 @@ void TACWindow::openPort(const QByteArray& portName)
 
     // Remember this port for "open last device" feature.
     _prefs.setLastDevice(QString(portName));
+
+    openLogFile();
 
     setWindowTitle(kWindowTitle.arg(" — " + QString(portName)));
     _ui->_deviceStatusLabel->setText("Opening…");
@@ -204,6 +259,8 @@ void TACWindow::shutDown()
     _pinFrame->clearDevice();
 
     _bridge->device()->close();
+
+    closeLogFile();
 
     // Shut down and delete the drive thread.
     if (_driveThread)
@@ -293,6 +350,11 @@ void TACWindow::onPinStateChanged(quint64 pin, bool state)
 void TACWindow::onError(const QByteArray& message)
 {
     _ui->_statusBar->showMessage("Error: " + QString(message));
+}
+
+void TACWindow::onLogLine(const QByteArray& line)
+{
+    writeLogLine(line);
 }
 
 void TACWindow::onContentsTriggered()

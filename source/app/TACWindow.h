@@ -38,7 +38,9 @@
 
 #include <QByteArray>
 #include <QElapsedTimer>
+#include <QFile>
 #include <QMainWindow>
+#include <QTextStream>
 #include <QTimer>
 
 QT_BEGIN_NAMESPACE
@@ -78,6 +80,7 @@ private slots:
     void onNameUpdated(const QString& name);
     void onPinStateChanged(quint64 pin, bool state);
     void onError(const QByteArray& message);
+    void onLogLine(const QByteArray& line);
 
     void onContentsTriggered();
     void onAboutTriggered();
@@ -86,6 +89,9 @@ private slots:
 
 private:
     void setupAutoShutdownTimer();
+    void openLogFile();
+    void closeLogFile();
+    void writeLogLine(const QByteArray& line);
 
     Ui::TACWindowClass*          _ui{nullptr};
     TACPinFrame*                 _pinFrame{nullptr};
@@ -95,4 +101,7 @@ private:
     TACPreferences               _prefs;
     QTimer                       _autoShutdownTimer;
     QElapsedTimer                _autoShutdownDeadline;
+
+    QFile                        _logFile;
+    QTextStream                  _logStream;
 };
