@@ -199,6 +199,36 @@ void _FTDIPlatformConfiguration::initialize(uint16_t chipCount)
 	addPin(7, 'D', true, false, false, true, 2,
 	       "USB 0 (VBUS Only)", "usb0", "Disconnects VBUS0",
 	       eConnectionGroup, "General", {1, 0});
+
+	// Inject the classic default quick-command buttons for generic ALPACA-LITE boards.
+	// These match the fallback injected by the tcnf loader when no buttons are defined.
+	static const struct { const char* name; const char* cmd; const char* tip; int col; int row; }
+	kDefaultButtons[] = {
+		{ "Power On",              "powerOn",              "Powers on the MTP/Device",                        0, 0 },
+		{ "Power Off",             "powerOff",             "Powers off the MTP/Device",                       1, 0 },
+		{ "Boot to EDL",           "bootToEDL",            "Boots the device to emergency download",          2, 0 },
+		{ "Boot to Fastboot",      "bootToFastboot",       "Boots the device to fastboot",                    0, 1 },
+		{ "Boot to UEFI",          "bootToUEFI",           "Boots the device to UEFI Menu",                   1, 1 },
+		{ "Boot to Secondary EDL", "bootToSecondaryEDL",   "Boots the device to secondary emergency download",2, 1 },
+	};
+	for (const auto& d : kDefaultButtons)
+	{
+		qtac::ButtonEntry btn;
+		btn._name         = d.name;
+		btn._command      = d.cmd;
+		btn._tooltip      = d.tip;
+		btn._commandGroup = 4;  // eQuickSettingsGroup
+		btn._tab          = "General";
+		btn._cellX        = d.col;
+		btn._cellY        = d.row;
+		_buttons.push_back(btn);
+	}
+
+	// Sort by strHash(name + tab) to match the Qt QMap iteration order.
+	std::sort(_buttons.begin(), _buttons.end(),
+		[](const qtac::ButtonEntry& a, const qtac::ButtonEntry& b) {
+			return strHash(a._name + a._tab) < strHash(b._name + b._tab);
+		});
 }
 
 // -----------------------------------------------------------------------

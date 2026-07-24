@@ -34,6 +34,7 @@
 
 #include <qtac/FTDIChipset.h>
 #include <qtac/StringUtilities.h>
+#include <qtac/version.h>
 
 // FTDI D2XX
 #include "ftd2xx.h"
@@ -44,30 +45,109 @@
 #include <string>
 #include <cstdlib>
 #ifdef _WIN32
-#  include <direct.h>  // _mkdir
+#  include <windows.h>
 #else
 #  include <sys/stat.h> // mkdir
 #endif
 
 // -----------------------------------------------------------------------
 // Minimal key-value settings store (replaces QSettings)
-// Stores VTP port assignments in ~/.qtac/vtps.ini (Linux) or
-// %APPDATA%\qtac\vtps.ini (Windows).
+// On Windows: stores VTP port assignments in the registry at
+//   HKCU\Software\Qualcomm, Inc.\QTAC\VTPs
+// matching the path used by the Qt DLL (QSettings UserScope).
+// On Linux: stores in ~/.qtac/vtps.ini.
 // -----------------------------------------------------------------------
 
 namespace {
 
+#ifdef _WIN32
+
+static const wchar_t* kRegPath = L"Software\\Qualcomm, Inc.\\QTAC\\VTPs";
+
+std::map<std::string, std::string> loadSettings()
+{
+	std::map<std::string, std::string> m;
+	HKEY hKey;
+	if (RegOpenKeyExW(HKEY_CURRENT_USER, kRegPath, 0, KEY_READ, &hKey) != ERROR_SUCCESS)
+		return m;
+
+	DWORD index = 0;
+	wchar_t valueName[256];
+	BYTE   data[256];
+	DWORD  nameLen, dataLen, type;
+	while (true)
+	{
+		nameLen = sizeof(valueName) / sizeof(wchar_t);
+		dataLen = sizeof(data);
+		LONG ret = RegEnumValueW(hKey, index++, valueName, &nameLen,
+		                         nullptr, &type, data, &dataLen);
+		if (ret == ERROR_NO_MORE_ITEMS) break;
+		if (ret != ERROR_SUCCESS) break;
+		if (type != REG_SZ && type != REG_DWORD) continue;
+
+		// Convert wide name to narrow
+		char narrowName[256]{};
+		WideCharToMultiByte(CP_ACP, 0, valueName, -1,
+		                    narrowName, sizeof(narrowName), nullptr, nullptr);
+
+		if (type == REG_DWORD)
+		{
+			DWORD dw = *reinterpret_cast<DWORD*>(data);
+			m[narrowName] = std::to_string(dw);
+		}
+		else
+		{
+			// REG_SZ — data is wide string
+			char narrowVal[256]{};
+			WideCharToMultiByte(CP_ACP, 0,
+			                    reinterpret_cast<wchar_t*>(data), -1,
+			                    narrowVal, sizeof(narrowVal), nullptr, nullptr);
+			m[narrowName] = narrowVal;
+		}
+	}
+	RegCloseKey(hKey);
+	return m;
+}
+
+void saveSettings(const std::map<std::string, std::string>& m)
+{
+	HKEY hKey;
+	RegCreateKeyExW(HKEY_CURRENT_USER, kRegPath, 0, nullptr,
+	                REG_OPTION_NON_VOLATILE, KEY_WRITE, nullptr, &hKey, nullptr);
+
+	for (const auto& kv : m)
+	{
+		wchar_t wideName[256]{};
+		MultiByteToWideChar(CP_ACP, 0, kv.first.c_str(), -1,
+		                    wideName, sizeof(wideName) / sizeof(wchar_t));
+
+		// NextPortNumber is stored as DWORD to match QSettings behaviour
+		if (kv.first == "NextPortNumber")
+		{
+			DWORD dw = static_cast<DWORD>(std::stoul(kv.second));
+			RegSetValueExW(hKey, wideName, 0, REG_DWORD,
+			               reinterpret_cast<const BYTE*>(&dw), sizeof(dw));
+		}
+		else
+		{
+			wchar_t wideVal[256]{};
+			MultiByteToWideChar(CP_ACP, 0, kv.second.c_str(), -1,
+			                    wideVal, sizeof(wideVal) / sizeof(wchar_t));
+			RegSetValueExW(hKey, wideName, 0, REG_SZ,
+			               reinterpret_cast<const BYTE*>(wideVal),
+			               static_cast<DWORD>((wcslen(wideVal) + 1) * sizeof(wchar_t)));
+		}
+	}
+	RegCloseKey(hKey);
+}
+
+#else // Linux
+
 std::string settingsFilePath()
 {
-#ifdef _WIN32
-	const char* appdata = std::getenv("APPDATA");
-	std::string dir = appdata ? std::string(appdata) + "\\qtac" : ".";
-	return dir + "\\vtps.ini";
-#else
 	const char* home = std::getenv("HOME");
 	std::string dir = home ? std::string(home) + "/.qtac" : ".";
 	return dir + "/vtps.ini";
-#endif
 }
 
 std::map<std::string, std::string> loadSettings()
@@ -87,26 +167,18 @@ std::map<std::string, std::string> loadSettings()
 
 void saveSettings(const std::map<std::string, std::string>& m)
 {
-	// Ensure directory exists (best-effort)
-#ifdef _WIN32
-	const char* appdata = std::getenv("APPDATA");
-	if (appdata)
-	{
-		std::string dir = std::string(appdata) + "\\qtac";
-		_mkdir(dir.c_str());
-	}
-#else
 	const char* home = std::getenv("HOME");
 	if (home)
 	{
 		std::string dir = std::string(home) + "/.qtac";
 		::mkdir(dir.c_str(), 0755);
 	}
-#endif
 	std::ofstream f(settingsFilePath());
 	for (const auto& kv : m)
 		f << kv.first << "=" << kv.second << "\n";
 }
+
+#endif // _WIN32
 
 } // anonymous namespace
 
@@ -293,7 +365,7 @@ qtac::String _FTDIChipset::versionString()
 
 qtac::String _FTDIChipset::firmwareString()
 {
-	return qtac::String("qtac-core");
+	return qtac::String(TAC_LIB_VERSION);
 }
 
 HashType _FTDIChipset::hash()
