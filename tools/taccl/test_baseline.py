@@ -303,6 +303,30 @@ def build_cases(device: str, ftdi_device: str = None) -> list:
     add("logging_set_on",        ["logging", "--state=on"],                   0)
 
     # -----------------------------------------------------------------------
+    # 14. Boot sequences
+    # -----------------------------------------------------------------------
+    add("help_boot",              ["boot", "--help"],                          0)
+    add("boot_missing_device",    ["boot", "--mode=power-on"],                 3)
+    add("boot_bad_port",          ["boot", "--device=COM99", "--mode=power-on"], 2)
+    add("boot_missing_mode",      ["boot", f"--device={D}"],                  None)  # CLI11: --mode required
+    add("boot_power_on",          ["boot", f"--device={D}", "--mode=power-on"],  0)
+    add("boot_power_on_json",     ["boot", f"--device={D}", "--mode=power-on", "--json"], 0)
+    add("boot_power_on_quiet",    ["boot", f"--device={D}", "--mode=power-on", "--quiet"], 0)
+
+    # -----------------------------------------------------------------------
+    # 15. Set (device configuration)
+    # -----------------------------------------------------------------------
+    add("help_set",               ["set", "--help"],                           0)
+    add("set_missing_device",     ["set", "--clear-reset-count"],              3)
+    add("set_no_change",          ["set", f"--device={D}"],                   3)
+    add("set_bad_port",           ["set", "--device=COM99", "--clear-reset-count"], 2)
+    add("set_clear_reset_count",  ["set", f"--device={D}", "--clear-reset-count"], 0)
+    add("set_clear_reset_count_json",  ["set", f"--device={D}", "--clear-reset-count", "--json"], 0)
+    add("set_clear_reset_count_quiet", ["set", f"--device={D}", "--clear-reset-count", "--quiet"], 0)
+    add("set_name",               ["set", f"--device={D}", "--name=taccl-test"], 0)
+    add("set_name_json",          ["set", f"--device={D}", "--name=taccl-test", "--json"], 0)
+
+    # -----------------------------------------------------------------------
     # F. FTDI device tests (only when --ftdi-device is provided)
     # -----------------------------------------------------------------------
     if ftdi_device:
@@ -382,6 +406,18 @@ def build_cases(device: str, ftdi_device: str = None) -> list:
 
         # F10. Env-var path
         add("ftdi_env_device_query",["__FTDI_ENV__", "battery"],                       0)
+
+        # F11. Boot sequences — boot modes execute quick commands internally;
+        #      FTDI boards that lack a quick command script return TacCommandFail (4).
+        add("ftdi_boot_power_on",       ["boot", f"--device={F}", "--mode=power-on"],  0)
+        add("ftdi_boot_bad_port",       ["boot", "--device=COM99", "--mode=power-on"], 2)
+        add("ftdi_boot_missing_mode",   ["boot", f"--device={F}"],                     None)  # CLI11
+
+        # F12. Set
+        add("ftdi_set_clear_reset_count",     ["set", f"--device={F}", "--clear-reset-count"],         0)
+        add("ftdi_set_clear_reset_count_json",["set", f"--device={F}", "--clear-reset-count", "--json"], 0)
+        add("ftdi_set_name",                  ["set", f"--device={F}", "--name=taccl-test"],            0)
+        add("ftdi_set_no_change",             ["set", f"--device={F}"],                                 3)
 
     return cases
 
