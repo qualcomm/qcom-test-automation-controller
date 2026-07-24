@@ -1,5 +1,9 @@
-// Copyright (c) Qualcomm Technologies, Inc. and/or its subsidiaries.
+// Copyright (c) 2013-2020 Qualcomm Technologies, Inc. and/or its subsidiaries.
 // SPDX-License-Identifier: BSD-3-Clause
+
+/*
+    Author: Michael Simpson (msimpson@qti.qualcomm.com)
+*/
 
 #include "ProcessUtilities.h"
 
@@ -19,30 +23,30 @@ QString getModulePath(void);
 
 bool isProcessRunning
 (
-	const QString& applicationName
+    const QString& applicationName
 )
 {
-	QString candidatePath{applicationName.toLower()};
+    QString candidatePath{applicationName.toLower()};
 
-	return isPlatformProcessRunning(candidatePath);
+    return isPlatformProcessRunning(candidatePath);
 }
 
 bool startProcess(const QString &applicationName)
 {
-	bool result{false};
+    bool result{false};
 
-	QString modulePath = getModulePath();
-	if (modulePath.isEmpty() == false)
-	{
-		QFileInfo fileInfo(modulePath);
-		QStringList arguments;
+    QString modulePath = getModulePath();
+    if (modulePath.isEmpty() == false)
+    {
+        QFileInfo fileInfo(modulePath);
+        QStringList arguments;
 
-		QString appPath = QDir::cleanPath(fileInfo.absolutePath() + QDir::separator() + applicationName);
+        QString appPath = QDir::cleanPath(fileInfo.absolutePath() + QDir::separator() + applicationName);
 
-		result = QProcess::startDetached(appPath, arguments, fileInfo.absolutePath());
-	}
+        result = QProcess::startDetached(appPath, arguments, fileInfo.absolutePath());
+    }
 
-	return result;
+    return result;
 }
 
 #ifdef Q_OS_WIN
@@ -54,76 +58,76 @@ bool startProcess(const QString &applicationName)
 
 bool isPlatformProcessRunning
 (
-	const QString& applicationPath
+    const QString& applicationPath
 )
 {
-	bool result{false};
+    bool result{false};
 
-	std::wstring modulePath;
-	HANDLE hProcessSnap;
+    std::wstring modulePath;
+    HANDLE hProcessSnap;
 
-	hProcessSnap = CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, 0);
-	if (hProcessSnap != INVALID_HANDLE_VALUE)
-	{
-		PROCESSENTRY32 pe32;
+    hProcessSnap = CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, 0);
+    if (hProcessSnap != INVALID_HANDLE_VALUE)
+    {
+        PROCESSENTRY32 pe32;
 
-		pe32.dwSize = sizeof(PROCESSENTRY32);
+        pe32.dwSize = sizeof(PROCESSENTRY32);
 
-		if (Process32First(hProcessSnap, &pe32))
-		{
-			QStringList processes;
+        if (Process32First(hProcessSnap, &pe32))
+        {
+            QStringList processes;
 
-			do
-			{
-				QString modulePathStr = QString::fromStdWString(std::wstring(&pe32.szExeFile[0])).toLower();
-				if (processes.contains(modulePathStr) == false)
-					processes.append(modulePathStr);
-			} while (Process32Next(hProcessSnap, &pe32));
+            do
+            {
+                QString modulePathStr = QString::fromStdWString(std::wstring(&pe32.szExeFile[0])).toLower();
+                if (processes.contains(modulePathStr) == false)
+                    processes.append(modulePathStr);
+            } while (Process32Next(hProcessSnap, &pe32));
 
 #ifdef DEBUG
-			auto sortModuleLambda = [] (const QString& module1, const QString& module2) -> bool
-			{
-				return module1 < module2;
-			};
+            auto sortModuleLambda = [] (const QString& module1, const QString& module2) -> bool
+            {
+                return module1 < module2;
+            };
 
-			// this helps with interactive debugging only
-			std::sort(processes.begin(), processes.end(), sortModuleLambda);
+            // this helps with interactive debugging only
+            std::sort(processes.begin(), processes.end(), sortModuleLambda);
 #endif
-			for (const auto& processName: processes)
-			{
-				if (processName.contains(applicationPath))
-				{
-					result = true;
+            for (const auto& processName: processes)
+            {
+                if (processName.contains(applicationPath))
+                {
+                    result = true;
 
-					break;
-				}
-			}
-		}
+                    break;
+                }
+            }
+        }
 
-		CloseHandle(hProcessSnap);
-	}
+        CloseHandle(hProcessSnap);
+    }
 
-	return result;
+    return result;
 }
 
 QString getModulePath()
 {
-	QString result;
+    QString result;
 
-	WCHAR modulePath[MAX_PATH];
-	HMODULE hModule{Q_NULLPTR};
+    WCHAR modulePath[MAX_PATH];
+    HMODULE hModule{Q_NULLPTR};
 
-	if (GetModuleHandleEx(GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS | GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT,
-			(LPCWSTR) &getModulePath, &hModule) != FALSE)
-	{
-		if (GetModuleFileName(hModule, modulePath, sizeof(modulePath)) != FALSE)
-		{
-			std::wstring moduleName = std::wstring(&modulePath[0]);
-			result = QString::fromStdWString(modulePath);
-		}
-	}
+    if (GetModuleHandleEx(GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS | GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT,
+            (LPCWSTR) &getModulePath, &hModule) != FALSE)
+    {
+        if (GetModuleFileName(hModule, modulePath, sizeof(modulePath)) != FALSE)
+        {
+            std::wstring moduleName = std::wstring(&modulePath[0]);
+            result = QString::fromStdWString(modulePath);
+        }
+    }
 
-	return result;
+    return result;
 }
 
 #else
@@ -169,8 +173,7 @@ bool isPlatformProcessRunning(const QString& applicationPath)
             }
         }
     }
-	return false;
+    return false;
 }
 
 #endif
-
