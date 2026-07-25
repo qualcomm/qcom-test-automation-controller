@@ -40,3 +40,7 @@ ftd2xx.lib
 
 # BRF documents
 *.xml
+
+# standalone release packaging output
+artifacts/
+build-release-msvc/
