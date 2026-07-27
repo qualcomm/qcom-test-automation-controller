@@ -21,31 +21,18 @@ shift
 goto :parse_args
 :args_done
 
-if "%ARCH%"=="" (
-    if "%PROCESSOR_ARCHITECTURE%"=="ARM64" (
-        set ARCH=ARM64
-    ) else (
-        set ARCH=x64
-    )
-)
-
-if /i "%ARCH%"=="x64" (
-    set EXPECTED_QT_PATH=msvc2022_64
-    set VCVARS_SCRIPT=vcvars64.bat
-    set VS_COMPONENT=Desktop development with C++
-) else if /i "%ARCH%"=="ARM64" (
+if /i "%PROCESSOR_ARCHITECTURE%"=="ARM64" (
+    set ARCH=ARM64
     set EXPECTED_QT_PATH=msvc2022_arm64
     set VCVARS_SCRIPT=vcvarsarm64.bat
     set VS_COMPONENT=MSVC v143 - VS 2022 C++ ARM64 build tools
 ) else (
-    echo ERROR: Unsupported architecture '%ARCH%'.
-    echo        Usage:
-    echo          build.bat                  - auto-detect from host machine ^(current: %PROCESSOR_ARCHITECTURE%^)
-    echo          build.bat x64               - build for x64
-    echo          build.bat ARM64             - build for ARM64
-    echo          build.bat [x64^|ARM64] -Interop  - also force-build TACDevInterop.dll ^(C#, x64^)
-    exit /b 1
+    set ARCH=x64
+    set EXPECTED_QT_PATH=msvc2022_64
+    set VCVARS_SCRIPT=vcvars64.bat
+    set VS_COMPONENT=Desktop development with C++
 )
+
 
 echo Architecture        : %ARCH%
 if "%BUILD_INTEROP%"=="1" echo TACDevInterop       : requested ^(-Interop^)
