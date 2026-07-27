@@ -33,7 +33,6 @@ if /i "%PROCESSOR_ARCHITECTURE%"=="ARM64" (
     set VS_COMPONENT=Desktop development with C++
 )
 
-
 echo Architecture        : %ARCH%
 if "%BUILD_INTEROP%"=="1" echo TACDevInterop       : requested ^(-Interop^)
 
@@ -132,10 +131,9 @@ if "%VCVARS_FOUND%"=="0" (
 )
 
 @REM ---------------------------------------------------------------------------
-@REM  Detect MSBuild + .NET Framework 4.8 Targeting Pack (for TACDevInterop)
+@REM  Detect MSBuild (for TACDevInterop)
 @REM ---------------------------------------------------------------------------
 set MSBUILD_EXE=
-set NET48_FOUND=0
 
 where msbuild.exe >nul 2>nul
 if not errorlevel 1 (
@@ -156,15 +154,10 @@ if /i "%ARCH%"=="ARM64" (
     set BUILD_INTEROP=0
     set INTEROP_REQUIRED=0
 ) else (
-    if exist "%ProgramFiles(x86)%\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.8" set NET48_FOUND=1
-    if exist "%ProgramFiles%\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.8" set NET48_FOUND=1
-
     if "%MSBUILD_EXE%"=="" (
         echo TACDevInterop       : MSBuild not found [SKIP]
-    ) else if "%NET48_FOUND%"=="0" (
-        echo TACDevInterop       : .NET Framework 4.8 Targeting Pack not found [SKIP]
     ) else (
-        echo TACDevInterop       : MSBuild + .NET Framework 4.8 Targeting Pack [OK]
+        echo TACDevInterop       : MSBuild found [OK]
         set BUILD_INTEROP=1
     )
 
@@ -174,13 +167,6 @@ if /i "%ARCH%"=="ARM64" (
             echo ERROR: -Interop was specified but MSBuild.exe could not be found.
             echo        Install the '.NET desktop build tools' workload via Visual Studio Installer,
             echo        or install the standalone Microsoft Build Tools, then retry.
-            exit /b 1
-        )
-        if "%NET48_FOUND%"=="0" (
-            echo.
-            echo ERROR: -Interop was specified but the .NET Framework 4.8 Targeting Pack is missing.
-            echo        Open Visual Studio Installer, click Modify, go to Individual Components,
-            echo        and install '.NET Framework 4.8 targeting pack', then retry.
             exit /b 1
         )
     )
@@ -216,7 +202,7 @@ if "%BUILD_INTEROP%"=="1" (
     echo.
     echo Building TACDevInterop ^(C#, x64, Release^)...
     "%MSBUILD_EXE%" "interfaces\C#\TACDevInterop\TACDevInterop.csproj" ^
-        /p:Configuration=Release /p:Platform=x64 /nologo /verbosity:minimal
+        /restore /p:Configuration=Release /p:Platform=x64 /nologo /verbosity:minimal
     set "INTEROP_BUILD_RESULT=!ERRORLEVEL!"
     if not "!INTEROP_BUILD_RESULT!"=="0" (
         if "%INTEROP_REQUIRED%"=="1" (
