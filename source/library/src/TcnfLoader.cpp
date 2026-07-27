@@ -68,7 +68,17 @@ bool TcnfLoader::loadPSOC(const std::string& path, _PSOCPlatformConfiguration* c
     if (!cfg) return false;
     json_t j;
     if (!openAndParse(path, j)) return false;
-    return cfg->read(j);
+    if (!cfg->read(j)) return false;
+
+    if (cfg->getScript().isEmpty())
+    {
+        std::string defaultScriptPath = dirOf(path) + "DefaultScript.txt";
+        std::string text = readTextFile(defaultScriptPath);
+        if (!text.empty())
+            cfg->loadDefaultScript(qtac::String(text));
+    }
+
+    return true;
 }
 
 bool TcnfLoader::loadFTDI(const std::string& path, _FTDIPlatformConfiguration* cfg)
@@ -96,5 +106,15 @@ bool TcnfLoader::loadPIC32CX(const std::string& path, _PIC32CXPlatformConfigurat
     if (!cfg) return false;
     json_t j;
     if (!openAndParse(path, j)) return false;
-    return cfg->read(j);
+    if (!cfg->read(j)) return false;
+
+    if (cfg->getScript().isEmpty())
+    {
+        std::string defaultScriptPath = dirOf(path) + "DefaultScript.txt";
+        std::string text = readTextFile(defaultScriptPath);
+        if (!text.empty())
+            cfg->loadDefaultScript(qtac::String(text));
+    }
+
+    return true;
 }

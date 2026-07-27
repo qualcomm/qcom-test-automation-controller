@@ -153,6 +153,8 @@ public:
         if (it != _variables.end()) it->second._defaultValue = value;
     }
 
+    void loadDefaultScript(const qtac::String& scriptText);
+
     bool read(json_t& parentLevel);
     void write(json_t& parentLevel);
 

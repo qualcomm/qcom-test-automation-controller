@@ -303,6 +303,32 @@ bool _PIC32CXPlatformConfiguration::read(json_t& j)
         }
     }
 
+    // If no buttons were defined in the tcnf, inject the classic default Quick Settings.
+    if (_buttons.empty())
+    {
+        static const struct { const char* name; const char* cmd; const char* tip; int col; int row; }
+        kDefaultButtons[] = {
+            { "Power On",              "powerOn",            "Powers on the MTP/Device",                        0, 0 },
+            { "Power Off",             "powerOff",           "Powers off the MTP/Device",                       1, 0 },
+            { "Boot to EDL",           "bootToEDL",          "Boots the device to emergency download",          2, 0 },
+            { "Boot to Fastboot",      "bootToFastboot",     "Boots the device to fastboot",                    0, 1 },
+            { "Boot to UEFI",          "bootToUEFI",         "Boots the device to UEFI Menu",                   1, 1 },
+            { "Boot to Secondary EDL", "bootToSecondaryEDL", "Boots the device to secondary emergency download",2, 1 },
+        };
+        for (const auto& d : kDefaultButtons)
+        {
+            qtac::ButtonEntry btn;
+            btn._name         = d.name;
+            btn._command      = d.cmd;
+            btn._tooltip      = d.tip;
+            btn._commandGroup = 4;  // eQuickSettingsGroup
+            btn._tab          = "General";
+            btn._cellX        = d.col;
+            btn._cellY        = d.row;
+            _buttons.push_back(btn);
+        }
+    }
+
     // --- Load variables ---
     _variables.clear();
     if (j.contains(kVariables) && j[kVariables].is_array())
@@ -340,6 +366,27 @@ bool _PIC32CXPlatformConfiguration::read(json_t& j)
         }
     }
 
+    // Inject defaults for script timing variables if not defined in the tcnf.
+    auto ensureVar = [&](const char* name, const char* label, const char* tooltip,
+                         unsigned int defaultMs, int cellX, int cellY)
+    {
+        if (_variables.find(qtac::String(name)) == _variables.end())
+        {
+            qtac::VariableEntry v;
+            v._name         = name;
+            v._label        = label;
+            v._tooltip      = tooltip;
+            v._type         = qtac::VariableType::Integer;
+            v._defaultValue = defaultMs;
+            v._cellX        = cellX;
+            v._cellY        = cellY;
+            _variables[v._name] = v;
+        }
+    };
+    ensureVar("edl",      "EDL timing (ms)",     "Configurable Boot to EDL timing in milliseconds",      1300, 0, 0);
+    ensureVar("uefi",     "UEFI timing (ms)",     "Configurable Boot to UEFI timing in milliseconds",     8000, 0, 1);
+    ensureVar("fastboot", "Fastboot timing (ms)", "Configurable Boot to fastboot timing in milliseconds", 8000, 1, 0);
+
     // --- Load and parse script ---
     if (j.contains(kScript) && j[kScript].is_string())
     {
@@ -363,6 +410,24 @@ bool _PIC32CXPlatformConfiguration::read(json_t& j)
         _fileVersion = j[kFileVersion].get<int>();
 
     return true;
+}
+
+void _PIC32CXPlatformConfiguration::loadDefaultScript(const qtac::String& scriptText)
+{
+    if (scriptText.isEmpty() || !_script.isEmpty())
+        return;
+
+    TACCommands cmds;
+    PIC32CXPinList activePins = getActivePins();
+    for (const auto& p : activePins)
+    {
+        if (p._pinCommand.isEmpty()) continue;
+        TACCommand tc;
+        tc._pin     = p._setPin;
+        tc._command = p._pinCommand;
+        cmds.append(tc);
+    }
+    _script.parseScript(scriptText, _variables, cmds);
 }
 
 void _PIC32CXPlatformConfiguration::write(json_t& j)
