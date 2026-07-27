@@ -154,11 +154,15 @@ if /i "%ARCH%"=="ARM64" (
     set BUILD_INTEROP=0
     set INTEROP_REQUIRED=0
 ) else (
-    if "%MSBUILD_EXE%"=="" (
-        echo TACDevInterop       : MSBuild not found [SKIP]
+    if "%BUILD_INTEROP%"=="1" (
+        if "%MSBUILD_EXE%"=="" (
+            echo TACDevInterop       : MSBuild not found [SKIP]
+            set BUILD_INTEROP=0
+        ) else (
+            echo TACDevInterop       : MSBuild found [OK]
+        )
     ) else (
-        echo TACDevInterop       : MSBuild found [OK]
-        set BUILD_INTEROP=1
+        echo TACDevInterop       : not requested
     )
 
     if "%INTEROP_REQUIRED%"=="1" (
