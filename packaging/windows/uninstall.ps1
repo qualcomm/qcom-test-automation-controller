@@ -13,6 +13,7 @@ param(
 $ErrorActionPreference = 'Stop'
 $appName    = 'QTAC'
 $appDisplay = 'Qualcomm Test Automation Controller'
+$ExamplesRoot = 'C:\QTAC\examples'
 
 $logFile = Join-Path $env:TEMP 'QTAC-uninstall.log'
 function Log($m) { try { Add-Content -LiteralPath $logFile -Value ("{0} [{1}] {2}" -f (Get-Date -Format 'HH:mm:ss'), $PID, $m) } catch {} }
@@ -45,6 +46,9 @@ Log "start-menu folder removed"
 Remove-Item "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\$appName" `
     -Recurse -Force -ErrorAction SilentlyContinue
 Log "ARP registry key removed"
+
+$tcnfProgId = 'QTAC.TACConfig'
+Remove-Item "HKLM:\SOFTWARE\Classes\$tcnfProgId" -Recurse -Force -ErrorAction SilentlyContinue
 
 if (-not $KeepDrivers) {
     Write-Host 'Removing FTDI drivers...'
@@ -95,7 +99,7 @@ if (-not $KeepDrivers) {
                 Write-Host "  Removed."
                 Log "  removed OK"
             } else {
-                Write-Warning "  pnputil exit $LASTEXITCODE for $oemName - driver may still be in use. Disconnect FTDI devices and retry."
+                Write-Warning "  pnputil exit $LASTEXITCODE for $oemName - driver may still be in use. Disconnect usb devices and retry."
                 Log "  pnputil exit $LASTEXITCODE"
             }
         }
@@ -130,6 +134,23 @@ if (-not $KeepData) {
         Log "DataRoot still present after Remove-Item (access denied or files in use)"
     } else {
         Log "DataRoot removed"
+    }
+
+    if (Test-Path $ExamplesRoot) {
+        Remove-Item $ExamplesRoot -Recurse -Force -ErrorAction SilentlyContinue
+        if (Test-Path $ExamplesRoot) {
+            Log "ExamplesRoot ($ExamplesRoot) still present after Remove-Item (access denied or files in use)"
+        } else {
+            Log "ExamplesRoot ($ExamplesRoot) removed"
+            $examplesParent = Split-Path $ExamplesRoot -Parent
+            if ((Test-Path $examplesParent) -and
+                -not (Get-ChildItem -LiteralPath $examplesParent -Force -ErrorAction SilentlyContinue)) {
+                Remove-Item $examplesParent -Force -ErrorAction SilentlyContinue
+                Log "removed empty parent $examplesParent"
+            }
+        }
+    } else {
+        Log "ExamplesRoot ($ExamplesRoot) not present - nothing to remove"
     }
 }
 

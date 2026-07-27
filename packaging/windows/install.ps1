@@ -17,6 +17,8 @@ $publisher = 'Qualcomm Technologies, Inc.'
 $version = (Get-Content (Join-Path $root 'version.txt') -ErrorAction SilentlyContinue | Select-Object -First 1)
 if (-not $version) { $version = '0.0.0' }
 
+$ExamplesRoot = 'C:\QTAC\examples'
+
 # Install log 
 $logFile = Join-Path $env:TEMP 'QTAC-install.log'
 function Log($m) { try { Add-Content -LiteralPath $logFile -Value ("{0} [{1}] {2}" -f (Get-Date -Format 'HH:mm:ss'), $PID, $m) } catch {} }
@@ -119,6 +121,7 @@ if (Test-Path $zip) {
 Write-Host "Installing $appDisplay $version"
 Write-Host "  Program files : $InstallRoot"
 Write-Host "  Shared data   : $DataRoot"
+Write-Host "  Examples      : $ExamplesRoot"
 
 # 1. Application binaries + Qt runtime + docs
 Copy-Tree (Join-Path $src 'app')  $InstallRoot
@@ -127,6 +130,14 @@ Copy-Tree (Join-Path $src 'docs') (Join-Path $InstallRoot 'docs')
 # 2. Shared, machine-wide data
 Copy-Tree (Join-Path $src 'configurations') (Join-Path $DataRoot 'configurations')
 Copy-Tree (Join-Path $src 'FTDI')           (Join-Path $DataRoot 'FTDI')
+
+# 2a. Interfaces (Python + Java SDKs only)
+Copy-Tree (Join-Path $src 'interfaces') (Join-Path $DataRoot 'interfaces')
+Log "interfaces copied to $(Join-Path $DataRoot 'interfaces')"
+
+# 2b. Examples -> fixed top-level
+Copy-Tree (Join-Path $src 'examples') $ExamplesRoot
+Log "examples copied to $ExamplesRoot"
 
 # 3. Bundle the uninstaller alongside the app
 Copy-Item (Join-Path $root 'uninstall.ps1') $InstallRoot -Force
@@ -140,11 +151,11 @@ Log "start-menu folder: $startMenuFolder"
 
 $wsh = New-Object -ComObject WScript.Shell
 $shortcuts = @(
-    [ordered]@{ Name = 'TAC (QTAC)';           Exe = 'TAC.exe';             Desc = 'QTAC' },
-    [ordered]@{ Name = 'QTAC Config Editor';   Exe = 'TACConfigEditor.exe'; Desc = 'QTAC Configuration Editor' },
-    [ordered]@{ Name = 'QTAC Device Catalog';  Exe = 'DeviceCatalog.exe';   Desc = 'QTAC Device Catalog' },
-    [ordered]@{ Name = 'QTAC LITE Programmer'; Exe = 'LITEProgrammer.exe';  Desc = 'QTAC LITE Programmer' },
-    [ordered]@{ Name = 'Uninstall QTAC';       Exe = 'uninstall.exe';       Desc = 'QTAC Uninstall' }
+    [ordered]@{ Name = 'Test Automation Controller'; Exe = 'TAC.exe';             Desc = 'Test Automation Controller Application' },
+    [ordered]@{ Name = 'TAC Configuration Editor';   Exe = 'TACConfigEditor.exe'; Desc = 'TAC Configuration Editor Application' },
+    [ordered]@{ Name = 'Device Catalog';             Exe = 'DeviceCatalog.exe';   Desc = 'Device Catalog Application' },
+    [ordered]@{ Name = 'LITE Programmer';            Exe = 'LITEProgrammer.exe';  Desc = 'LITE Programmer Application' },
+    [ordered]@{ Name = 'Uninstall QTAC';             Exe = 'uninstall.exe';       Desc = 'QTAC Uninstall' }
 )
 foreach ($s in $shortcuts) {
     $exePath = Join-Path $InstallRoot $s.Exe
@@ -162,7 +173,40 @@ foreach ($s in $shortcuts) {
     }
 }
 
-# 5. Add/Remove Programs + winget tracking
+# 5. Register .tcnf file association
+$tacConfigEditorExe = Join-Path $InstallRoot 'TACConfigEditor.exe'
+if (Test-Path $tacConfigEditorExe) {
+    $tcnfProgId = 'QTAC.TACConfig'
+
+    New-Item -Path 'HKLM:\SOFTWARE\Classes\.tcnf' -Force | Out-Null
+    Set-ItemProperty 'HKLM:\SOFTWARE\Classes\.tcnf' '(Default)' $tcnfProgId
+
+    New-Item -Path "HKLM:\SOFTWARE\Classes\$tcnfProgId" -Force | Out-Null
+    Set-ItemProperty "HKLM:\SOFTWARE\Classes\$tcnfProgId" '(Default)' 'QTAC Configuration File'
+
+    New-Item -Path "HKLM:\SOFTWARE\Classes\$tcnfProgId\DefaultIcon" -Force | Out-Null
+    Set-ItemProperty "HKLM:\SOFTWARE\Classes\$tcnfProgId\DefaultIcon" '(Default)' "`"$tacConfigEditorExe`",0"
+
+    New-Item -Path "HKLM:\SOFTWARE\Classes\$tcnfProgId\shell\open\command" -Force | Out-Null
+    Set-ItemProperty "HKLM:\SOFTWARE\Classes\$tcnfProgId\shell\open\command" '(Default)' "`"$tacConfigEditorExe`" `"%1`""
+
+    try {
+        Add-Type -Namespace QTAC -Name Shell32 -MemberDefinition @'
+[System.Runtime.InteropServices.DllImport("shell32.dll")]
+public static extern void SHChangeNotify(int wEventId, int uFlags, IntPtr dwItem1, IntPtr dwItem2);
+'@ -ErrorAction Stop
+        [QTAC.Shell32]::SHChangeNotify(0x08000000, 0x0000, [IntPtr]::Zero, [IntPtr]::Zero)  # SHCNE_ASSOCCHANGED
+        Log ".tcnf association change notified to Explorer (SHChangeNotify)"
+    } catch {
+        Log "WARNING: SHChangeNotify failed (non-fatal, association still registered): $($_.Exception.Message)"
+    }
+
+    Log ".tcnf file association registered -> $tacConfigEditorExe"
+} else {
+    Log "skipped .tcnf file association (TACConfigEditor.exe not found): $tacConfigEditorExe"
+}
+
+# 6. Add/Remove Programs + winget tracking
 $tacExe       = Join-Path $InstallRoot 'TAC.exe'
 $uninstallExe = Join-Path $InstallRoot 'uninstall.exe'
 $uninstallCmd = if (Test-Path $uninstallExe) { "`"$uninstallExe`"" } `
@@ -178,7 +222,7 @@ Set-ItemProperty $key UninstallString $uninstallCmd
 Set-ItemProperty $key NoModify 1 -Type DWord
 Set-ItemProperty $key NoRepair 1 -Type DWord
 
-# 6. FTDI driver 
+# 7. FTDI driver 
 if (-not $SkipDrivers) {
     $ftdiCheck = Join-Path $InstallRoot 'FTDICheck.exe'
     if (Test-Path $ftdiCheck) {

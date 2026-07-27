@@ -132,7 +132,7 @@ jobs:
 
     - name: Build
       shell: cmd
-      run: build.bat
+      run: build.bat -Interop
 
     - name: Regenerate devicelist.json with installed-path configPath entries
       shell: pwsh
@@ -189,7 +189,7 @@ jobs:
 
     - name: Build
       shell: cmd
-      run: build.bat 
+      run: build.bat
 
     - name: Regenerate devicelist.json with installed-path configPath entries
       shell: pwsh

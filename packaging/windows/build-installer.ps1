@@ -110,6 +110,23 @@ if (Test-Path (Join-Path $SourceRoot 'docs')) {
 }
 Copy-Item (Join-Path $SourceRoot 'configurations') (Join-Path $data 'configurations') -Recurse -Force
 
+if (Test-Path (Join-Path $SourceRoot 'examples')) {
+    Copy-Item (Join-Path $SourceRoot 'examples') (Join-Path $data 'examples') -Recurse -Force
+} else {
+    Write-Warning "No examples\ directory found at $SourceRoot\examples; examples will be absent from the installer."
+}
+
+$interfacesDest = Join-Path $data 'interfaces'
+New-Item -ItemType Directory -Force -Path $interfacesDest | Out-Null
+foreach ($lang in @('Python', 'Java')) {
+    $srcLang = Join-Path $SourceRoot "interfaces\$lang"
+    if (Test-Path $srcLang) {
+        Copy-Item $srcLang (Join-Path $interfacesDest $lang) -Recurse -Force
+    } else {
+        Write-Warning "No interfaces\$lang directory found; $lang interface will be absent from the installer."
+    }
+}
+
 $ftdiZip = Get-ChildItem (Join-Path $SourceRoot 'third-party') -Filter $ftdiZipGlob -ErrorAction SilentlyContinue |
     Select-Object -First 1
 if ($ftdiZip) {
@@ -141,7 +158,7 @@ $uninstallSedLines = Build-IExpressSed `
     -TargetName $uninstallExe `
     -FriendlyName 'Qualcomm Test Automation Controller Uninstaller' `
     -AppLaunched 'cmd.exe /c powershell.exe -NoProfile -ExecutionPolicy Bypass -File uninstall.ps1' `
-    -InstallPrompt 'Before uninstalling, disconnect all FTDI USB devices from this computer, then click OK.' `
+    -InstallPrompt 'Before uninstalling, disconnect all USB devices from this computer, then click OK.' `
     -FinishMessage 'Qualcomm Test Automation Controller has been uninstalled.' `
     -Files @('uninstall.ps1') `
     -PkgDir $pkg
