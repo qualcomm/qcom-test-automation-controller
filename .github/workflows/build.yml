@@ -191,7 +191,7 @@ jobs:
       shell: cmd
       run: build.bat
 
-    - name: Regenerate devicelist.json with installed-path configPath entries
+    - name: Generate devicelist.json
       shell: pwsh
       run: |
         $configRoot = "C:\ProgramData\Qualcomm\QTAC\configurations"
