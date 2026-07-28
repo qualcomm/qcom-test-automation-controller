@@ -125,8 +125,9 @@ set MSBUILD_EXE=
 if /i "%ARCH%"=="ARM64" (
     echo TACDevInterop       : skipped ^(not supported on ARM64^)
 ) else (
-    set NET_RELEASE=0
-    for /f "tokens=3" %%A in ('reg query "HKLM\SOFTWARE\Microsoft\NET Framework Setup\NDP\v4\Full" /v Release 2^>nul ^| findstr /i "Release"') do set NET_RELEASE=%%A
+    set NET_RELEASE_HEX=0x0
+    for /f "tokens=3" %%A in ('reg query "HKLM\SOFTWARE\Microsoft\NET Framework Setup\NDP\v4\Full" /v Release 2^>nul ^| findstr /i "Release"') do set NET_RELEASE_HEX=%%A
+    set /A NET_RELEASE=!NET_RELEASE_HEX!
     if !NET_RELEASE! GEQ 528040 set NET48_FOUND=1
 
     if "%NET48_FOUND%"=="0" (

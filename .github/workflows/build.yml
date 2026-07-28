@@ -136,7 +136,7 @@ jobs:
         dotnet-version: '8.0.x'
 
     - name: packages for TACDevInterop
-      run: dotnet restore "interfaces\C#\TACDevInterop\TACDevInterop.csproj"
+      run: dotnet restore "interfaces\C#\TACDevInterop\TACDevInterop.csproj" -v:diag
 
     - name: Build
       shell: cmd
