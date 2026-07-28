@@ -133,17 +133,6 @@ jobs:
     - name: packages for TACDevInterop
       run: dotnet restore "interfaces\C#\TACDevInterop\TACDevInterop.csproj"
 
-    - name: Diagnose .NET Framework 4.8 registry detection
-      shell: cmd
-      run: |
-        echo === reg query raw output ===
-        reg query "HKLM\SOFTWARE\Microsoft\NET Framework Setup\NDP\v4\Full" /v Release
-        echo === reg query exit code: %ERRORLEVEL% ===
-        echo === PROCESSOR_ARCHITECTURE=%PROCESSOR_ARCHITECTURE% ===
-        echo === Attempting via WOW6432Node just in case ===
-        reg query "HKLM\SOFTWARE\WOW6432Node\Microsoft\NET Framework Setup\NDP\v4\Full" /v Release 2>nul
-        echo === done ===
-
     - name: Build
       shell: cmd
       run: build.bat

@@ -129,8 +129,8 @@ if /i "%ARCH%"=="ARM64" (
     for /f "tokens=3" %%A in ('reg query "HKLM\SOFTWARE\Microsoft\NET Framework Setup\NDP\v4\Full" /v Release 2^>nul ^| findstr /i "Release"') do set NET_RELEASE_HEX=%%A
     set /A NET_RELEASE=!NET_RELEASE_HEX!
     if !NET_RELEASE! GEQ 528040 set NET48_FOUND=1
-
-    if "%NET48_FOUND%"=="0" (
+    
+    if "!NET48_FOUND!"=="0" (
         echo TACDevInterop       : .NET Framework 4.8 not found on this machine [SKIP]
     ) else (
         where msbuild.exe >nul 2>nul
@@ -139,13 +139,13 @@ if /i "%ARCH%"=="ARM64" (
                 if "!MSBUILD_EXE!"=="" set "MSBUILD_EXE=%%I"
             )
         )
-        if "%MSBUILD_EXE%"=="" if not "%VS_INSTALL_DIR%"=="" (
+        if "!MSBUILD_EXE!"=="" if not "%VS_INSTALL_DIR%"=="" (
             for /f "delims=" %%I in ('dir /s /b "%VS_INSTALL_DIR%\MSBuild\Current\Bin\MSBuild.exe" 2^>nul') do (
                 if "!MSBUILD_EXE!"=="" set "MSBUILD_EXE=%%I"
             )
         )
 
-        if "%MSBUILD_EXE%"=="" (
+        if "!MSBUILD_EXE!"=="" (
             echo TACDevInterop       : .NET Framework 4.8 found, but MSBuild not found [SKIP]
         ) else (
             echo TACDevInterop       : .NET Framework 4.8 + MSBuild found [OK]
