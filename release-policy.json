@@ -1,0 +1,37 @@
+{
+  "schemaVersion": 1,
+  "product": "QTAC",
+  "architecture": "x64",
+  "configuration": "Release",
+  "runtimeOutput": "__Builds/x64/Release/bin/Release",
+  "configurationPath": "configurations",
+  "configurationPattern": "*.tcnf",
+  "expectedConfigurationCount": 55,
+  "requiredExecutables": [
+    "TAC.exe",
+    "TACConfigEditor.exe",
+    "TACDump.exe",
+    "DevList.exe",
+    "FTDICheck.exe",
+    "DeviceCatalog.exe",
+    "LITEProgrammer.exe",
+    "UpdateDeviceList.exe",
+    "DebugPython.exe",
+    "PowerCycle.exe",
+    "RegistryCleaner.exe",
+    "ExternalPowerControl.exe"
+  ],
+  "requiredInterfaces": [
+    "TACDev.dll"
+  ],
+  "forbiddenExtensions": [
+    ".hex",
+    ".cyacd"
+  ],
+  "forbiddenFiles": [
+    "TACCOM.idl",
+    "TACCOM.tlb",
+    "TacService.exe"
+  ],
+  "documentationRequired": false
+}

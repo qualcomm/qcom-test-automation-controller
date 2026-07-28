@@ -1,6 +1,8 @@
 # Copyright (c) Qualcomm Technologies, Inc. and/or its subsidiaries.
 # SPDX-License-Identifier: BSD-3-Clause
 
+include(${CMAKE_SOURCE_DIR}/src/libraries/qcommon-console/Common.cmake)
+
 set(APP_NAME DebugPython)
 
 qt_add_executable(${APP_NAME}
