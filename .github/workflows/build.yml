@@ -130,9 +130,17 @@ jobs:
         path: third-party\CDM-v2.12.36.4-WHQL-Certified.zip
         key: ftdi-windows-2.12.36.4
 
+    - name: Setup .NET SDK
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: '8.0.x'
+
+    - name: packages for TACDevInterop
+      run: dotnet restore "interfaces\C#\TACDevInterop\TACDevInterop.csproj"
+
     - name: Build
       shell: cmd
-      run: build.bat -Interop
+      run: build.bat
 
     - name: Generate devicelist.json
       shell: pwsh

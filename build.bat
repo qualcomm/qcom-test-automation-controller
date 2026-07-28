@@ -7,20 +7,6 @@ setlocal EnableDelayedExpansion
 @REM ---------------------------------------------------------------------------
 @REM  Detect host architecture (native build only)
 @REM ---------------------------------------------------------------------------
-set ARCH=
-set BUILD_INTEROP=0
-set INTEROP_REQUIRED=0
-
-:parse_args
-if "%~1"=="" goto :args_done
-if /i "%~1"=="-Interop" (
-    set BUILD_INTEROP=1
-    set INTEROP_REQUIRED=1
-) 
-shift
-goto :parse_args
-:args_done
-
 if /i "%PROCESSOR_ARCHITECTURE%"=="ARM64" (
     set ARCH=ARM64
     set EXPECTED_QT_PATH=msvc2022_arm64
@@ -34,7 +20,6 @@ if /i "%PROCESSOR_ARCHITECTURE%"=="ARM64" (
 )
 
 echo Architecture        : %ARCH%
-if "%BUILD_INTEROP%"=="1" echo TACDevInterop       : requested ^(-Interop^)
 
 @REM ---------------------------------------------------------------------------
 @REM  Validate QTBIN
@@ -131,47 +116,39 @@ if "%VCVARS_FOUND%"=="0" (
 )
 
 @REM ---------------------------------------------------------------------------
-@REM  Detect MSBuild (for TACDevInterop)
+@REM  Detection for TACDevInterop buildability (C#, .NET Framework 4.8, x64 only)
 @REM ---------------------------------------------------------------------------
+set BUILD_INTEROP=0
+set NET48_FOUND=0
 set MSBUILD_EXE=
 
-where msbuild.exe >nul 2>nul
-if not errorlevel 1 (
-    for /f "delims=" %%I in ('where msbuild.exe') do (
-        if "!MSBUILD_EXE!"=="" set "MSBUILD_EXE=%%I"
-    )
-)
-if "%MSBUILD_EXE%"=="" if not "%VS_INSTALL_DIR%"=="" (
-    for /f "delims=" %%I in ('dir /s /b "%VS_INSTALL_DIR%\MSBuild\Current\Bin\MSBuild.exe" 2^>nul') do (
-        if "!MSBUILD_EXE!"=="" set "MSBUILD_EXE=%%I"
-    )
-)
-
 if /i "%ARCH%"=="ARM64" (
-    if "%BUILD_INTEROP%"=="1" (
-        echo TACDevInterop       : skipped ^(not supported on ARM64^)
-    )
-    set BUILD_INTEROP=0
-    set INTEROP_REQUIRED=0
+    echo TACDevInterop       : skipped ^(not supported on ARM64^)
 ) else (
-    if "%BUILD_INTEROP%"=="1" (
-        if "%MSBUILD_EXE%"=="" (
-            echo TACDevInterop       : MSBuild not found [SKIP]
-            set BUILD_INTEROP=0
-        ) else (
-            echo TACDevInterop       : MSBuild found [OK]
-        )
-    ) else (
-        echo TACDevInterop       : not requested
-    )
+    set NET_RELEASE=0
+    for /f "tokens=3" %%A in ('reg query "HKLM\SOFTWARE\Microsoft\NET Framework Setup\NDP\v4\Full" /v Release 2^>nul ^| findstr /i "Release"') do set NET_RELEASE=%%A
+    if !NET_RELEASE! GEQ 528040 set NET48_FOUND=1
 
-    if "%INTEROP_REQUIRED%"=="1" (
+    if "%NET48_FOUND%"=="0" (
+        echo TACDevInterop       : .NET Framework 4.8 not found on this machine [SKIP]
+    ) else (
+        where msbuild.exe >nul 2>nul
+        if not errorlevel 1 (
+            for /f "delims=" %%I in ('where msbuild.exe') do (
+                if "!MSBUILD_EXE!"=="" set "MSBUILD_EXE=%%I"
+            )
+        )
+        if "%MSBUILD_EXE%"=="" if not "%VS_INSTALL_DIR%"=="" (
+            for /f "delims=" %%I in ('dir /s /b "%VS_INSTALL_DIR%\MSBuild\Current\Bin\MSBuild.exe" 2^>nul') do (
+                if "!MSBUILD_EXE!"=="" set "MSBUILD_EXE=%%I"
+            )
+        )
+
         if "%MSBUILD_EXE%"=="" (
-            echo.
-            echo ERROR: -Interop was specified but MSBuild.exe could not be found.
-            echo        Install the '.NET desktop build tools' workload via Visual Studio Installer,
-            echo        or install the standalone Microsoft Build Tools, then retry.
-            exit /b 1
+            echo TACDevInterop       : .NET Framework 4.8 found, but MSBuild not found [SKIP]
+        ) else (
+            echo TACDevInterop       : .NET Framework 4.8 + MSBuild found [OK]
+            set BUILD_INTEROP=1
         )
     )
 )
@@ -200,22 +177,15 @@ cmake -S . -B build\Release -DCMAKE_PREFIX_PATH="%QTBIN%\.." ^
 cmake --build build\Release
 
 @REM ---------------------------------------------------------------------------
-@REM  TACDevInterop.dll (C#, .NET Framework 4.8, x64 only)
+@REM  TACDevInterop.dll
 @REM ---------------------------------------------------------------------------
 if "%BUILD_INTEROP%"=="1" (
     echo.
     echo Building TACDevInterop ^(C#, x64, Release^)...
     "%MSBUILD_EXE%" "interfaces\C#\TACDevInterop\TACDevInterop.csproj" ^
-        /restore /p:Configuration=Release /p:Platform=x64 /nologo /verbosity:minimal
-    set "INTEROP_BUILD_RESULT=!ERRORLEVEL!"
-    if not "!INTEROP_BUILD_RESULT!"=="0" (
-        if "%INTEROP_REQUIRED%"=="1" (
-            echo.
-            echo ERROR: TACDevInterop build failed ^(-Interop was specified^).
-            exit /b 1
-        ) else (
-            echo WARNING: TACDevInterop build failed; continuing since -Interop was not specified.
-        )
+    /p:Configuration=Release /p:Platform=x64 /nologo /verbosity:minimal
+    if not "!ERRORLEVEL!"=="0" (
+        echo WARNING: TACDevInterop build failed; continuing since it is an optional component.
     ) else (
         echo TACDevInterop.dll built -^> __Builds\x64\Release\bin\TACDevInterop.dll
     )
