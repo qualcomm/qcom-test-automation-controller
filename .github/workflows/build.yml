@@ -130,8 +130,9 @@ jobs:
         path: third-party\CDM-v2.12.36.4-WHQL-Certified.zip
         key: ftdi-windows-2.12.36.4
 
-    - name: packages for TACDevInterop
-      run: dotnet restore "interfaces\C#\TACDevInterop\TACDevInterop.csproj"
+    - name: Install .NET Framework 4.8 Developer Pack
+      shell: pwsh
+      run: choco install netfx-4.8-devpack -y
 
     - name: Build
       shell: cmd

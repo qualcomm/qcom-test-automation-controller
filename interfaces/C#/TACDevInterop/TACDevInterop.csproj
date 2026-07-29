@@ -13,7 +13,6 @@
     <FileAlignment>512</FileAlignment>
     <Deterministic>true</Deterministic>
     <TargetFrameworkProfile />
-    <RestoreProjectStyle>PackageReference</RestoreProjectStyle>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -63,17 +62,6 @@
     <Reference Include="System.Data" />
     <Reference Include="System.Net.Http" />
     <Reference Include="System.Xml" />
-  </ItemGroup>
-  <ItemGroup>
-    <!-- Provides the .NET Framework 4.8 reference assemblies via NuGet instead of
-         requiring the ".NET Framework 4.8 Targeting Pack" VS component to be
-         physically installed. This makes the build portable to CI runners
-         (e.g. GitHub Actions windows-2022) that don't have that VS component
-         pre-installed, without needing any VS Installer changes. -->
-    <PackageReference Include="Microsoft.NETFramework.ReferenceAssemblies" Version="1.0.3">
-      <PrivateAssets>All</PrivateAssets>
-      <IncludeAssets>Runtime; Build; Native; Contentfiles; Analyzers; Buildtransitive</IncludeAssets>
-    </PackageReference>
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Properties\AssemblyInfo.cs" />
