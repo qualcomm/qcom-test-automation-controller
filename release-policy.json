@@ -15,11 +15,7 @@
     "FTDICheck.exe",
     "DeviceCatalog.exe",
     "LITEProgrammer.exe",
-    "UpdateDeviceList.exe",
-    "DebugPython.exe",
-    "PowerCycle.exe",
-    "RegistryCleaner.exe",
-    "ExternalPowerControl.exe"
+    "UpdateDeviceList.exe"
   ],
   "requiredInterfaces": [
     "TACDev.dll"
