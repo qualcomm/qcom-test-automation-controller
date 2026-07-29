@@ -43,7 +43,6 @@ qt_add_library(${LIBRARY_NAME} STATIC
     PlatformConfigurationException.cpp PlatformConfigurationException.h
     PlatformID.cpp PlatformID.h
     PreferencesBase.cpp PreferencesBase.h
-    ProcessUtilities.cpp ProcessUtilities.h
     ProtocolInterface.cpp ProtocolInterface.h
     PIC32CXDevice.h PIC32CXDevice.cpp
 	PIC32CXPlatformConfiguration.h PIC32CXPlatformConfiguration.cpp
