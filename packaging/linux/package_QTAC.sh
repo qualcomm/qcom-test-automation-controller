@@ -26,12 +26,12 @@ OPTION_ZIP="${1:-}"
 BASE_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 # Source directories
-SRC_DIR="$BASE_DIR"
-CONFIG_SRC_DIR="$(realpath "$BASE_DIR/../../../configurations")"
-DOCS_SRC_DIR="$(realpath "$BASE_DIR/../../../docs")"
-EXAMPLES_SRC_DIR="$(realpath "$BASE_DIR/../../../examples")"
-PYTHON_SRC_DIR="$(realpath "$BASE_DIR/../../../interfaces/Python")"
-UDEV_RULES_SRC_DIR="$(realpath "$BASE_DIR/../../../udev-rules")"
+SRC_DIR="$(realpath "$BASE_DIR/../../__Builds/Linux/Release")"
+CONFIG_SRC_DIR="$(realpath "$BASE_DIR/../../configurations")"
+DOCS_SRC_DIR="$(realpath "$BASE_DIR/../../docs")"
+EXAMPLES_SRC_DIR="$(realpath "$BASE_DIR/../../examples")"
+PYTHON_SRC_DIR="$(realpath "$BASE_DIR/../../interfaces/Python")"
+UDEV_RULES_SRC_DIR="$(realpath "$BASE_DIR/../../udev-rules")"
 PLUGINS_SRC_DIR="$SRC_DIR/plugins"
 
 OUTPUT_DIR="${OUTPUT_DIR:-$BASE_DIR/build}"
