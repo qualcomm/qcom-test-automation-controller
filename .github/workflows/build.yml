@@ -167,7 +167,7 @@ jobs:
 
     - name: Build installer (QTAC-Setup-x64.exe)
       shell: pwsh
-      run: .\packaging\windows\build-installer.ps1 -Arch x64
+      run: .\packaging\windows\build-installer.ps1
 
     - name: Upload installer artifact
       uses: actions/upload-artifact@v4
@@ -225,7 +225,7 @@ jobs:
 
     - name: Build installer (QTAC-Setup-arm64.exe)
       shell: pwsh
-      run: .\packaging\windows\build-installer.ps1 -Arch arm64
+      run: .\packaging\windows\build-installer.ps1
 
     - name: Upload installer artifact
       uses: actions/upload-artifact@v4
