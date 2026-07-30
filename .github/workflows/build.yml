@@ -102,7 +102,8 @@ jobs:
       run: |
         configRoot="${{ matrix.config_root }}"
         sudo mkdir -p "$configRoot"
-        sudo cp configurations/*.tcnf "$configRoot/"
+        sudo chown "$(id -u):$(id -g)" "$configRoot"
+        cp configurations/*.tcnf "$configRoot/"
         "__Builds/Linux/Release/bin/UpdateDeviceList" "dir=$configRoot"
         cp "$configRoot/devicelist.json" "configurations/devicelist.json"
 
