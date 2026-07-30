@@ -115,6 +115,13 @@ jobs:
         chmod +x packaging/linux/package_QTAC.sh
         ./packaging/linux/package_QTAC.sh
 
+    - name: Upload installer artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: QTAC-${{ matrix.os }}-qt${{ matrix.qt_version }}.deb
+        path: packaging/linux/build/*.deb
+        if-no-files-found: error
+
   build-windows:
     needs: fetch-ftdi-windows
     runs-on: windows-2022
