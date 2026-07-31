@@ -3,7 +3,6 @@
 
 [CmdletBinding()]
 param(
-    [ValidateSet('x64', 'arm64')] [string] $Arch,
     [string] $SourceRoot,        
     [string] $BinDir,            
     [string] $SevenZipDir,       
@@ -14,9 +13,7 @@ param(
 
 $ErrorActionPreference = 'Stop'
 
-if (-not $Arch) {
-    $Arch = if ($env:PROCESSOR_ARCHITECTURE -eq 'ARM64') { 'arm64' } else { 'x64' }
-}
+$Arch = if ($env:PROCESSOR_ARCHITECTURE -eq 'ARM64') { 'arm64' } else { 'x64' }
 
 $here = $PSScriptRoot
 if (-not $here) { $here = Split-Path -Parent $MyInvocation.MyCommand.Path }
