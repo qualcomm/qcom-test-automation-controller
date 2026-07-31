@@ -1,0 +1,85 @@
+# Copyright (c) Qualcomm Technologies, Inc. and/or its subsidiaries.
+# SPDX-License-Identifier: BSD-3-Clause
+#
+# QTAC PR Review Learning
+name: QTAC PR Review Learning
+
+on:
+  pull_request:
+    types: [closed]
+
+concurrency:
+  group: ${{ github.workflow }}-skills-learning
+  cancel-in-progress: false   # serialize updates to the shared learning branch
+
+env:
+  LEARNING_BRANCH: bot/skills-learning
+
+jobs:
+  learn:
+    name: Learn Suppressions → SKILLS.md
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: write        # push the learning branch
+      pull-requests: write   # open/update the learning PR
+
+    steps:
+      - name: Checkout default branch
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.USER_TOKEN || secrets.GITHUB_TOKEN }}
+          fetch-depth: 0
+          ref: ${{ github.event.repository.default_branch }}
+
+      - name: Install Python Dependencies
+        run: pip install requests
+
+      - name: Prepare learning branch
+        env:
+          DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          if git ls-remote --exit-code --heads origin "$LEARNING_BRANCH" >/dev/null 2>&1; then
+            git fetch origin "$LEARNING_BRANCH"
+            git checkout -B "$LEARNING_BRANCH" "origin/$LEARNING_BRANCH"
+            git merge --no-edit "origin/${DEFAULT_BRANCH}" || true
+          else
+            git checkout -B "$LEARNING_BRANCH"
+          fi
+
+      - name: Update SKILLS.md from dismissed findings
+        env:
+          GITHUB_TOKEN: ${{ secrets.USER_TOKEN || secrets.GITHUB_TOKEN }}
+          GITHUB_API_URL: ${{ github.api_url }}
+          REPO_FULL_NAME: ${{ github.repository }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+        run: python3 .github/scripts/pr_learning_engine.py
+
+      - name: Commit & open/update learning PR
+        env:
+          GH_TOKEN: ${{ secrets.USER_TOKEN || secrets.GITHUB_TOKEN }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
+        run: |
+          if git diff --quiet -- SKILLS.md; then
+            echo "No SKILLS.md changes — nothing to propose."
+            exit 0
+          fi
+          git add SKILLS.md
+          git commit -m "chore: learn review suppressions from PR #${PR_NUMBER}"
+          git push -u origin "$LEARNING_BRANCH" --force-with-lease
+
+          # Open the accumulating PR only if one isn't already open.
+          if ! gh pr view "$LEARNING_BRANCH" --repo "${{ github.repository }}" \
+                --json state --jq '.state' 2>/dev/null | grep -q OPEN; then
+            gh pr create \
+              --repo "${{ github.repository }}" \
+              --base "$DEFAULT_BRANCH" \
+              --head "$LEARNING_BRANCH" \
+              --title "chore: SKILLS.md learned review suppressions" \
+              --body "Auto-maintained by the PR review learning workflow. Each entry is a finding a reviewer dismissed as a false positive; merging teaches the review agent not to flag it again. Review the entries before merging."
+          else
+            echo "Learning PR already open — updated with the latest suppression(s)."
+          fi
