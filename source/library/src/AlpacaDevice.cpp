@@ -211,7 +211,10 @@ bool _AlpacaDevice::getCommandState(const qtac::ByteArray& command)
 {
 	qtac::String key(command.toStdString());
 	if (_commands.contains(key))
-		return _commands.value(key)._currentState;
+	{
+		bool v = _commands.value(key)._currentState;
+		return v;
+	}
 	return false;
 }
 
@@ -224,6 +227,7 @@ bool _AlpacaDevice::sendCommand(const qtac::ByteArray& command, bool state)
 	qtac::String key(command.toStdString());
 	if (_commands.contains(key))
 	{
+		_commands[key]._currentState = state;
 		setPinState(_commands.value(key)._pin, state);
 		dt->clearWaitForCompletion();
 		return true;

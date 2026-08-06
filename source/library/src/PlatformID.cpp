@@ -142,13 +142,50 @@ static std::string findDeviceList()
 #endif
 #ifdef _WIN32
     {
-        char buf[MAX_PATH]{};
-        DWORD len = ::GetModuleFileNameA(nullptr, buf, MAX_PATH);
-        if (len > 0)
+        // Prefer the DLL's own directory so ctypes / hosted scenarios (where
+        // GetModuleFileNameA(nullptr) returns python.exe, not this DLL) still
+        // find the devicelist.json that was deployed alongside TACDev.dll.
+        HMODULE hSelf = nullptr;
+        ::GetModuleHandleExA(
+            GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS |
+            GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT,
+            reinterpret_cast<LPCSTR>(&findDeviceList),
+            &hSelf);
+        if (hSelf)
         {
-            std::filesystem::path exeDir = std::filesystem::path(buf).parent_path();
-            std::string found = walkUpForDeviceList(exeDir, 8);
-            if (!found.empty()) return found;
+            char buf[MAX_PATH]{};
+            DWORD len = ::GetModuleFileNameA(hSelf, buf, MAX_PATH);
+            if (len > 0)
+            {
+                std::filesystem::path dllDir = std::filesystem::path(buf).parent_path();
+                std::string found = walkUpForDeviceList(dllDir, 8);
+                if (!found.empty()) return found;
+            }
+        }
+
+        // Fall back to the host process exe directory (e.g. TAC.exe, TACDev.exe).
+        {
+            char buf[MAX_PATH]{};
+            DWORD len = ::GetModuleFileNameA(nullptr, buf, MAX_PATH);
+            if (len > 0)
+            {
+                std::filesystem::path exeDir = std::filesystem::path(buf).parent_path();
+                std::string found = walkUpForDeviceList(exeDir, 8);
+                if (!found.empty()) return found;
+            }
+        }
+
+        // Installed Alpaca layout: C:/ProgramData/Qualcomm/Alpaca/tac_configs/
+        {
+            char programData[MAX_PATH]{};
+            if (::GetEnvironmentVariableA("ProgramData", programData, MAX_PATH) > 0)
+            {
+                std::filesystem::path tacConfigs =
+                    std::filesystem::path(programData) / "Qualcomm" / "Alpaca" / "tac_configs";
+                auto candidate = tacConfigs / "DeviceList.json";
+                if (std::filesystem::exists(candidate))
+                    return candidate.string();
+            }
         }
     }
 #endif

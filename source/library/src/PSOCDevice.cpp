@@ -322,7 +322,8 @@ Pins PSOCDevice::getPins()
 
 void PSOCDevice::quickCommand(const qtac::ByteArray& command)
 {
-    if (_psocPlatformConfiguration == nullptr || _driveThread == nullptr)
+    qtac::TACDriveThread* dt = _driveThread ? _driveThread : _serialDriveThread;
+    if (_psocPlatformConfiguration == nullptr || dt == nullptr)
     {
         if (_serialDriveThread && _serialDriveThread->onLogLine)
             _serialDriveThread->onLogLine("quickCommand: config or thread not ready for '" + command + "'");
@@ -331,15 +332,15 @@ void PSOCDevice::quickCommand(const qtac::ByteArray& command)
     const qtac::AlpacaScript& script = _psocPlatformConfiguration->getScript();
     if (!script.hasCommand(command))
     {
-        if (_serialDriveThread->onLogLine)
-            _serialDriveThread->onLogLine("quickCommand: command not found in script: '" + command + "'");
+        if (dt->onLogLine)
+            dt->onLogLine("quickCommand: command not found in script: '" + command + "'");
         return;
     }
-    if (_serialDriveThread->onLogLine)
-        _serialDriveThread->onLogLine("quickCommand: executing '" + command + "'");
+    if (dt->onLogLine)
+        dt->onLogLine("quickCommand: executing '" + command + "'");
     qtac::CommandEntries entries = script.getCommandEntries(command);
     entries = qtac::AlpacaScript::replaceTokens(_psocPlatformConfiguration->getVariables(), entries);
-    _driveThread->sendCommandSequence(entries);
+    dt->sendCommandSequence(entries);
 }
 
 void PSOCDevice::setVariableValue(const qtac::String& name, const qtac::Variant& value)

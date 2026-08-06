@@ -170,6 +170,7 @@ void TACPSOCDriveThread::endTransaction(ReceiveInterface* receiveInterface)
 
 void TACPSOCDriveThread::setPinState(uint64_t pin, bool state)
 {
+    setWaitForCompletion();
     {
         TACPSOCCommand cmd(this, this);
         cmd.setPinState(static_cast<uint16_t>(pin), state);

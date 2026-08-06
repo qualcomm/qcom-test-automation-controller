@@ -193,12 +193,13 @@ Pins PIC32CXDevice::getPins()
 
 void PIC32CXDevice::quickCommand(const qtac::ByteArray& command)
 {
-    if (_pic32cxPlatformConfiguration == nullptr || _driveThread == nullptr) return;
+    qtac::TACDriveThread* dt = _driveThread ? _driveThread : _serialDriveThread;
+    if (_pic32cxPlatformConfiguration == nullptr || dt == nullptr) return;
     const qtac::AlpacaScript& script = _pic32cxPlatformConfiguration->getScript();
     if (!script.hasCommand(command)) return;
     qtac::CommandEntries entries = script.getCommandEntries(command);
     entries = qtac::AlpacaScript::replaceTokens(_pic32cxPlatformConfiguration->getVariables(), entries);
-    _driveThread->sendCommandSequence(entries);
+    dt->sendCommandSequence(entries);
 }
 
 void PIC32CXDevice::setVariableValue(const qtac::String& name, const qtac::Variant& value)

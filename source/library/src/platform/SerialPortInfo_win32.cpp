@@ -208,8 +208,25 @@ SerialPortInfos SerialPortInfo::availablePorts()
 
 		const char* name = sp_get_port_name(portList[i]);
 		const char* desc = sp_get_port_description(portList[i]);
-		if (name) info.setPortName(qtac::String(name));
-		if (desc) info.setDescription(qtac::String(desc));
+		if (name)
+		{
+			// libserialport on Windows returns "\\.\COM16" style names;
+			// Qt's QSerialPortInfo returns just "COM16". Strip the "\\.\" prefix.
+			std::string nameStr(name);
+			if (nameStr.rfind("\\\\.\\", 0) == 0)
+				nameStr = nameStr.substr(4);
+			info.setPortName(qtac::String(nameStr));
+		}
+		if (desc)
+		{
+			// libserialport appends " (COMxx)" to descriptions; Qt's QSerialPortInfo does not.
+			// Strip the trailing " (COMxx)" so the description matches Qt's output.
+			std::string descStr(desc);
+			auto paren = descStr.rfind(" (COM");
+			if (paren != std::string::npos && descStr.back() == ')')
+				descStr.erase(paren);
+			info.setDescription(qtac::String(descStr));
+		}
 
 		// Always use the SetupDI registry API for VID/PID and serial number.
 		// This matches Qt's QSerialPortInfo behavior for all USB serial devices
