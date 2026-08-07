@@ -200,16 +200,43 @@ echo "Scanning Qt plugin dependencies..."
 
 find "$DEPLOY_PLUGIN_DIR" -type f -name "*.so*" | while read -r plugin
 do
-    echo "Analyzing plugin: $plugin"
-
     while read -r dep
     do
         [ -e "$dep" ] && copy_qt_dependency "$dep"
+
     done < <(
         ldd "$plugin" 2>/dev/null |
         awk '/=>/ {print $3}'
     )
 done
+
+###############################################################################
+# Ensure Qt XCB Support Libraries Are Present
+###############################################################################
+
+echo ""
+echo "Checking for Qt XCB support libraries..."
+
+find "$QT_ROOT/lib" \
+     -maxdepth 1 \
+     -name "libQt6XcbQpa.so*" \
+     -exec cp -a {} "$DEPLOY_LIB_DIR/" \;
+
+echo "Qt XCB support libraries copied."
+
+###############################################################################
+# Copy Qt Runtime Libraries
+###############################################################################
+
+echo ""
+echo "Copying Qt runtime libraries..."
+
+find "$QT_ROOT/lib" \
+    -maxdepth 1 \
+    -name "libQt6*.so*" \
+    -exec cp -a {} "$DEPLOY_LIB_DIR/" \;
+
+echo "Qt runtime libraries copied."
 
 ###############################################################################
 # Deploy ICU Libraries (extra safety)

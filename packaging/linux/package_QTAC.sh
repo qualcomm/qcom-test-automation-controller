@@ -165,6 +165,62 @@ find "$BUILDROOT$INSTALL_PREFIX/python" -type f -exec chmod 644 {} \; || true
 find "$BUILDROOT$CONFIG_INSTALL_DIR/configurations" -type f -exec chmod 644 {} \; || true
 
 ###############################################################################
+# Validate Qt Plugin Dependencies
+###############################################################################
+
+echo ""
+echo "Validating Qt plugin dependencies..."
+
+find "$BUILDROOT$INSTALL_PREFIX/plugins" \
+    -type f \
+    -name "*.so*" | while read -r plugin
+do
+
+    missing=$(
+        LD_LIBRARY_PATH="$BUILDROOT$INSTALL_PREFIX/lib" \
+        ldd "$plugin" 2>/dev/null | grep "not found" || true
+    )
+
+    if [ -n "$missing" ]; then
+
+        echo ""
+        echo "ERROR: Missing dependencies detected for:"
+        echo "  $plugin"
+        echo ""
+        echo "$missing"
+        exit 1
+
+    fi
+
+done
+
+echo "Qt plugin dependency validation passed."
+
+###############################################################################
+# Verify Qt XCB Runtime Support
+###############################################################################
+
+if [ -d "$BUILDROOT$INSTALL_PREFIX/plugins/platforms" ]; then
+
+    if ! find "$BUILDROOT$INSTALL_PREFIX/lib" \
+            -name "libQt6XcbQpa.so*" | grep -q .; then
+
+        echo ""
+        echo "ERROR: libQt6XcbQpa was not packaged."
+        echo "Expected to find:"
+        echo "  libQt6XcbQpa.so"
+        echo "  libQt6XcbQpa.so.6"
+        echo "  libQt6XcbQpa.so.<version>"
+        echo ""
+        echo "Please fix the Qt deployment step."
+        exit 1
+
+    fi
+
+fi
+
+
+###############################################################################
 # Fix RUNPATH for deployed binaries
 ###############################################################################
 
@@ -200,7 +256,7 @@ Section: utils
 Priority: optional
 Architecture: $DEB_ARCH
 Maintainer: $MAINTAINER
-Depends: bash, coreutils
+Depends: bash, coreutils, libxcb-cursor0
 Description: $DESCRIPTION
 EOF
 
@@ -256,6 +312,38 @@ if [ -x "\$INSTALL_PREFIX/bin/UpdateDeviceList" ]; then
 else
 
     echo "[QTAC] ERROR: UpdateDeviceList not found or not executable." >> "\$LOG_FILE"
+
+fi
+
+###############################################################################
+# Ensure libxcb-cursor0 is installed
+###############################################################################
+
+if ! ldconfig -p 2>/dev/null | grep -q "libxcb-cursor.so.0"; then
+
+    echo "[QTAC] libxcb-cursor0 not found. Installing..." \
+        >> "\$LOG_FILE"
+
+    apt-get update \
+        >> "\$LOG_FILE" 2>&1 || true
+
+    DEBIAN_FRONTEND=noninteractive \
+    apt-get install -y libxcb-cursor0 \
+        >> "\$LOG_FILE" 2>&1 || true
+
+    ldconfig >/dev/null 2>&1 || true
+
+    if ldconfig -p 2>/dev/null | grep -q "libxcb-cursor.so.0"; then
+
+        echo "[QTAC] Successfully installed libxcb-cursor0." \
+            >> "\$LOG_FILE"
+
+    else
+
+        echo "[QTAC] WARNING: Failed to install libxcb-cursor0." \
+            >> "\$LOG_FILE"
+
+    fi
 
 fi
 
