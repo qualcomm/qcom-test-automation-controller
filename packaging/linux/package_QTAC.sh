@@ -177,9 +177,12 @@ find "$BUILDROOT$INSTALL_PREFIX/plugins" \
 do
 
     missing=$(
-        LD_LIBRARY_PATH="$BUILDROOT$INSTALL_PREFIX/lib" \
-        ldd "$plugin" 2>/dev/null | grep "not found" || true
-    )
+		LD_LIBRARY_PATH="$BUILDROOT$INSTALL_PREFIX/lib" \
+		ldd "$plugin" 2>/dev/null |
+		grep "not found" |
+		grep -v "libxcb-" ||
+		true
+	)
 
     if [ -n "$missing" ]; then
 
@@ -256,7 +259,7 @@ Section: utils
 Priority: optional
 Architecture: $DEB_ARCH
 Maintainer: $MAINTAINER
-Depends: bash, coreutils, libxcb-cursor0
+Depends: bash, coreutils, libxcb-cursor0, libxcb-icccm4, libxcb-util1, libxcb-image0, libxcb-keysyms1, libxcb-render-util0
 Description: $DESCRIPTION
 EOF
 
@@ -328,8 +331,14 @@ if ! ldconfig -p 2>/dev/null | grep -q "libxcb-cursor.so.0"; then
         >> "\$LOG_FILE" 2>&1 || true
 
     DEBIAN_FRONTEND=noninteractive \
-    apt-get install -y libxcb-cursor0 \
-        >> "\$LOG_FILE" 2>&1 || true
+	apt-get install -y \
+		libxcb-cursor0 \
+		libxcb-icccm4 \
+		libxcb-util1 \
+		libxcb-image0 \
+		libxcb-keysyms1 \
+		libxcb-render-util0 \
+    >> "\$LOG_FILE" 2>&1 || true
 
     ldconfig >/dev/null 2>&1 || true
 
