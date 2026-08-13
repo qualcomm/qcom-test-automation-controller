@@ -2,6 +2,7 @@
 @REM  SPDX-License-Identifier: BSD-3-Clause
 
 @echo off
+setlocal EnableDelayedExpansion
 
 @REM ---------------------------------------------------------------------------
 @REM  Detect host architecture (native build only)
@@ -68,28 +69,33 @@ echo QTBIN               : %QTBIN% [OK]
 @REM  Locate and call VS2022 vcvars
 @REM ---------------------------------------------------------------------------
 set VCVARS_FOUND=0
+set VS_INSTALL_DIR=
 
 if exist "C:\Program Files\Microsoft Visual Studio\2022\Enterprise\VC\Auxiliary\Build\%VCVARS_SCRIPT%" (
     call "C:\Program Files\Microsoft Visual Studio\2022\Enterprise\VC\Auxiliary\Build\%VCVARS_SCRIPT%"
     set VCVARS_FOUND=1
+    set "VS_INSTALL_DIR=C:\Program Files\Microsoft Visual Studio\2022\Enterprise"
     echo VS2022 toolchain     : Enterprise [OK]
     goto :vcvars_done
 )
 if exist "C:\Program Files\Microsoft Visual Studio\2022\Community\VC\Auxiliary\Build\%VCVARS_SCRIPT%" (
     call "C:\Program Files\Microsoft Visual Studio\2022\Community\VC\Auxiliary\Build\%VCVARS_SCRIPT%"
     set VCVARS_FOUND=1
+    set "VS_INSTALL_DIR=C:\Program Files\Microsoft Visual Studio\2022\Community"
     echo VS2022 toolchain     : Community [OK]
     goto :vcvars_done
 )
 if exist "C:\Program Files\Microsoft Visual Studio\2022\Professional\VC\Auxiliary\Build\%VCVARS_SCRIPT%" (
     call "C:\Program Files\Microsoft Visual Studio\2022\Professional\VC\Auxiliary\Build\%VCVARS_SCRIPT%"
     set VCVARS_FOUND=1
+    set "VS_INSTALL_DIR=C:\Program Files\Microsoft Visual Studio\2022\Professional"
     echo VS2022 toolchain     : Professional [OK]
     goto :vcvars_done
 )
 if exist "C:\Program Files (x86)\Microsoft Visual Studio\2022\BuildTools\VC\Auxiliary\Build\%VCVARS_SCRIPT%" (
     call "C:\Program Files (x86)\Microsoft Visual Studio\2022\BuildTools\VC\Auxiliary\Build\%VCVARS_SCRIPT%"
     set VCVARS_FOUND=1
+    set "VS_INSTALL_DIR=C:\Program Files (x86)\Microsoft Visual Studio\2022\BuildTools"
     echo VS2022 toolchain     : BuildTools [OK]
     goto :vcvars_done
 )
@@ -107,6 +113,45 @@ if "%VCVARS_FOUND%"=="0" (
     echo          C:\Program Files\Microsoft Visual Studio\2022\Professional\VC\Auxiliary\Build
     echo          C:\Program Files ^(x86^)\Microsoft Visual Studio\2022\BuildTools\VC\Auxiliary\Build
     exit /b 1
+)
+
+@REM ---------------------------------------------------------------------------
+@REM  Detection for TACDevInterop buildability (C#, .NET Framework 4.8, x64 only)
+@REM ---------------------------------------------------------------------------
+set BUILD_INTEROP=0
+set NET48_FOUND=0
+set MSBUILD_EXE=
+
+if /i "%ARCH%"=="ARM64" (
+    echo TACDevInterop       : skipped ^(not supported on ARM64^)
+) else (
+    set NET_RELEASE_HEX=0x0
+    for /f "tokens=3" %%A in ('reg query "HKLM\SOFTWARE\Microsoft\NET Framework Setup\NDP\v4\Full" /v Release 2^>nul ^| findstr /i "Release"') do set NET_RELEASE_HEX=%%A
+    set /A NET_RELEASE=!NET_RELEASE_HEX!
+    if !NET_RELEASE! GEQ 528040 set NET48_FOUND=1
+    
+    if "!NET48_FOUND!"=="0" (
+        echo TACDevInterop       : .NET Framework 4.8 not found on this machine [SKIP]
+    ) else (
+        where msbuild.exe >nul 2>nul
+        if not errorlevel 1 (
+            for /f "delims=" %%I in ('where msbuild.exe') do (
+                if "!MSBUILD_EXE!"=="" set "MSBUILD_EXE=%%I"
+            )
+        )
+        if "!MSBUILD_EXE!"=="" if not "%VS_INSTALL_DIR%"=="" (
+            for /f "delims=" %%I in ('dir /s /b "%VS_INSTALL_DIR%\MSBuild\Current\Bin\MSBuild.exe" 2^>nul') do (
+                if "!MSBUILD_EXE!"=="" set "MSBUILD_EXE=%%I"
+            )
+        )
+
+        if "!MSBUILD_EXE!"=="" (
+            echo TACDevInterop       : .NET Framework 4.8 found, but MSBuild not found [SKIP]
+        ) else (
+            echo TACDevInterop       : .NET Framework 4.8 + MSBuild found [OK]
+            set BUILD_INTEROP=1
+        )
+    )
 )
 
 @REM ---------------------------------------------------------------------------
@@ -131,5 +176,20 @@ cmake -S . -B build\Release -DCMAKE_PREFIX_PATH="%QTBIN%\.." ^
     -DCMAKE_BUILD_TYPE=Release
 
 cmake --build build\Release
+
+@REM ---------------------------------------------------------------------------
+@REM  TACDevInterop.dll
+@REM ---------------------------------------------------------------------------
+if "%BUILD_INTEROP%"=="1" (
+    echo.
+    echo Building TACDevInterop ^(C#, x64, Release^)...
+    "%MSBUILD_EXE%" "interfaces\C#\TACDevInterop\TACDevInterop.csproj" ^
+    /p:Configuration=Release /p:Platform=x64 /nologo /verbosity:minimal
+    if not "!ERRORLEVEL!"=="0" (
+        echo WARNING: TACDevInterop build failed; continuing since it is an optional component.
+    ) else (
+        echo TACDevInterop.dll built -^> __Builds\x64\Release\bin\TACDevInterop.dll
+    )
+)
 
 echo Check __Builds directory
