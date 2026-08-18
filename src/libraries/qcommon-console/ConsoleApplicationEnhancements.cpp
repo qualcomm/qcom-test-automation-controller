@@ -35,18 +35,22 @@ QString applicationBinPath()
 
 QString applicationDataPath()
 {
-	QString result = "../../../../configurations/";
+	QString result;
 
+	#ifdef Q_OS_WIN
+		result = "C:/ProgramData/Qualcomm/" + kAppName + "/configurations/";
+	#endif
+
+	#ifdef Q_OS_LINUX
+		result = "/var/lib/qcom/data/" + kAppName + "/configurations/";
+	#endif
+
+	// Dev fallback: use binary-relative path so it only works from the build tree,
+	// not from an installed location like C:\Program Files\Qualcomm\Alpaca\
 	if (QDir(result).exists() == false)
-		{
-			#ifdef Q_OS_WIN
-				result = "C:/ProgramData/Qualcomm/" + kAppName + "/configurations/";
-			#endif
-
-			#ifdef Q_OS_LINUX
-				result = "/var/lib/qcom/data/" + kAppName + "/configurations/";
-			#endif
-		}
+	{
+		result = applicationBinPath() + "../../../../configurations/";
+	}
 
 	return result;
 }
