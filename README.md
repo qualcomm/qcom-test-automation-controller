@@ -53,7 +53,7 @@ QTAC is a software suite that enables users to control Qualcomm devices remotely
 | **Compiler** | [MSVC 2022](https://aka.ms/vs/17/release/vs_community.exe) / GCC | MSVC 2022 / GCC-11, G++-11, GLIBC-2.35 |
 | **Build System** | [CMake](https://cmake.org/download/) | 3.22+ |
 | **Build Tool** | [Ninja](https://ninja-build.org/) (via Qt installer, system package manager, or direct download) | 1.10+ |
-| **UI Framework** | [Qt Open-source](https://www.qt.io/download-qt-installer-oss) | 6.9.0+ |
+| **UI Framework** | Qt Open-source (Linux: `apt`, e.g. `qt6-base-dev`; Windows: [Qt Online Installer](https://www.qt.io/download-qt-installer-oss)) | 6.4.0+ |
 
 > [!NOTE]
 > Review license terms for [Visual Studio](https://visualstudio.microsoft.com/license-terms/) and [Qt](https://www.qt.io/development/download-open-source). MSVC 2022 is linked as Qt does not yet support later MSVC versions.
@@ -137,22 +137,24 @@ __Builds\ARM64\Release\QTAC.exe
 > - Using `sudo apt install <package>` will update setup packages. Review command usage to prevent issues with other applications.
 
 1. **Qt Installation** (choose one):
-   
-   **Option A**: Qt Online Installer
-   - Install Qt 6.9+ for **GCC 64-bit** and **Qt Serial Port** and **Qt Multimedia** components using [Qt Online Installer](https://www.qt.io/download-qt-installer-oss)
-   
-   **Option B**: Quick Installation via apt
+
+   **Option A**: Quick installation via apt (recommended)
    ```bash
-   sudo apt install qt6-base-dev qt6-serialport-dev qt6-multimedia-dev
+   sudo apt install cmake ninja-build qt6-base-dev qt6-serialport-dev qt6-multimedia-dev
    ```
+   `build.sh` automatically detects and uses this system Qt installation — no
+   environment variable needed.
+
+   **Option B**: Qt Online Installer
+   - Install Qt 6.4+ for **GCC 64-bit** and **Qt Serial Port** and **Qt Multimedia** components using [Qt Online Installer](https://www.qt.io/download-qt-installer-oss)
+   - Set the `QTBIN` environment variable to opt into this installation instead of the system Qt:
+     ```bash
+     export QTBIN=/path/to/Qt/directory/<version>/gcc_64/bin
+     ```
 2. **Runtime Dependencies**:
    ```bash
    sudo cp udev-rules/99-QTAC-USB.rules /etc/udev/rules.d/
    sudo udevadm control --reload
-   ```
-3. **Environment Variable**:
-   ```bash
-   export QTBIN=/path/to/Qt/directory/<version>/gcc_64/bin
    ```
 
 ### Build & Usage
