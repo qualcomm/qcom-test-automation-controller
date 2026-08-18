@@ -5,42 +5,66 @@
 
 set -e
 
-if [ -z "$QTBIN" ]; then
+###############################################################################
+# Locate Qt: use QTBIN (Qt Online Installer tree) if set, else host Qt
+###############################################################################
+
+USING_SYSTEM_QT=0
+MISSING_PACKAGES=()
+
+command -v cmake &>/dev/null || MISSING_PACKAGES+=("cmake")
+command -v ninja &>/dev/null || MISSING_PACKAGES+=("ninja-build")
+command -v g++   &>/dev/null || MISSING_PACKAGES+=("build-essential")
+
+if [ -n "$QTBIN" ]; then
+    if [ ! -d "$QTBIN" ]; then
+        echo ""
+        echo "ERROR: QTBIN directory does not exist: $QTBIN"
+        echo "       Install Qt 6.4+ via the Qt Online Installer (https://www.qt.io/download-qt-installer-oss)"
+        echo "       and include the GCC 64-bit component, then update QTBIN."
+        exit 1
+    fi
+
+    if ! echo "$QTBIN" | grep -q "gcc_64"; then
+        echo ""
+        echo "ERROR: QTBIN does not point to a GCC 64-bit Qt installation."
+        echo "       QTBIN is currently: $QTBIN"
+        echo "       A Linux build requires the Qt GCC 64-bit component. QTBIN must contain 'gcc_64', e.g.:"
+        echo "         export QTBIN=/path/to/Qt/<version>/gcc_64/bin"
+        exit 1
+    fi
+
+    QT_PREFIX="$(dirname "$QTBIN")"
+    export PATH="$QTBIN:$PATH"
+else
+    USING_SYSTEM_QT=1
+
+    if command -v qmake6 &>/dev/null; then
+        QT_PREFIX="$(qmake6 -query QT_INSTALL_PREFIX)"
+    else
+        MISSING_PACKAGES+=("qt6-base-dev")
+    fi
+
+    dpkg -s qt6-multimedia-dev &>/dev/null || MISSING_PACKAGES+=("qt6-multimedia-dev")
+    dpkg -s qt6-serialport-dev &>/dev/null || MISSING_PACKAGES+=("qt6-serialport-dev")
+fi
+
+if [ "${#MISSING_PACKAGES[@]}" -gt 0 ]; then
     echo ""
-    echo "ERROR: QTBIN is not set."
-    echo "       QTBIN must point to the Qt bin directory, e.g.:"
-    echo "         export QTBIN=/path/to/Qt/<version>/gcc_64/bin"
+    echo "ERROR: Missing required build tools/packages: ${MISSING_PACKAGES[*]}"
+    echo "       Install them with:"
+    echo "         sudo apt install ${MISSING_PACKAGES[*]}"
     echo "       Then re-run this script."
-    exit 1
-fi
-
-if [ ! -d "$QTBIN" ]; then
     echo ""
-    echo "ERROR: QTBIN directory does not exist: $QTBIN"
-    echo "       Install Qt 6.9+ via the Qt Online Installer (https://www.qt.io/download-qt-installer-oss)"
-    echo "       and include the GCC 64-bit component, then update QTBIN."
+    echo "       (Alternatively, install Qt via the Qt Online Installer"
+    echo "       (https://www.qt.io/download-qt-installer-oss) and set QTBIN to its"
+    echo "       gcc_64/bin directory instead of using the system Qt packages.)"
     exit 1
 fi
 
-if ! echo "$QTBIN" | grep -q "gcc_64"; then
-    echo ""
-    echo "ERROR: QTBIN does not point to a GCC 64-bit Qt installation."
-    echo "       QTBIN is currently: $QTBIN"
-    echo "       A Linux build requires the Qt GCC 64-bit component. QTBIN must contain 'gcc_64', e.g.:"
-    echo "         export QTBIN=/path/to/Qt/<version>/gcc_64/bin"
-    exit 1
+if [ "$USING_SYSTEM_QT" -eq 1 ]; then
+    echo "Using host Qt installation: $QT_PREFIX"
 fi
-
-if ! command -v ninja &>/dev/null; then
-    echo ""
-    echo "ERROR: ninja not found in PATH."
-    echo "       Install ninja via your package manager, e.g.:"
-    echo "         sudo apt install ninja-build"
-    echo "       Or via the Qt installer (Tools > Ninja)."
-    exit 1
-fi
-
-export PATH="$QTBIN:$PATH"
 
 ###############################################################################
 # Clean start
@@ -53,7 +77,7 @@ rm -rf build __Builds
 ###############################################################################
 
 cmake -S . -B build/Debug \
-    -DCMAKE_PREFIX_PATH="$(dirname "$QTBIN")" \
+    -DCMAKE_PREFIX_PATH="$QT_PREFIX" \
     -DCMAKE_COLOR_DIAGNOSTICS=ON \
     -DCMAKE_GENERATOR=Ninja \
     -DCMAKE_BUILD_TYPE=Debug \
@@ -65,11 +89,21 @@ cmake --build build/Debug
 ###############################################################################
 
 cmake -S . -B build/Release \
-    -DCMAKE_PREFIX_PATH="$(dirname "$QTBIN")" \
+    -DCMAKE_PREFIX_PATH="$QT_PREFIX" \
     -DCMAKE_COLOR_DIAGNOSTICS=ON \
     -DCMAKE_GENERATOR=Ninja \
     -DCMAKE_BUILD_TYPE=Release
 cmake --build build/Release
+
+if [ "$USING_SYSTEM_QT" -eq 1 ]; then
+    echo ""
+    echo "=========================================================="
+    echo "Using system Qt — skipping runtime bundling"
+    echo "=========================================================="
+    echo "Binaries link against the host's installed Qt6 packages."
+    echo "Check __Builds directory"
+    exit 0
+fi
 
 ###############################################################################
 # Qt Runtime Deployment
@@ -80,7 +114,7 @@ echo "=========================================================="
 echo "Deploying Qt Runtime"
 echo "=========================================================="
 
-QT_ROOT="$(dirname "$QTBIN")"
+QT_ROOT="$QT_PREFIX"
 
 DEPLOY_BIN_DIR="__Builds/Linux/Release/bin"
 DEPLOY_LIB_DIR="__Builds/Linux/Release/lib"
