@@ -85,8 +85,6 @@ void TACWindow::shutDown()
 {
 	if (_alpacaDevice.isNull() == false)
 	{
-		TACApplication::disconnectTACWindow(this);
-
 		_tacFrame->setDevice(AlpacaDevice(Q_NULLPTR));
 		_alpacaDevice->close();
 		_alpacaDevice = AlpacaDevice(Q_NULLPTR);
@@ -269,12 +267,18 @@ void TACWindow::on_actionDisconnect_triggered()
 
 void TACWindow::disconnect()
 {
-	shutDown();
+	if (_alpacaDevice.isNull() == false)
+	{
+		_tacFrame->setDevice(AlpacaDevice(Q_NULLPTR));
+		_alpacaDevice->close();
+		_alpacaDevice = AlpacaDevice(Q_NULLPTR);
+	}
 
 	_autoShutdownTimer.stop();
-	TACApplication::disconnectTACWindow(this);
 
-	deleteLater();
+	_disconnectButton->setEnabled(false);
+	_deviceStatusLabel->setText("Disconnected");
+	setWindowTitle(QString(kWindowTitle).arg(""));
 }
 
 void TACWindow::on_actionContents_triggered()
