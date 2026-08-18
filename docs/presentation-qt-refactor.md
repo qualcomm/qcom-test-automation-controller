@@ -370,7 +370,7 @@ The bottom line: TACDev.dll went from requiring a full Qt6 runtime to requiring 
 8. Disconnect and reconnect — show "open last device on startup"
 
 **Speaker notes:**
-The key things to highlight in the demo: the new GUI has feature parity with TAC.exe for the device types tested (FTDI, PSoC, PIC32CX). The Device Info tab surfaces the same metadata. Pin state responds correctly. Quick Settings buttons execute scripts. The Preferences dialog adds features the legacy app lacks (auto-shutdown, persistent last device). If time allows, see Appendix F for a TACDev.dll Python demo showing device control with no GUI and no Qt.
+The key things to highlight in the demo: the new GUI has feature parity with TAC.exe for the device types tested (FTDI, PSoC, PIC32CX). The Device Info tab surfaces the same metadata. Pin state responds correctly. Quick Settings buttons execute scripts. The Preferences dialog adds features the legacy app lacks (auto-shutdown, persistent last device). If time allows, see Appendix H for a TACDev.dll Python demo showing device control with no GUI and no Qt.
 
 ---
 
@@ -544,7 +544,147 @@ The build graph is intentionally a DAG with the Qt-free library at the bottom. `
 
 ---
 
-## Appendix G — TACDev.dll Demo (Python)
+## Appendix G — Licensing Considerations
+
+### Summary
+
+| Dependency | License | How used | Key obligation |
+|------------|---------|----------|----------------|
+| **nlohmann/json** | MIT | Header-only, compiled into `qtac-core` | Include copyright notice in distributed binaries |
+| **libserialport** | LGPL v3 | Source fetched at build time, compiled as **static** lib into `qtac-core` | See LGPL static-link obligations below |
+| **Qt6** | LGPL v3 (open-source) | Dynamic-linked — GUI app only, not in `qtac-core` or `TACDev.dll` | Include Qt copyright notice; allow user to relink against modified Qt |
+| **FTDI D2XX (ftd2xx.dll)** | FTDI proprietary | Dynamic-linked at runtime | Redistribution permitted per FTDI D2XX license terms; cannot modify |
+
+---
+
+### nlohmann/json — MIT License
+
+**License:** MIT (SPDX: `MIT`)
+**Copyright:** © 2013–2023 Niels Lohmann
+
+MIT is the most permissive common open-source license. The only obligation is to **include the copyright notice** in any distribution of the compiled software (e.g., in a `NOTICES` or `THIRD_PARTY_LICENSES` file alongside the binary).
+
+No copyleft, no source disclosure, no LGPL linking restrictions. Compatible with closed-source and open-source projects without restriction.
+
+**Required action:** Include the following in any binary distribution:
+
+```
+nlohmann/json  (https://github.com/nlohmann/json)
+Copyright (c) 2013-2023 Niels Lohmann
+Licensed under the MIT License.
+```
+
+---
+
+### libserialport — LGPL v3
+
+**License:** GNU Lesser General Public License v3
+**Copyright:** © 2013–2015 Martin Ling, Uwe Hermann, and other contributors (sigrok project)
+**Source:** https://github.com/sigrokproject/libserialport
+
+LGPL v3 is designed to allow use in non-GPL (including proprietary) software, but with conditions that depend on **how the library is linked**.
+
+#### Current configuration: statically linked
+
+`CMakeLists.txt` builds libserialport as a static library (`add_library(serialport STATIC …)`) and links it into `qtac-core`, which in turn links into `TACDev.dll`. This is **static linking** of an LGPL v3 library.
+
+Under LGPL v3 §4, static linking is permitted provided the distributor does **one** of the following:
+
+- **Option A — Provide relinkable object files:** Distribute the object files of the application (not libserialport itself) so that a user can relink the application against a modified version of libserialport.
+- **Option B — Use a shared library mechanism:** Link libserialport as a `.dll` / `.so` at runtime instead of statically, allowing the user to replace it.
+
+For an internal tool this is manageable, but it does add a distribution obligation. **Option B (shared/dynamic linking) is simpler to comply with** and is worth considering.
+
+#### Recommendation
+
+Switch libserialport to a **dynamic/shared build** (`add_library(serialport SHARED …)` or use the system-installed `.dll`/`.so`) and distribute `serialport.dll` alongside `TACDev.dll`. This satisfies LGPL v3 §4(d)(1) trivially — the user can replace `serialport.dll` with a modified version without needing any object files from the application.
+
+If static linking is preferred for deployment simplicity (single-DLL distribution), the object-file route (Option A) must be followed: provide the compiled `.obj` files for `qtac-core` and `TACDev.dll` (not the libserialport objects) on request.
+
+#### Required notice regardless of link mode
+
+Any distribution must include:
+
+```
+libserialport  (https://github.com/sigrokproject/libserialport)
+Copyright (C) 2013-2015 Martin Ling and contributors
+Licensed under the GNU Lesser General Public License v3.
+A copy of the LGPLv3 is available at https://www.gnu.org/licenses/lgpl-3.0.html
+```
+
+---
+
+### Qt6 — LGPL v3 (dynamic, GUI layer only)
+
+Qt6 is used only in `qtac-app.exe` and the `qt-adapter` bridge, both of which **dynamic-link** Qt DLLs at runtime. This is the straightforward LGPL v3 use case: Qt DLLs are separate files the user can replace, so the license obligations are easily met.
+
+Qt is **not present in `qtac-core` or `TACDev.dll`** — this was the primary motivation for the refactor.
+
+**Required actions for `qtac-app.exe` distribution:**
+- Distribute the Qt DLLs (`Qt6Core.dll`, `Qt6Widgets.dll`, etc.) unmodified alongside the application
+- Include Qt's copyright and LGPL v3 notice in a `NOTICES` file
+- Do not prevent users from relinking against a modified Qt — in practice, this means not stripping symbols or obfuscating in ways that prevent relink
+
+---
+
+### FTDI D2XX (`ftd2xx.dll`)
+
+The FTDI D2XX library (`ftd2xx.dll`) is proprietary but freely redistributable under FTDI's standard driver license. Key points:
+- **Redistribution is permitted** for end products using FTDI devices
+- **Modification is not permitted**
+- No source is available; it is a closed-source binary
+- Must be distributed unmodified; cannot be statically linked
+
+No additional notice is required beyond standard acknowledgment that the software uses FTDI D2XX drivers.
+
+---
+
+### Action Items Summary
+
+| Item | Priority | Action |
+|------|----------|--------|
+| Add `NOTICES` / `THIRD_PARTY_LICENSES` file to repo | High | Include nlohmann/json MIT notice, libserialport LGPL v3 notice, Qt LGPL v3 notice |
+| Evaluate libserialport link mode | Medium | Switch to dynamic linking to simplify LGPL compliance, or document object-file provision process |
+| Verify Qt DLL distribution | Low | Already handled by `windeployqt` in `deploy_app.ps1` — confirm LGPL notice is bundled |
+
+---
+
+## Appendix I — Repository Fork & Merge-Back Plan
+
+```
+github.com/qualcomm/qcom-test-automation-controller
+  (public upstream — production TAC.exe / legacy QCommonConsole)
+    │
+    │  fork + sync point
+    │
+    ▼
+github.com/bryantf-qc/qtac-refactor
+  (private working repo — this refactor)
+    │
+    │  Wave commits W1–W11 + hardware fixes
+    │  source/ directory built up alongside existing src/
+    │
+    ▼  (future — merge back as PR)
+github.com/qualcomm/qcom-test-automation-controller
+    │
+    ├── src/           ← legacy stack, untouched (TAC.exe still works)
+    └── source/        ← new Qt-free stack added alongside
+          ├── library/         qtac-core (Qt-free static lib)
+          ├── libraries/       qt-adapter bridge
+          ├── app/             qtac-app.exe
+          ├── tacdev/          TACDev.dll (Qt-free)
+          └── test/            unit + hardware integration tests
+```
+
+**Merge-back strategy:**
+- `source/` is a non-conflicting new directory — the PR touches nothing in `src/`
+- Legacy `TAC.exe` / `QCommonConsole` remain the default production path
+- Teams adopt the new Qt-free `TACDev.dll` opt-in; old DLL remains available during transition
+- Once validated across all device types, `TAC.exe` can be re-targeted to `qtac-core`
+
+---
+
+## Appendix H — TACDev.dll Demo (Python)
 
 *Optional demo if time allows after slide 14:*
 
