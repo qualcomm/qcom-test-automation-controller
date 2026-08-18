@@ -870,7 +870,7 @@ void _PIC32CXPlatformConfiguration ::initialize()
 
 	pinData._setPin = 128;
 	pinData._hash = PIC32CXPinData::makePIC32CXHash(pinData._setPin);
-	pinData._enabled = true;
+	pinData._enabled = false;
 	pinData._inverted = false;
 	pinData._pinLabel = "USB0";
 	pinData._pinCommand = "usb0";
@@ -1121,7 +1121,7 @@ void _PIC32CXPlatformConfiguration ::initialize()
 
 	pinData._setPin = 312;
 	pinData._hash = PIC32CXPinData::makePIC32CXHash(pinData._setPin);
-	pinData._enabled = true;
+	pinData._enabled = false;
 	pinData._inverted = false;
 	pinData._pinLabel = "USB1";
 	pinData._pinCommand = "usb1";

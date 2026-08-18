@@ -7,6 +7,7 @@
 #include "EditorView.h"
 
 #include "FTDIPlatformConfiguration.h"
+#include "FT232HPlatformConfiguration.h"
 
 // QT
 #include <QMap>
@@ -69,7 +70,8 @@ private:
 	void clearRow(QTableWidget* tableWidget);
 	void resetToDefault(QTableWidget* tableWidget);
 
-	_FTDIPlatformConfiguration*			_ftdiPlatformConfiguration{Q_NULLPTR};
+	_FTDIPlatformConfiguration*				_ftdiPlatformConfiguration{Q_NULLPTR};
+	_FT232HPlatformConfiguration*			_ft232hPlatformConfiguration{Q_NULLPTR};
 };
 
 #endif // FTDIEDITORVIEW_H

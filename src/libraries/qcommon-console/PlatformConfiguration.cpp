@@ -7,6 +7,7 @@
 #include "PIC32CXPlatformConfiguration.h"
 #include "ConsoleApplicationEnhancements.h"
 #include "FTDIPlatformConfiguration.h"
+#include "FT232HPlatformConfiguration.h"
 #include "PSOCPlatformConfiguration.h"
 
 // QCommon
@@ -117,6 +118,10 @@ PlatformConfiguration _PlatformConfiguration::createPlatformConfiguration(DebugB
 
 	case ePIC32CXAuto:
 		result = PlatformConfiguration(new _PIC32CXPlatformConfiguration);
+		break;
+
+	case eFT232H:
+		result = PlatformConfiguration(new _FT232HPlatformConfiguration);
 	default: ;
 	}
 
@@ -146,6 +151,10 @@ PlatformConfiguration _PlatformConfiguration::openPlatformConfiguration
 		else if (fileName.contains("_pic32cxauto_", Qt::CaseInsensitive))
 		{
 			result = PlatformConfiguration(new _PIC32CXPlatformConfiguration);
+		}
+		else if (fileName.contains("_ft232h_", Qt::CaseInsensitive))
+		{
+			result = PlatformConfiguration(new _FT232HPlatformConfiguration);
 		}
 		else
 		{

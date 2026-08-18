@@ -23,6 +23,7 @@ CreateConfigurationDialog::CreateConfigurationDialog
 	_platformComboBox->insertItem(_platformComboBox->count(), "PSOC", ePSOC);
 	_platformComboBox->insertItem(_platformComboBox->count(), "FTDI", eFTDI);
 	_platformComboBox->insertItem(_platformComboBox->count(), "PIC32CX (Automotive)", ePIC32CXAuto);
+	_platformComboBox->insertItem(_platformComboBox->count(), "FT232H (Arduino V1)", eFT232H);
 
 	_chipCount->setMinimum(1);
 	_chipCount->setMaximum(4);
@@ -56,7 +57,7 @@ PSOCVariant CreateConfigurationDialog::getPSOCVariant()
 {
 	PSOCVariant result{ePSOCUnknown};
 
-	if (_platformType != ePSOC)
+	if (_platformType == ePSOC)
 		result = psocVariantFromString(_psocGPIOConfiguration->checkedButton()->text());
 
 	return result;

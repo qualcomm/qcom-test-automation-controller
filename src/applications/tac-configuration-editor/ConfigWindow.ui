@@ -256,6 +256,9 @@
                <property name="text">
                 <string>18</string>
                </property>
+               <attribute name="buttonGroup">
+                <string notr="true">_firmwareBtnGroup</string>
+               </attribute>
               </widget>
              </item>
              <item>
@@ -263,6 +266,9 @@
                <property name="text">
                 <string>19</string>
                </property>
+               <attribute name="buttonGroup">
+                <string notr="true">_firmwareBtnGroup</string>
+               </attribute>
               </widget>
              </item>
             </layout>

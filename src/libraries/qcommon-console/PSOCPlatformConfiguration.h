@@ -50,12 +50,17 @@ struct PSOCI2CData
 		_slaveAddress = slaveAddress;
 		_writeAddress = writeAddress;
 		_pin = pin;
-		_hash = pow(2, slaveAddress) * pow(3, writeAddress) * pow(5, pin);
+		_hash = makeHash();
 	}
 
 	void clear()
 	{
 		*this = PSOCI2CData();
+	}
+
+	HashType makeHash()
+	{
+		return pow(2, _slaveAddress) * pow(3, _writeAddress) * pow(5, _pin);
 	}
 
 	PinID						_pin{0};
@@ -74,6 +79,7 @@ struct PSOCI2CData
 };
 
 typedef QMap<PinID, PSOCPinData> PSOCPinEntries;
+typedef QMap<PinID, PSOCI2CData> PSOCI2CEntries;
 typedef QList<PSOCPinData> PSOCPinList;
 
 class _PSOCPlatformConfiguration;
@@ -138,8 +144,10 @@ private:
 	PSOCPinEntries				_pinEntries;
 	PSOCVariant					_variant{ePSOCGPIO};
 
-	static void initialize();
+	static void initialize(PSOCVariant psocVariant);
+
 	static PSOCPinEntries		_classicActions;
+	static PSOCI2CEntries		_classicI2CActions;
 };
 
 #endif // PSOCPLATFORMCONFIGURATION_H
