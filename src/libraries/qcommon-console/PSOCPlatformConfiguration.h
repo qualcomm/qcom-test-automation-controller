@@ -41,6 +41,38 @@ struct PSOCPinData
 	QString						_tabName;
 };
 
+struct PSOCI2CData
+{
+	PSOCI2CData() = default;
+	PSOCI2CData(const PSOCI2CData& copyMe) = default;
+	PSOCI2CData(PinID slaveAddress, PinID writeAddress, PinID pin)
+	{
+		_slaveAddress = slaveAddress;
+		_writeAddress = writeAddress;
+		_pin = pin;
+		_hash = pow(2, slaveAddress) * pow(3, writeAddress) * pow(5, pin);
+	}
+
+	void clear()
+	{
+		*this = PSOCI2CData();
+	}
+
+	PinID						_pin{0};
+	PinID						_slaveAddress{0};
+	PinID						_writeAddress{0};
+	HashType					_hash{0};
+	bool						_enabled{false};
+	QString						_pinLabel;
+	QString						_pinTooltip;
+	bool						_inverted{false};
+	QString						_pinCommand;
+	CommandGroups				_commandGroup{eUnknownCommandGroup};
+	QString						_classicAction;
+	QPoint						_cellLocation{QPoint(-1,-1)};
+	QString						_tabName;
+};
+
 typedef QMap<PinID, PSOCPinData> PSOCPinEntries;
 typedef QList<PSOCPinData> PSOCPinList;
 
@@ -50,13 +82,17 @@ class QCOMMONCONSOLE_EXPORT _PSOCPlatformConfiguration:
 	public _PlatformConfiguration
 {
 public:
-	_PSOCPlatformConfiguration();
+	_PSOCPlatformConfiguration() = delete;
+	_PSOCPlatformConfiguration(PSOCVariant psocVariant);
 	virtual ~_PSOCPlatformConfiguration();
 
 	virtual Pins getPins();
 
 	PSOCPinList getAllPins();
 	PSOCPinList getActivePins();
+
+	PSOCVariant variant();
+	void setVariant(PSOCVariant psocVariant);
 
 	bool getPinEnableState(const PinID pinId) const;
 	void setPinEnableState(const PinID pinId, bool newState);
@@ -100,6 +136,7 @@ protected:
 
 private:
 	PSOCPinEntries				_pinEntries;
+	PSOCVariant					_variant{ePSOCGPIO};
 
 	static void initialize();
 	static PSOCPinEntries		_classicActions;

@@ -43,6 +43,8 @@ const QByteArray kPIC32CXSerialIDLabel(QByteArrayLiteral("<html><body><p><span s
 const QString kFirmware15HelpText("<html><body><p><span style=\" font-size:12pt; font-weight:600;\">v15</span></p></body></html>- Legacy firmware<br/>- Pins 48, 49 cannot be configured");
 const QString kFirmware16HelpText("<html><body><p><span style=\" font-size:12pt; font-weight:600;\">v16</span></p></body></html>- Firmware for Monaco MCULess design(s)<br/>- Pins 48, 49 can be configured<br/>- Pin 49 is active high");
 const QString kFirmware17HelpText("<html><body><p><span style=\" font-size:12pt; font-weight:600;\">v17</span></p></body></html>- Firmware for Hawi and future platforms<br/>- Pin 49 can be configured. Pin 48 is unavailable<br/>- Pin 49 is active low");
+const QString kFirmware18HelpText("<html><body><p><span style=\" font-size:12pt; font-weight:600;\">v18</span></p></body></html>- To be updated");
+const QString kFirmware19HelpText("<html><body><p><span style=\" font-size:12pt; font-weight:600;\">v19</span></p></body></html>- To be updated");
 
 ConfigWindow::ConfigWindow(QWidget* parent) :
 	  QMainWindow(parent),
@@ -198,7 +200,7 @@ void ConfigWindow::populateFields()
 		_editorView = new PSOCEditorView(_editorFrame);
 		_firmwareVerGroupBox->setEnabled(true);
 
-		setFirmwareSelection();
+		setFirmwareSelection();	
 		break;
 
 	case eFTDI:
@@ -423,6 +425,16 @@ void ConfigWindow::setAboutFirmware(int fwVer)
 		_editorView->setRowEnabled(16, false);
 		_helpLabel->setText(kFirmware17HelpText);
 		break;
+	case 18:
+		_editorView->setRowEnabled(15, true);
+		_editorView->setRowEnabled(16, true);
+		_helpLabel->setText(kFirmware18HelpText);
+		break;
+	case 19:
+		_editorView->setRowEnabled(15, true);
+		_editorView->setRowEnabled(16, true);
+		_helpLabel->setText(kFirmware19HelpText);
+		break;
 	}
 
 	QList<int> sizes = _metaSplitter->sizes();
@@ -501,7 +513,7 @@ void ConfigWindow::on__actionNew_triggered()
 
 	if (ccd.exec() == QDialog::Accepted)
 	{
-		PlatformConfiguration platformConfig = _PlatformConfiguration::createPlatformConfiguration(ccd.getPlatform(), ccd.getChipCount());
+		PlatformConfiguration platformConfig = _PlatformConfiguration::createPlatformConfiguration(ccd.getPlatform(), ccd.getChipCount(), ccd.getPSOCVariant());
 		if (platformConfig)
 		{
 			if (_platformConfiguration != Q_NULLPTR)

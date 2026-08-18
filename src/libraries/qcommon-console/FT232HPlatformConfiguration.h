@@ -1,34 +1,29 @@
-#ifndef FTDIPLATFORMCONFIGURATION_H
-#define FTDIPLATFORMCONFIGURATION_H
 // Copyright (c) Qualcomm Technologies, Inc. and/or its subsidiaries.
 // SPDX-License-Identifier: BSD-3-Clause
 
+#ifndef FT232HPLATFORMCONFIGURATION_H
+#define FT232HPLATFORMCONFIGURATION_H
+
 #include "QCommonConsoleGlobal.h"
 
-#include "CommandGroup.h"
-#include "PlatformConfiguration.h"
 #include "FTDIPinData.h"
-#include "StringUtilities.h"
+#include "PlatformConfiguration.h"
 
 
-class QCOMMONCONSOLE_EXPORT _FTDIPlatformConfiguration:
+class QCOMMONCONSOLE_EXPORT _FT232HPlatformConfiguration:
 	public _PlatformConfiguration
 {
 public:
-	_FTDIPlatformConfiguration() = delete;
-	_FTDIPlatformConfiguration(quint16 chipCount);
+	_FT232HPlatformConfiguration();
+	~_FT232HPlatformConfiguration();
 
-	void initialize(quint16 chipCount);
-
-	virtual ~_FTDIPlatformConfiguration();
+	void initialize();
 
 	FTDIPinData getPinData(ChipIndex chipIndex, Bus bus, PinID pin);
 
 	FTDIPinList getAllPins() const;
 	FTDIPinList getActivePins() const;
 	FTDIPinList getActivePins(ChipIndex chipIndex, Bus bus) const;
-
-	int getChipCount();
 
 	virtual Pins getPins();
 
@@ -93,10 +88,9 @@ private:
 
 	PinID getSetPinIndex(const int chipIndex, const Bus &bus, PinID pinId);
 
-	int							_chipCount{1};
-	FTDIPinEntries				_pinEntries;
-	FTDIBusFunctions            _busFunctions;
-	QString						_usbDescriptorString;
+	FTDIPinEntries					_pinEntries;
+	FTDIBusFunctions				_busFunctions;
+	QString							_usbDescriptorString;
 };
 
-#endif // FTDIPLATFORMCONFIGURATION_H
+#endif // FT232HPLATFORMCONFIGURATION_H

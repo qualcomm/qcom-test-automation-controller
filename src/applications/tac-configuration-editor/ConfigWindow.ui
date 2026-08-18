@@ -251,6 +251,20 @@
                </attribute>
               </widget>
              </item>
+             <item>
+              <widget class="QRadioButton" name="_fw18Radio">
+               <property name="text">
+                <string>18</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QRadioButton" name="_fw19Radio">
+               <property name="text">
+                <string>19</string>
+               </property>
+              </widget>
+             </item>
             </layout>
            </widget>
           </item>
@@ -678,7 +692,7 @@ border: none;</string>
     <bool>false</bool>
    </property>
    <property name="icon">
-    <iconset resource="Resources/TACConfigEditor.qrc">
+    <iconset resource="resources/TACConfigEditor.qrc">
      <normaloff>:/Save.png</normaloff>:/Save.png</iconset>
    </property>
    <property name="text">
@@ -709,7 +723,7 @@ border: none;</string>
     <bool>false</bool>
    </property>
    <property name="icon">
-    <iconset resource="Resources/TACConfigEditor.qrc">
+    <iconset resource="resources/TACConfigEditor.qrc">
      <normaloff>:/Open.png</normaloff>:/Open.png</iconset>
    </property>
    <property name="text">
@@ -730,7 +744,7 @@ border: none;</string>
     <bool>false</bool>
    </property>
    <property name="icon">
-    <iconset resource="Resources/TACConfigEditor.qrc">
+    <iconset resource="resources/TACConfigEditor.qrc">
      <normaloff>:/Preview.drawio.png</normaloff>:/Preview.drawio.png</iconset>
    </property>
    <property name="text">
@@ -751,7 +765,7 @@ border: none;</string>
     <bool>false</bool>
    </property>
    <property name="icon">
-    <iconset resource="Resources/TACConfigEditor.qrc">
+    <iconset resource="resources/TACConfigEditor.qrc">
      <normaloff>:/ManageTabs.png</normaloff>:/ManageTabs.png</iconset>
    </property>
    <property name="text">
@@ -760,7 +774,7 @@ border: none;</string>
   </action>
   <action name="_actionNew">
    <property name="icon">
-    <iconset resource="Resources/TACConfigEditor.qrc">
+    <iconset resource="resources/TACConfigEditor.qrc">
      <normaloff>:/new-config.png</normaloff>:/new-config.png</iconset>
    </property>
    <property name="text">
@@ -775,7 +789,7 @@ border: none;</string>
     <bool>false</bool>
    </property>
    <property name="icon">
-    <iconset resource="Resources/TACConfigEditor.qrc">
+    <iconset resource="resources/TACConfigEditor.qrc">
      <normaloff>:/script.png</normaloff>:/script.png</iconset>
    </property>
    <property name="text">
@@ -787,7 +801,7 @@ border: none;</string>
   </action>
   <action name="_actionRefresh">
    <property name="icon">
-    <iconset resource="Resources/TACConfigEditor.qrc">
+    <iconset resource="resources/TACConfigEditor.qrc">
      <normaloff>:/download-spinner.png</normaloff>:/download-spinner.png</iconset>
    </property>
    <property name="text">
@@ -843,7 +857,7 @@ border: none;</string>
   </customwidget>
  </customwidgets>
  <resources>
-  <include location="Resources/TACConfigEditor.qrc"/>
+  <include location="resources/TACConfigEditor.qrc"/>
  </resources>
  <connections/>
  <buttongroups>

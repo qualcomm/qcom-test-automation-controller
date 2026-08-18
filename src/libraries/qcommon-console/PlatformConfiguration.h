@@ -56,7 +56,7 @@ public:
 
 	static void initializeDynamicPlatform();
 
-	static PlatformConfiguration createPlatformConfiguration(DebugBoardType debugBoardType, int chipCount = 1);
+	static PlatformConfiguration createPlatformConfiguration(DebugBoardType debugBoardType, int chipCount = 1, PSOCVariant psocVariant = ePSOCUnknown);
 	static PlatformConfiguration openPlatformConfiguration(const QString& filePath);
 
 	static QList<PlatformID> platformEntryIds();

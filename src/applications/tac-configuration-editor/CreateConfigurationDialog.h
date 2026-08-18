@@ -21,6 +21,7 @@ public:
 
 	DebugBoardType getPlatform();
 	int getChipCount();
+	PSOCVariant getPSOCVariant();
 
 private slots:
 	void on__platformComboBox_currentIndexChanged(int index);

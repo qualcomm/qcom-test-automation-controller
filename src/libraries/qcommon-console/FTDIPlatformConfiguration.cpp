@@ -61,14 +61,14 @@ _FTDIPlatformConfiguration::_FTDIPlatformConfiguration
 	deviceInfoTab._userTab = false;
 
 	fusionTab._name = "Fusion";
-	fusionTab._visible = true;
+	fusionTab._visible = false;
 	fusionTab._moveable = true;
 	fusionTab._configurable = false;
 	fusionTab._ordinal = 3;
 	fusionTab._userTab = false;
 
 	terminalTab._name = "Terminal";
-	terminalTab._visible = true;
+	terminalTab._visible = false;
 	terminalTab._moveable = true;
 	terminalTab._configurable = false;
 	terminalTab._ordinal = 4;

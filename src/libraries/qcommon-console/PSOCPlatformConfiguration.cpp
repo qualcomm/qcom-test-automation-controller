@@ -34,10 +34,12 @@ const QString kCommmandGroup(QStringLiteral("command_group"));
 const QString kClassicAction(QStringLiteral("classic_action"));
 const QString kTabName(QStringLiteral("tab_name"));
 const QString kMinFirmwareVersion(QStringLiteral("supportedFirmwareVer"));
+const QString kVariant(QStringLiteral("variant"));
+
 
 PSOCPinEntries _PSOCPlatformConfiguration::_classicActions;
 
-_PSOCPlatformConfiguration::_PSOCPlatformConfiguration()
+_PSOCPlatformConfiguration::_PSOCPlatformConfiguration(PSOCVariant psocVariant)
 {
 	_platform = ePSOC;
 	_platformId = kMaxPSOCPlatformId;
@@ -65,21 +67,26 @@ _PSOCPlatformConfiguration::_PSOCPlatformConfiguration()
 	deviceInfoTab._ordinal = 1;
 	deviceInfoTab._userTab = false;
 
-	i2cTab._name = "I2C";
-	i2cTab._moveable = true;
-	i2cTab._visible = true;
-	i2cTab._configurable = false;
-	i2cTab._ordinal = 2;
-	i2cTab._userTab = true;
+	if (psocVariant == ePSOCGPIOIIC)
+	{
+		i2cTab._name = "I2C";
+		i2cTab._moveable = true;
+		i2cTab._visible = true;
+		i2cTab._configurable = false;
+		i2cTab._ordinal = 2;
+		i2cTab._userTab = true;
+	}
 
 	fusionTab._name = "Fusion";
 	fusionTab._moveable = true;
+	fusionTab._visible = false;
 	fusionTab._configurable = true;
 	fusionTab._ordinal = 3;
 	fusionTab._userTab = true;
 
 	terminalTab._name = "Terminal";
 	terminalTab._moveable = true;
+	terminalTab._visible = false;
 	terminalTab._configurable = false;
 	terminalTab._ordinal = 4;
 	terminalTab._userTab = false;
@@ -180,6 +187,16 @@ PSOCPinList _PSOCPlatformConfiguration::getActivePins()
 	std::sort(pinList.begin(), pinList.end(), sortLambda);
 
 	return pinList;
+}
+
+PSOCVariant _PSOCPlatformConfiguration::variant()
+{
+	return _variant;
+}
+
+void _PSOCPlatformConfiguration::setVariant(PSOCVariant psocVariant)
+{
+	_variant = psocVariant;
 }
 
 bool _PSOCPlatformConfiguration::getPinEnableState(const PinID pinId) const
@@ -498,6 +515,11 @@ bool _PSOCPlatformConfiguration::read(QJsonObject &parentLevel)
 		if (_supportedFirmwareVer.size() == 0)
 			_supportedFirmwareVer.append(kDefaultFirmwareVersion);
 	}
+
+	jsonValue = parentLevel.value(kVariant);
+
+	if (jsonValue.isNull() == false)
+		setVariant(PSOCVariant(jsonValue.toInt()));
 
 	QJsonArray pinDataArray = parentLevel.value(kPlatformEntries).toArray();
 

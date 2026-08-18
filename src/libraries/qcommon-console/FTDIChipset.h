@@ -5,6 +5,7 @@
 
 // QCommon
 #include "CharBit.h"
+#include "DebugBoardType.h"
 #include "FTDIPinSet.h"
 #include "PlatformID.h"
 #include "StringUtilities.h"
@@ -33,11 +34,14 @@ public:
 	static quint32 getDeviceCount();
 	static FTDIChipset getDevice(quint32 deviceIndex);
 	static FTDIChipset getDevice(const QByteArray& portName);
-	static QByteArray normalizeSerialNumber(const QByteArray& segmentSerialNumber);
+	static QByteArray normalizeSerialNumber(DebugBoardType boardType, const QByteArray& segmentSerialNumber);
 
 	bool open(FTDIPinSets pinsets);
 	bool isOpen();
 	void close();
+
+	DebugBoardType boardType();
+	void setBoardType(DebugBoardType boardType);
 
 	PlatformID platformID();
 	void setPlatformID(PlatformID platformID);
@@ -89,6 +93,8 @@ public:
 
 	bool write(quint8 pin, bool state);
 
+	void setInvertMask(quint8 mask) { _invertMask = mask; }
+
 private:
 	static HashType hash(const QByteArray& serialNumber);
 
@@ -105,6 +111,7 @@ private:
 
 	HashType			_hash{0};
 	PlatformID			_platformID{ALPACA_LITE_ID};
+	DebugBoardType		_boardType{eFTDI};
 	bool				_new{true};
 	bool				_active{false};
 	CharBit				_aPins;
@@ -129,6 +136,8 @@ private:
 	void*				_dHandle{Q_NULLPTR};
 
 	QByteArray          _lastError;
+
+	quint8				_invertMask{0};
 
 	static FTDIChipsetList		_ftdiChipsetList;
 };

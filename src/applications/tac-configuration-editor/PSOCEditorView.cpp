@@ -517,56 +517,59 @@ void PSOCEditorView::resetToDefault()
 	TableCheckBox* checkBoxWidget{Q_NULLPTR};
 	TableComboBox* comboBoxWidget{Q_NULLPTR};
 
-	_PSOCPlatformConfiguration psocConfig;
-	for (auto& pinData : psocConfig.getPins())
+	if (_psocPlatformConfig != Q_NULLPTR)
 	{
-		PinID pin{0};
-
-		int rowId = _psocTable->currentRow();
-
-		twi = _psocTable->item(rowId, kPinColumn);
-		if (twi)
-			pin = twi->text().toUInt();
-
-		if (pin == pinData._pin)
+		_PSOCPlatformConfiguration psocConfig(_psocPlatformConfig->variant());
+		for (auto& pinData : psocConfig.getPins())
 		{
-			checkBoxWidget = static_cast<TableCheckBox*>(_psocTable->cellWidget(rowId, kEnabledColumn));
-			if (checkBoxWidget)
-				checkBoxWidget->setCheckState(pinData._enabled);
+			PinID pin{0};
 
-			checkBoxWidget = static_cast<TableCheckBox*>(_psocTable->cellWidget(rowId, kInitialPinValueColumn));
-			if (checkBoxWidget)
-				checkBoxWidget->setCheckState(pinData._initialValue);
+			int rowId = _psocTable->currentRow();
 
-			checkBoxWidget = static_cast<TableCheckBox*>(_psocTable->cellWidget(rowId, kInvertColumn));
-			if (checkBoxWidget)
-				checkBoxWidget->setCheckState(pinData._inverted);
-
-			twi = _psocTable->item(rowId, kPinLabelColumn);
+			twi = _psocTable->item(rowId, kPinColumn);
 			if (twi)
-				twi->setText(pinData._pinLabel);
+				pin = twi->text().toUInt();
 
-			twi = _psocTable->item(rowId, kPinTooltipColumn);
-			if (twi)
-				twi->setText(pinData._pinTooltip);
-
-			twi = _psocTable->item(rowId, kPinCommandColumn);
-			if (twi)
-				twi->setText(pinData._pinCommand);
-
-			comboBoxWidget = static_cast<TableComboBox*>(_psocTable->cellWidget(rowId, kCommandGroupColumn));
-			if (comboBoxWidget)
-				comboBoxWidget->setCurrentText(CommandGroup::toString(pinData._commandGroup));
-
-			comboBoxWidget = static_cast<TableComboBox*>(_psocTable->cellWidget(rowId, kTabsColumn));
-			if (comboBoxWidget)
-				comboBoxWidget->setCurrentText(pinData._tabName);
-
-			twi = _psocTable->item(rowId, kCellLocationColumn);
-			if (twi)
+			if (pin == pinData._pin)
 			{
-				QString cellLocationString = QString::number(pinData._cellLocation.x()) + "," + QString::number(pinData._cellLocation.y());
-				twi->setText(cellLocationString);
+				checkBoxWidget = static_cast<TableCheckBox*>(_psocTable->cellWidget(rowId, kEnabledColumn));
+				if (checkBoxWidget)
+					checkBoxWidget->setCheckState(pinData._enabled);
+
+				checkBoxWidget = static_cast<TableCheckBox*>(_psocTable->cellWidget(rowId, kInitialPinValueColumn));
+				if (checkBoxWidget)
+					checkBoxWidget->setCheckState(pinData._initialValue);
+
+				checkBoxWidget = static_cast<TableCheckBox*>(_psocTable->cellWidget(rowId, kInvertColumn));
+				if (checkBoxWidget)
+					checkBoxWidget->setCheckState(pinData._inverted);
+
+				twi = _psocTable->item(rowId, kPinLabelColumn);
+				if (twi)
+					twi->setText(pinData._pinLabel);
+
+				twi = _psocTable->item(rowId, kPinTooltipColumn);
+				if (twi)
+					twi->setText(pinData._pinTooltip);
+
+				twi = _psocTable->item(rowId, kPinCommandColumn);
+				if (twi)
+					twi->setText(pinData._pinCommand);
+
+				comboBoxWidget = static_cast<TableComboBox*>(_psocTable->cellWidget(rowId, kCommandGroupColumn));
+				if (comboBoxWidget)
+					comboBoxWidget->setCurrentText(CommandGroup::toString(pinData._commandGroup));
+
+				comboBoxWidget = static_cast<TableComboBox*>(_psocTable->cellWidget(rowId, kTabsColumn));
+				if (comboBoxWidget)
+					comboBoxWidget->setCurrentText(pinData._tabName);
+
+				twi = _psocTable->item(rowId, kCellLocationColumn);
+				if (twi)
+				{
+					QString cellLocationString = QString::number(pinData._cellLocation.x()) + "," + QString::number(pinData._cellLocation.y());
+					twi->setText(cellLocationString);
+				}
 			}
 		}
 	}

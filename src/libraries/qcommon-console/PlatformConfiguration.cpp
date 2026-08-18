@@ -101,18 +101,14 @@ _PlatformConfiguration::~_PlatformConfiguration()
 {
 }
 
-PlatformConfiguration _PlatformConfiguration::createPlatformConfiguration
-(
-	DebugBoardType debugBoardType,
-	int chipCount
-)
+PlatformConfiguration _PlatformConfiguration::createPlatformConfiguration(DebugBoardType debugBoardType, int chipCount, PSOCVariant psocVariant)
 {
 	PlatformConfiguration result;
 
 	switch (debugBoardType)
 	{
 	case ePSOC:
-		result = PlatformConfiguration(new _PSOCPlatformConfiguration);
+		result = PlatformConfiguration(new _PSOCPlatformConfiguration(psocVariant));
 		break;
 
 	case eFTDI:
@@ -141,7 +137,7 @@ PlatformConfiguration _PlatformConfiguration::openPlatformConfiguration
 		QString fileName = fileInfo.fileName();
 		if (fileName.contains("_psoc_", Qt::CaseInsensitive))
 		{
-			result = PlatformConfiguration(new _PSOCPlatformConfiguration);
+			result = PlatformConfiguration(new _PSOCPlatformConfiguration(ePSOCUnknown));
 		}
 		else if (fileName.contains("_ftdi_", Qt::CaseInsensitive))
 		{
@@ -990,7 +986,7 @@ void _PlatformConfiguration::setFilePath(const QString &filePath)
 {
 	QFileInfo fileInfo(filePath);
 
-	if (fileInfo.absoluteFilePath().startsWith("C:/ProgramData/Qualcomm/Alpaca", Qt::CaseInsensitive))
+	if (fileInfo.absoluteFilePath().startsWith("C:/ProgramData/Qualcomm/QTAC", Qt::CaseInsensitive))
 	{
 		if (_platform == ePSOC && _platformId < 255)
 		{

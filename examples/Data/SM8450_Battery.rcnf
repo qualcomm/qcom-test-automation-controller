@@ -1,0 +1,292 @@
+{
+    "channels": [
+        {
+            "active": false,
+            "hash": "17736032",
+            "series_name": "VDDCX_SRM (Nalo L6F)_I"
+        },
+        {
+            "active": false,
+            "hash": "54255483",
+            "series_name": "VDDAM_SRM (Nalo L2F)_I"
+        },
+        {
+            "active": false,
+            "hash": "130356321",
+            "series_name": "VDDPX_QTM0 (Palani S1C)_I"
+        },
+        {
+            "active": false,
+            "hash": "157040677",
+            "series_name": "SM8450_GPIO_93_V"
+        },
+        {
+            "active": false,
+            "hash": "162083984",
+            "series_name": "VPH_QTM1_I"
+        },
+        {
+            "active": false,
+            "hash": "179783652",
+            "series_name": "VPH_RF_V"
+        },
+        {
+            "active": false,
+            "hash": "190622379",
+            "series_name": "VDDPX_QTM1 (Palani S1C)_I"
+        },
+        {
+            "active": false,
+            "hash": "207683779",
+            "series_name": "VDDPX_QTM0 (Palani S1C)_V"
+        },
+        {
+            "active": false,
+            "hash": "238404181",
+            "series_name": "VDDCX (Palani S6C_7C_8C_9C)_I"
+        },
+        {
+            "active": false,
+            "hash": "262892893",
+            "series_name": "VDD_MODEM (Palani S4C_5C)_V"
+        },
+        {
+            "active": false,
+            "hash": "267949837",
+            "series_name": "VDDPX_QTM1 (Palani S1C)_V"
+        },
+        {
+            "active": false,
+            "hash": "269593790",
+            "series_name": "VDD_GFX (S5B_6B_7B_8B)_I"
+        },
+        {
+            "active": false,
+            "hash": "278275763",
+            "series_name": "VDD3P0_SENSOR (Palani L7C)_I"
+        },
+        {
+            "active": false,
+            "hash": "290826556",
+            "series_name": "VDDPX_QTM23 (Palani S1C)_V"
+        },
+        {
+            "active": false,
+            "hash": "297022622",
+            "series_name": "VPH_QTM0_I"
+        },
+        {
+            "active": false,
+            "hash": "299832927",
+            "series_name": "SDR_VDD_CX Axion 1 (SECO L2E)_I"
+        },
+        {
+            "active": false,
+            "hash": "301023080",
+            "series_name": "VDD_GFX (S5B_6B_7B_8B)_V"
+        },
+        {
+            "active": false,
+            "hash": "314243581",
+            "series_name": "SDR_VDD_CX Axion 0 (SECO L2E)_I"
+        },
+        {
+            "active": false,
+            "hash": "314587477",
+            "series_name": "VDDAH_SRM (Nalo L4F)_V"
+        },
+        {
+            "active": false,
+            "hash": "327596867",
+            "series_name": "VDD_LPI_CX (Papio L8B)_I"
+        },
+        {
+            "active": false,
+            "hash": "340284288",
+            "series_name": "VDD_MX_A (Hapuna S6H)_I"
+        },
+        {
+            "active": false,
+            "hash": "344063785",
+            "series_name": "VPH_QTM23_I"
+        },
+        {
+            "active": false,
+            "hash": "359026157",
+            "series_name": "VDD_LPI_CX (Papio L8B)_V"
+        },
+        {
+            "active": false,
+            "hash": "376459220",
+            "series_name": "VDDPX_3 (Papio S10B)_V"
+        },
+        {
+            "active": false,
+            "hash": "379053794",
+            "series_name": "VDD_MM (Hapuna S4H_5H)_I"
+        },
+        {
+            "active": false,
+            "hash": "390990239",
+            "series_name": "VDD_MX_A (Hapuna S6H)_V"
+        },
+        {
+            "active": false,
+            "hash": "393736939",
+            "series_name": "VDD3P0_SENSOR (Palani L7C)_V"
+        },
+        {
+            "active": true,
+            "hash": "407488991",
+            "series_name": "BATTERY_I"
+        },
+        {
+            "active": false,
+            "hash": "410483084",
+            "series_name": "VDD_MM (Hapuna S4H_5H)_V"
+        },
+        {
+            "active": false,
+            "hash": "417670030",
+            "series_name": "VDDPX_QTM23 (Palani S1C)_I"
+        },
+        {
+            "active": false,
+            "hash": "430384697",
+            "series_name": "VDDCX_SRM (Nalo L6F)_V"
+        },
+        {
+            "active": false,
+            "hash": "466904148",
+            "series_name": "VDDAM_SRM (Nalo L2F)_V"
+        },
+        {
+            "active": false,
+            "hash": "520726803",
+            "series_name": "VDD_APC1 (Papio S1B_2B_3B_4B)_I"
+        },
+        {
+            "active": false,
+            "hash": "539049534",
+            "series_name": "VDD_MX_C (Palani S2C_3C)_V"
+        },
+        {
+            "active": true,
+            "hash": "577503492",
+            "series_name": "BATTERY_V"
+        },
+        {
+            "active": false,
+            "hash": "581057348",
+            "series_name": "VDD_LPI_MX (Hapuna L1H)_I"
+        },
+        {
+            "active": false,
+            "hash": "590795265",
+            "series_name": "VDDAH_SRM (Nalo L4F)_I"
+        },
+        {
+            "active": false,
+            "hash": "609774713",
+            "series_name": "SM8450_GPIO_2_V"
+        },
+        {
+            "active": false,
+            "hash": "631739273",
+            "series_name": "VPH_QTM23_V"
+        },
+        {
+            "active": false,
+            "hash": "646556596",
+            "series_name": "VDD1P8_SENSOR (Palani L8C)_I"
+        },
+        {
+            "active": false,
+            "hash": "658384806",
+            "series_name": "VDD_LPI_MX (Hapuna L1H)_V"
+        },
+        {
+            "active": false,
+            "hash": "665462648",
+            "series_name": "VREG_S2H (Hapuna VREG_S2H)_I"
+        },
+        {
+            "active": false,
+            "hash": "665893008",
+            "series_name": "VDD_MX_C (Palani S2C_3C)_I"
+        },
+        {
+            "active": false,
+            "hash": "714252016",
+            "series_name": "VDD_APC0 (Hapuna S1H)_I"
+        },
+        {
+            "active": false,
+            "hash": "752095141",
+            "series_name": "SDR_VDD_CX Axion 1 (SECO L2E)_V"
+        },
+        {
+            "active": false,
+            "hash": "762017772",
+            "series_name": "VDD1P8_SENSOR (Palani L8C)_V"
+        },
+        {
+            "active": false,
+            "hash": "764957967",
+            "series_name": "VDD_APC0 (Hapuna S1H)_V"
+        },
+        {
+            "active": false,
+            "hash": "766505795",
+            "series_name": "SDR_VDD_CX Axion 0 (SECO L2E)_V"
+        },
+        {
+            "active": false,
+            "hash": "780923824",
+            "series_name": "VREG_S2H (Hapuna VREG_S2H)_V"
+        },
+        {
+            "active": false,
+            "hash": "855810354",
+            "series_name": "VPH_QTM1_V"
+        },
+        {
+            "active": false,
+            "hash": "861665423",
+            "series_name": "VDD_MODEM (Palani S4C_5C)_I"
+        },
+        {
+            "active": false,
+            "hash": "879611260",
+            "series_name": "XO_EN_V"
+        },
+        {
+            "active": false,
+            "hash": "911926152",
+            "series_name": "VDDCX (Palani S6C_7C_8C_9C)_V"
+        },
+        {
+            "active": false,
+            "hash": "933985937",
+            "series_name": "VPH_RF_I"
+        },
+        {
+            "active": false,
+            "hash": "963810564",
+            "series_name": "VDDPX_3 (Papio S10B)_I"
+        },
+        {
+            "active": false,
+            "hash": "972989017",
+            "series_name": "VDD_APC1 (Papio S1B_2B_3B_4B)_V"
+        },
+        {
+            "active": false,
+            "hash": "990748992",
+            "series_name": "VPH_QTM0_V"
+        }
+    ],
+    "creation_date": "Wed Jul 13 10:25:49 2022",
+    "modify_date": "Wed Jul 13 10:25:49 2022",
+    "platformFile": "MTP8450_ALPACA_Config.ccnf"
+}
