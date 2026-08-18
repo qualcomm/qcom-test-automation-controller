@@ -113,7 +113,7 @@
             "chip2BusSet": 0,
             "chip3BusSet": 0,
             "chip4BusSet": 0,
-            "configPath": "",
+            "configPath": "../../../../configurations/TAC_FTDI_16.tcnf",
             "debugBoardType": 3,
             "description": "ALPACA LITE (FTDI)",
             "name": "ALPACA LITE (FTDI)",
@@ -778,3 +778,4 @@
     ],
     "modification_date": "Tue Jun 16 23:24:37 2026"
 }
+
