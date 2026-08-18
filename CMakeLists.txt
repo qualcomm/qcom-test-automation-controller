@@ -14,7 +14,16 @@ set(CMAKE_INCLUDE_CURRENT_DIR ON)
 find_package(QT NAMES Qt6 REQUIRED COMPONENTS Core Multimedia)
 find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Concurrent Gui Multimedia MultimediaWidgets Network SerialPort Widgets Xml)
 
-qt_standard_project_setup(REQUIRES 6.9)
+qt_standard_project_setup(REQUIRES 6.4)
+
+# qt_generate_deploy_app_script()'s option to receive the generated script's
+# path was renamed OUTPUT_SCRIPT in Qt 6.5; distro-packaged Qt as old as 6.4
+# only understands the original FILENAME_VARIABLE name.
+if(QT_VERSION VERSION_LESS 6.5)
+    set(QT_DEPLOY_SCRIPT_KEYWORD FILENAME_VARIABLE)
+else()
+    set(QT_DEPLOY_SCRIPT_KEYWORD OUTPUT_SCRIPT)
+endif()
 
 add_subdirectory(third-party)
 add_subdirectory(src/libraries)
