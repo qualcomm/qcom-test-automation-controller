@@ -15,7 +15,8 @@ enum DebugBoardType
 	ePSOC,
 	eFTDI,
 	ePIC32CXAuto,
-	eFT232H
+	eFT232H,
+	eSTM32,
 };
 
 enum PSOCVariant
@@ -25,10 +26,19 @@ enum PSOCVariant
 	ePSOCGPIOIIC,
 };
 
+enum PSOCIICVariant
+{
+	ePSOCIICUnknown,
+	eKTS1622EUAATR,
+	eTCA9534APWR,
+};
+
 QString QCOMMONCONSOLE_EXPORT debugBoardTypeToString(DebugBoardType);
 DebugBoardType QCOMMONCONSOLE_EXPORT debugBoardTypeFromString(const QString& boardString);
 
 QString QCOMMONCONSOLE_EXPORT psocVariantToString(PSOCVariant psocVariant);
 PSOCVariant QCOMMONCONSOLE_EXPORT psocVariantFromString(const QString& psocVariantString);
+
+QString QCOMMONCONSOLE_EXPORT psocSlaveToString(const PSOCIICVariant slave);
 
 #endif // DEBUGBOARDTYPE_H

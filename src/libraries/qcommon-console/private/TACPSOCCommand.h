@@ -12,6 +12,7 @@ class ReceiveInterface;
 
 // Qt
 #include <QByteArray>
+#include <QString>
 #include <QVariant>
 
 class QCOMMONCONSOLE_EXPORT TACPSOCCommand
@@ -25,6 +26,7 @@ public:
 	void uuid();
 
 	virtual void setPinState(quint16 pin, bool state);
+	virtual void setAddressPinState(const QString& i2cAddress, quint16 pin, bool state);
 
 	void setName(const QByteArray& newName);
 

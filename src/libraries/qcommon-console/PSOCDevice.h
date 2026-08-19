@@ -25,7 +25,6 @@ public:
 	virtual void buildMapping();
 
 private:
-//	TACPreferences*				_tacPreferences{Q_NULLPTR};
 	_PSOCPlatformConfiguration*	_psocPlatformConfiguration{Q_NULLPTR};
 };
 
