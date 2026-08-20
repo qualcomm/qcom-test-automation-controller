@@ -142,17 +142,26 @@ void startLocalBrowser(const QString &filePath)
 QString docsRoot()
 {
 	QString result;
-	QString appName;
 
-	appName = QCoreApplication::applicationName();
-	if (appName.isEmpty())
-		appName = "QTAC";
+	// Derive the actual install folder name ("Alpaca", "QEPM", "QTAC", ...)
+	// from where this binary is running, i.e. .../Qualcomm/<X>/<exe> -> "<X>".
+	// This is more reliable than QCoreApplication::applicationName(), which
+	// is rarely set explicitly and silently falls back to a hardcoded
+	// default otherwise.
+	QString appName = "QTAC";
+	QDir binDir(QCoreApplication::applicationDirPath());
+	if (binDir.exists())
+	{
+		const QString folderName = binDir.dirName();
+		if (folderName.isEmpty() == false)
+			appName = folderName;
+	}
 
 #ifdef Q_OS_WINDOWS
-	result = "C:\\Program Files (x86)\\Qualcomm\\" + appName + "\\docs\\";
+	result = "C:/Program Files/Qualcomm/" + appName + "/docs/external/";
 #endif
 #ifdef Q_OS_LINUX
-    result = "/opt/qcom/" + appName + "/docs";
+    result = "/opt/qcom/" + appName + "/docs/external";
 #endif
 	return result;
 }
