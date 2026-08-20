@@ -52,6 +52,8 @@ public slots:
 	void onPinTriggered(PinID pin, bool state);
 	void onPinResponse(/*PinID*/ quint64 pin, bool state);
 
+	void onI2CPinTriggered(HashType hash, bool state);
+
 	void onCommandTriggered(const QString& command);
 
 	void onVariableValueUpdated(ScriptVariable scriptVariable);
@@ -62,18 +64,21 @@ private slots:
 private:
 	void setupUITabs();
 	void setupUIPins();
+	void setupUII2CPins();
 	void setupUIQuickSettings();
 	void setupUIVariables();
 	void cleanupEmptyGroupBoxes();
 
 	void populateVariables(const ScriptVariable &variable);
 	void populatePinLEDs(const Pins& pins, const QString& tabName);
+	void populateI2CPinLEDs(const Pins& pins, const QString& tabName);
 	void populateQuickSettingsButtons(const ButtonList& buttons, const QString& tabName);
 
 	QWidget* getTabWidget(const QString& tabName);
 
 	Ui::TACFrameClass*			_ui{Q_NULLPTR};
 	PinMap						_pinMap;
+	PinMap						_i2cPinMap;
 	AlpacaDevice				_alpacaDevice;
 	PlatformConfiguration		_platformConfiguration;
 };
