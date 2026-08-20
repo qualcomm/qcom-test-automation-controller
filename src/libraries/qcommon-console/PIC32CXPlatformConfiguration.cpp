@@ -39,7 +39,7 @@ _PIC32CXPlatformConfiguration::_PIC32CXPlatformConfiguration()
 	_PIC32CXPlatformConfiguration::initialize();
 
 	// Add default tabs to _editorTabs
-	Tab generalTab, deviceInfoTab, terminalTab;
+	Tab generalTab, deviceInfoTab;
 
 	generalTab._name = "General";
 	generalTab._moveable = false;
@@ -53,15 +53,8 @@ _PIC32CXPlatformConfiguration::_PIC32CXPlatformConfiguration()
 	deviceInfoTab._ordinal = 1;
 	deviceInfoTab._userTab = false;
 
-	terminalTab._name = "Terminal";
-	terminalTab._moveable = true;
-	terminalTab._configurable = false;
-	terminalTab._ordinal = 2;
-	terminalTab._userTab = false;
-
 	_tabs.append(generalTab);
 	_tabs.append(deviceInfoTab);
-	_tabs.append(terminalTab);
 }
 
 _PIC32CXPlatformConfiguration::~_PIC32CXPlatformConfiguration()
