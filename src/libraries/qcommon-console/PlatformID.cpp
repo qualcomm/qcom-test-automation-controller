@@ -101,8 +101,7 @@ void PlatformContainer::initializeDynamic()
 
 		for (const auto& descriptor: descriptorList)
 		{
-			auto existingEntry = _platformIds.find(descriptor._platformID);
-			if (existingEntry == _platformIds.end())
+			if (_platformIds.find(descriptor._platformID) == _platformIds.end())
 			{
 				PlatformEntry platformEntry(new _PlatformEntry(descriptor._platformID, descriptor._debugBoardType, descriptor._description));
 
@@ -115,26 +114,21 @@ void PlatformContainer::initializeDynamic()
 
 				_platformIds.insert(descriptor._platformID, platformEntry);
 			}
-			else
-			{
-				// A few platform IDs (e.g. ALPACA_LITE_ID / 13) are pre-registered
-				// above with a hardcoded description/usbDescriptor but no config
-				// file path or pin sets. Without this, devicelist.json's configPath
-				// for those IDs is silently ignored, so no .tcnf (and therefore no
-				// Alpaca Script commands) ever gets loaded for them - button clicks
-				// on script-driven quick commands (bootToEDL, powerOn, powerOff...)
-				// then fail with "not found in Alpaca Script" for every device using
-				// that platform ID.
-				PlatformEntry& platformEntry = existingEntry.value();
-				if (platformEntry->_path.isEmpty() && descriptor._configurationFilePath.isEmpty() == false)
-				{
-					platformEntry->_path = descriptor._configurationFilePath;
-					platformEntry->_pinSets[0] = descriptor._pinSets[0];
-					platformEntry->_pinSets[1] = descriptor._pinSets[1];
-					platformEntry->_pinSets[2] = descriptor._pinSets[2];
-					platformEntry->_pinSets[3] = descriptor._pinSets[3];
-				}
-			}
+			// NOTE: ALPACA_LITE_ID (13) is intentionally pre-registered above
+			// with an empty _path. devicelist.json's configPath for platform 13
+			// ("TAC_FTDI_16.tcnf") does not actually correspond to the generic
+			// "ALPACA-LITE MTP DEBUG BOARD" - that .tcnf's own usb_descriptor is
+			// "ALPACA-LITE CSM X100 DEBUG BOARD" (platform_id 16), a different,
+			// unrelated board. There is no exact-match .tcnf for platform 13 in
+			// this open-source repo (the internal PROD build has a hardcoded
+			// fallback layout instead - see FTDIPlatformConfiguration.cpp).
+			// Leaving _path empty for pre-registered IDs preserves the existing
+			// fallback: TACPlatformEntry::getConfiguration() calls
+			// createPlatformConfiguration() when openPlatformConfiguration(path)
+			// has nothing to open, which builds the correct default FTDI pin
+			// layout (battery/pkey/EDL/EUD/usb0/usb1/System RESET) matching the
+			// MTP debug board. Backfilling _path here from devicelist.json would
+			// silently substitute the wrong board's config instead.
 		}
 	}
 	else
