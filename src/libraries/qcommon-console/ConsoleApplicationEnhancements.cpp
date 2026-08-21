@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: BSD-3-Clause
 
 #include "ConsoleApplicationEnhancements.h"
+#include "AppCore.h"
 #include "Range.h"
 
 // Qt
@@ -63,7 +64,7 @@ QString applicationDataPath()
 	#endif
 
 	// Dev fallback: use binary-relative path so it only works from the build tree,
-	// not from an installed location like C:\Program Files\Qualcomm\Alpaca\
+	// not from an installed location like "C:/Program Files/Qualcomm/Alpaca"
 	if (QDir(result).exists() == false)
 	{
 		result = applicationBinPath() + "../../../../configurations/";
