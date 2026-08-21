@@ -83,7 +83,7 @@ install(TARGETS ${APP_NAME}
 
 qt_generate_deploy_app_script(
     TARGET FTDICheck
-    OUTPUT_SCRIPT deploy_script
+    ${QT_DEPLOY_SCRIPT_KEYWORD} deploy_script
     NO_UNSUPPORTED_PLATFORM_ERROR
 )
 install(SCRIPT ${deploy_script})

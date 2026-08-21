@@ -104,7 +104,7 @@ install(TARGETS TAC
 
 qt_generate_deploy_app_script(
     TARGET TAC
-    OUTPUT_SCRIPT deploy_script
+    ${QT_DEPLOY_SCRIPT_KEYWORD} deploy_script
     NO_UNSUPPORTED_PLATFORM_ERROR
 )
 install(SCRIPT ${deploy_script})
