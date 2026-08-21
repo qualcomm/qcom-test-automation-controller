@@ -33,8 +33,10 @@ qt_add_library(${LIBRARY_NAME} STATIC
     ErrorParameter.h
     FTDIChipset.cpp FTDIChipset.h
     FTDIDevice.cpp FTDIDevice.h
+    FTDIPinData.h
     FTDIPinSet.h
     FTDIPlatformConfiguration.cpp FTDIPlatformConfiguration.h
+    FT232HPlatformConfiguration.cpp FT232HPlatformConfiguration.h
     FrameCoder.cpp FrameCoder.h
     FramePackage.h
     Notification.h

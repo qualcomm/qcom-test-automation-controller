@@ -18,6 +18,7 @@ typedef quint32 PlatformID;
 const PlatformID MICRO_EPM_BOARD_ID_UNKNOWN{0};
 const PlatformID ALPACA_LITE_ID{13}; // Needed for hard coded classic devices
 const PlatformID ALPACA_PIC32CX_ID{50}; // Needed for default pic32cx configurations
+const PlatformID ALPACA_BUGHOPPER_ID{80};
 
 struct _PlatformEntry
 {

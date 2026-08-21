@@ -8,6 +8,7 @@
 // QCommonConsolde
 #include "AppCore.h"
 #include "FTDIPlatformConfiguration.h"
+#include "FT232HPlatformConfiguration.h"
 #include "mymemcpy.h"
 #include "Range.h"
 
@@ -58,8 +59,17 @@ bool FTDIDevice::programDevice
 		QByteArray serialNumber = alpacaDevice->serialNumber() + "A";
 		QByteArray usbDescriptor = tacPlatformEntry._platformEntry->_usbDescriptor;
 
+		// For FT232H devices, no need to append bus info in serial number
+		if (tacPlatformEntry._platformEntry->_boardtype == eFT232H)
+			serialNumber = alpacaDevice->serialNumber();
+
 		if (usbDescriptor.isEmpty())
-			usbDescriptor = "ALPACA-LITE MTP DEBUG BOARD";
+		{
+			if (tacPlatformEntry._platformEntry->_boardtype == eFTDI)
+				usbDescriptor = "ALPACA-LITE MTP DEBUG BOARD";
+			else
+				usbDescriptor = "BugHopper";
+		}
 
 		ftStatus = FT_OpenEx(serialNumber.data(), FT_OPEN_BY_SERIAL_NUMBER, &ftHandle);
 		if (ftStatus == FT_OK)
@@ -143,7 +153,6 @@ quint32 FTDIDevice::updateAlpacaDevices()
 			FTDIDevice* ftdiDevice = new FTDIDevice;
 
 			ftdiDevice->_active = true;
-			ftdiDevice->_boardType = eFTDI;
 			ftdiDevice->_portName = ftdiChipset->portName();
 			ftdiDevice->_hash = hash;
 			ftdiDevice->_chipVersion = 10000;
@@ -154,6 +163,7 @@ quint32 FTDIDevice::updateAlpacaDevices()
 			TACPlatformEntry platformEntry = _PlatformConfiguration::getEntry(ftdiDevice->_platformID);
 			ftdiDevice->_description = platformEntry._platformEntry->_description.toLatin1();
 			ftdiDevice->_platformConfiguration = platformEntry.getConfiguration();
+			ftdiDevice->_boardType = platformEntry._platformEntry->_boardtype;
 
 			alpacaDevice = AlpacaDevice(ftdiDevice);
 			_AlpacaDevice::_alpacaDevices.push_back(alpacaDevice);
@@ -177,14 +187,34 @@ bool FTDIDevice::open()
 
 	if (_platformConfiguration.isNull() == false)
 	{
-		_ftdiPlatformConfiguration = static_cast<_FTDIPlatformConfiguration*>(_platformConfiguration.data());
+		if (_platformConfiguration->getPlatform() == eFTDI)
+			_ftdiPlatformConfiguration = static_cast<_FTDIPlatformConfiguration*>(_platformConfiguration.data());
+		else
+			_ft232hPlatformConfiguration = static_cast<_FT232HPlatformConfiguration*>(_platformConfiguration.data());
 
 		buildMapping();
 
 		if (_driveThread == Q_NULLPTR)
 		{
 			TACLiteDriveThread* driveThread = new TACLiteDriveThread(_hash);
-			driveThread->setPinSets(_ftdiPlatformConfiguration->getPinSet(0));
+
+			if (_platformConfiguration->getPlatform() == eFTDI)
+			{
+				driveThread->setPinSets(_ftdiPlatformConfiguration->getPinSet(0));
+			}
+			else
+			{
+				driveThread->setPinSets(_ft232hPlatformConfiguration->getPinSet(0));
+
+				quint8 invertMask = 0;
+				for (const auto& pin : _ft232hPlatformConfiguration->getActivePins())
+				{
+					if (pin._inverted)
+						invertMask |= static_cast<quint8>(1 << (pin._setPin % 8));
+				}
+				driveThread->setInvertMask(invertMask);
+			}
+
 			_driveThread = driveThread;
 			_driveThread->start();
 
@@ -242,7 +272,10 @@ bool FTDIDevice::open()
 
 void FTDIDevice::buildMapping()
 {
-	Q_ASSERT(_ftdiPlatformConfiguration != Q_NULLPTR);
+	if (_platformConfiguration->getPlatform() == eFTDI)
+		Q_ASSERT(_ftdiPlatformConfiguration != Q_NULLPTR);
+	else
+		Q_ASSERT(_ft232hPlatformConfiguration != Q_NULLPTR);
 
 	buildCommandList();
 	buildQuickSettings();
@@ -252,24 +285,32 @@ void FTDIDevice::buildCommandList()
 {
 	if (_commands.isEmpty() == true)
 	{
-		FTDIPinList ftdiPinList = _ftdiPlatformConfiguration->getActivePins();
-
-		for (const auto& ftdiPin: std::as_const(ftdiPinList))
+		if (_platformConfiguration != Q_NULLPTR)
 		{
-			TACCommand tacCommand;
+			FTDIPinList ftdiPinList;
 
-			tacCommand._pin = ftdiPin._setPin;
-			tacCommand._command = ftdiPin._pinCommand;
-			tacCommand._helpText = ftdiPin._pinTooltip;
-			tacCommand._currentState = ftdiPin._initialValue;
-			tacCommand._isInverted = ftdiPin._inverted;
-			tacCommand._tabName = ftdiPin._tabName.toLatin1();
-			tacCommand._groupName = CommandGroup::toString(ftdiPin._commandGroup).toLatin1();
+			if (_platformConfiguration->getPlatform() == eFTDI)
+				ftdiPinList = _ftdiPlatformConfiguration->getActivePins();
+			else
+				ftdiPinList = _ft232hPlatformConfiguration->getActivePins();
 
-			QByteArray cellLocation = QString::number(ftdiPin._cellLocation.x()).toLatin1() + "," + QString::number(ftdiPin._cellLocation.y()).toLatin1();
-			tacCommand._cellLocation = cellLocation;
+			for (const auto& ftdiPin: std::as_const(ftdiPinList))
+			{
+				TACCommand tacCommand;
 
-			_commands[tacCommand._command] = tacCommand;
+				tacCommand._pin = ftdiPin._setPin;
+				tacCommand._command = ftdiPin._pinCommand;
+				tacCommand._helpText = ftdiPin._pinTooltip;
+				tacCommand._currentState = ftdiPin._initialValue;
+				tacCommand._isInverted = ftdiPin._inverted;
+				tacCommand._tabName = ftdiPin._tabName.toLatin1();
+				tacCommand._groupName = CommandGroup::toString(ftdiPin._commandGroup).toLatin1();
+
+				QByteArray cellLocation = QString::number(ftdiPin._cellLocation.x()).toLatin1() + "," + QString::number(ftdiPin._cellLocation.y()).toLatin1();
+				tacCommand._cellLocation = cellLocation;
+
+				_commands[tacCommand._command] = tacCommand;
+			}
 		}
 	}
 }

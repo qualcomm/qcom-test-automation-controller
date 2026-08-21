@@ -34,10 +34,13 @@ const QString kCommmandGroup(QStringLiteral("command_group"));
 const QString kClassicAction(QStringLiteral("classic_action"));
 const QString kTabName(QStringLiteral("tab_name"));
 const QString kMinFirmwareVersion(QStringLiteral("supportedFirmwareVer"));
+const QString kVariant(QStringLiteral("variant"));
+
 
 PSOCPinEntries _PSOCPlatformConfiguration::_classicActions;
+PSOCI2CEntries _PSOCPlatformConfiguration::_classicI2CActions;
 
-_PSOCPlatformConfiguration::_PSOCPlatformConfiguration()
+_PSOCPlatformConfiguration::_PSOCPlatformConfiguration(PSOCVariant psocVariant)
 {
 	_platform = ePSOC;
 	_platformId = kMaxPSOCPlatformId;
@@ -45,7 +48,7 @@ _PSOCPlatformConfiguration::_PSOCPlatformConfiguration()
 	_resetActive = true;
 
 	if (_classicActions.empty())
-		_PSOCPlatformConfiguration::initialize();
+		_PSOCPlatformConfiguration::initialize(psocVariant);
 
 	for (auto [pinNumber, pinData] : RangedContainer(_PSOCPlatformConfiguration::_classicActions))
 		_pinEntries[pinData._pin] = pinData;
@@ -65,21 +68,26 @@ _PSOCPlatformConfiguration::_PSOCPlatformConfiguration()
 	deviceInfoTab._ordinal = 1;
 	deviceInfoTab._userTab = false;
 
-	i2cTab._name = "I2C";
-	i2cTab._moveable = true;
-	i2cTab._visible = true;
-	i2cTab._configurable = false;
-	i2cTab._ordinal = 2;
-	i2cTab._userTab = true;
+	if (psocVariant == ePSOCGPIOIIC)
+	{
+		i2cTab._name = "I2C";
+		i2cTab._moveable = true;
+		i2cTab._visible = true;
+		i2cTab._configurable = false;
+		i2cTab._ordinal = 2;
+		i2cTab._userTab = true;
+	}
 
 	fusionTab._name = "Fusion";
 	fusionTab._moveable = true;
+	fusionTab._visible = false;
 	fusionTab._configurable = true;
 	fusionTab._ordinal = 3;
 	fusionTab._userTab = true;
 
 	terminalTab._name = "Terminal";
 	terminalTab._moveable = true;
+	terminalTab._visible = false;
 	terminalTab._configurable = false;
 	terminalTab._ordinal = 4;
 	terminalTab._userTab = false;
@@ -180,6 +188,16 @@ PSOCPinList _PSOCPlatformConfiguration::getActivePins()
 	std::sort(pinList.begin(), pinList.end(), sortLambda);
 
 	return pinList;
+}
+
+PSOCVariant _PSOCPlatformConfiguration::variant()
+{
+	return _variant;
+}
+
+void _PSOCPlatformConfiguration::setVariant(PSOCVariant psocVariant)
+{
+	_variant = psocVariant;
 }
 
 bool _PSOCPlatformConfiguration::getPinEnableState(const PinID pinId) const
@@ -499,6 +517,11 @@ bool _PSOCPlatformConfiguration::read(QJsonObject &parentLevel)
 			_supportedFirmwareVer.append(kDefaultFirmwareVersion);
 	}
 
+	jsonValue = parentLevel.value(kVariant);
+
+	if (jsonValue.isNull() == false)
+		setVariant(PSOCVariant(jsonValue.toInt()));
+
 	QJsonArray pinDataArray = parentLevel.value(kPlatformEntries).toArray();
 
 	for (auto pinIndex: range(pinDataArray.count()))
@@ -590,7 +613,7 @@ void _PSOCPlatformConfiguration::write(QJsonObject &parentLevel)
 	parentLevel[kPlatformEntries] = jsonPlatformPinData;
 }
 
-void _PSOCPlatformConfiguration ::initialize()
+void _PSOCPlatformConfiguration ::initialize(PSOCVariant psocVariant)
 {
 	PSOCPinData pinData;
 
@@ -922,4 +945,323 @@ void _PSOCPlatformConfiguration ::initialize()
 	pinData._inverted = false;
 
 	_PSOCPlatformConfiguration::_classicActions[pinData._pin] = pinData;
+
+	//--------------
+
+	if (psocVariant == ePSOCGPIOIIC)
+	{
+		PSOCI2CData i2cData;
+
+		i2cData.clear();
+		i2cData._pin = 0;
+		i2cData._slaveAddress = 0x20;
+		i2cData._writeAddress = 0x02;
+		i2cData._hash = i2cData.makeHash();
+		i2cData._pinLabel = "CSI0 MUX Select";
+		i2cData._pinCommand = "csi0";
+		i2cData._classicAction = "CSI0 MUX Select";
+		i2cData._enabled = false;
+		i2cData._commandGroup = eSwitchGroup;
+		i2cData._tabName = "I2C";
+		i2cData._inverted = false;
+		i2cData._cellLocation = QPoint(0, 0);
+		_PSOCPlatformConfiguration::_classicI2CActions[i2cData._pin] = i2cData;
+
+		i2cData.clear();
+		i2cData._pin = 1;
+		i2cData._slaveAddress = 0x20;
+		i2cData._writeAddress = 0x02;
+		i2cData._hash = i2cData.makeHash();
+		i2cData._pinLabel = "CSI1 MUX Select";
+		i2cData._pinCommand = "csi1";
+		i2cData._classicAction = "CSI1 MUX Select";
+		i2cData._enabled = false;
+		i2cData._commandGroup = eSwitchGroup;
+		i2cData._tabName = "I2C";
+		i2cData._inverted = false;
+		i2cData._cellLocation = QPoint(1, 0);
+		_PSOCPlatformConfiguration::_classicI2CActions[i2cData._pin] = i2cData;
+
+		i2cData.clear();
+		i2cData._pin = 2;
+		i2cData._slaveAddress = 0x20;
+		i2cData._writeAddress = 0x02;
+		i2cData._hash = i2cData.makeHash();
+		i2cData._pinLabel = "CSI2 MUX Select";
+		i2cData._pinCommand = "csi2";
+		i2cData._classicAction = "CSI2 MUX Select";
+		i2cData._enabled = false;
+		i2cData._commandGroup = eSwitchGroup;
+		i2cData._tabName = "I2C";
+		i2cData._inverted = false;
+		i2cData._cellLocation = QPoint(0, 1);
+		_PSOCPlatformConfiguration::_classicI2CActions[i2cData._pin] = i2cData;
+
+		i2cData.clear();
+		i2cData._pin = 3;
+		i2cData._slaveAddress = 0x20;
+		i2cData._writeAddress = 0x02;
+		i2cData._hash = i2cData.makeHash();
+		i2cData._pinLabel = "CSI3 MUX Select";
+		i2cData._pinCommand = "csi3";
+		i2cData._classicAction = "CSI3 MUX Select";
+		i2cData._enabled = false;
+		i2cData._commandGroup = eSwitchGroup;
+		i2cData._tabName = "I2C";
+		i2cData._inverted = false;
+		i2cData._cellLocation = QPoint(1, 1);
+		_PSOCPlatformConfiguration::_classicI2CActions[i2cData._pin] = i2cData;
+
+		i2cData.clear();
+		i2cData._pin = 4;
+		i2cData._slaveAddress = 0x20;
+		i2cData._writeAddress = 0x02;
+		i2cData._hash = i2cData.makeHash();
+		i2cData._pinLabel = "DSI0 MUX Select";
+		i2cData._pinCommand = "dsi0";
+		i2cData._classicAction = "DSI0 MUX Select";
+		i2cData._enabled = false;
+		i2cData._commandGroup = eSwitchGroup;
+		i2cData._tabName = "I2C";
+		i2cData._inverted = false;
+		i2cData._cellLocation = QPoint(0, 2);
+		_PSOCPlatformConfiguration::_classicI2CActions[i2cData._pin] = i2cData;
+
+		i2cData.clear();
+		i2cData._pin = 5;
+		i2cData._slaveAddress = 0x20;
+		i2cData._writeAddress = 0x02;
+		i2cData._hash = i2cData.makeHash();
+		i2cData._pinLabel = "DSI1 MUX Select";
+		i2cData._pinCommand = "dsi1";
+		i2cData._classicAction = "DSI1 MUX Select";
+		i2cData._enabled = false;
+		i2cData._commandGroup = eSwitchGroup;
+		i2cData._tabName = "I2C";
+		i2cData._inverted = false;
+		i2cData._cellLocation = QPoint(1, 2);
+		_PSOCPlatformConfiguration::_classicI2CActions[i2cData._pin] = i2cData;
+
+		i2cData.clear();
+		i2cData._pin = 6;
+		i2cData._slaveAddress = 0x20;
+		i2cData._writeAddress = 0x02;
+		i2cData._hash = i2cData.makeHash();
+		i2cData._pinLabel = "HDMI I2S MUX Select";
+		i2cData._pinCommand = "hdmi";
+		i2cData._classicAction = "HDMI I2S MUX Select";
+		i2cData._enabled = false;
+		i2cData._commandGroup = eSwitchGroup;
+		i2cData._tabName = "I2C";
+		i2cData._inverted = false;
+		i2cData._cellLocation = QPoint(0, 3);
+		_PSOCPlatformConfiguration::_classicI2CActions[i2cData._pin] = i2cData;
+
+		i2cData.clear();
+		i2cData._pin = 7;
+		i2cData._slaveAddress = 0x20;
+		i2cData._writeAddress = 0x02;
+		i2cData._hash = i2cData.makeHash();
+		i2cData._pinLabel = "PCIE MUX Select";
+		i2cData._pinCommand = "pcie";
+		i2cData._classicAction = "PCIE MUX Select";
+		i2cData._enabled = false;
+		i2cData._commandGroup = eSwitchGroup;
+		i2cData._tabName = "I2C";
+		i2cData._inverted = false;
+		i2cData._cellLocation = QPoint(1, 3);
+		_PSOCPlatformConfiguration::_classicI2CActions[i2cData._pin] = i2cData;
+
+		i2cData.clear();
+		i2cData._pin = 8;
+		i2cData._slaveAddress = 0x20;
+		i2cData._writeAddress = 0x03;
+		i2cData._hash = i2cData.makeHash();
+		i2cData._pinLabel = "I2S0 MUX Select";
+		i2cData._pinCommand = "i2s0";
+		i2cData._classicAction = "I2S0 MUX Select";
+		i2cData._enabled = false;
+		i2cData._commandGroup = eSwitchGroup;
+		i2cData._tabName = "I2C";
+		i2cData._inverted = false;
+		i2cData._cellLocation = QPoint(0, 4);
+		_PSOCPlatformConfiguration::_classicI2CActions[i2cData._pin] = i2cData;
+
+		i2cData.clear();
+		i2cData._pin = 9;
+		i2cData._slaveAddress = 0x20;
+		i2cData._writeAddress = 0x03;
+		i2cData._hash = i2cData.makeHash();
+		i2cData._pinLabel = "I2S1 MUX Select";
+		i2cData._pinCommand = "i2s1";
+		i2cData._classicAction = "I2S1 MUX Select";
+		i2cData._enabled = false;
+		i2cData._commandGroup = eSwitchGroup;
+		i2cData._tabName = "I2C";
+		i2cData._inverted = false;
+		i2cData._cellLocation = QPoint(1, 4);
+		_PSOCPlatformConfiguration::_classicI2CActions[i2cData._pin] = i2cData;
+
+		i2cData.clear();
+		i2cData._pin = 10;
+		i2cData._slaveAddress = 0x20;
+		i2cData._writeAddress = 0x03;
+		i2cData._hash = i2cData.makeHash();
+		i2cData._pinLabel = "I2S2 MUX Select";
+		i2cData._pinCommand = "i2s2";
+		i2cData._classicAction = "I2S2 MUX Select";
+		i2cData._enabled = false;
+		i2cData._commandGroup = eSwitchGroup;
+		i2cData._tabName = "I2C";
+		i2cData._inverted = false;
+		i2cData._cellLocation = QPoint(0, 5);
+		_PSOCPlatformConfiguration::_classicI2CActions[i2cData._pin] = i2cData;
+
+		i2cData.clear();
+		i2cData._pin = 11;
+		i2cData._slaveAddress = 0x20;
+		i2cData._writeAddress = 0x03;
+		i2cData._hash = i2cData.makeHash();
+		i2cData._pinLabel = "<type a label name>";
+		i2cData._pinCommand = "<type a command>";
+		i2cData._enabled = false;
+		i2cData._commandGroup = eSwitchGroup;
+		i2cData._tabName = "I2C";
+		i2cData._inverted = false;
+		_PSOCPlatformConfiguration::_classicI2CActions[i2cData._pin] = i2cData;
+
+		i2cData.clear();
+		i2cData._pin = 12;
+		i2cData._slaveAddress = 0x20;
+		i2cData._writeAddress = 0x03;
+		i2cData._hash = i2cData.makeHash();
+		i2cData._pinLabel = "USB0 MUX Select";
+		i2cData._pinCommand = "usb0i2c";
+		i2cData._classicAction = "USB0 MUX Select";
+		i2cData._enabled = false;
+		i2cData._commandGroup = eSwitchGroup;
+		i2cData._tabName = "I2C";
+		i2cData._inverted = false;
+		i2cData._cellLocation = QPoint(1, 5);
+		_PSOCPlatformConfiguration::_classicI2CActions[i2cData._pin] = i2cData;
+
+		i2cData.clear();
+		i2cData._pin = 13;
+		i2cData._slaveAddress = 0x20;
+		i2cData._writeAddress = 0x03;
+		i2cData._hash = i2cData.makeHash();
+		i2cData._pinLabel = "USB1 MUX Select";
+		i2cData._pinCommand = "usb1i2c";
+		i2cData._classicAction = "USB1 MUX Select";
+		i2cData._enabled = false;
+		i2cData._commandGroup = eSwitchGroup;
+		i2cData._tabName = "I2C";
+		i2cData._inverted = false;
+		i2cData._cellLocation = QPoint(0, 6);
+		_PSOCPlatformConfiguration::_classicI2CActions[i2cData._pin] = i2cData;
+
+		i2cData.clear();
+		i2cData._pin = 14;
+		i2cData._slaveAddress = 0x20;
+		i2cData._writeAddress = 0x03;
+		i2cData._hash = i2cData.makeHash();
+		i2cData._pinLabel = "SIM MUX Select";
+		i2cData._pinCommand = "sim";
+		i2cData._classicAction = "SIM MUX Select";
+		i2cData._enabled = false;
+		i2cData._commandGroup = eSwitchGroup;
+		i2cData._tabName = "I2C";
+		i2cData._inverted = false;
+		i2cData._cellLocation = QPoint(1, 6);
+		_PSOCPlatformConfiguration::_classicI2CActions[i2cData._pin] = i2cData;
+
+		i2cData.clear();
+		i2cData._pin = 15;
+		i2cData._slaveAddress = 0x20;
+		i2cData._writeAddress = 0x03;
+		i2cData._hash = i2cData.makeHash();
+		i2cData._pinLabel = "<type a label name>";
+		i2cData._pinCommand = "<type a command>";
+		i2cData._enabled = false;
+		i2cData._commandGroup = eSwitchGroup;
+		i2cData._tabName = "I2C";
+		i2cData._inverted = false;
+		_PSOCPlatformConfiguration::_classicI2CActions[i2cData._pin] = i2cData;
+
+		i2cData.clear();
+		i2cData._pin = 16;
+		i2cData._slaveAddress = 0x38;
+		i2cData._writeAddress = 0x01;
+		i2cData._hash = i2cData.makeHash();
+		i2cData._pinLabel = "SPIO MUX Select";
+		i2cData._pinCommand = "spi0";
+		i2cData._classicAction = "SPIO MUX Select";
+		i2cData._enabled = false;
+		i2cData._commandGroup = eSwitchGroup;
+		i2cData._tabName = "I2C";
+		i2cData._inverted = false;
+		i2cData._cellLocation = QPoint(0, 0);
+		_PSOCPlatformConfiguration::_classicI2CActions[i2cData._pin] = i2cData;
+
+		i2cData.clear();
+		i2cData._pin = 17;
+		i2cData._slaveAddress = 0x38;
+		i2cData._writeAddress = 0x01;
+		i2cData._hash = i2cData.makeHash();
+		i2cData._pinLabel = "SPI1 MUX Select";
+		i2cData._pinCommand = "spi1";
+		i2cData._classicAction = "SPI1 MUX Select";
+		i2cData._enabled = false;
+		i2cData._commandGroup = eSwitchGroup;
+		i2cData._tabName = "I2C";
+		i2cData._inverted = false;
+		i2cData._cellLocation = QPoint(1, 0);
+		_PSOCPlatformConfiguration::_classicI2CActions[i2cData._pin] = i2cData;
+
+		i2cData.clear();
+		i2cData._pin = 18;
+		i2cData._slaveAddress = 0x38;
+		i2cData._writeAddress = 0x01;
+		i2cData._hash = i2cData.makeHash();
+		i2cData._pinLabel = "NFC MUX Select";
+		i2cData._pinCommand = "nfc";
+		i2cData._classicAction = "NFC MUX Select";
+		i2cData._enabled = false;
+		i2cData._commandGroup = eSwitchGroup;
+		i2cData._tabName = "I2C";
+
+		i2cData._inverted = false;
+		i2cData._cellLocation = QPoint(0, 1);
+		_PSOCPlatformConfiguration::_classicI2CActions[i2cData._pin] = i2cData;
+
+		i2cData.clear();
+		i2cData._pin = 19;
+		i2cData._slaveAddress = 0x38;
+		i2cData._writeAddress = 0x01;
+		i2cData._hash = i2cData.makeHash();
+		i2cData._pinLabel = "EARC TX_RX MUX Select";
+		i2cData._pinCommand = "earc";
+		i2cData._classicAction = "EARC TX_RX MUX Select";
+		i2cData._enabled = false;
+		i2cData._commandGroup = eSwitchGroup;
+		i2cData._tabName = "I2C";
+
+		i2cData._inverted = false;
+		i2cData._cellLocation = QPoint(1, 1);
+		_PSOCPlatformConfiguration::_classicI2CActions[i2cData._pin] = i2cData;
+
+		for (int p = 20; p <= 23; ++p)
+		{
+			i2cData.clear();
+			i2cData._pin = static_cast<PinID>(p);
+			i2cData._slaveAddress = 0x38;
+			i2cData._writeAddress = 0x01;
+			i2cData._hash = i2cData.makeHash();
+			i2cData._enabled = false;
+			i2cData._commandGroup = eSwitchGroup;
+			i2cData._tabName = "I2C";
+			i2cData._inverted = false;
+			_PSOCPlatformConfiguration::_classicI2CActions[i2cData._pin] = i2cData;
+		}
+	}
 }

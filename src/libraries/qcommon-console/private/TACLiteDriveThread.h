@@ -30,6 +30,12 @@ public:
 		_pinsets = pinsets;
 	}
 
+	void setInvertMask(quint8 mask)
+	{
+		if (_ftdiChipset.isNull() == false)
+			_ftdiChipset->setInvertMask(mask);
+	}
+
 	virtual void run();
 
 	virtual void sendCommand(const QByteArray& command, bool console = false,

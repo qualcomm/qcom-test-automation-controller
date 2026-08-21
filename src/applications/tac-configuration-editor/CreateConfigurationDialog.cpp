@@ -8,6 +8,8 @@
 #include <QMetaEnum>
 #include <QSpinBox>
 
+const QByteArray kPSOCVariant("PSOCVariant");
+
 CreateConfigurationDialog::CreateConfigurationDialog
 (
 	QWidget* parent
@@ -21,12 +23,17 @@ CreateConfigurationDialog::CreateConfigurationDialog
 	_platformComboBox->insertItem(_platformComboBox->count(), "PSOC", ePSOC);
 	_platformComboBox->insertItem(_platformComboBox->count(), "FTDI", eFTDI);
 	_platformComboBox->insertItem(_platformComboBox->count(), "PIC32CX (Automotive)", ePIC32CXAuto);
+	_platformComboBox->insertItem(_platformComboBox->count(), "FT232H (Arduino V1)", eFT232H);
 
 	_chipCount->setMinimum(1);
 	_chipCount->setMaximum(4);
 
-	_chipCount->setEnabled(false);
-	_countLabel->setEnabled(false);
+	_gpioRadio->setChecked(true);
+
+	_psocConfiguration->hide();
+	_ftdiConfiguration->hide();
+
+	_configurationGroup->hide();
 }
 
 CreateConfigurationDialog::~CreateConfigurationDialog()
@@ -40,18 +47,40 @@ DebugBoardType CreateConfigurationDialog::getPlatform()
 
 int CreateConfigurationDialog::getChipCount()
 {
+	if (_platformType != eFTDI)
+		return 0;
+
 	return _chipCount->value();
+}
+
+PSOCVariant CreateConfigurationDialog::getPSOCVariant()
+{
+	PSOCVariant result{ePSOCUnknown};
+
+	if (_platformType == ePSOC)
+		result = psocVariantFromString(_psocGPIOConfiguration->checkedButton()->text());
+
+	return result;
 }
 
 void CreateConfigurationDialog::on__platformComboBox_currentIndexChanged(int index)
 {
-	bool enabled{false};
-
 	_platformType = static_cast<DebugBoardType>(_platformComboBox->itemData(index).toInt());
 
 	if (_platformType == eFTDI)
-		enabled = true;
+	{
+		_psocConfiguration->hide();
+		_ftdiConfiguration->show();
 
-	_chipCount->setEnabled(enabled);
-	_countLabel->setEnabled(enabled);
+		_configurationGroup->show();
+	}
+	else if (_platformType == ePSOC)
+	{
+		_ftdiConfiguration->hide();
+		_psocConfiguration->show();
+
+		_configurationGroup->show();
+	}
+	else
+		_configurationGroup->hide();
 }

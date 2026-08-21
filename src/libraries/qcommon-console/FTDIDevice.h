@@ -9,6 +9,7 @@
 
 // QCommon
 class _FTDIPlatformConfiguration;
+class _FT232HPlatformConfiguration;
 
 class QCOMMONCONSOLE_EXPORT FTDIDevice :
 	public _AlpacaDevice
@@ -27,7 +28,8 @@ public:
 	virtual void buildMapping();
 
 private:
-	_FTDIPlatformConfiguration* _ftdiPlatformConfiguration{Q_NULLPTR};
+	_FTDIPlatformConfiguration*					_ftdiPlatformConfiguration{Q_NULLPTR};
+	_FT232HPlatformConfiguration*				_ft232hPlatformConfiguration{Q_NULLPTR};
 };
 
 #endif // FTDIDEVICE_H
