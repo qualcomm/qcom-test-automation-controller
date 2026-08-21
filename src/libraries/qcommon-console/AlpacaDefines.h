@@ -14,7 +14,7 @@ const char kProductID[] =	"1e48f695-c109-11ec-aebb-063166a9270b"; // QTAC Extern
 const char kCoreFeature[] = "1e71efc7-c109-11ec-aebb-063166a9270b";
 
 const QString kOrganizationName(QStringLiteral("Qualcomm, Inc."));
-const QString kProductVersion(QStringLiteral(ALPACA_VERSION));
+const QString kProductVersion(QStringLiteral(QTAC_VERSION));
 const QString kCompileDate(QStringLiteral(__DATE__));
 const QString kCompileTime(QStringLiteral(__TIME__));
 const QString kBuildTime(kCompileDate + QStringLiteral(" ") + kCompileTime);

@@ -323,7 +323,7 @@ QString _FTDIChipset::versionString()
 
 QString _FTDIChipset::firmwareString()
 {
-	return TAC_LIB_VERSION;
+	return QCOMMONCONSOLE_VERSION;
 }
 
 HashType _FTDIChipset::hash()
