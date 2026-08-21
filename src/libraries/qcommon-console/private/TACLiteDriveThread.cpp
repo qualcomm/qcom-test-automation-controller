@@ -44,13 +44,13 @@ TACLiteDriveThread::TACLiteDriveThread
 
 			_versionString = _ftdiChipset->versionString().toLatin1();
 			_firmwareString = _ftdiChipset->firmwareString().toLatin1();
+			_hardwareType = _ftdiChipset->boardType();
 			_firmwareMajor = 1;
 			_firmwareChip = 10000;
 			_firmwareMinor = 1;
 			_firmwareRevision = 1;
 			_description = "VTP Port";
 			_uuid = "FTDI - No UUID";
-			_hardwareType = eFTDI;
 
 			setSerialNumber(_ftdiChipset->serialNumber());
 			setPortName(_ftdiChipset->portName());
@@ -73,6 +73,7 @@ bool TACLiteDriveThread::openFTDIDevice()
 	{
 		if (_ftdiChipset->isOpen() == false)
 		{
+			_ftdiChipset->setBoardType(_hardwareType);
 			if (_ftdiChipset->open(_pinsets))
 			{
 				AppCore::writeToApplicationLogLine(QString("Opened port %1\n").arg(_ftdiChipset->portName().data()));

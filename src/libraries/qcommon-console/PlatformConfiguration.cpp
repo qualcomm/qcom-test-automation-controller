@@ -7,6 +7,7 @@
 #include "PIC32CXPlatformConfiguration.h"
 #include "ConsoleApplicationEnhancements.h"
 #include "FTDIPlatformConfiguration.h"
+#include "FT232HPlatformConfiguration.h"
 #include "PSOCPlatformConfiguration.h"
 
 // QCommon
@@ -101,18 +102,14 @@ _PlatformConfiguration::~_PlatformConfiguration()
 {
 }
 
-PlatformConfiguration _PlatformConfiguration::createPlatformConfiguration
-(
-	DebugBoardType debugBoardType,
-	int chipCount
-)
+PlatformConfiguration _PlatformConfiguration::createPlatformConfiguration(DebugBoardType debugBoardType, int chipCount, PSOCVariant psocVariant)
 {
 	PlatformConfiguration result;
 
 	switch (debugBoardType)
 	{
 	case ePSOC:
-		result = PlatformConfiguration(new _PSOCPlatformConfiguration);
+		result = PlatformConfiguration(new _PSOCPlatformConfiguration(psocVariant));
 		break;
 
 	case eFTDI:
@@ -121,6 +118,10 @@ PlatformConfiguration _PlatformConfiguration::createPlatformConfiguration
 
 	case ePIC32CXAuto:
 		result = PlatformConfiguration(new _PIC32CXPlatformConfiguration);
+		break;
+
+	case eFT232H:
+		result = PlatformConfiguration(new _FT232HPlatformConfiguration);
 	default: ;
 	}
 
@@ -141,7 +142,7 @@ PlatformConfiguration _PlatformConfiguration::openPlatformConfiguration
 		QString fileName = fileInfo.fileName();
 		if (fileName.contains("_psoc_", Qt::CaseInsensitive))
 		{
-			result = PlatformConfiguration(new _PSOCPlatformConfiguration);
+			result = PlatformConfiguration(new _PSOCPlatformConfiguration(ePSOCUnknown));
 		}
 		else if (fileName.contains("_ftdi_", Qt::CaseInsensitive))
 		{
@@ -150,6 +151,10 @@ PlatformConfiguration _PlatformConfiguration::openPlatformConfiguration
 		else if (fileName.contains("_pic32cxauto_", Qt::CaseInsensitive))
 		{
 			result = PlatformConfiguration(new _PIC32CXPlatformConfiguration);
+		}
+		else if (fileName.contains("_ft232h_", Qt::CaseInsensitive))
+		{
+			result = PlatformConfiguration(new _FT232HPlatformConfiguration);
 		}
 		else
 		{
@@ -990,7 +995,7 @@ void _PlatformConfiguration::setFilePath(const QString &filePath)
 {
 	QFileInfo fileInfo(filePath);
 
-	if (fileInfo.absoluteFilePath().startsWith("C:/ProgramData/Qualcomm/Alpaca", Qt::CaseInsensitive))
+	if (fileInfo.absoluteFilePath().startsWith("C:/ProgramData/Qualcomm/QTAC", Qt::CaseInsensitive))
 	{
 		if (_platform == ePSOC && _platformId < 255)
 		{

@@ -13,7 +13,6 @@
 #include "PSOCEditorView.h"
 #include "TACPreviewWindow.h"
 
-// libTAC
 #include "DebugBoardType.h"
 #include "TACDefines.h"
 
@@ -40,9 +39,10 @@ const QByteArray kLockState{QByteArrayLiteral("lockState")};
 const QByteArray kWindowTitle{QByteArrayLiteral("TAC Configuration Editor")};
 const QByteArray kPIC32CXSerialIDLabel(QByteArrayLiteral("<html><body><p><span style=\" font-size:9pt; font-weight:600;\">Serial Number:</span></p></body></html>"));
 
-const QString kFirmware15HelpText("<html><body><p><span style=\" font-size:12pt; font-weight:600;\">v15</span></p></body></html>- Legacy firmware<br/>- Pins 48, 49 cannot be configured");
+const QString kFirmware15HelpText("<html><body><p><span style=\" font-size:12pt; font-weight:600;\">v15, v18</span></p></body></html>- Legacy firmware<br/>- Pins 48, 49 cannot be configured<br/>- v18 supports IO Expander via I2C");
 const QString kFirmware16HelpText("<html><body><p><span style=\" font-size:12pt; font-weight:600;\">v16</span></p></body></html>- Firmware for Monaco MCULess design(s)<br/>- Pins 48, 49 can be configured<br/>- Pin 49 is active high");
 const QString kFirmware17HelpText("<html><body><p><span style=\" font-size:12pt; font-weight:600;\">v17</span></p></body></html>- Firmware for Hawi and future platforms<br/>- Pin 49 can be configured. Pin 48 is unavailable<br/>- Pin 49 is active low");
+const QString kFirmware19HelpText("<html><body><p><span style=\" font-size:12pt; font-weight:600;\">v19</span></p></body></html>- To be updated");
 
 ConfigWindow::ConfigWindow(QWidget* parent) :
 	  QMainWindow(parent),
@@ -202,6 +202,7 @@ void ConfigWindow::populateFields()
 		break;
 
 	case eFTDI:
+	case eFT232H:
 		_editorView = new FTDIEditorView(_editorFrame);
 
 		_usbDescriptorLabel->setEnabled(true);
@@ -409,6 +410,7 @@ void ConfigWindow::setAboutFirmware(int fwVer)
 	switch (fwVer)
 	{
 	case 15:
+	case 18:
 		_editorView->setRowEnabled(15, false);
 		_editorView->setRowEnabled(16, false);
 		_helpLabel->setText(kFirmware15HelpText);
@@ -422,6 +424,11 @@ void ConfigWindow::setAboutFirmware(int fwVer)
 		_editorView->setRowEnabled(15, true);
 		_editorView->setRowEnabled(16, false);
 		_helpLabel->setText(kFirmware17HelpText);
+		break;
+	case 19:
+		_editorView->setRowEnabled(15, true);
+		_editorView->setRowEnabled(16, true);
+		_helpLabel->setText(kFirmware19HelpText);
 		break;
 	}
 
@@ -501,7 +508,7 @@ void ConfigWindow::on__actionNew_triggered()
 
 	if (ccd.exec() == QDialog::Accepted)
 	{
-		PlatformConfiguration platformConfig = _PlatformConfiguration::createPlatformConfiguration(ccd.getPlatform(), ccd.getChipCount());
+		PlatformConfiguration platformConfig = _PlatformConfiguration::createPlatformConfiguration(ccd.getPlatform(), ccd.getChipCount(), ccd.getPSOCVariant());
 		if (platformConfig)
 		{
 			if (_platformConfiguration != Q_NULLPTR)
