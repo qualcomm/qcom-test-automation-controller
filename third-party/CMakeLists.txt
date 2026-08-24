@@ -148,3 +148,19 @@ function(link_ftd2xx target_name)
         target_link_libraries(${target_name} PRIVATE ftd2xx pthread dl)
     endif()
 endfunction()
+
+include(FetchContent)
+set(HIDAPI_BUILD_HIDTEST OFF CACHE BOOL "" FORCE)
+set(HIDAPI_BUILD_TESTING OFF CACHE BOOL "" FORCE)
+set(BUILD_SHARED_LIBS OFF CACHE BOOL "Build dependencies as static libraries" FORCE)
+if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
+    set(HIDAPI_WITH_HIDRAW ON CACHE BOOL "" FORCE)
+    set(HIDAPI_WITH_LIBUSB OFF CACHE BOOL "" FORCE)
+endif()
+FetchContent_Declare(
+    hidapi
+    GIT_REPOSITORY https://github.com/libusb/hidapi.git
+    GIT_TAG        hidapi-0.15.0
+    GIT_SHALLOW    TRUE
+)
+FetchContent_MakeAvailable(hidapi)
