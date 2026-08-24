@@ -73,10 +73,13 @@ void PlatformContainer::initialize()
 
 		_platformIds.insert(ALPACA_PIC32CX_ID, pic32cxEntry);
 
-		PlatformEntry ft232hEntry(new _PlatformEntry(ALPACA_BUGHOPPER_ID, eFT232H, "Default IoT (Bug Hopper)"));
+		PlatformEntry ft232hEntry(new _PlatformEntry(ALPACA_BUGHOPPER_ID, eFT232H, "Arduino BugHopper V1 (Default)"));
 		ft232hEntry->_usbDescriptor = "BugHopper";
 		ft232hEntry->_pinSets[0].setFlag(eC);
 		_platformIds.insert(ALPACA_BUGHOPPER_ID, ft232hEntry);
+
+		PlatformEntry stm32Entry(new _PlatformEntry(ALPACA_STM32_ID, eSTM32, "Arduino BugHopper V2 (Default)"));
+		_platformIds.insert(ALPACA_STM32_ID, stm32Entry);
 
 		initializeDynamic();
 	}

@@ -6,6 +6,7 @@
 #include "FTDIDevice.h"
 #include "PSOCDevice.h"
 #include "PIC32CXDevice.h"
+#include "STM32Device.h"
 
 // QCommon
 #include "AppCore.h"
@@ -56,6 +57,7 @@ quint32 _AlpacaDevice::updateAlpacaDevices()
 	PSOCDevice::updateAlpacaDevices();
 	FTDIDevice::updateAlpacaDevices();
 	PIC32CXDevice::updateAlpacaDevices();
+	STM32Device::updateAlpacaDevices();
 
 	return _AlpacaDevice::_alpacaDevices.count();
 }
@@ -531,6 +533,41 @@ void _AlpacaDevice::setPinState
 	}
 }
 
+void _AlpacaDevice::setAddressPinState
+(
+	const QString& i2cAddress,
+	quint16 pin,
+	bool state
+)
+{
+	if (_driveThread != Q_NULLPTR)
+	{
+		if (active() == true)
+		{
+			_driveThread->setAddressPinState(i2cAddress, pin, state);
+			if (AppCore::getAppCore()->appLoggingActive())
+			{
+				AppCore::writeToApplicationLogLine(
+					QString("_AlpacaDevice::setAddressPinState(addr=%1, pin=%2, state=%3)")
+						.arg(i2cAddress)
+						.arg(pin)
+						.arg(state ? "true" : "false"));
+			}
+		}
+		else
+		{
+			AppCore::writeToApplicationLogLine(
+				QString("_AlpacaDevice::setAddressPinState(%1, %2, %3) failed. Operation on inactive device")
+					.arg(i2cAddress).arg(pin).arg(state));
+			throw TACException(TAC_DEVICE_INACTIVE, kSetPinError);
+		}
+	}
+	else
+	{
+		AppCore::writeToApplicationLogLine("_AlpacaDevice::setAddressPinState _driveThread is NULL");
+	}
+}
+
 void _AlpacaDevice::setWaitForCompletion()
 {
 	if (_driveThread != Q_NULLPTR)
@@ -756,6 +793,8 @@ void _AlpacaDevice::on_pinStateChanged
 		bool state
 )
 {
+	AppCore::writeToApplicationLogLine("_AlpacaDevice::on_pinStateChanged(" + QString::number(pin) + ", " + QString::number(state) + ")");
+
 	for (auto& command: _commands)
 	{
 		if (command._pin == pin)

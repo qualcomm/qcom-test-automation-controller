@@ -107,6 +107,8 @@ public:
 	// in memory after reading the string from file
 	void setPlatform(const QString& platform);
 
+	virtual PSOCVariant variant();
+
 	// Returns the id of the platform
 	PlatformID getPlatformId();
 	// Sets the id of the platform

@@ -3,12 +3,12 @@
 
 #include "PlatformConfiguration.h"
 
-//libTAC
 #include "PIC32CXPlatformConfiguration.h"
 #include "ConsoleApplicationEnhancements.h"
 #include "FTDIPlatformConfiguration.h"
 #include "FT232HPlatformConfiguration.h"
 #include "PSOCPlatformConfiguration.h"
+#include "STM32PlatformConfiguration.h"
 
 // QCommon
 #include "AlpacaScript.h"
@@ -17,7 +17,7 @@
 #include "Range.h"
 #include "StringUtilities.h"
 
-// QT
+// Qt
 #include <QDateTime>
 #include <QDir>
 #include <QFile>
@@ -122,6 +122,12 @@ PlatformConfiguration _PlatformConfiguration::createPlatformConfiguration(DebugB
 
 	case eFT232H:
 		result = PlatformConfiguration(new _FT232HPlatformConfiguration);
+		break;
+
+	case eSTM32:
+		result = PlatformConfiguration(new _STM32PlatformConfiguration);
+		break;
+
 	default: ;
 	}
 
@@ -155,6 +161,10 @@ PlatformConfiguration _PlatformConfiguration::openPlatformConfiguration
 		else if (fileName.contains("_ft232h_", Qt::CaseInsensitive))
 		{
 			result = PlatformConfiguration(new _FT232HPlatformConfiguration);
+		}
+		else if (fileName.contains("_stm32_", Qt::CaseInsensitive))
+		{
+			result = PlatformConfiguration(new _STM32PlatformConfiguration);
 		}
 		else
 		{
@@ -250,32 +260,29 @@ bool _PlatformConfiguration::parseConfigName
 	return result;
 }
 
-PlatformID _PlatformConfiguration::getUSBDescriptor
-(
-	const QByteArray& usbDescriptorString
-)
+PlatformID _PlatformConfiguration::getUSBDescriptor(const QByteArray& usbDescriptorString)
 {
 	PlatformID result{0};
 
-	 QString test{usbDescriptorString.toLower()};
+	QString test{usbDescriptorString.toLower()};
 
-	 for (const auto& tacEntry: std::as_const(_tacPlatformEntries))
-	 {
-		 QString candidate = tacEntry._platformEntry->_usbDescriptor.toLower();
-		 if (candidate == test)
-		 {
-			 result = tacEntry._platformEntry->_platformID;
-			 break;
-		 }
-	 }
+	for (const auto& tacEntry: std::as_const(_tacPlatformEntries))
+	{
+		QString candidate = tacEntry._platformEntry->_usbDescriptor.toLower();
+		if (candidate == test)
+		{
+			result = tacEntry._platformEntry->_platformID;
+			break;
+		}
+	}
 
-	 if (result == 0)
-	 {
+	if (result == 0)
+	{
 		if (usbDescriptorString.startsWith("ALPACA-LITE "))
 			result = ALPACA_LITE_ID;
-	 }
+	}
 
-	 return result;
+	return result;
 }
 
 bool _PlatformConfiguration::containsUSBDescriptor
@@ -401,6 +408,11 @@ void _PlatformConfiguration::setPlatform(const QString& platform)
 		_platform = eFTDI;
 	else if (platform.compare("pic32cx (automotive)", Qt::CaseInsensitive) == 0)
 		_platform = ePIC32CXAuto;
+}
+
+PSOCVariant _PlatformConfiguration::variant()
+{
+	return ePSOCUnknown;
 }
 
 PlatformID _PlatformConfiguration::getPlatformId()

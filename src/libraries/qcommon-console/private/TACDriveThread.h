@@ -48,6 +48,7 @@ public:
 		ReceiveInterface* receiveInterface = Q_NULLPTR, bool shouldStore = true) = 0;
 
 	virtual void setPinState(quint16 pin, bool state) = 0;
+	virtual void setAddressPinState(const QString& i2cAddress, quint16 pin, bool state) {}
 	virtual void sendCommandSequence(CommandEntries& commandEntries) = 0;
 
 	virtual int getResetCount() = 0;

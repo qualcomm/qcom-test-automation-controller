@@ -67,6 +67,9 @@ qt_add_library(${LIBRARY_NAME} STATIC
     SerialPort.cpp SerialPort.h
     SerialPortInfo.cpp SerialPortInfo.h
     SerialTableModel.h SerialTableModel.cpp
+    STM32Device.h STM32Device.cpp
+    STM32PinData.h
+    STM32PlatformConfiguration.h STM32PlatformConfiguration.cpp
     StringProof.cpp StringProof.h
     StringUtilities.cpp StringUtilities.h
     SystemInformation.h
@@ -95,6 +98,10 @@ qt_add_library(${LIBRARY_NAME} STATIC
 	private/TACPSOCCommand.h private/TACPSOCCommand.cpp
 	private/TACPSOCDriveThread.h private/TACPSOCDriveThread.cpp
 	private/TACPSOCProtocol.h private/TACPSOCProtocol.cpp
+	private/TACSTM32Coder.h private/TACSTM32Coder.cpp
+	private/TACSTM32Command.h private/TACSTM32Command.cpp
+	private/TACSTM32DriveThread.h private/TACSTM32DriveThread.cpp
+	private/TACSTM32Protocol.h private/TACSTM32Protocol.cpp
     version.h
 
     ${QCOMMONCONSOLE_RESOURCES}
@@ -122,4 +129,5 @@ target_link_libraries(${LIBRARY_NAME} PUBLIC
     Qt6::SerialPort
     Qt6::Xml
     ftd2xx
+    hidapi::hidapi
 )
