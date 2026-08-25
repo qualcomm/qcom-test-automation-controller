@@ -21,10 +21,11 @@ qt_add_executable(${APP_NAME} WIN32
     ManageTabsDialog.cpp ManageTabsDialog.h ManageTabsDialog.ui
     PIC32CXEditorView.cpp PIC32CXEditorView.h PIC32CXEditorView.ui
     PSOCEditorView.cpp PSOCEditorView.h PSOCEditorView.ui
+    STM32EditorView.cpp STM32EditorView.h STM32EditorView.ui
     TACPreviewWindow.cpp TACPreviewWindow.h TACPreviewWindow.ui
     TabEditorDialog.cpp TabEditorDialog.h TabEditorDialog.ui
     main.cpp
-    
+
     ${TAC_EDITOR_RESOURCES}
 )
 
