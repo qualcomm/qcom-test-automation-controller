@@ -123,21 +123,6 @@ void PlatformContainer::initializeDynamic()
 
 				_platformIds.insert(descriptor._platformID, platformEntry);
 			}
-			// NOTE: ALPACA_LITE_ID (13) is intentionally pre-registered above
-			// with an empty _path. devicelist.json's configPath for platform 13
-			// ("TAC_FTDI_16.tcnf") does not actually correspond to the generic
-			// "ALPACA-LITE MTP DEBUG BOARD" - that .tcnf's own usb_descriptor is
-			// "ALPACA-LITE CSM X100 DEBUG BOARD" (platform_id 16), a different,
-			// unrelated board. There is no exact-match .tcnf for platform 13 in
-			// this open-source repo (the internal PROD build has a hardcoded
-			// fallback layout instead - see FTDIPlatformConfiguration.cpp).
-			// Leaving _path empty for pre-registered IDs preserves the existing
-			// fallback: TACPlatformEntry::getConfiguration() calls
-			// createPlatformConfiguration() when openPlatformConfiguration(path)
-			// has nothing to open, which builds the correct default FTDI pin
-			// layout (battery/pkey/EDL/EUD/usb0/usb1/System RESET) matching the
-			// MTP debug board. Backfilling _path here from devicelist.json would
-			// silently substitute the wrong board's config instead.
 		}
 	}
 	else

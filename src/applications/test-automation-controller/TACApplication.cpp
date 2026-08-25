@@ -174,6 +174,9 @@ bool TACApplication::disconnectTACWindow
 		result = true;
 	}
 
+	if (_tacWindows.count() == 0)
+		tacAppInstance()->shutDown();
+
 	return result;
 }
 
