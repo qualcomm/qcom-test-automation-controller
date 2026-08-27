@@ -153,8 +153,8 @@
             "description": "CSM - X100",
             "name": "CSM X100",
             "platform_id": 16,
-            "revision": 0,
-            "usb_descriptor": "ALPACA-LITE CSM X100 DEBUG BOARD"
+            "revision": 19,
+            "usb_descriptor": "ALPACA-LITE CSM X100 DEBUG"
         },
         {
             "configPath": "../../../../configurations/TAC_PSOC_17.tcnf",
@@ -554,7 +554,7 @@
             "description": "NordAu RIDE",
             "name": "NordAu RIDE",
             "platform_id": 54,
-            "revision": 6,
+            "revision": 7,
             "usb_descriptor": "KARUSSELL"
         },
         {
@@ -650,7 +650,7 @@
             "description": "Hawi MTP8975 - PSoC",
             "name": "Hawi MTP8975",
             "platform_id": 66,
-            "revision": 86,
+            "revision": 85,
             "usb_descriptor": ""
         },
         {
@@ -676,7 +676,7 @@
             "description": "FTDI-LITE SDX95 M.2",
             "name": "SDX95 M.2",
             "platform_id": 69,
-            "revision": 23,
+            "revision": 25,
             "usb_descriptor": "ALPACA-LITE SDX95 M.2"
         },
         {
@@ -767,6 +767,24 @@
             "usb_descriptor": "ALPACA-LITE MAILI CDP"
         },
         {
+            "configPath": "",
+            "debugBoardType": 5,
+            "description": "Default IoT (Bug Hopper)",
+            "name": "Default IoT (Bug Hopper)",
+            "platform_id": 80,
+            "revision": 0,
+            "usb_descriptor": ""
+        },
+        {
+            "configPath": "../../../../configurations/TAC_FT232H_81.tcnf",
+            "debugBoardType": 5,
+            "description": "Arduino Ventuno Q",
+            "name": "Arduino Ventuno Q",
+            "platform_id": 81,
+            "revision": 16,
+            "usb_descriptor": "VentunoQ BugHopper"
+        },
+        {
             "configPath": "../../../../configurations/TAC_PSOC_82.tcnf",
             "debugBoardType": 2,
             "description": "SHIKRA PSOC",
@@ -774,7 +792,25 @@
             "platform_id": 82,
             "revision": 38,
             "usb_descriptor": ""
+        },
+        {
+            "configPath": "../../../../configurations/TAC_PIC32CXAuto_85.tcnf",
+            "debugBoardType": 4,
+            "description": "IQ10 RRD V1",
+            "name": "IQ10 RRD V1",
+            "platform_id": 85,
+            "revision": 0,
+            "usb_descriptor": "IQ10rrd"
+        },
+        {
+            "configPath": "../../../../configurations/TAC_PSOC_87.tcnf",
+            "debugBoardType": 2,
+            "description": "HAWI QRD PSOC",
+            "name": "HAWI QRD",
+            "platform_id": 87,
+            "revision": 6,
+            "usb_descriptor": ""
         }
     ],
-    "modification_date": "Tue Jun 16 23:24:37 2026"
+    "modification_date": "Tue Aug 4 18:14:03 2026"
 }
