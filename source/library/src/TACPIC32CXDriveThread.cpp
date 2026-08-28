@@ -407,9 +407,9 @@ void TACPIC32CXDriveThread::handleSetPin(FramePackage& framePackage)
 {
     if (framePackage->arguments.size() >= 2)
     {
-        const bool     state = std::get<bool>(framePackage->arguments.at(0));
+        const bool     state = framePackage->arguments.at(0).asBool();
         const uint64_t pin   = static_cast<uint64_t>(
-                                   std::get<uint32_t>(framePackage->arguments.at(1)));
+                                   framePackage->arguments.at(1)).asUInt32();
 
         framePackage->synonym =
             qtac::ByteArray("Pin ") + std::to_string(pin).c_str() + " " + (state ? "on" : "off");

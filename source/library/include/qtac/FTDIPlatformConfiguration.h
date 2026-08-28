@@ -47,19 +47,9 @@
 #include <qtac/CommandGroup.h>
 #include <qtac/AlpacaScript.h>
 
-// Disable nlohmann versioned inline namespace so 'nlohmann::json' is unambiguous
-#ifndef NLOHMANN_JSON_NAMESPACE_NO_VERSION
-#  define NLOHMANN_JSON_NAMESPACE_NO_VERSION 1
-#endif
-#include <nlohmann/json.hpp>
+#include <qtac/json_util.h>
 #include <memory>
 #include <string>
-
-// Alias to hide versioning ambiguity
-#ifndef QTAC_JSON_T_DEFINED
-#define QTAC_JSON_T_DEFINED
-using json_t = nlohmann::json;
-#endif
 
 using ChipIndex = int16_t;
 
@@ -161,8 +151,6 @@ using FTDIPinEntries = qtac::Map<HashType, FTDIPinData>;
 using FTDIPinList    = qtac::List<FTDIPinData>;
 using FTDIBusFunctions = qtac::Map<HashType, FTDIBusData>;
 
-// Forward declaration for nlohmann::json
-namespace nlohmann { class json; }
 
 class _FTDIPlatformConfiguration
 {

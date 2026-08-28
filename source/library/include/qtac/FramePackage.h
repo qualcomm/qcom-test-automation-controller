@@ -39,7 +39,7 @@
 
 #include <cstdint>
 #include <memory>
-#include <variant>
+#include <string>
 #include <vector>
 
 namespace qtac {
@@ -47,7 +47,27 @@ namespace qtac {
 class ReceiveInterface;
 
 // Heterogeneous argument — mirrors the QList<QVariant> usage: bool, uint32, or string.
-using Argument  = std::variant<bool, uint32_t, std::string>;
+struct Argument
+{
+    enum class Kind { Bool, UInt32, String };
+
+    // Implicit constructors so existing push_back(bool/uint32_t/string) calls compile unchanged.
+    Argument(bool v)               : _kind(Kind::Bool),   _b(v) {}
+    Argument(uint32_t v)           : _kind(Kind::UInt32), _u(v) {}
+    Argument(const std::string& v) : _kind(Kind::String), _s(v) {}
+
+    Kind               kind()     const { return _kind; }
+    bool               asBool()   const { return _b; }
+    uint32_t           asUInt32() const { return _u; }
+    const std::string& asString() const { return _s; }
+
+private:
+    Kind        _kind;
+    bool        _b  = false;
+    uint32_t    _u  = 0;
+    std::string _s;
+};
+
 using Arguments = std::vector<Argument>;class FramePackageData
 {
 public:

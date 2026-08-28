@@ -148,7 +148,7 @@ qtac::ByteArray TACPSOCCoder::encode(const qtac::ByteArray& encodeMe, const Argu
 
     case kSetNameCommandHash:
         if (!arguments.empty())
-            result = qtac::ByteArray("setname ") + std::get<std::string>(arguments.at(0)).c_str() + "\r";
+            result = qtac::ByteArray("setname ") + arguments.at(0)).c_str(.asString() + "\r";
         break;
 
     case kGetUUIDCommandHash:
@@ -169,7 +169,7 @@ qtac::ByteArray TACPSOCCoder::encode(const qtac::ByteArray& encodeMe, const Argu
 
     case kI2CReadRegisterCommandHash:
         if (!arguments.empty())
-            result = qtac::ByteArray("i2c readRegisterBytes ") + std::get<std::string>(arguments.at(0)).c_str() + " 1";
+            result = qtac::ByteArray("i2c readRegisterBytes ") + arguments.at(0)).c_str(.asString() + " 1";
         break;
 
     case kI2CReadRegisterValueCommandHash:
@@ -178,14 +178,14 @@ qtac::ByteArray TACPSOCCoder::encode(const qtac::ByteArray& encodeMe, const Argu
 
     case kI2CWriteRegisterCommandHash:
         if (!arguments.empty())
-            result = qtac::ByteArray("i2c writeByte ") + std::get<std::string>(arguments.at(0)).c_str();
+            result = qtac::ByteArray("i2c writeByte ") + arguments.at(0)).c_str(.asString();
         break;
 
     case kSetPinCommandHash:
         if (arguments.size() == 2)
         {
             const qtac::ByteArray stateStr = argumentToBoolString(arguments.at(0));
-            const qtac::ByteArray pinStr   = qtac::ByteArray(std::to_string(std::get<uint32_t>(arguments.at(1))));
+            const qtac::ByteArray pinStr   = qtac::ByteArray(std::to_string(arguments.at(1))).asUInt32();
             result = qtac::ByteArray("pin ") + stateStr + " " + pinStr + "\r";
         }
         break;

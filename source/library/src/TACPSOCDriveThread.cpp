@@ -502,7 +502,7 @@ void TACPSOCDriveThread::handleI2CWrite(FramePackage& framePackage)
             // Build "Request arg0 Successful"
             std::string argStr;
             if (!framePackage->arguments.empty())
-                argStr = std::get<std::string>(framePackage->arguments.at(0));
+                argStr = framePackage->arguments.at(0).asString();
             const qtac::ByteArray msg = framePackage->request + " " + argStr.c_str() + " Successful";
             onI2CWriteResult(msg);
         }
@@ -520,9 +520,9 @@ void TACPSOCDriveThread::handleSetPin(FramePackage& framePackage)
     // arguments: [0]=bool state, [1]=uint32_t pin
     if (framePackage->arguments.size() >= 2)
     {
-        const bool     state = std::get<bool>(framePackage->arguments.at(0));
+        const bool     state = framePackage->arguments.at(0).asBool();
         const uint64_t pin   = static_cast<uint64_t>(
-                                   std::get<uint32_t>(framePackage->arguments.at(1)));
+                                   framePackage->arguments.at(1)).asUInt32();
 
         framePackage->synonym =
             qtac::ByteArray("Pin ") + std::to_string(pin).c_str() + " " + (state ? "on" : "off");
@@ -535,7 +535,7 @@ void TACPSOCDriveThread::handleSetName(FramePackage& framePackage)
 {
     if (!framePackage->arguments.empty())
     {
-        _name = qtac::ByteArray(std::get<std::string>(framePackage->arguments.at(0)));
+        _name = qtac::ByteArray(framePackage->arguments.at(0)).asString();
         framePackage->synonym = qtac::ByteArray("Set Name ") + _name;
     }
     if (onNameUpdate) onNameUpdate(qtac::String(_name.toStdString()));

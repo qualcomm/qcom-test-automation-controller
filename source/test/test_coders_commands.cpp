@@ -526,8 +526,8 @@ static void test_taclite_command_setpin()
 
     assert(sender.log[0].command == "SetPin");
     assert(sender.log[0].arguments.size() == 2);
-    assert(std::get<bool>(sender.log[0].arguments[0]) == true);
-    assert(std::get<uint32_t>(sender.log[0].arguments[1]) == 16u);
+    assert(sender.log[0].arguments[0]) == true.asBool();
+    assert(sender.log[0].arguments[1]) == 16u.asUInt32();
 }
 
 static void test_taclite_command_battery()
@@ -540,7 +540,7 @@ static void test_taclite_command_battery()
     }
 
     assert(sender.log[0].command == "Battery");
-    assert(std::get<bool>(sender.log[0].arguments[0]) == false);
+    assert(sender.log[0].arguments[0]) == false.asBool();
 }
 
 static void test_taclite_command_setname()
@@ -553,7 +553,7 @@ static void test_taclite_command_setname()
     }
 
     assert(sender.log[0].command == "Set Name");
-    assert(std::get<std::string>(sender.log[0].arguments[0]) == "TestBoard");
+    assert(sender.log[0].arguments[0]) == "TestBoard".asString();
 }
 
 // ===========================================================================
@@ -583,8 +583,8 @@ static void test_tacpsoc_command_setpin()
     }
 
     assert(sender.log[0].command == "SetPin");
-    assert(std::get<bool>(sender.log[0].arguments[0]) == true);
-    assert(std::get<uint32_t>(sender.log[0].arguments[1]) == 53u);
+    assert(sender.log[0].arguments[0]) == true.asBool();
+    assert(sender.log[0].arguments[1]) == 53u.asUInt32();
 }
 
 static void test_tacpsoc_command_i2c_read()
@@ -598,7 +598,7 @@ static void test_tacpsoc_command_i2c_read()
 
     // Should produce: I2C Read Register, delay 500ms, I2C Read Register Value, EndTransaction
     assert(sender.log[0].command == "I2C Read Register");
-    assert(std::get<std::string>(sender.log[0].arguments[0]) == "0x50 0x10");
+    assert(sender.log[0].arguments[0]) == "0x50 0x10".asString();
     assert(sender.log[1].isDelay);
     assert(sender.log[1].delayMs == 500);
     assert(sender.log[2].command == "I2C Read Register Value");
@@ -615,7 +615,7 @@ static void test_tacpsoc_command_i2c_write()
     }
 
     assert(sender.log[0].command == "I2C Write Register");
-    assert(std::get<std::string>(sender.log[0].arguments[0]) == "0x50 0x10 0xAB");
+    assert(sender.log[0].arguments[0]) == "0x50 0x10 0xAB".asString();
 }
 
 static void test_tacpsoc_command_i2c_invalid_args()
@@ -654,8 +654,8 @@ static void test_tacpic32cx_command_setpin()
     }
 
     assert(sender.log[0].command == "CONF:DIG:ON");
-    assert(std::get<bool>(sender.log[0].arguments[0]) == true);
-    assert(std::get<uint32_t>(sender.log[0].arguments[1]) == 4u);
+    assert(sender.log[0].arguments[0]) == true.asBool();
+    assert(sender.log[0].arguments[1]) == 4u.asUInt32();
     assert(sender.log.back().isEndTransaction);
 }
 

@@ -53,7 +53,7 @@ qtac::ByteArray FrameCoder::encode(const qtac::ByteArray& encodeMe, const Argume
 
 qtac::ByteArray FrameCoder::argumentToBoolString(const Argument& arg) const
 {
-    return std::get<bool>(arg) ? "1" : "0";
+    return arg.asBool() ? "1" : "0";
 }
 
 void FrameCoder::setupCallbackFunctions(ProtocolInterface*  protocolInterface,

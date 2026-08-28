@@ -63,7 +63,7 @@ qtac::ByteArray TACLiteCoder::encode(const qtac::ByteArray& encodeMe, const Argu
     {
         if (arguments.size() >= 2)
         {
-            const uint32_t pin = std::get<uint32_t>(arguments.at(1));
+            const uint32_t pin = arguments.at(1).asUInt32();
             return qtac::ByteArray(std::to_string(pin));
         }
     }

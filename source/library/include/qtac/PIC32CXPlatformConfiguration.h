@@ -43,18 +43,9 @@
 #include <qtac/StringUtilities.h>
 #include <qtac/AlpacaScript.h>
 
-// Disable nlohmann versioned inline namespace so 'nlohmann::json' is unambiguous
-#ifndef NLOHMANN_JSON_NAMESPACE_NO_VERSION
-#  define NLOHMANN_JSON_NAMESPACE_NO_VERSION 1
-#endif
-#include <nlohmann/json.hpp>
+#include <qtac/json_util.h>
 
 #include <memory>
-
-#ifndef QTAC_JSON_T_DEFINED
-#define QTAC_JSON_T_DEFINED
-using json_t = nlohmann::json;
-#endif
 
 const PlatformID kMaxPIC32CXPlatformId{99999};
 

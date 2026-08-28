@@ -53,7 +53,6 @@
 #include <functional>
 #include <memory>
 #include <mutex>
-#include <optional>
 #include <vector>
 
 namespace qtac {
@@ -69,7 +68,7 @@ public:
     {
         std::lock_guard<std::mutex> lock(_mutex);
         const int id = ++_nextID;
-        _slots.push_back({id, std::nullopt, std::move(slot)});
+        _slots.push_back({id, false, std::weak_ptr<void>(), std::move(slot)});
         return id;
     }
 
@@ -85,7 +84,7 @@ public:
             if (!weak.expired())
                 slot(std::forward<Args>(args)...);
         };
-        _slots.push_back({id, weak, std::move(guard)});
+        _slots.push_back({id, true, weak, std::move(guard)});
         return id;
     }
 
@@ -112,7 +111,7 @@ public:
         {
             // If this was a weak_ptr connection and the owner has gone away,
             // skip it — the next fire will prune it.
-            if (e.weak.has_value() && e.weak->expired())
+            if (e.hasWeak && e.weak.expired())
                 continue;
             e.slot(std::forward<Args>(args)...);
         }
@@ -123,7 +122,7 @@ public:
             _slots.erase(
                 std::remove_if(_slots.begin(), _slots.end(),
                                [](const Entry& e) {
-                                   return e.weak.has_value() && e.weak->expired();
+                                   return e.hasWeak && e.weak.expired();
                                }),
                 _slots.end());
         }
@@ -139,9 +138,10 @@ public:
 private:
     struct Entry
     {
-        int                                  id;
-        std::optional<std::weak_ptr<void>>   weak;  // set for lifetime-safe connections
-        Slot                                 slot;
+        int                    id;
+        bool                   hasWeak;  // true for lifetime-safe connections
+        std::weak_ptr<void>    weak;
+        Slot                   slot;
     };
 
     mutable std::mutex   _mutex;

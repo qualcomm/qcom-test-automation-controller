@@ -255,26 +255,31 @@ void _PIC32CXPlatformConfiguration::cascadeTabRename(const qtac::String& oldName
 
 bool _PIC32CXPlatformConfiguration::read(json_t& j)
 {
-    if (j.contains(kPlatformEntries) && j[kPlatformEntries].is_array())
+    const auto* jobj = j.if_object();
+    if (!jobj) return false;
+
+    if (jobj->contains(kPlatformEntries) && (*jobj)[kPlatformEntries].is_array())
     {
-        for (const auto& pe : j[kPlatformEntries])
+        for (const auto& peVal : (*jobj)[kPlatformEntries].as_array())
         {
+            const auto* pe = peVal.if_object();
+            if (!pe) continue;
             PIC32CXPinData pinData;
 
-            if (pe.contains(kPinNumber))
-                pinData._setPin = static_cast<PinID>(pe[kPinNumber].get<int>());
+            if (pe->contains(kPinNumber))
+                pinData._setPin = static_cast<PinID>(qtac::json_util::toInt((*pe)[kPinNumber]));
 
             pinData._hash = PIC32CXPinData::makePIC32CXHash(pinData._setPin);
 
-            if (pe.contains(kEnabled))      pinData._enabled      = pe[kEnabled].get<bool>();
-            if (pe.contains(kInverted))     pinData._inverted     = pe[kInverted].get<bool>();
-            if (pe.contains(kName))         pinData._pinLabel     = pe[kName].get<std::string>();
-            if (pe.contains(kToolTip))      pinData._pinTooltip   = pe[kToolTip].get<std::string>();
-            if (pe.contains(kCommand))      pinData._pinCommand   = pe[kCommand].get<std::string>();
-            if (pe.contains(kCommandGroup)) pinData._commandGroup = static_cast<CommandGroups>(pe[kCommandGroup].get<int>());
-            if (pe.contains(kTabName))      pinData._tabName      = pe[kTabName].get<std::string>();
-            if (pe.contains(kRunPriority))
-                pinData._cellLocation = toPoint(qtac::String(pe[kRunPriority].get<std::string>()));
+            if (pe->contains(kEnabled))      pinData._enabled      = qtac::json_util::toBool((*pe)[kEnabled]);
+            if (pe->contains(kInverted))     pinData._inverted     = qtac::json_util::toBool((*pe)[kInverted]);
+            if (pe->contains(kName))         pinData._pinLabel     = qtac::json_util::toString((*pe)[kName]);
+            if (pe->contains(kToolTip))      pinData._pinTooltip   = qtac::json_util::toString((*pe)[kToolTip]);
+            if (pe->contains(kCommand))      pinData._pinCommand   = qtac::json_util::toString((*pe)[kCommand]);
+            if (pe->contains(kCommandGroup)) pinData._commandGroup = static_cast<CommandGroups>(qtac::json_util::toInt((*pe)[kCommandGroup]));
+            if (pe->contains(kTabName))      pinData._tabName      = qtac::json_util::toString((*pe)[kTabName]);
+            if (pe->contains(kRunPriority))
+                pinData._cellLocation = toPoint(qtac::String(qtac::json_util::toString((*pe)[kRunPriority])));
 
             _pinEntries[pinData._hash] = pinData;
         }
@@ -282,19 +287,21 @@ bool _PIC32CXPlatformConfiguration::read(json_t& j)
 
     // --- Load buttons ---
     _buttons.clear();
-    if (j.contains(kButtons) && j[kButtons].is_array())
+    if (jobj->contains(kButtons) && (*jobj)[kButtons].is_array())
     {
-        for (const auto& jb : j[kButtons])
+        for (const auto& jbVal : (*jobj)[kButtons].as_array())
         {
+            const auto* jb = jbVal.if_object();
+            if (!jb) continue;
             qtac::ButtonEntry btn;
-            if (jb.contains(kName))         btn._name         = jb[kName].get<std::string>();
-            if (jb.contains(kCommand))      btn._command      = jb[kCommand].get<std::string>();
-            if (jb.contains(kCommandGroup)) btn._commandGroup = jb[kCommandGroup].get<int>();
-            if (jb.contains(kTab))          btn._tab          = jb[kTab].get<std::string>();
-            if (jb.contains(kToolTip))      btn._tooltip      = jb[kToolTip].get<std::string>();
-            if (jb.contains(kCellLocation))
+            if (jb->contains(kName))         btn._name         = qtac::json_util::toString((*jb)[kName]);
+            if (jb->contains(kCommand))      btn._command      = qtac::json_util::toString((*jb)[kCommand]);
+            if (jb->contains(kCommandGroup)) btn._commandGroup = qtac::json_util::toInt((*jb)[kCommandGroup]);
+            if (jb->contains(kTab))          btn._tab          = qtac::json_util::toString((*jb)[kTab]);
+            if (jb->contains(kToolTip))      btn._tooltip      = qtac::json_util::toString((*jb)[kToolTip]);
+            if (jb->contains(kCellLocation))
             {
-                qtac::Point pt = toPoint(qtac::String(jb[kCellLocation].get<std::string>()));
+                qtac::Point pt = toPoint(qtac::String(qtac::json_util::toString((*jb)[kCellLocation])));
                 btn._cellX = pt.x();
                 btn._cellY = pt.y();
             }
@@ -331,18 +338,20 @@ bool _PIC32CXPlatformConfiguration::read(json_t& j)
 
     // --- Load variables ---
     _variables.clear();
-    if (j.contains(kVariables) && j[kVariables].is_array())
+    if (jobj->contains(kVariables) && (*jobj)[kVariables].is_array())
     {
-        for (const auto& jv : j[kVariables])
+        for (const auto& jvVal : (*jobj)[kVariables].as_array())
         {
+            const auto* jv = jvVal.if_object();
+            if (!jv) continue;
             qtac::VariableEntry var;
-            if (jv.contains(kName))    var._name    = jv[kName].get<std::string>();
-            if (jv.contains(kLabel))   var._label   = jv[kLabel].get<std::string>();
-            if (jv.contains(kToolTip)) var._tooltip = jv[kToolTip].get<std::string>();
-            if (jv.contains(kType))    var._type    = static_cast<qtac::VariableType>(jv[kType].get<int>());
-            if (jv.contains(kDefaultValue))
+            if (jv->contains(kName))    var._name    = qtac::json_util::toString((*jv)[kName]);
+            if (jv->contains(kLabel))   var._label   = qtac::json_util::toString((*jv)[kLabel]);
+            if (jv->contains(kToolTip)) var._tooltip = qtac::json_util::toString((*jv)[kToolTip]);
+            if (jv->contains(kType))    var._type    = static_cast<qtac::VariableType>(qtac::json_util::toInt((*jv)[kType]));
+            if (jv->contains(kDefaultValue))
             {
-                std::string dv = jv[kDefaultValue].get<std::string>();
+                std::string dv = qtac::json_util::toString((*jv)[kDefaultValue]);
                 if (var._type == qtac::VariableType::Boolean)
                     var._defaultValue = (dv == "1" || dv == "true");
                 else if (var._type == qtac::VariableType::Float)
@@ -355,9 +364,9 @@ bool _PIC32CXPlatformConfiguration::read(json_t& j)
                     catch (...) { var._defaultValue = 0u; }
                 }
             }
-            if (jv.contains(kCellLocation))
+            if (jv->contains(kCellLocation))
             {
-                qtac::Point pt = toPoint(qtac::String(jv[kCellLocation].get<std::string>()));
+                qtac::Point pt = toPoint(qtac::String(qtac::json_util::toString((*jv)[kCellLocation])));
                 var._cellX = pt.x();
                 var._cellY = pt.y();
             }
@@ -388,9 +397,9 @@ bool _PIC32CXPlatformConfiguration::read(json_t& j)
     ensureVar("fastboot", "Fastboot timing (ms)", "Configurable Boot to fastboot timing in milliseconds", 8000, 1, 0);
 
     // --- Load and parse script ---
-    if (j.contains(kScript) && j[kScript].is_string())
+    if (jobj->contains(kScript) && (*jobj)[kScript].is_string())
     {
-        qtac::String scriptText = j[kScript].get<std::string>();
+        qtac::String scriptText = qtac::json_util::toString((*jobj)[kScript]);
         TACCommands cmds;
         PIC32CXPinList activePins = getActivePins();
         for (const auto& p : activePins)
@@ -404,10 +413,10 @@ bool _PIC32CXPlatformConfiguration::read(json_t& j)
         _script.parseScript(scriptText, _variables, cmds);
     }
 
-    if (j.contains(kModificationDate) && j[kModificationDate].is_string())
-        _modificationDate = qtac::String(j[kModificationDate].get<std::string>());
-    if (j.contains(kFileVersion) && j[kFileVersion].is_number_integer())
-        _fileVersion = j[kFileVersion].get<int>();
+    if (jobj->contains(kModificationDate) && (*jobj)[kModificationDate].is_string())
+        _modificationDate = qtac::String(qtac::json_util::toString((*jobj)[kModificationDate]));
+    if (jobj->contains(kFileVersion) && ((*jobj)[kFileVersion].is_int64() || (*jobj)[kFileVersion].is_uint64()))
+        _fileVersion = qtac::json_util::toInt((*jobj)[kFileVersion]);
 
     return true;
 }
@@ -432,11 +441,11 @@ void _PIC32CXPlatformConfiguration::loadDefaultScript(const qtac::String& script
 
 void _PIC32CXPlatformConfiguration::write(json_t& j)
 {
-    json_t pinsArray = json_t::array();
+    boost::json::array pinsArray;
     for (const auto& kv : _pinEntries)
     {
         const PIC32CXPinData& p = kv.second;
-        json_t entry;
+        boost::json::object entry;
         entry[kPinNumber]    = static_cast<int>(p._setPin);
         entry[kEnabled]      = p._enabled;
         entry[kInverted]     = p._inverted;
@@ -448,7 +457,7 @@ void _PIC32CXPlatformConfiguration::write(json_t& j)
         entry[kTabName]      = p._tabName.toStdString();
         pinsArray.push_back(entry);
     }
-    j[kPlatformEntries] = pinsArray;
+    j.as_object()[kPlatformEntries] = pinsArray;
 }
 
 // ---------------------------------------------------------------------------

@@ -35,8 +35,8 @@
 
 #include <qtac/String.h>
 #include <qtac/ByteArray.h>
-#include <variant>
 #include <cstdint>
+#include <new>
 
 namespace qtac {
 
@@ -65,6 +65,9 @@ public:
 	Variant(const qtac::String& value);
 	Variant(const char* value);
 	Variant(const ByteArray& value);
+	Variant(const Variant& other);
+	Variant& operator=(const Variant& other);
+	~Variant();
 
 	// --- Type checking ---
 	bool isValid() const;
@@ -88,19 +91,25 @@ public:
 	friend bool operator!=(const Variant& lhs, const Variant& rhs);
 
 private:
-	using Storage = std::variant<
-		std::monostate,
-		bool,
-		int,
-		unsigned int,
-		long long,
-		unsigned long long,
-		double,
-		qtac::String,
-		ByteArray
-	>;
+	void _destroy();
+	void _copyFrom(const Variant& other);
 
-	Storage _data;
+	Type _type;
+
+	union Storage {
+		bool               b;
+		int                i;
+		unsigned int       u;
+		long long          ll;
+		unsigned long long ull;
+		double             d;
+		// Non-trivial types stored via placement new
+		char               str[sizeof(qtac::String)];
+		char               ba[sizeof(qtac::ByteArray)];
+
+		Storage() {}
+		~Storage() {}
+	} _data;
 };
 
 // --- Template specializations ---

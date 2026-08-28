@@ -33,12 +33,7 @@
 // Author: Michael Simpson
 
 #include <qtac/PlatformID.h>
-
-// Disable nlohmann versioned inline namespace so 'nlohmann::json' is unambiguous
-#ifndef NLOHMANN_JSON_NAMESPACE_NO_VERSION
-#  define NLOHMANN_JSON_NAMESPACE_NO_VERSION 1
-#endif
-#include <nlohmann/json.hpp>
+#include <qtac/json_util.h>
 
 #include <fstream>
 #include <filesystem>
@@ -47,8 +42,6 @@
 #else
 #  include <unistd.h>
 #endif
-
-using json_t = nlohmann::json;
 
 // -----------------------------------------------------------------------
 // Static storage
@@ -221,11 +214,18 @@ void PlatformContainer::initializeDynamic()
     if (!file.is_open())
         return;
 
+    std::string fileContents((std::istreambuf_iterator<char>(file)),
+                              std::istreambuf_iterator<char>());
+
     json_t root;
-    try { root = json_t::parse(file); }
+    try { root = boost::json::parse(fileContents); }
     catch (...) { return; }
 
-    if (!root.contains(kCatalog) || !root[kCatalog].is_array())
+    const auto* rootObj = root.if_object();
+    if (!rootObj || !rootObj->contains(kCatalog))
+        return;
+    const auto* catalog = (*rootObj)[kCatalog].if_array();
+    if (!catalog)
         return;
 
     // Resolve the directory that contains devicelist.json so that relative
@@ -233,19 +233,20 @@ void PlatformContainer::initializeDynamic()
     std::filesystem::path deviceListDir =
         std::filesystem::path(deviceListPath).parent_path();
 
-    for (const auto& entry : root[kCatalog])
+    for (const auto& entryVal : *catalog)
     {
-        if (!entry.contains(kPlatformId))
+        const auto* entry = entryVal.if_object();
+        if (!entry || !entry->contains(kPlatformId))
             continue;
 
-        PlatformID pid = static_cast<PlatformID>(entry[kPlatformId].get<int>());
+        PlatformID pid = static_cast<PlatformID>(qtac::json_util::toInt((*entry)[kPlatformId]));
 
-        int boardTypeInt = entry.value(kDebugBoardType, 0);
+        int boardTypeInt = qtac::json_util::valueInt(*entry, kDebugBoardType, 0);
         DebugBoardType boardType = static_cast<DebugBoardType>(boardTypeInt);
 
-        std::string description = entry.value(kDescription, "");
-        std::string usbDesc     = entry.value(kUsbDescriptor, "");
-        std::string configPath  = entry.value(kConfigPath, "");
+        std::string description = qtac::json_util::valueString(*entry, kDescription, "");
+        std::string usbDesc     = qtac::json_util::valueString(*entry, kUsbDescriptor, "");
+        std::string configPath  = qtac::json_util::valueString(*entry, kConfigPath, "");
 
         // Resolve configPath relative to devicelist.json location when it is
         // a relative path.
@@ -283,8 +284,8 @@ void PlatformContainer::initializeDynamic()
             qtac::ByteArray(usbDesc.c_str())
         );
 
-        platformEntry->_revision     = static_cast<uint32_t>(entry.value(kRevision, 0));
-        platformEntry->_firmwareChip = static_cast<uint32_t>(entry.value(kFirmwareChip, 0));
+        platformEntry->_revision     = static_cast<uint32_t>(qtac::json_util::valueInt(*entry, kRevision, 0));
+        platformEntry->_firmwareChip = static_cast<uint32_t>(qtac::json_util::valueInt(*entry, kFirmwareChip, 0));
 
         // FTDI bus set bitmasks (chip1..chip4, 0-indexed internally as [0..3])
         static const char* kBusSets[kMaxPinSetCount] = {
@@ -292,9 +293,9 @@ void PlatformContainer::initializeDynamic()
         };
         for (int i = 0; i < kMaxPinSetCount; ++i)
         {
-            if (entry.contains(kBusSets[i]))
+            if (entry->contains(kBusSets[i]))
                 platformEntry->_pinSets[i] =
-                    static_cast<FTDIPinSets>(entry[kBusSets[i]].get<int>());
+                    static_cast<FTDIPinSets>(qtac::json_util::toInt((*entry)[kBusSets[i]]));
         }
 
         _platformIds.insert(pid, platformEntry);

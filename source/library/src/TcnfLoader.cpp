@@ -31,6 +31,7 @@
 // IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include <qtac/TcnfLoader.h>
+#include <qtac/json_util.h>
 
 #include <fstream>
 #include <sstream>
@@ -42,7 +43,9 @@ static bool openAndParse(const std::string& path, json_t& out)
     if (path.empty()) return false;
     std::ifstream file(path);
     if (!file.is_open()) return false;
-    try { out = json_t::parse(file); }
+    std::string contents((std::istreambuf_iterator<char>(file)),
+                          std::istreambuf_iterator<char>());
+    try { out = boost::json::parse(contents); }
     catch (...) { return false; }
     return true;
 }

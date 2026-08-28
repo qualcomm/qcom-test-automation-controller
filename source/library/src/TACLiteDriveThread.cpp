@@ -346,12 +346,12 @@ void TACLiteDriveThread::run()
                         if (!framePackage->arguments.empty())
                         {
                             const Argument& arg = framePackage->arguments.at(0);
-                            if (std::holds_alternative<bool>(arg))
-                                argStr = std::get<bool>(arg) ? "on" : "off";
-                            else if (std::holds_alternative<uint32_t>(arg))
-                                argStr = std::to_string(std::get<uint32_t>(arg));
+                            if (arg.kind() == Argument::Kind::Bool)
+                                argStr = arg.asBool() ? "on" : "off";
+                            else if (arg.kind() == Argument::Kind::UInt32)
+                                argStr = std::to_string(arg.asUInt32());
                             else
-                                argStr = std::get<std::string>(arg);
+                                argStr = arg.asString();
                         }
                         framePackage->responses.push_back(framePackage->request + " " + argStr.c_str());
                         receive(framePackage);
@@ -406,7 +406,7 @@ bool TACLiteDriveThread::getElectricalPinValue(HashType commandHash,
                                                 const Arguments& arguments)
 {
     if (commandHash == kSetPinCommandHash && !arguments.empty())
-        return std::get<bool>(arguments.at(0));
+        return arguments.at(0).asBool();
     return false;
 }
 
@@ -424,7 +424,7 @@ void TACLiteDriveThread::handleSetName(FramePackage& framePackage)
     if (!framePackage->arguments.empty())
     {
         const Argument& arg = framePackage->arguments.at(0);
-        _name = qtac::ByteArray(std::get<std::string>(arg));
+        _name = qtac::ByteArray(arg.asString());
         framePackage->synonym = qtac::ByteArray("Set Name ") + _name;
     }
     if (onNameUpdate) onNameUpdate(_name.toStdString());
@@ -436,9 +436,9 @@ void TACLiteDriveThread::handleSetPin(FramePackage& framePackage)
     bool     state = false;
 
     if (framePackage->arguments.size() >= 1)
-        state = std::get<bool>(framePackage->arguments.at(0));
+        state = framePackage->arguments.at(0).asBool();
     if (framePackage->arguments.size() >= 2)
-        pin   = static_cast<uint64_t>(std::get<uint32_t>(framePackage->arguments.at(1)));
+        pin   = static_cast<uint64_t>(framePackage->arguments.at(1).asUInt32());
 
     framePackage->synonym = qtac::ByteArray("Set Pin ") + std::to_string(pin).c_str() + " " + (state ? "on" : "off");
     if (onPinStateChanged) onPinStateChanged(pin, state);

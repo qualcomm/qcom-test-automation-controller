@@ -35,7 +35,7 @@ project(qtac-core VERSION 0.1.0 LANGUAGES CXX)
 
 include(${CMAKE_CURRENT_SOURCE_DIR}/cmake/QtacCommon.cmake)
 
-set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 # -----------------------------------------------------------------------
@@ -152,6 +152,8 @@ add_library(qtac-core STATIC
     src/TcnfLoader.cpp
     # AlpacaScript engine (Qt-free port of qcommon-console AlpacaScript)
     src/AlpacaScript.cpp
+    # boost::json header-only compilation unit
+    src/boost_json_src.cpp
 )
 
 # Platform-specific SerialPortInfo enumeration
@@ -166,8 +168,13 @@ target_include_directories(qtac-core PUBLIC
     $<INSTALL_INTERFACE:include>
 )
 
-target_compile_features(qtac-core PUBLIC cxx_std_20)
+target_compile_features(qtac-core PUBLIC cxx_std_11)
 QtacCoreSettings(qtac-core)
+
+# Boost (vendored in third-party/) — use header-only boost::json via src.hpp
+target_include_directories(qtac-core PUBLIC
+    $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/third-party/include>
+)
 
 target_link_libraries(qtac-core PUBLIC serialport)
 
