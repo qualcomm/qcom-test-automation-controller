@@ -60,7 +60,7 @@
             "description": "Alpaca V3.1",
             "name": "Alpaca V3.1",
             "platform_id": 7,
-            "revision": 0,
+            "revision": 1,
             "usb_descriptor": ""
         },
         {
@@ -140,7 +140,7 @@
             "description": "CSM - Lite",
             "name": "CSM Lite",
             "platform_id": 15,
-            "revision": 0,
+            "revision": 1,
             "usb_descriptor": "ALPACA-LITE CSM DEBUG BOARD"
         },
         {
@@ -153,8 +153,8 @@
             "description": "CSM - X100",
             "name": "CSM X100",
             "platform_id": 16,
-            "revision": 19,
-            "usb_descriptor": "ALPACA-LITE CSM X100 DEBUG"
+            "revision": 1,
+            "usb_descriptor": "ALPACA-LITE CSM X100 DEBUG BOARD"
         },
         {
             "configPath": "../../../../configurations/TAC_PSOC_17.tcnf",
@@ -227,7 +227,7 @@
             "description": "FTDI-LITE SDX75 QMP",
             "name": "SDX75 QMP",
             "platform_id": 22,
-            "revision": 0,
+            "revision": 1,
             "usb_descriptor": "ALPACA-LITE SDX75 QMP"
         },
         {
@@ -554,7 +554,7 @@
             "description": "NordAu RIDE",
             "name": "NordAu RIDE",
             "platform_id": 54,
-            "revision": 7,
+            "revision": 6,
             "usb_descriptor": "KARUSSELL"
         },
         {
@@ -650,7 +650,7 @@
             "description": "Hawi MTP8975 - PSoC",
             "name": "Hawi MTP8975",
             "platform_id": 66,
-            "revision": 85,
+            "revision": 86,
             "usb_descriptor": ""
         },
         {
@@ -676,7 +676,7 @@
             "description": "FTDI-LITE SDX95 M.2",
             "name": "SDX95 M.2",
             "platform_id": 69,
-            "revision": 25,
+            "revision": 23,
             "usb_descriptor": "ALPACA-LITE SDX95 M.2"
         },
         {
@@ -769,8 +769,8 @@
         {
             "configPath": "",
             "debugBoardType": 5,
-            "description": "Default IoT (Bug Hopper)",
-            "name": "Default IoT (Bug Hopper)",
+            "description": "Arduino BugHopper V1 (Default)",
+            "name": "Arduino BugHopper V1 (Default)",
             "platform_id": 80,
             "revision": 0,
             "usb_descriptor": ""
@@ -799,7 +799,7 @@
             "description": "IQ10 RRD V1",
             "name": "IQ10 RRD V1",
             "platform_id": 85,
-            "revision": 0,
+            "revision": 1,
             "usb_descriptor": "IQ10rrd"
         },
         {
@@ -808,9 +808,18 @@
             "description": "HAWI QRD PSOC",
             "name": "HAWI QRD",
             "platform_id": 87,
-            "revision": 6,
+            "revision": 7,
+            "usb_descriptor": ""
+        },
+        {
+            "configPath": "",
+            "debugBoardType": 6,
+            "description": "Arduino BugHopper V2 (Default)",
+            "name": "Arduino BugHopper V2 (Default)",
+            "platform_id": 95,
+            "revision": 0,
             "usb_descriptor": ""
         }
     ],
-    "modification_date": "Tue Aug 4 18:14:03 2026"
+    "modification_date": "Mon Aug 31 00:17:17 2026"
 }
