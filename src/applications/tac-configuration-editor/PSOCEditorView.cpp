@@ -439,7 +439,7 @@ bool PSOCEditorView::read()
 	{
 		PSOCI2CSlaves slaves = _psocPlatformConfig->getSlaveConfigs();
 
-		if (slaves.count() > 0)
+		if (_psocPlatformConfig->variant() != ePSOCGPIOIIC || slaves.count() > 0)
 			_psocTabWgt->setTabVisible(1, 0);
 
 		for (auto& s : slaves)
