@@ -21,8 +21,6 @@ const PlatformID EPM_BOARD_ID_QRD_V1P0{9};
 const PlatformID EPM_BOARD_ID_IDP_V1P0{10};
 const PlatformID EPM_BOARD_ID_DONGLE_V3P0{11};
 const PlatformID EPM_BOARD_ID_MTP_V3P3{12};
-const PlatformID MICRO_EPM_BOARD_ID_SPM{0x7FFFFFFD};
-const PlatformID MICRO_EPM_BOARD_ID_SPMV3{0x7FFFFFFE};
 
 PlatformIDs PlatformContainer::_platformIds;
 
@@ -58,9 +56,7 @@ void PlatformContainer::initialize()
 		_platformIds.insert(EPM_BOARD_ID_QRD_V1P0, PlatformEntry(new _PlatformEntry(EPM_BOARD_ID_QRD_V1P0, ePSOC, "QRD V1.0")));
 		_platformIds.insert(EPM_BOARD_ID_IDP_V1P0, PlatformEntry(new _PlatformEntry(EPM_BOARD_ID_IDP_V1P0, ePSOC, "IDP V1.0")));
 		_platformIds.insert(EPM_BOARD_ID_DONGLE_V3P0, PlatformEntry(new _PlatformEntry(EPM_BOARD_ID_DONGLE_V3P0, ePSOC, "Dongle V3.0")));
-		_platformIds.insert(MICRO_EPM_BOARD_ID_SPMV3, PlatformEntry(new _PlatformEntry(MICRO_EPM_BOARD_ID_SPMV3, ePSOC, "SPM V3.0")));
 		_platformIds.insert(EPM_BOARD_ID_MTP_V3P3, PlatformEntry(new _PlatformEntry(EPM_BOARD_ID_MTP_V3P3, ePSOC, "MTP V3.3")));
-		_platformIds.insert(MICRO_EPM_BOARD_ID_SPM, PlatformEntry(new _PlatformEntry(MICRO_EPM_BOARD_ID_SPM, ePSOC, "SPM")));
 
 		PlatformEntry ftdiEntry(new _PlatformEntry(ALPACA_LITE_ID, eFTDI, "ALPACA LITE (FTDI)"));
 		ftdiEntry->_usbDescriptor = "ALPACA-LITE MTP DEBUG BOARD";
