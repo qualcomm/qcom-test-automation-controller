@@ -1103,39 +1103,42 @@ void _PSOCPlatformConfiguration::write(QJsonObject &parentLevel)
 
 	parentLevel[kPlatformEntries] = jsonPlatformPinData;
 
-	// Write i2c_slaves (slave config descriptors)
-	QJsonArray jsonSlaveConfigs;
-	for (const auto& sc : std::as_const(_slaveConfigs))
+	if (_variant == ePSOCGPIOIIC)
 	{
-		QJsonObject slaveData;
-		slaveData.insert(kSlaveVariant, static_cast<int>(sc._variant));
-		slaveData.insert(kRegAddress, static_cast<int>(sc._slaveAddress));
-		slaveData.insert(kConfigAddress, static_cast<int>(sc._configAddress));
-		slaveData.insert(kPortCount, sc._portCount);
-		jsonSlaveConfigs.append(slaveData);
-	}
-	parentLevel[kI2CSlaves] = jsonSlaveConfigs;
+		// Write i2c_slaves (slave config descriptors)
+		QJsonArray jsonSlaveConfigs;
+		for (const auto& sc : std::as_const(_slaveConfigs))
+		{
+			QJsonObject slaveData;
+			slaveData.insert(kSlaveVariant, static_cast<int>(sc._variant));
+			slaveData.insert(kRegAddress, static_cast<int>(sc._slaveAddress));
+			slaveData.insert(kConfigAddress, static_cast<int>(sc._configAddress));
+			slaveData.insert(kPortCount, sc._portCount);
+			jsonSlaveConfigs.append(slaveData);
+		}
+		parentLevel[kI2CSlaves] = jsonSlaveConfigs;
 
-	// Write i2c_addr (per-pin I2C entries)
-	QJsonArray jsonI2CData;
-	for (const auto& i2cEntry : std::as_const(_i2cEntries))
-	{
-		QJsonObject i2cData;
-		i2cData.insert(kPinNumber, QString::number(i2cEntry._pin));
-		i2cData.insert(kSlaveAddress, static_cast<int>(i2cEntry._slaveAddress));
-		i2cData.insert(kWriteAddress, static_cast<int>(i2cEntry._writeAddress));
-		i2cData.insert(kEnabled, i2cEntry._enabled);
-		i2cData.insert(kName, i2cEntry._pinLabel);
-		i2cData.insert(kToolTip, i2cEntry._pinTooltip);
-		i2cData.insert(kCommand, i2cEntry._pinCommand);
-		i2cData.insert(kCommmandGroup, i2cEntry._commandGroup);
-		i2cData.insert(kClassicAction, i2cEntry._classicAction);
-		i2cData.insert(kTabName, i2cEntry._tabName);
-		i2cData.insert(kRunPriority, fromQPoint(i2cEntry._cellLocation));
-		i2cData.insert(kInverted, i2cEntry._inverted);
-		jsonI2CData.append(i2cData);
+		// Write i2c_addr (per-pin I2C entries)
+		QJsonArray jsonI2CData;
+		for (const auto& i2cEntry : std::as_const(_i2cEntries))
+		{
+			QJsonObject i2cData;
+			i2cData.insert(kPinNumber, QString::number(i2cEntry._pin));
+			i2cData.insert(kSlaveAddress, static_cast<int>(i2cEntry._slaveAddress));
+			i2cData.insert(kWriteAddress, static_cast<int>(i2cEntry._writeAddress));
+			i2cData.insert(kEnabled, i2cEntry._enabled);
+			i2cData.insert(kName, i2cEntry._pinLabel);
+			i2cData.insert(kToolTip, i2cEntry._pinTooltip);
+			i2cData.insert(kCommand, i2cEntry._pinCommand);
+			i2cData.insert(kCommmandGroup, i2cEntry._commandGroup);
+			i2cData.insert(kClassicAction, i2cEntry._classicAction);
+			i2cData.insert(kTabName, i2cEntry._tabName);
+			i2cData.insert(kRunPriority, fromQPoint(i2cEntry._cellLocation));
+			i2cData.insert(kInverted, i2cEntry._inverted);
+			jsonI2CData.append(i2cData);
+		}
+		parentLevel[kI2CAddress] = jsonI2CData;
 	}
-	parentLevel[kI2CAddress] = jsonI2CData;
 }
 
 void _PSOCPlatformConfiguration ::initialize(PSOCVariant psocVariant)
