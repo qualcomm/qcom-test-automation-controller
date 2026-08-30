@@ -241,3 +241,146 @@ jobs:
         name: QTAC-windows-arm64-qt${{ matrix.qt_version }}
         path: __Builds\installer\QTAC-windows-arm64.exe
         if-no-files-found: error
+
+  publish-release-linux:
+    name: Publish release (Linux)
+    if: github.ref_type == 'tag'
+    needs: build-linux
+    runs-on: ubuntu-22.04
+    permissions:
+      contents: write
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v6
+      with:
+        fetch-depth: 0
+
+    - name: Verify tag is on main branch
+      id: verify_main
+      run: |
+        set -euo pipefail
+        git fetch origin main --quiet
+        if git merge-base --is-ancestor "$GITHUB_SHA" origin/main; then
+          echo "Tagged commit $GITHUB_SHA is on main; proceeding with release."
+          echo "on_main=true" >> "$GITHUB_OUTPUT"
+        else
+          echo "Tagged commit $GITHUB_SHA is NOT on main; skipping release publish."
+          echo "on_main=false" >> "$GITHUB_OUTPUT"
+        fi
+
+    - name: Download Linux build artifacts
+      if: steps.verify_main.outputs.on_main == 'true'
+      uses: actions/download-artifact@v4
+      with:
+        pattern: QTAC-*.deb
+        path: release-artifacts
+
+    - name: Flatten Linux artifacts into a single directory
+      if: steps.verify_main.outputs.on_main == 'true'
+      run: |
+        set -euo pipefail
+        mkdir -p release-assets
+        find release-artifacts -mindepth 2 -type f -print0 | while IFS= read -r -d '' f; do
+          artifact_name="$(basename "$(dirname "$f")")"
+          ext="${f##*.}"
+          if [[ "$artifact_name" == *.$ext ]]; then
+            target="$artifact_name"
+          else
+            target="${artifact_name}.${ext}"
+          fi
+          cp "$f" "release-assets/$target"
+        done
+        echo "Linux release assets to upload:"
+        ls -la release-assets
+
+    - name: Ensure GitHub Release exists and upload Linux assets
+      if: steps.verify_main.outputs.on_main == 'true'
+      env:
+        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        TAG: ${{ github.ref_name }}
+      run: |
+        set -euo pipefail
+        if ! gh release view "$TAG" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
+          gh release create "$TAG" \
+            --repo "$GITHUB_REPOSITORY" \
+            --title "$TAG" \
+            --generate-notes || \
+          gh release view "$TAG" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1
+        fi
+        gh release upload "$TAG" release-assets/* \
+          --repo "$GITHUB_REPOSITORY" \
+          --clobber
+
+  publish-release-windows:
+    name: Publish release (Windows)
+    if: github.ref_type == 'tag'
+    needs: [build-windows, build-windows-arm64]
+    runs-on: windows-2022
+    permissions:
+      contents: write
+    steps:
+    - name: Checkout repository (full history)
+      uses: actions/checkout@v6
+      with:
+        fetch-depth: 0
+
+    - name: Verify tag is on main branch
+      id: verify_main
+      shell: pwsh
+      run: |
+        $ErrorActionPreference = 'Stop'
+        git fetch origin main --quiet
+        git merge-base --is-ancestor "$env:GITHUB_SHA" origin/main
+        if ($LASTEXITCODE -eq 0) {
+          Write-Host "Tagged commit $env:GITHUB_SHA is on main; proceeding with release."
+          "on_main=true" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
+        } else {
+          Write-Host "Tagged commit $env:GITHUB_SHA is NOT on main; skipping release publish."
+          "on_main=false" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
+        }
+
+    - name: Download Windows build artifacts
+      if: steps.verify_main.outputs.on_main == 'true'
+      uses: actions/download-artifact@v4
+      with:
+        pattern: QTAC-windows-*
+        path: release-artifacts
+
+    - name: Flatten Windows artifacts into a single directory
+      if: steps.verify_main.outputs.on_main == 'true'
+      shell: pwsh
+      run: |
+        New-Item -ItemType Directory -Force -Path release-assets | Out-Null
+        Get-ChildItem release-artifacts -Directory | ForEach-Object {
+          $artifactName = $_.Name
+          Get-ChildItem $_.FullName -File -Recurse | ForEach-Object {
+            $target = Join-Path 'release-assets' ("$artifactName$($_.Extension)")
+            Copy-Item $_.FullName $target -Force
+          }
+        }
+        Write-Host "Windows release assets to upload:"
+        Get-ChildItem release-assets | Format-Table -AutoSize
+
+    - name: Ensure GitHub Release exists and upload Windows assets
+      if: steps.verify_main.outputs.on_main == 'true'
+      shell: pwsh
+      env:
+        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        TAG: ${{ github.ref_name }}
+      run: |
+        $ErrorActionPreference = 'Stop'
+        gh release view "$env:TAG" --repo "$env:GITHUB_REPOSITORY" 2>$null
+        if ($LASTEXITCODE -ne 0) {
+          gh release create "$env:TAG" `
+            --repo "$env:GITHUB_REPOSITORY" `
+            --title "$env:TAG" `
+            --generate-notes
+          if ($LASTEXITCODE -ne 0) {
+            # Another job likely created it first; verify it now exists.
+            gh release view "$env:TAG" --repo "$env:GITHUB_REPOSITORY"
+          }
+        }
+        $assets = Get-ChildItem release-assets -File | ForEach-Object { $_.FullName }
+        gh release upload "$env:TAG" $assets `
+          --repo "$env:GITHUB_REPOSITORY" `
+          --clobber
