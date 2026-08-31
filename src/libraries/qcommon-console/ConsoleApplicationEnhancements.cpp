@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: BSD-3-Clause
 
 #include "ConsoleApplicationEnhancements.h"
+#include "AppCore.h"
 #include "Range.h"
 
 // Qt
@@ -37,16 +38,23 @@ QString applicationDataPath()
 {
 	QString result = "../../../../configurations/";
 
-	if (QDir(result).exists() == false)
-		{
-			#ifdef Q_OS_WIN
-				result = "C:/ProgramData/Qualcomm/" + kAppName + "/configurations/";
-			#endif
+	QString appName = kAppName;
+	QDir binDir(QCoreApplication::applicationDirPath());
 
-			#ifdef Q_OS_LINUX
-				result = "/var/lib/qcom/data/" + kAppName + "/configurations/";
-			#endif
-		}
+	if (binDir.exists() == true)
+	{
+		const QString folderName = binDir.dirName();
+		if (folderName.isEmpty() == false)
+			appName = folderName;
+	}
+
+	#ifdef Q_OS_WIN
+		result = "C:/ProgramData/Qualcomm/" + appName + "/configurations/";
+	#endif
+
+	#ifdef Q_OS_LINUX
+		result = "/var/lib/qcom/data/" + appName + "/configurations/";
+	#endif
 
 	return result;
 }
