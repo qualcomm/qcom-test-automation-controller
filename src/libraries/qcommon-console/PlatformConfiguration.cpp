@@ -1484,6 +1484,11 @@ PlatformConfiguration TACPlatformEntry::getConfiguration()
 
 			if (platformPath.isEmpty() == false)
 			{
+				// Resolve bare filenames against tacConfigRoot() so installed packages
+				// find configs under C:/ProgramData/Qualcomm/QTAC/configurations/
+				if (!QDir::isAbsolutePath(platformPath) && !platformPath.contains(QLatin1Char('/')) && !platformPath.contains(QLatin1Char('\\')))
+					platformPath = tacConfigRoot() + platformPath;
+
 				_platformConfiguration = _PlatformConfiguration::openPlatformConfiguration(platformPath);
 				if (_platformConfiguration.isNull() == false)
 				{

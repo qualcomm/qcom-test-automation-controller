@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: BSD-3-Clause
 
 #include "ConsoleApplicationEnhancements.h"
+#include "AppCore.h"
 #include "Range.h"
 
 // Qt
@@ -35,18 +36,39 @@ QString applicationBinPath()
 
 QString applicationDataPath()
 {
-	QString result = "../../../../configurations/";
+	QString result;
 
+	// Derive the actual install folder name ("Alpaca", "QEPM", "QTAC", ...)
+	// from where this binary is running, i.e. .../Qualcomm/<X>/<exe> -> "<X>".
+	// kAppName is a hardcoded default ("QTAC") that only matches the QTAC
+	// standalone package; other packages (e.g. Alpaca) install under a
+	// different folder name and would otherwise resolve to a ProgramData
+	// path that never exists, incorrectly falling into the dev fallback
+	// below (which computes a bogus, out-of-bounds path from an installed
+	// location and silently breaks all config-file lookups).
+	QString appName = kAppName;
+	QDir binDir(QCoreApplication::applicationDirPath());
+	if (binDir.exists())
+	{
+		const QString folderName = binDir.dirName();
+		if (folderName.isEmpty() == false)
+			appName = folderName;
+	}
+
+	#ifdef Q_OS_WIN
+		result = "C:/ProgramData/Qualcomm/" + appName + "/configurations/";
+	#endif
+
+	#ifdef Q_OS_LINUX
+		result = "/var/lib/qcom/data/" + appName + "/configurations/";
+	#endif
+
+	// Dev fallback: use binary-relative path so it only works from the build tree,
+	// not from an installed location like "C:/Program Files/Qualcomm/Alpaca"
 	if (QDir(result).exists() == false)
-		{
-			#ifdef Q_OS_WIN
-				result = "C:/ProgramData/Qualcomm/" + kAppName + "/configurations/";
-			#endif
-
-			#ifdef Q_OS_LINUX
-				result = "/var/lib/qcom/data/" + kAppName + "/configurations/";
-			#endif
-		}
+	{
+		result = applicationBinPath() + "../../../../configurations/";
+	}
 
 	return result;
 }
