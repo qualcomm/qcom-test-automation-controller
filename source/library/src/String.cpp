@@ -86,7 +86,7 @@ String String::fromStdWString(const std::wstring& wstr)
 		static_cast<int>(wstr.size()), nullptr, 0, nullptr, nullptr);
 	std::string result(static_cast<size_t>(sizeNeeded), '\0');
 	WideCharToMultiByte(CP_UTF8, 0, wstr.c_str(),
-		static_cast<int>(wstr.size()), result.data(), sizeNeeded, nullptr, nullptr);
+		static_cast<int>(wstr.size()), &result[0], sizeNeeded, nullptr, nullptr);
 	return String(std::move(result));
 }
 
@@ -97,7 +97,7 @@ std::wstring String::toStdWString() const
 		static_cast<int>(_data.size()), nullptr, 0);
 	std::wstring result(static_cast<size_t>(sizeNeeded), L'\0');
 	MultiByteToWideChar(CP_UTF8, 0, _data.c_str(),
-		static_cast<int>(_data.size()), result.data(), sizeNeeded);
+		static_cast<int>(_data.size()), &result[0], sizeNeeded);
 	return result;
 }
 #endif
@@ -114,7 +114,7 @@ void String::clear() { _data.clear(); _isNull = false; }
 
 const char* String::constData() const { return _data.c_str(); }
 const char* String::data() const { return _data.c_str(); }
-char* String::data() { return _data.data(); }
+char* String::data() { return _data.empty() ? nullptr : &_data[0]; }
 std::string String::toStdString() const { return _data; }
 
 // --- Conversion to ByteArray ---

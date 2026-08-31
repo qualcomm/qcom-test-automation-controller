@@ -36,7 +36,6 @@
 #include <qtac/TACCommandHashes.h>
 
 #include <string>
-#include <variant>
 
 namespace qtac {
 

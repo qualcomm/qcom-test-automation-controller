@@ -37,7 +37,6 @@
 #include <qtac/StringUtilities.h>
 #include <qtac/ProtocolInterface.h>
 
-#include <variant>
 
 // Prompt strings sent by the PSOC firmware.
 static const qtac::ByteArray kCommand              {"CMD >> "};
@@ -148,7 +147,7 @@ qtac::ByteArray TACPSOCCoder::encode(const qtac::ByteArray& encodeMe, const Argu
 
     case kSetNameCommandHash:
         if (!arguments.empty())
-            result = qtac::ByteArray("setname ") + arguments.at(0)).c_str(.asString() + "\r";
+            result = qtac::ByteArray("setname ") + arguments.at(0).asString().c_str() + "\r";
         break;
 
     case kGetUUIDCommandHash:
@@ -169,7 +168,7 @@ qtac::ByteArray TACPSOCCoder::encode(const qtac::ByteArray& encodeMe, const Argu
 
     case kI2CReadRegisterCommandHash:
         if (!arguments.empty())
-            result = qtac::ByteArray("i2c readRegisterBytes ") + arguments.at(0)).c_str(.asString() + " 1";
+            result = qtac::ByteArray("i2c readRegisterBytes ") + arguments.at(0).asString().c_str() + " 1";
         break;
 
     case kI2CReadRegisterValueCommandHash:
@@ -178,14 +177,14 @@ qtac::ByteArray TACPSOCCoder::encode(const qtac::ByteArray& encodeMe, const Argu
 
     case kI2CWriteRegisterCommandHash:
         if (!arguments.empty())
-            result = qtac::ByteArray("i2c writeByte ") + arguments.at(0)).c_str(.asString();
+            result = qtac::ByteArray("i2c writeByte ") + arguments.at(0).asString().c_str();
         break;
 
     case kSetPinCommandHash:
         if (arguments.size() == 2)
         {
             const qtac::ByteArray stateStr = argumentToBoolString(arguments.at(0));
-            const qtac::ByteArray pinStr   = qtac::ByteArray(std::to_string(arguments.at(1))).asUInt32();
+            const qtac::ByteArray pinStr   = qtac::ByteArray(std::to_string(arguments.at(1).asUInt32()));
             result = qtac::ByteArray("pin ") + stateStr + " " + pinStr + "\r";
         }
         break;

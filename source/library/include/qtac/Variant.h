@@ -90,12 +90,9 @@ public:
 	friend bool operator==(const Variant& lhs, const Variant& rhs);
 	friend bool operator!=(const Variant& lhs, const Variant& rhs);
 
-private:
-	void _destroy();
-	void _copyFrom(const Variant& other);
-
-	Type _type;
-
+	// Storage is public so that placement-new helpers in Variant.cpp can access it.
+	// _data itself remains private.
+public:
 	union Storage {
 		bool               b;
 		int                i;
@@ -109,7 +106,14 @@ private:
 
 		Storage() {}
 		~Storage() {}
-	} _data;
+	};
+
+private:
+	void _destroy();
+	void _copyFrom(const Variant& other);
+
+	Type    _type;
+	Storage _data;
 };
 
 // --- Template specializations ---

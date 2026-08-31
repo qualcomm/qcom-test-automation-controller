@@ -36,12 +36,136 @@
 #include <qtac/json_util.h>
 
 #include <fstream>
-#include <filesystem>
+#include <system_error>
 #ifdef _WIN32
 #  include <windows.h>
 #else
+#  include <sys/stat.h>
 #  include <unistd.h>
+#  include <limits.h>
 #endif
+
+// -----------------------------------------------------------------------
+// Minimal C++11-compatible filesystem helpers (replaces std::filesystem,
+// which is C++17 and not available on GCC/Clang with -std=c++11).
+// -----------------------------------------------------------------------
+namespace fs_compat {
+
+class Path
+{
+public:
+    Path() {}
+    Path(const std::string& s) : _p(s) { normalize(); }
+    Path(const char* s) : _p(s ? s : "") { normalize(); }
+
+    Path operator/(const std::string& rhs) const
+    {
+        if (_p.empty()) return Path(rhs);
+        Path r(_p + "/" + rhs);
+        return r;
+    }
+    Path operator/(const char* rhs) const { return operator/(std::string(rhs ? rhs : "")); }
+    Path operator/(const Path& rhs) const { return operator/(rhs._p); }
+
+    Path parent_path() const
+    {
+        size_t pos = _p.find_last_of('/');
+        if (pos == std::string::npos) return Path();
+        if (pos == 0) return Path("/");
+        return Path(_p.substr(0, pos));
+    }
+
+    Path filename() const
+    {
+        size_t pos = _p.find_last_of('/');
+        if (pos == std::string::npos) return Path(_p);
+        return Path(_p.substr(pos + 1));
+    }
+
+    bool is_relative() const
+    {
+        if (_p.empty()) return true;
+#ifdef _WIN32
+        if (_p.size() >= 3 && std::isalpha((unsigned char)_p[0]) && _p[1] == ':' && _p[2] == '/')
+            return false;
+        if (_p.size() >= 2 && _p[0] == '/' && _p[1] == '/')
+            return false;
+#else
+        if (_p[0] == '/') return false;
+#endif
+        return true;
+    }
+
+    bool operator==(const Path& o) const { return _p == o._p; }
+    bool operator!=(const Path& o) const { return _p != o._p; }
+
+    std::string string() const { return _p; }
+    bool empty() const { return _p.empty(); }
+
+private:
+    void normalize()
+    {
+        // Unify separators to forward slash
+        for (char& c : _p) if (c == '\\') c = '/';
+        // Remove trailing slash unless it is the root
+        while (_p.size() > 1 && _p.back() == '/')
+            _p.pop_back();
+    }
+    std::string _p;
+};
+
+static bool exists(const Path& p)
+{
+    if (p.empty()) return false;
+#ifdef _WIN32
+    return ::GetFileAttributesA(p.string().c_str()) != INVALID_FILE_ATTRIBUTES;
+#else
+    struct stat st;
+    return ::stat(p.string().c_str(), &st) == 0;
+#endif
+}
+
+// Resolve to an absolute, normalised path.  On POSIX this also resolves
+// symlinks via realpath(); on Windows it uses GetFullPathNameA().
+// ec is set on failure (e.g. path does not exist on POSIX).
+static Path canonical(const Path& p, std::error_code& ec)
+{
+    ec.clear();
+#ifdef _WIN32
+    char buf[MAX_PATH]{};
+    DWORD len = ::GetFullPathNameA(p.string().c_str(), MAX_PATH, buf, nullptr);
+    if (len == 0 || len >= MAX_PATH)
+    {
+        ec = std::error_code(static_cast<int>(::GetLastError()), std::system_category());
+        return p;
+    }
+    return Path(buf);
+#else
+    char buf[PATH_MAX]{};
+    if (!::realpath(p.string().c_str(), buf))
+    {
+        ec = std::error_code(errno, std::generic_category());
+        return p;
+    }
+    return Path(buf);
+#endif
+}
+
+static Path current_path()
+{
+#ifdef _WIN32
+    char buf[MAX_PATH]{};
+    ::GetCurrentDirectoryA(MAX_PATH, buf);
+    return Path(buf);
+#else
+    char buf[PATH_MAX]{};
+    if (::getcwd(buf, sizeof(buf)))
+        return Path(buf);
+    return Path();
+#endif
+}
+
+} // namespace fs_compat
 
 // -----------------------------------------------------------------------
 // Static storage
@@ -81,31 +205,31 @@ static const char* kChip4BusSet    = "chip4BusSet";
 
 // Walk upward from |start| up to |maxLevels| looking for
 // configurations/devicelist.json.  Returns the canonical path on success.
-static std::string walkUpForDeviceList(const std::filesystem::path& start,
+static std::string walkUpForDeviceList(const fs_compat::Path& start,
                                        int maxLevels)
 {
     static const char* kFilename = "devicelist.json";
     static const char* kSubdir   = "configurations";
 
-    std::filesystem::path dir = start;
+    fs_compat::Path dir = start;
     for (int i = 0; i <= maxLevels; ++i)
     {
         // Direct file alongside the directory
         {
             auto candidate = dir / kFilename;
-            if (std::filesystem::exists(candidate))
+            if (fs_compat::exists(candidate))
                 return candidate.string();
         }
         // configurations/ subdirectory
         {
             auto candidate = dir / kSubdir / kFilename;
             std::error_code ec;
-            auto canonical = std::filesystem::canonical(candidate, ec);
-            if (!ec && std::filesystem::exists(canonical))
+            auto canonical = fs_compat::canonical(candidate, ec);
+            if (!ec && fs_compat::exists(canonical))
                 return canonical.string();
         }
 
-        std::filesystem::path parent = dir.parent_path();
+        fs_compat::Path parent = dir.parent_path();
         if (parent == dir)
             break; // reached filesystem root
         dir = parent;
@@ -117,7 +241,7 @@ static std::string findDeviceList()
 {
     // 1. Environment variable override
     const char* envPath = std::getenv("QTAC_DEVICELIST");
-    if (envPath && std::filesystem::exists(envPath))
+    if (envPath && fs_compat::exists(fs_compat::Path(envPath)))
         return envPath;
 
     // 2. Walk upward from executable directory (up to 8 levels)
@@ -127,7 +251,7 @@ static std::string findDeviceList()
         ssize_t len = ::readlink("/proc/self/exe", buf, sizeof(buf) - 1);
         if (len > 0)
         {
-            std::filesystem::path exeDir = std::filesystem::path(buf).parent_path();
+            fs_compat::Path exeDir = fs_compat::Path(buf).parent_path();
             std::string found = walkUpForDeviceList(exeDir, 8);
             if (!found.empty()) return found;
         }
@@ -150,7 +274,7 @@ static std::string findDeviceList()
             DWORD len = ::GetModuleFileNameA(hSelf, buf, MAX_PATH);
             if (len > 0)
             {
-                std::filesystem::path dllDir = std::filesystem::path(buf).parent_path();
+                fs_compat::Path dllDir = fs_compat::Path(buf).parent_path();
                 std::string found = walkUpForDeviceList(dllDir, 8);
                 if (!found.empty()) return found;
             }
@@ -162,7 +286,7 @@ static std::string findDeviceList()
             DWORD len = ::GetModuleFileNameA(nullptr, buf, MAX_PATH);
             if (len > 0)
             {
-                std::filesystem::path exeDir = std::filesystem::path(buf).parent_path();
+                fs_compat::Path exeDir = fs_compat::Path(buf).parent_path();
                 std::string found = walkUpForDeviceList(exeDir, 8);
                 if (!found.empty()) return found;
             }
@@ -173,10 +297,10 @@ static std::string findDeviceList()
             char programData[MAX_PATH]{};
             if (::GetEnvironmentVariableA("ProgramData", programData, MAX_PATH) > 0)
             {
-                std::filesystem::path tacConfigs =
-                    std::filesystem::path(programData) / "Qualcomm" / "Alpaca" / "tac_configs";
+                fs_compat::Path tacConfigs =
+                    fs_compat::Path(programData) / "Qualcomm" / "Alpaca" / "tac_configs";
                 auto candidate = tacConfigs / "DeviceList.json";
-                if (std::filesystem::exists(candidate))
+                if (fs_compat::exists(candidate))
                     return candidate.string();
             }
         }
@@ -185,7 +309,7 @@ static std::string findDeviceList()
 
     // 3. Walk upward from current working directory (up to 8 levels)
     {
-        std::string found = walkUpForDeviceList(std::filesystem::current_path(), 8);
+        std::string found = walkUpForDeviceList(fs_compat::current_path(), 8);
         if (!found.empty()) return found;
     }
 
@@ -224,14 +348,14 @@ void PlatformContainer::initializeDynamic()
     const auto* rootObj = root.if_object();
     if (!rootObj || !rootObj->contains(kCatalog))
         return;
-    const auto* catalog = (*rootObj)[kCatalog].if_array();
+    const auto* catalog = rootObj->at(kCatalog).if_array();
     if (!catalog)
         return;
 
     // Resolve the directory that contains devicelist.json so that relative
     // configPath values can be resolved against it.
-    std::filesystem::path deviceListDir =
-        std::filesystem::path(deviceListPath).parent_path();
+    fs_compat::Path deviceListDir =
+        fs_compat::Path(deviceListPath).parent_path();
 
     for (const auto& entryVal : *catalog)
     {
@@ -239,7 +363,7 @@ void PlatformContainer::initializeDynamic()
         if (!entry || !entry->contains(kPlatformId))
             continue;
 
-        PlatformID pid = static_cast<PlatformID>(qtac::json_util::toInt((*entry)[kPlatformId]));
+        PlatformID pid = static_cast<PlatformID>(qtac::json_util::toInt(entry->at(kPlatformId)));
 
         int boardTypeInt = qtac::json_util::valueInt(*entry, kDebugBoardType, 0);
         DebugBoardType boardType = static_cast<DebugBoardType>(boardTypeInt);
@@ -252,26 +376,24 @@ void PlatformContainer::initializeDynamic()
         // a relative path.
         if (!configPath.empty())
         {
-            std::filesystem::path p(configPath);
+            fs_compat::Path p(configPath);
             if (p.is_relative())
             {
                 // Primary: resolve relative to devicelist.json's directory
-                // (works in the repo where devicelist.json sits next to configurations/)
                 std::error_code ec;
-                auto resolved = std::filesystem::canonical(deviceListDir / p, ec);
-                if (!ec && std::filesystem::exists(resolved))
+                auto resolved = fs_compat::canonical(deviceListDir / p, ec);
+                if (!ec && fs_compat::exists(resolved))
                 {
                     configPath = resolved.string();
                 }
                 else
                 {
                     // Fallback: look for just the filename alongside devicelist.json
-                    // (deployed layout where all configs are copied to the exe dir)
                     auto fallback = deviceListDir / p.filename();
-                    if (std::filesystem::exists(fallback))
+                    if (fs_compat::exists(fallback))
                         configPath = fallback.string();
                     else
-                        configPath = (deviceListDir / p).string(); // keep original for error reporting
+                        configPath = (deviceListDir / p).string();
                 }
             }
         }
@@ -295,7 +417,7 @@ void PlatformContainer::initializeDynamic()
         {
             if (entry->contains(kBusSets[i]))
                 platformEntry->_pinSets[i] =
-                    static_cast<FTDIPinSets>(qtac::json_util::toInt((*entry)[kBusSets[i]]));
+                    static_cast<FTDIPinSets>(qtac::json_util::toInt(entry->at(kBusSets[i])));
         }
 
         _platformIds.insert(pid, platformEntry);

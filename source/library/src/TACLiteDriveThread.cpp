@@ -41,7 +41,6 @@
 
 #include <sstream>
 #include <thread>
-#include <variant>
 
 static const qtac::ByteArray kTACLiteDriveTrainName{"TAC Lite Drive Train"};
 static const qtac::ByteArray kHelpCommand{"Help"};

@@ -125,7 +125,7 @@ int main() {
     imap.insert(1, 10);
     imap.insert(2, 20);
     int mapSum = 0;
-    for (const auto& [k, v] : imap) mapSum += v;
+    for (const auto& kv : imap) mapSum += kv.second;
     assert(mapSum == 30);
 
     // ===== Variant tests =====

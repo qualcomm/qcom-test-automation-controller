@@ -89,7 +89,7 @@ public:
 
 	// --- Data access ---
 
-	char* data() { return _data.data(); }
+	char* data() { return &_data[0]; }
 	const char* data() const { return _data.data(); }
 	const char* constData() const { return _data.c_str(); }
 

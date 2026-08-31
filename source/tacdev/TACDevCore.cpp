@@ -58,8 +58,10 @@ TAC_RESULT DevTACCore::getDeviceCount(int* deviceCount)
 TAC_HANDLE DevTACCore::openHandleByDescription(const char* portName)
 {
     // Return existing handle if device is already open.
-    for (const auto& [handle, dev] : _openDevices)
+    for (const auto& kv : _openDevices)
     {
+        const auto& handle = kv.first;
+        const auto& dev    = kv.second;
         if (dev->portName() == portName)
             return handle;
         if (dev->serialNumber().contains(portName))

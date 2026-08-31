@@ -42,7 +42,6 @@
 #include <cassert>
 #include <sstream>
 #include <thread>
-#include <variant>
 
 static const qtac::ByteArray kTACSerialDriveTrainName{"TAC Serial Drive Train"};
 static const qtac::ByteArray kHelpCommand{"Help"};
@@ -522,7 +521,7 @@ void TACPSOCDriveThread::handleSetPin(FramePackage& framePackage)
     {
         const bool     state = framePackage->arguments.at(0).asBool();
         const uint64_t pin   = static_cast<uint64_t>(
-                                   framePackage->arguments.at(1)).asUInt32();
+                                   framePackage->arguments.at(1).asUInt32());
 
         framePackage->synonym =
             qtac::ByteArray("Pin ") + std::to_string(pin).c_str() + " " + (state ? "on" : "off");
@@ -535,7 +534,7 @@ void TACPSOCDriveThread::handleSetName(FramePackage& framePackage)
 {
     if (!framePackage->arguments.empty())
     {
-        _name = qtac::ByteArray(framePackage->arguments.at(0)).asString();
+        _name = framePackage->arguments.at(0).asString();
         framePackage->synonym = qtac::ByteArray("Set Name ") + _name;
     }
     if (onNameUpdate) onNameUpdate(qtac::String(_name.toStdString()));

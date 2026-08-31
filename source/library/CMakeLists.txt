@@ -172,9 +172,12 @@ target_compile_features(qtac-core PUBLIC cxx_std_11)
 QtacCoreSettings(qtac-core)
 
 # Boost (vendored in third-party/) — use header-only boost::json via src.hpp
+# BOOST_ALL_NO_LIB disables Boost's Windows auto-link pragmas so the linker
+# does not try to find a precompiled libboost_json-*.lib.
 target_include_directories(qtac-core PUBLIC
     $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/third-party/include>
 )
+target_compile_definitions(qtac-core PUBLIC BOOST_ALL_NO_LIB)
 
 target_link_libraries(qtac-core PUBLIC serialport)
 

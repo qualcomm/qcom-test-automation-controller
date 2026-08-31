@@ -41,7 +41,6 @@
 
 #include <cassert>
 #include <sstream>
-#include <variant>
 
 static const qtac::ByteArray kTACPIC32CXDriveTrainName{"TAC PIC32CX Drive Train"};
 
@@ -409,7 +408,7 @@ void TACPIC32CXDriveThread::handleSetPin(FramePackage& framePackage)
     {
         const bool     state = framePackage->arguments.at(0).asBool();
         const uint64_t pin   = static_cast<uint64_t>(
-                                   framePackage->arguments.at(1)).asUInt32();
+                                   framePackage->arguments.at(1).asUInt32());
 
         framePackage->synonym =
             qtac::ByteArray("Pin ") + std::to_string(pin).c_str() + " " + (state ? "on" : "off");

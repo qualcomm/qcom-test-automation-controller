@@ -36,7 +36,6 @@
 #include <qtac/TACCommandHashes.h>
 #include <qtac/StringUtilities.h>
 
-#include <variant>
 
 // PIC32CX firmware prompt / error strings.
 static const qtac::ByteArray kPIC32CXCommandError          {"Error!!! port >"};
@@ -136,7 +135,7 @@ qtac::ByteArray TACPIC32CXCoder::encode(const qtac::ByteArray& encodeMe, const A
     {
         if (arguments.size() == 2)
         {
-            std::string pinStr = std::to_string(arguments.at(1)).asUInt32();
+            std::string pinStr = std::to_string(arguments.at(1).asUInt32());
 
             // Prepend '0' if the pin string is fewer than 3 characters
             // (matches original: "if (argumentStr.size() < 3) argumentStr = '0' + argumentStr").
