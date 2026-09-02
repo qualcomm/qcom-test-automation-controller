@@ -165,8 +165,6 @@ bool STM32Device::open()
 	{
 		_stm32PlatformConfiguration = static_cast<_STM32PlatformConfiguration*>(_platformConfiguration.data());
 
-		_invertMask = buildInvertMask();
-
 		buildMapping();
 
 		if (_driveThread == Q_NULLPTR)
@@ -189,38 +187,7 @@ bool STM32Device::open()
 			}
 
 			if (result == true)
-			{
 				connect(driveThread, &TACSTM32DriveThread::pinStateChanged, this, &STM32Device::on_pinStateChanged, Qt::DirectConnection);
-
-				Pins initialPins;
-				Pins pins = _platformConfiguration->getPins();
-				for (const auto& pin: pins)
-				{
-					if (pin._initialValue == true)
-						initialPins.append(pin);
-				}
-
-				if (initialPins.count() > 0)
-				{
-					auto sortLambda = [] (PinEntry& p1, PinEntry& p2) -> bool
-					{
-						return p1._initializationPriority < p2._initializationPriority;
-					};
-
-					std::sort(initialPins.begin(), initialPins.end(), sortLambda);
-
-					for (const auto& initializationPin: initialPins)
-					{
-						_driveThread->setPinState(initializationPin._pin, initializationPin._initialValue);
-
-						if (AppCore::getAppCore()->appLoggingActive())
-						{
-							QString message = QString("STM32Device::open() Initialize Pin: %1\n").arg(initializationPin._pin);
-							AppCore::writeToApplicationLog(message);
-						}
-					}
-				}
-			}
 		}
 	}
 
@@ -235,20 +202,14 @@ void STM32Device::buildMapping()
 	buildQuickSettings();
 }
 
-quint8 STM32Device::buildInvertMask() const
+void STM32Device::setPinState(PinID pin, bool state)
 {
-	quint8 result{0};
+	bool physicalState = state;
 
-	if (_stm32PlatformConfiguration != Q_NULLPTR)
-	{
-		for (const auto& pin : _stm32PlatformConfiguration->getActivePins())
-		{
-			if (pin._inverted)
-				result |= static_cast<quint8>(1 << pin._pin);
-		}
-	}
+	if (_stm32PlatformConfiguration != Q_NULLPTR && _stm32PlatformConfiguration->getPinInvertedState(pin))
+		physicalState = !state;
 
-	return result;
+	_AlpacaDevice::setPinState(pin, physicalState);
 }
 
 void STM32Device::buildCommandList()
@@ -322,12 +283,7 @@ bool STM32Device::write
 
 	if (_hidHandle != Q_NULLPTR)
 	{
-		QByteArray physicalReport = report;
-
-		if (_invertMask != 0 && physicalReport.size() > 2)
-			physicalReport[2] = static_cast<char>(static_cast<quint8>(physicalReport[2]) ^ _invertMask);
-
-		result = hid_write(static_cast<hid_device*>(_hidHandle), reinterpret_cast<const unsigned char*>(physicalReport.constData()), physicalReport.size()) >= 0;
+		result = hid_write(static_cast<hid_device*>(_hidHandle), reinterpret_cast<const unsigned char*>(report.constData()), report.size()) >= 0;
 	}
 
 	return result;

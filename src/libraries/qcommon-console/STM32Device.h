@@ -38,6 +38,8 @@ public:
 	void buildCommandList();
 	virtual void buildMapping();
 
+	virtual void setPinState(PinID pin, bool state);
+
 	// HID transport - the only place in the codebase permitted to call hidapi functions
 	bool openTransport();
 	bool write(const QByteArray& report);
@@ -48,9 +50,6 @@ private:
 
 	QByteArray										_devicePath;
 	void*											_hidHandle{Q_NULLPTR};
-	quint8											_invertMask{0};
-
-	quint8 buildInvertMask() const;
 };
 
 #endif // STM32DEVICE_H
