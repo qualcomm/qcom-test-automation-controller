@@ -47,7 +47,6 @@ const QStringList gComboBoxItems =
 	QStringLiteral("<select a function>"),
 	QStringLiteral("VCP"),
 	QStringLiteral("D2XX"),
-	QStringLiteral("I2C")
 };
 
 FTDIEditorView::FTDIEditorView(QWidget* parent):
@@ -114,7 +113,7 @@ void FTDIEditorView::onBusFunctionChanged(const QString &text)
 		else if (_ft232hPlatformConfiguration != Q_NULLPTR)
 			_ft232hPlatformConfiguration->setBusFunction(hash, FTDIBusData::fromString(text));
 
-		if (comboBox->currentText().compare(FTDIBusData::toString(eBusFunctionVCP)) ==0 || comboBox->currentText().compare(FTDIBusData::toString(eBusFunctionI2C)) == 0)
+		if (comboBox->currentText().compare(FTDIBusData::toString(eBusFunctionVCP)) == 0 || comboBox->currentText().compare(FTDIBusData::toString(eBusFunctionUnknown)) == 0)
 		{
 			updateBusState(chipIndex, hash, false);
 		}

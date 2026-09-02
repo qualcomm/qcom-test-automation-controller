@@ -20,12 +20,11 @@ qt_add_library(${LIBRARY_NAME} STATIC
     CommandButton.cpp CommandButton.h
     CustomValidator.cpp CustomValidator.h
     HoverAwareQWindow.cpp HoverAwareQWindow.h HoverAwareQWindow.ui
-    I2CWidget.cpp I2CWidget.h I2CWidget.ui
+
     MediaPlaybackFrame.cpp MediaPlaybackFrame.h MediaPlaybackFrame.ui
     NotificationWidget.cpp NotificationWidget.h NotificationWidget.ui
     ProgressDialog.cpp ProgressDialog.h ProgressDialog.ui
     TACFrame.cpp TACFrame.h TACFrame.ui
-    TerminalWidget.cpp TerminalWidget.h TerminalWidget.ui
     UIGlobalLib.h
     UILib.cpp UILib.h
     UserWidget.cpp UserWidget.h UserWidget.ui

@@ -222,7 +222,7 @@
               </widget>
              </item>
              <item>
-              <widget class="QRadioButton" name="_fw15Radio">
+              <widget class="QCheckBox" name="__fw15CheckBox">
                <property name="text">
                 <string>15</string>
                </property>
@@ -232,7 +232,7 @@
               </widget>
              </item>
              <item>
-              <widget class="QRadioButton" name="_fw16Radio">
+              <widget class="QCheckBox" name="__fw16CheckBox">
                <property name="text">
                 <string>16</string>
                </property>
@@ -242,7 +242,7 @@
               </widget>
              </item>
              <item>
-              <widget class="QRadioButton" name="_fw17Radio">
+              <widget class="QCheckBox" name="__fw17CheckBox">
                <property name="text">
                 <string>17</string>
                </property>
@@ -252,7 +252,7 @@
               </widget>
              </item>
              <item>
-              <widget class="QRadioButton" name="_fw18Radio">
+              <widget class="QCheckBox" name="__fw18CheckBox">
                <property name="text">
                 <string>18</string>
                </property>
@@ -262,7 +262,7 @@
               </widget>
              </item>
              <item>
-              <widget class="QRadioButton" name="_fw19Radio">
+              <widget class="QCheckBox" name="__fw19CheckBox">
                <property name="text">
                 <string>19</string>
                </property>
@@ -867,6 +867,10 @@ border: none;</string>
  </resources>
  <connections/>
  <buttongroups>
-  <buttongroup name="_firmwareBtnGroup"/>
+  <buttongroup name="_firmwareBtnGroup">
+   <property name="exclusive">
+    <bool>false</bool>
+   </property>
+  </buttongroup>
  </buttongroups>
 </ui>

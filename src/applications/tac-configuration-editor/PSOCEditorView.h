@@ -7,11 +7,18 @@
 #include "ui_PSOCEditorView.h"
 #include "EditorView.h"
 
-// libTAC
 #include "PSOCPlatformConfiguration.h"
 
-// QT
+// Qt
+#include <QHeaderView>
 #include <QWidget>
+
+struct ColumnResizeSpec
+{
+	int							column;
+	int							width;	// -1 => resizeColumnToContents
+	QHeaderView::ResizeMode		mode;
+};
 
 class PSOCEditorView :
 	public EditorView,
@@ -36,6 +43,12 @@ private slots:
 	void onTabsChanged(QString newText);
 	void onTableItemChanged(QTableWidgetItem* twi);
 
+	void onI2CEnableCheckChanged(bool newState);
+	void onI2CInvertCheckChanged(bool newState);
+	void onI2CGroupChanged(QString newText);
+	void onI2CTabsChanged(QString newText);
+	void onI2CTableItemChanged(QTableWidgetItem* twi);
+
 protected:
 	virtual bool read();
 
@@ -43,11 +56,15 @@ protected slots:
 	void onCustomContextMenuRequested(const QPoint &pos);
 
 private:
-	void setupColumnProperties();
 	void clearRow();
 	void resetToDefault();
+	void setupColumnProperties();
+	QTableWidget* createI2CTableFromTemplate(QWidget* parent);
+	void populateI2CTable(QTableWidget* table, const QList<PSOCI2CData>& entries);
+	void applyColumnResizeSpecs(QTableWidget* table, const ColumnResizeSpec* specs, int count);
 
 	_PSOCPlatformConfiguration*          _psocPlatformConfig{Q_NULLPTR};
+	QList<QTableWidget*>                 _slaveI2CTables;
 };
 
 #endif // PSOCEDITORVIEW_H

@@ -140,6 +140,21 @@ void TACPSOCDriveThread::setPinState
 	waitForCompletion();
 }
 
+void TACPSOCDriveThread::setAddressPinState
+(
+	const QString& i2cAddress,
+	quint16 pin,
+	bool state
+)
+{
+	{
+		TACPSOCCommand tacCommand(this, this);
+		tacCommand.setAddressPinState(i2cAddress, pin, state);
+	}
+
+	waitForCompletion();
+}
+
 void TACPSOCDriveThread::sendCommandSequence
 (
 	CommandEntries& commandEntries

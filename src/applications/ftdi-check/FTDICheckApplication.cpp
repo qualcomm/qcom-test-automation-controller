@@ -25,11 +25,11 @@
 // Windows driver paths
 const QString kWindowsDriverDir(QStringLiteral("C:\\Windows\\INF\\"));
 
-const QString kInstallerX64FTDIBusDriverPath(QStringLiteral("C:\\ProgramData\\Qualcomm\\Shared\\FTDI\\x64\\ftdibus.inf"));
-const QString kInstallerX64FTDIPortDriverPath(QStringLiteral("C:\\ProgramData\\Qualcomm\\Shared\\FTDI\\x64\\ftdiport.inf"));
+const QString kInstallerX64FTDIBusDriverPath(QStringLiteral("C:\\ProgramData\\Qualcomm\\QTAC\\FTDI\\x64\\ftdibus.inf"));
+const QString kInstallerX64FTDIPortDriverPath(QStringLiteral("C:\\ProgramData\\Qualcomm\\QTAC\\FTDI\\x64\\ftdiport.inf"));
 
-const QString kInstallerARMFTDIBusDriverPath(QStringLiteral("C:\\ProgramData\\Qualcomm\\Shared\\FTDI\\arm\\ARM64\\Release\\ftdibus.inf"));
-const QString kInstallerARMFTDIPortDriverPath(QStringLiteral("C:\\ProgramData\\Qualcomm\\Shared\\FTDI\\arm\\ARM64\\Release\\ftdiport.inf"));
+const QString kInstallerARMFTDIBusDriverPath(QStringLiteral("C:\\ProgramData\\Qualcomm\\QTAC\\FTDI\\arm\\ARM64\\Release\\ftdibus.inf"));
+const QString kInstallerARMFTDIPortDriverPath(QStringLiteral("C:\\ProgramData\\Qualcomm\\QTAC\\FTDI\\arm\\ARM64\\Release\\ftdiport.inf"));
 
 const QString kWindowsFTDIBusDriverPath(QStringLiteral("C:\\Windows\\System32\\drivers\\ftdibus.sys"));
 const QString kWindowsFTDIPortDriverPath(QStringLiteral("C:\\Windows\\System32\\drivers\\ftser2k.sys"));

@@ -39,7 +39,7 @@ _FT232HPlatformConfiguration::_FT232HPlatformConfiguration()
 	_resetActive = false;
 
 	// Add default tabs to _editorTabs
-	Tab generalTab, deviceInfoTab, fusionTab, terminalTab;
+	Tab generalTab, deviceInfoTab;
 
 	generalTab._name = "General";
 	generalTab._visible = true;
@@ -55,17 +55,8 @@ _FT232HPlatformConfiguration::_FT232HPlatformConfiguration()
 	deviceInfoTab._ordinal = 1;
 	deviceInfoTab._userTab = false;
 
-
-	terminalTab._name = "Terminal";
-	terminalTab._visible = true;
-	terminalTab._moveable = true;
-	terminalTab._configurable = false;
-	terminalTab._ordinal = 4;
-	terminalTab._userTab = false;
-
 	_tabs.append(generalTab);
 	_tabs.append(deviceInfoTab);
-	_tabs.append(terminalTab);
 
 	initialize();
 }

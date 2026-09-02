@@ -18,7 +18,6 @@ enum FTDIBusFunction
 	eBusFunctionUnknown = 0,
 	eBusFunctionVCP,
 	eBusFunctionD2XX,
-	eBusFunctionI2C
 };
 
 struct FTDIBusData
@@ -54,12 +53,12 @@ struct FTDIBusData
 	{
 		switch(busFunction)
 		{
+		case eBusFunctionUnknown:
+			return "<select a function>";
 		case eBusFunctionVCP:
 			return "VCP";
 		case eBusFunctionD2XX:
 			return "D2XX";
-		case eBusFunctionI2C:
-			return "I2C";
 		default:
 			return QString();
 		}
@@ -72,8 +71,6 @@ struct FTDIBusData
 			return eBusFunctionVCP;
 		if (temp == "D2XX")
 			return eBusFunctionD2XX;
-		if (temp == "I2C")
-			return eBusFunctionI2C;
 
 		return eBusFunctionUnknown;
 	}

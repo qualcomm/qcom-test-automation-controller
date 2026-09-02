@@ -10,10 +10,7 @@
 #include <QString>
 
 const QString kAppName(QStringLiteral("TAC"));
-const QString kAppVersion(QStringLiteral(TAC_VERSION));
-
-const QString kTerminalApp(QStringLiteral("TACTerminal"));
-const QString kTerminalAppVersion(QStringLiteral(TAC_TERMINAL_VERSION));
+const QString kAppVersion(QStringLiteral(QTAC_VERSION));
 
 const QString kTACConfigEditorApp(QStringLiteral("TAC Configuration Editor"));
 const QString kTACConfigEditorVersion(QStringLiteral(TAC_CONFIG_VERSION));

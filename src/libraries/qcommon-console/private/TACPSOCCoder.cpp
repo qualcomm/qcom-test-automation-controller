@@ -104,7 +104,8 @@ QByteArray TACPSOCCoder::encode
 		break;
 
 	case kI2CWriteRegisterCommandHash:
-		result = "i2c writeByte " + arguments.at(0).toByteArray();
+		if (arguments.count() == 3)
+			result = "i2c write " + arguments.at(0).toByteArray() + " " + arguments.at(1).toByteArray() + " " + variantToBoolString(arguments.at(2)) + "\r";
 		break;
 
 	case kSetPinCommandHash:

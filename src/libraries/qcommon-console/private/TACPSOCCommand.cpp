@@ -14,6 +14,8 @@
 // C++
 #include <stdexcept>
 
+const quint16 kMaxI2CPins(8);
+
 TACPSOCCommand::TACPSOCCommand
 (
 	SendInterface* sender,
@@ -183,6 +185,21 @@ void TACPSOCCommand::i2CWriteRegister
 
    args.push_back(addrString + " " + regString + " " + dataString);
    send(kI2CWriteRegisterCommand, args, false, false);
+}
+
+void TACPSOCCommand::setAddressPinState
+(
+	const QString& i2cAddress,
+	quint16 pin,
+	bool state
+)
+{
+	Arguments args;
+	args.push_back(i2cAddress.toLatin1());
+	args.push_back(pin % kMaxI2CPins);
+	args.push_back(state);
+
+	send(kI2CWriteRegisterCommand, args, false, false);
 }
 
 void TACPSOCCommand::send

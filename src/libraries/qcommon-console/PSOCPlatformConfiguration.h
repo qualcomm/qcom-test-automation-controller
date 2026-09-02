@@ -41,6 +41,19 @@ struct PSOCPinData
 	QString						_tabName;
 };
 
+struct PSOCI2CSlave
+{
+	PSOCI2CSlave() = default;
+
+	void clear() { *this = PSOCI2CSlave(); }
+
+	PSOCIICVariant				_variant{ePSOCIICUnknown};
+	PinID						_slaveAddress{0};
+	PinID						_configAddress{0};
+	int							_portCount{0};
+};
+
+
 struct PSOCI2CData
 {
 	PSOCI2CData() = default;
@@ -60,7 +73,9 @@ struct PSOCI2CData
 
 	HashType makeHash()
 	{
-		return pow(2, _slaveAddress) * pow(3, _writeAddress) * pow(5, _pin);
+		return (static_cast<HashType>(_slaveAddress) << 40) ^
+			   (static_cast<HashType>(_writeAddress) << 20) ^
+				static_cast<HashType>(_pin);
 	}
 
 	PinID						_pin{0};
@@ -79,8 +94,9 @@ struct PSOCI2CData
 };
 
 typedef QMap<PinID, PSOCPinData> PSOCPinEntries;
-typedef QMap<PinID, PSOCI2CData> PSOCI2CEntries;
+typedef QMap<HashType, PSOCI2CData> PSOCI2CEntries;
 typedef QList<PSOCPinData> PSOCPinList;
+typedef QList<PSOCI2CSlave> PSOCI2CSlaves;
 
 class _PSOCPlatformConfiguration;
 
@@ -93,6 +109,7 @@ public:
 	virtual ~_PSOCPlatformConfiguration();
 
 	virtual Pins getPins();
+	Pins getI2CPinEntries();
 
 	PSOCPinList getAllPins();
 	PSOCPinList getActivePins();
@@ -133,6 +150,45 @@ public:
 	QPoint getPinCellLocation(const PinID pinId) const;
 	void setPinCellLocation(const PinID pinId, const QPoint& cellLocation);
 
+	PSOCI2CSlaves getSlaveConfigs() const;
+	void setSlaveConfigs(PSOCI2CSlaves& slaves);
+
+	void addSlaveConfig(const PSOCI2CSlave& slave);
+	void removeSlaveConfig(PinID slaveAddress);
+
+	static QString i2cSlaveTabName(const PSOCI2CSlave& slave);
+
+	PSOCI2CEntries getI2CEntries() const;
+	PSOCI2CEntries getActiveI2CEntries() const;
+	QList<PSOCI2CData> getI2CEntriesForSlave(const PSOCI2CSlave& slave) const;
+	bool addI2CSlave(const PSOCI2CData& i2cData);
+	void removeI2CSlave(HashType hash);
+	PSOCI2CData getI2CSlave(HashType hash) const;
+
+	bool getI2CPinEnableState(const HashType hash) const;
+	void setI2CPinEnableState(const HashType hash, bool newState);
+
+	bool getI2CPinInvertedState(const HashType hash) const;
+	void setI2CPinInvertedState(const HashType hash, bool newState);
+
+	QString getI2CPinLabel(const HashType hash) const;
+	void setI2CPinLabel(const HashType hash, const QString& pinLabel);
+
+	QString getI2CPinTooltip(const HashType hash) const;
+	void setI2CPinTooltip(const HashType hash, const QString& pinTooltip);
+
+	QString getI2CPinCommand(const HashType hash) const;
+	void setI2CPinCommand(const HashType hash, const QString& pinCommand);
+
+	CommandGroups getI2CPinGroup(const HashType hash) const;
+	void setI2CPinGroup(const HashType hash, const CommandGroups commandGroup);
+
+	QString getI2CTabName(const HashType hash) const;
+	void setI2CTabName(const HashType hash, const QString& tabName);
+
+	QPoint getI2CPinCellLocation(const HashType hash) const;
+	void setI2CPinCellLocation(const HashType hash, const QPoint& cellLocation);
+
 protected:
 	virtual void cascadeTabDelete(const QString& deleteMe);
 	virtual void cascadeTabRename(const QString& oldName, const QString& newName);
@@ -142,12 +198,17 @@ protected:
 
 private:
 	PSOCPinEntries				_pinEntries;
+	PSOCI2CEntries				_i2cEntries;
+	PSOCI2CSlaves				_slaveConfigs;
 	PSOCVariant					_variant{ePSOCGPIO};
 
 	static void initialize(PSOCVariant psocVariant);
+	void refreshSlaveConfig();
+	void rebuildI2CTabs();
 
 	static PSOCPinEntries		_classicActions;
 	static PSOCI2CEntries		_classicI2CActions;
+	static PSOCI2CSlaves		_classicSlaveConfigs;
 };
 
 #endif // PSOCPLATFORMCONFIGURATION_H
