@@ -33,9 +33,7 @@ target_link_directories(${APP_NAME} PRIVATE
 )
 
 target_link_libraries(${APP_NAME} PRIVATE
-    Qt6::Concurrent
     Qt6::Core
-    Qt6::SerialPort
     ftd2xx
     $<$<CONFIG:Debug>:QCommonConsoled>
     $<$<NOT:$<CONFIG:Debug>>:QCommonConsole>
@@ -44,13 +42,10 @@ target_link_libraries(${APP_NAME} PRIVATE
 if(WIN32)
     target_link_libraries(${APP_NAME} PRIVATE
         Advapi32
-        Ole32
         Psapi
         SetupAPI
         Shell32
         Version
-        Winusb
-        Wtsapi32
     )
 
     target_compile_options(${APP_NAME} PRIVATE
