@@ -79,8 +79,8 @@ void _STM32PlatformConfiguration::initialize()
 	pinData.clear();
 	pinData = STM32PinData(2);
 	pinData._enabled = true;
-	pinData._inverted = false;
-	pinData._pinLabel = "Power Disable";
+	pinData._inverted = true;
+	pinData._pinLabel = "Battery";
 	pinData._pinCommand = "battery";
 	pinData._pinTooltip = "Disable power supply";
 	pinData._commandGroup = eConnectionGroup;
@@ -179,7 +179,6 @@ void _STM32PlatformConfiguration::initialize()
 					"edl 1\n"
 					"delay $edl\n"
 					"battery 1\n"
-					"edl 0\n"
 					"logComment ====== bootToEDL sequence finish ======\n\n"
 					"def forceUsbcHostMode()\n"
 					"logComment ====== forceUsbcHostMode sequence start ======\n"
