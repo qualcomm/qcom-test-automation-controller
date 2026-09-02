@@ -38,23 +38,16 @@ QString applicationDataPath()
 {
 	QString result = "../../../../configurations/";
 
-	QString appName = kAppName;
-	QDir binDir(QCoreApplication::applicationDirPath());
+	if (QDir(result).exists() == false)
+		{
+			#ifdef Q_OS_WIN
+				result = "C:/ProgramData/Qualcomm/" + kAppName + "/configurations/";
+			#endif
 
-	if (binDir.exists() == true)
-	{
-		const QString folderName = binDir.dirName();
-		if (folderName.isEmpty() == false)
-			appName = folderName;
-	}
-
-	#ifdef Q_OS_WIN
-		result = "C:/ProgramData/Qualcomm/" + appName + "/configurations/";
-	#endif
-
-	#ifdef Q_OS_LINUX
-		result = "/var/lib/qcom/data/" + appName + "/configurations/";
-	#endif
+			#ifdef Q_OS_LINUX
+				result = "/var/lib/qcom/data/" + kAppName + "/configurations/";
+			#endif
+		}
 
 	return result;
 }
