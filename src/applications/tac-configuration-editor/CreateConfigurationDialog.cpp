@@ -10,10 +10,7 @@
 
 const QByteArray kPSOCVariant("PSOCVariant");
 
-CreateConfigurationDialog::CreateConfigurationDialog
-(
-	QWidget* parent
-) :
+CreateConfigurationDialog::CreateConfigurationDialog(QWidget* parent) :
 	QDialog(parent)
 {
 	setupUi(this);
@@ -24,6 +21,7 @@ CreateConfigurationDialog::CreateConfigurationDialog
 	_platformComboBox->insertItem(_platformComboBox->count(), "FTDI", eFTDI);
 	_platformComboBox->insertItem(_platformComboBox->count(), "PIC32CX (Automotive)", ePIC32CXAuto);
 	_platformComboBox->insertItem(_platformComboBox->count(), "FT232H (Arduino V1)", eFT232H);
+	_platformComboBox->insertItem(_platformComboBox->count(), "STM32 (Arduino V2)", eSTM32);
 
 	_chipCount->setMinimum(1);
 	_chipCount->setMaximum(4);

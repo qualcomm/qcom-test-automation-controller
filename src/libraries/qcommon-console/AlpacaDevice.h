@@ -77,6 +77,7 @@ public:
 	QByteArray getHelp();
 
 	virtual void setPinState(PinID pin, bool state);
+	virtual void setAddressPinState(const QString& i2cAddress, quint16 pin, bool state);
 
 	void setWaitForCompletion();
 

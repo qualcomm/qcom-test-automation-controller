@@ -142,17 +142,20 @@ void startLocalBrowser(const QString &filePath)
 QString docsRoot()
 {
 	QString result;
-	QString appName;
-
-	appName = QCoreApplication::applicationName();
-	if (appName.isEmpty())
-		appName = "QTAC";
+	QString appName = "QTAC";
+	QDir binDir(QCoreApplication::applicationDirPath());
+	if (binDir.exists())
+	{
+		const QString folderName = binDir.dirName();
+		if (folderName.isEmpty() == false)
+			appName = folderName;
+	}
 
 #ifdef Q_OS_WINDOWS
-	result = "C:\\Program Files (x86)\\Qualcomm\\" + appName + "\\docs\\";
+	result = "C:/Program Files/Qualcomm/" + appName + "/docs/";
 #endif
 #ifdef Q_OS_LINUX
-    result = "/opt/qcom/" + appName + "/docs";
+    result = "/opt/qcom/" + appName + "/docs/";
 #endif
 	return result;
 }

@@ -6,9 +6,8 @@
 #include "ui_TACFrame.h"
 
 #include "CommandButton.h"
-#include "I2CWidget.h"
+#include "PSOCPlatformConfiguration.h"
 #include "ScriptVariable.h"
-#include "TerminalWidget.h"
 #include "UserWidget.h"
 #include "VariableInput.h"
 
@@ -125,6 +124,7 @@ void TACFrame::setPlatformConfiguration
 
 	setupUITabs();
 	setupUIPins();
+	setupUII2CPins();
 	setupUIQuickSettings();
 	setupUIVariables();
 
@@ -160,26 +160,9 @@ void TACFrame::setupUITabs()
 
 		if ((tabName == "general" || tabName == "device info") == false)
 		{
-			if (tabName == "i2c")
-			{
-				I2CWidget* i2cWidget = new I2CWidget;
-
-				_ui->_tabs->insertTab(999, i2cWidget, tab._name);
-				i2cWidget->setEnabled(_alpacaDevice.isNull() == false);
-			}
-			else if (tabName == "terminal")
-			{
-				TerminalWidget* terminalWidget = new TerminalWidget;
-
-				_ui->_tabs->insertTab(999, terminalWidget, tab._name);
-				terminalWidget->setEnabled(_alpacaDevice.isNull() == false);
-			}
-			else
-			{
-				UserWidget* userWidget = new UserWidget;
-
-				_ui->_tabs->insertTab(999, userWidget, tab._name);
-			}
+			UserWidget* userWidget = new UserWidget;
+			userWidget->setProperty("tabkey", tab._name);
+			_ui->_tabs->insertTab(999, userWidget, tab._name);
 		}
 	}
 }
@@ -197,6 +180,27 @@ void TACFrame::setupUIPins()
 			tabName = pin._tabName;
 
 			populatePinLEDs(pins, tabName);
+		}
+	}
+}
+
+void TACFrame::setupUII2CPins()
+{
+	_PSOCPlatformConfiguration* psocConfig = dynamic_cast<_PSOCPlatformConfiguration*>(_platformConfiguration.data());
+	if (psocConfig == Q_NULLPTR)
+		return;
+
+	QString tabName;
+
+	Pins pins = psocConfig->getI2CPinEntries();
+
+	for (const auto& pin: pins)
+	{
+		if (tabName != pin._tabName)
+		{
+			tabName = pin._tabName;
+
+			populateI2CPinLEDs(pins, tabName);
 		}
 	}
 }
@@ -358,6 +362,71 @@ void TACFrame::populatePinLEDs(const Pins &pins, const QString &tabName)
 	}
 }
 
+void TACFrame::populateI2CPinLEDs(const Pins &pins, const QString &tabName)
+{
+	QWidget* tabWidget{getTabWidget(tabName)};
+	QGroupBox* groupBox{Q_NULLPTR};
+
+	QFont font;
+	font.setPointSize(8);
+	font.setBold(false);
+
+	if (tabWidget != Q_NULLPTR)
+	{
+		bool userTab = tabWidget->property("usertab").toBool();
+		if (userTab == true)
+		{
+			for (const auto& pin: std::as_const(pins))
+			{
+				if (pin._cellLocation.y() < 0 || pin._cellLocation.x() < 0)
+					emit startNotification(QString("Cell location violation found for pin: %1").arg(pin._pin), eErrorNotification);
+
+				else if (pin._tabName == tabName)
+				{
+					switch (pin._commandGroup)
+					{
+					case eConnectionGroup:
+						groupBox = tabWidget->findChild<QGroupBox*>(kConnectionsGroupBoxName, Qt::FindDirectChildrenOnly);
+						break;
+
+					case eButtonGroup:
+						groupBox = tabWidget->findChild<QGroupBox*>(kButtonsGroupBoxName, Qt::FindDirectChildrenOnly);
+						break;
+
+					case eSwitchGroup:
+						groupBox = tabWidget->findChild<QGroupBox*>(kSwitchesGroupBoxName, Qt::FindDirectChildrenOnly);
+						break;
+
+					default:
+						break;
+					}
+
+					if (groupBox != Q_NULLPTR)
+					{
+						QGridLayout* layout = qobject_cast<QGridLayout*>(groupBox->layout());
+						if (layout != Q_NULLPTR)
+						{
+							PinLED* pinLED = new PinLED(groupBox);
+							pinLED->setObjectName(QString("Pin %1").arg(pin._pin));
+							layout->addWidget(pinLED, pin._cellLocation.y(), pin._cellLocation.x(), 1, 1);
+
+							pinLED->setText(pin._pinLabel);
+							pinLED->setFont(font);
+							pinLED->setEnabled(_alpacaDevice.isNull() == false);
+							pinLED->setInverted(pin._inverted);
+							pinLED->setInitialState(pin._initialValue);
+							pinLED->setPinNumber(pin._hash, &_i2cPinMap);
+							pinLED->setToolTip(pin._pinTooltip);
+
+							connect(pinLED, &PinLED::pinTriggered, this, &TACFrame::onI2CPinTriggered);
+						}
+					}
+				}
+			}
+		}
+	}
+}
+
 void TACFrame::populateQuickSettingsButtons
 (
 	const ButtonList& buttons,
@@ -449,10 +518,15 @@ QWidget* TACFrame::getTabWidget(const QString& tabName)
 	int tabCount = _ui->_tabs->count();
 	for (const int i: range(tabCount))
 	{
-		QString tabText = _ui->_tabs->tabText(i);
-		if (tabText.toLower() == tabName.toLower())
+		QWidget* widget = _ui->_tabs->widget(i);
+		QString tabKey = widget->property("tabkey").toString();
+
+		if (tabKey.isEmpty())
+			tabKey = _ui->_tabs->tabText(i);
+
+		if (tabKey.toLower() == tabName.toLower())
 		{
-			result = _ui->_tabs->widget(i);
+			result = widget;
 			break;
 		}
 	}
@@ -495,6 +569,25 @@ void TACFrame::onPinResponse
 {
 	if (_pinMap.find(pin) != _pinMap.end())
 		_pinMap[pin]->setState(state);
+}
+
+void TACFrame::onI2CPinTriggered
+(
+	HashType hash,
+	bool state
+)
+{
+	_PSOCPlatformConfiguration* psocConfig = dynamic_cast<_PSOCPlatformConfiguration*>(_platformConfiguration.data());
+	if (psocConfig == Q_NULLPTR || _alpacaDevice.isNull())
+		return;
+
+	PSOCI2CData i2cData = psocConfig->getI2CSlave(hash);
+
+	QString i2cAddress = QString("0x%1 0x%2")
+		.arg(i2cData._slaveAddress, 2, 16, QChar('0'))
+		.arg(i2cData._writeAddress, 2, 16, QChar('0'));
+
+	_alpacaDevice->setAddressPinState(i2cAddress, i2cData._pin, !state);
 }
 
 void TACFrame::onCommandTriggered(const QString &command)

@@ -14,6 +14,7 @@ QString debugBoardTypeToString(DebugBoardType debugBoardType)
 		case eFTDI: result = "FTDI"; break;
 		case ePIC32CXAuto: result = "PIC32CXAuto"; break;
 		case eFT232H: result = "FT232H"; break;
+		case eSTM32: result = "STM32"; break;
 		default:
 			break;
 	}
@@ -35,6 +36,8 @@ DebugBoardType debugBoardTypeFromString(const QString& boardString)
 		result = eSpiderBoard;
 	else if (boardString.compare("FT232H", Qt::CaseInsensitive) == 0)
 		result = eFT232H;
+	else if (boardString.compare("STM32", Qt::CaseInsensitive) == 0)
+		result = eSTM32;
 
 	return result;
 }
@@ -63,6 +66,22 @@ PSOCVariant psocVariantFromString(const QString &psocVariantString)
 		result = ePSOCGPIO;
 	else if (psocVariantString.compare("GPIO with I2C", Qt::CaseInsensitive) == 0)
 		result = ePSOCGPIOIIC;
+
+	return result;
+}
+
+QString psocSlaveToString(const PSOCIICVariant slave)
+{
+	QString result("Unknown");
+
+	switch (slave)
+	{
+	case ePSOCIICUnknown: break;
+	case eKTS1622EUAATR: result = "KTS1622EUAATR"; break;
+	case eTCA9534APWR: result = "TCA9534APWR"; break;
+	default:
+		break;
+	}
 
 	return result;
 }

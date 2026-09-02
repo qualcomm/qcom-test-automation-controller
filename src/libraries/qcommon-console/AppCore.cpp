@@ -153,7 +153,7 @@ void AppCore::setAppLogging
 		_appThreadedLog->open(logPath);
 
 		writeToAppLog(_appName + " Application log started\n");
-		writeToAppLog("QTAC Version: " + QString(ALPACA_VERSION) + "\n");
+		writeToAppLog("QTAC Version: " + QString(QTAC_VERSION) + "\n");
 		writeToAppLog(_appName + " Version: " + _appVersion + "\n");
 	}
 }

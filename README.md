@@ -145,12 +145,17 @@ __Builds\ARM64\Release\QTAC.exe
    ```bash
    sudo apt install qt6-base-dev qt6-serialport-dev qt6-multimedia-dev
    ```
-2. **Runtime Dependencies**:
+2. **Build Dependencies**:
+   ```bash
+   sudo apt install libudev-dev
+   ```
+   Required by `hidapi` (used for Arduino BugHopper V2 HID support) when configuring with CMake.
+3. **Runtime Dependencies**:
    ```bash
    sudo cp udev-rules/99-QTAC-USB.rules /etc/udev/rules.d/
    sudo udevadm control --reload
    ```
-3. **Environment Variable**:
+4. **Environment Variable**:
    ```bash
    export QTBIN=/path/to/Qt/directory/<version>/gcc_64/bin
    ```

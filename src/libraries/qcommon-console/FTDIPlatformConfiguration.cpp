@@ -44,7 +44,7 @@ _FTDIPlatformConfiguration::_FTDIPlatformConfiguration
 	_resetActive = false;
 
 	// Add default tabs to _editorTabs
-	Tab generalTab, deviceInfoTab, fusionTab, terminalTab;
+	Tab generalTab, deviceInfoTab, fusionTab;
 
 	generalTab._name = "General";
 	generalTab._visible = true;
@@ -67,17 +67,9 @@ _FTDIPlatformConfiguration::_FTDIPlatformConfiguration
 	fusionTab._ordinal = 3;
 	fusionTab._userTab = false;
 
-	terminalTab._name = "Terminal";
-	terminalTab._visible = false;
-	terminalTab._moveable = true;
-	terminalTab._configurable = false;
-	terminalTab._ordinal = 4;
-	terminalTab._userTab = false;
-
 	_tabs.append(generalTab);
 	_tabs.append(deviceInfoTab);
 	_tabs.append(fusionTab);
-	_tabs.append(terminalTab);
 
 	initialize(chipCount);
 }

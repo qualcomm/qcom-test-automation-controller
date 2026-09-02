@@ -391,27 +391,11 @@
             "visible": true
         },
         {
-            "configurable": false,
-            "moveable": true,
-            "ordinal": 2,
-            "name": "I2C",
-            "user_tab": true,
-            "visible": true
-        },
-        {
             "configurable": true,
             "moveable": true,
             "ordinal": 3,
             "name": "Fusion",
             "user_tab": true,
-            "visible": true
-        },
-        {
-            "configurable": false,
-            "moveable": true,
-            "ordinal": 4,
-            "name": "Terminal",
-            "user_tab": false,
             "visible": true
         }
     ],

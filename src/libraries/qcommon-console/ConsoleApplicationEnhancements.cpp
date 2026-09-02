@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: BSD-3-Clause
 
 #include "ConsoleApplicationEnhancements.h"
+#include "AppCore.h"
 #include "Range.h"
 
 // Qt

@@ -10,7 +10,9 @@
 #include "ConfigEditorApplication.h"
 #include "FTDIEditorView.h"
 #include "ManageTabsDialog.h"
+#include "PSOCI2CDialog.h"
 #include "PSOCEditorView.h"
+#include "STM32EditorView.h"
 #include "TACPreviewWindow.h"
 
 #include "DebugBoardType.h"
@@ -27,7 +29,7 @@
 #include "ConsoleApplicationEnhancements.h"
 #include "CustomValidator.h"
 
-// QT
+// Qt
 #include <QCloseEvent>
 #include <QFileDialog>
 #include <QMessageBox>
@@ -228,6 +230,10 @@ void ConfigWindow::populateFields()
 
 		break;
 
+	case eSTM32:
+		_editorView = new STM32EditorView(_editorFrame);
+		break;
+
 	default:
 		_editorView = Q_NULLPTR;
 		break;
@@ -369,9 +375,12 @@ void ConfigWindow::enableEditorActions()
 QList<quint32> ConfigWindow::firmwareSelection()
 {
 	QList<quint32> supportedVersions;
-	QAbstractButton* btn = _firmwareBtnGroup->checkedButton();
-	if (btn != Q_NULLPTR)
+
+	for (QAbstractButton* btn : _firmwareBtnGroup->buttons())
 	{
+		if (btn->isChecked() == false)
+			continue;
+
 		bool ok(false);
 		int ver = btn->text().toInt(&ok);
 
@@ -384,23 +393,22 @@ QList<quint32> ConfigWindow::firmwareSelection()
 
 void ConfigWindow::setFirmwareSelection()
 {
-	QList<QAbstractButton*> btnList = _firmwareBtnGroup->buttons();
-	for (quint32 fwVer : _platformConfiguration->supportedFirmwareVer())
-	{
-		for (int idx(0); idx < btnList.size(); idx++)
-		{
-			bool ok(false);
-			int ver = btnList[idx]->text().toInt(&ok);
+	QList<quint32> supportedVersions = _platformConfiguration->supportedFirmwareVer();
 
-			if (ok)
-			{
-				if (ver == fwVer)
-				{
-					btnList[idx]->setChecked(true);
-					setAboutFirmware(ver);
-					break;
-				}
-			}
+	QList<QAbstractButton*> btnList = _firmwareBtnGroup->buttons();
+
+	for (QAbstractButton* btn : btnList)
+	{
+		bool ok(false);
+		int ver = btn->text().toInt(&ok);
+
+		if (ok)
+		{
+			bool checked = supportedVersions.contains(static_cast<quint32>(ver));
+			btn->setChecked(checked);
+
+			if (checked)
+				setAboutFirmware(ver);
 		}
 	}
 }
@@ -511,7 +519,16 @@ void ConfigWindow::on__actionNew_triggered()
 		PlatformConfiguration platformConfig = _PlatformConfiguration::createPlatformConfiguration(ccd.getPlatform(), ccd.getChipCount(), ccd.getPSOCVariant());
 		if (platformConfig)
 		{
-			if (_platformConfiguration != Q_NULLPTR)
+			if (platformConfig->getPlatform() == ePSOC && platformConfig->variant() == ePSOCGPIOIIC)
+			{
+				_PSOCPlatformConfiguration* psocPlatformConfig = static_cast<_PSOCPlatformConfiguration*>(platformConfig.data());
+
+				PSOCI2CDialog i2cDialog(psocPlatformConfig, this);
+				if (i2cDialog.exec() != QDialog::Accepted)
+					platformConfig = Q_NULLPTR;
+			}
+
+			if (_platformConfiguration != Q_NULLPTR && platformConfig != Q_NULLPTR)
 			{
 				ConfigWindow* w = new ConfigWindow;
 				if (w != Q_NULLPTR)
@@ -522,7 +539,8 @@ void ConfigWindow::on__actionNew_triggered()
 			}
 			else
 			{
-				setTACConfigFile(platformConfig);
+				if (platformConfig != Q_NULLPTR)
+					setTACConfigFile(platformConfig);
 			}
 		}
 		else
@@ -653,6 +671,8 @@ bool ConfigWindow::save()
 	{
 		if (_platformConfiguration != NULL)
 		{
+			_platformConfiguration->setSupportedFirmwareVer(firmwareSelection());
+
 			_platformConfiguration->save();
 
 			QFileInfo fileInfo(_platformConfiguration->filePath());

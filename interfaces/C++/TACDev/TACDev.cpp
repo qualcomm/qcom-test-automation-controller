@@ -146,7 +146,7 @@ TAC_RESULT GetAlpacaVersion
 {
 	TAC_RESULT result{NO_TAC_ERROR};
 
-	QByteArray version{ALPACA_VERSION};
+	QByteArray version{QTAC_VERSION};
 
 	if (version.size() < bufferSize)
 	{
@@ -164,7 +164,7 @@ TAC_RESULT GetTACVersion(char* tacVersion, int bufferSize)
 {
 	TAC_RESULT result{NO_TAC_ERROR};
 
-	QByteArray version{TAC_VERSION};
+	QByteArray version{QTAC_VERSION};
 
 	if (version.size() < bufferSize)
 	{
