@@ -9,7 +9,7 @@ else()
     set(LIBRARY_NAME TACDev)
 endif()
 
-qt_add_library(${LIBRARY_NAME}
+qt_add_library(${LIBRARY_NAME} SHARED
     TACDev.cpp TACDev.h
     TACDevCore.cpp TACDevCore.h
 )
