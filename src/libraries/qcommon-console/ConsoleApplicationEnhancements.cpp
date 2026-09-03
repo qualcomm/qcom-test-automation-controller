@@ -41,11 +41,11 @@ QString applicationDataPath()
 	if (QDir(result).exists() == false)
 		{
 			#ifdef Q_OS_WIN
-				result = "C:/ProgramData/Qualcomm/" + kAppName + "/";
+				result = "C:/ProgramData/Qualcomm/" + kAppName + "/tac_configs/";
 			#endif
 
 			#ifdef Q_OS_LINUX
-				result = "/var/lib/qcom/data/" + kAppName + "/";
+				result = "/var/lib/qcom/data/" + kAppName + "/tac_configs/";
 			#endif
 		}
 
