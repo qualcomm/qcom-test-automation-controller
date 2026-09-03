@@ -65,7 +65,7 @@ jobs:
       matrix:
         os: [ubuntu-22.04, ubuntu-latest]
         qt_version: ['6.9.2', '6.10.0']
-        config_root: ['/var/lib/qcom/data/QTAC/configurations']
+        config_root: ['/var/lib/qcom/data/Alpaca']
 
     steps:
     - uses: actions/checkout@v6
@@ -129,7 +129,7 @@ jobs:
       fail-fast: false
       matrix:
         qt_version: ['6.9.2', '6.10.0']
-        config_root: ['C:\ProgramData\Qualcomm\QTAC\configurations']
+        config_root: ['C:\ProgramData\Qualcomm\Alpaca']
 
     steps:
     - uses: actions/checkout@v6

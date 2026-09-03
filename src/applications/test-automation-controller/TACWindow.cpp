@@ -290,13 +290,13 @@ void TACWindow::on_actionAbout_triggered()
 void TACWindow::on_actionSubmit_Bug_Report_triggered()
 {
 #ifdef Q_OS_LINUX
-	QString program = "/opt/qcom/QTAC/bin/BugWriter"; // Linux Sucks
+	QString program = "/opt/qcom/Alpaca/bin/BugWriter"; // Linux Sucks
 #else
 	QString program = "BugWriter";
 #endif
 
 	QStringList arguments;
-	arguments << "product:QTAC";
+	arguments << "product:Alpaca";
 	arguments << "prodversion:" + kProductVersion;
 	arguments << "application:Test_Automation_Controller";
 	arguments << "appversion:" + kAppVersion;

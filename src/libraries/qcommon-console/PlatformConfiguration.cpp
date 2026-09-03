@@ -1007,7 +1007,7 @@ void _PlatformConfiguration::setFilePath(const QString &filePath)
 {
 	QFileInfo fileInfo(filePath);
 
-	if (fileInfo.absoluteFilePath().startsWith("C:/ProgramData/Qualcomm/QTAC", Qt::CaseInsensitive))
+	if (fileInfo.absoluteFilePath().startsWith("C:/ProgramData/Qualcomm/Alpaca", Qt::CaseInsensitive))
 	{
 		if (_platform == ePSOC && _platformId < 255)
 		{

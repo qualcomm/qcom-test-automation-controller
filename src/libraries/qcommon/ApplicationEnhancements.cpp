@@ -142,7 +142,7 @@ void startLocalBrowser(const QString &filePath)
 QString docsRoot()
 {
 	QString result;
-	QString appName = "QTAC";
+	QString appName = "Alpaca";
 	QDir binDir(QCoreApplication::applicationDirPath());
 	if (binDir.exists())
 	{
@@ -152,7 +152,7 @@ QString docsRoot()
 	}
 
 #ifdef Q_OS_WINDOWS
-	result = "C:/Program Files/Qualcomm/" + appName + "/docs/";
+	result = "C:/Program Files (x86)/Qualcomm/" + appName + "/docs/";
 #endif
 #ifdef Q_OS_LINUX
     result = "/opt/qcom/" + appName + "/docs/";

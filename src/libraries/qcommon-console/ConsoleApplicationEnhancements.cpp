@@ -25,7 +25,7 @@
 	#include <unistd.h>
 #endif
 
-const QString kAppName("QTAC");
+const QString kAppName("Alpaca");
 
 QString applicationBinPath()
 {
@@ -41,11 +41,11 @@ QString applicationDataPath()
 	if (QDir(result).exists() == false)
 		{
 			#ifdef Q_OS_WIN
-				result = "C:/ProgramData/Qualcomm/" + kAppName + "/configurations/";
+				result = "C:/ProgramData/Qualcomm/" + kAppName + "/";
 			#endif
 
 			#ifdef Q_OS_LINUX
-				result = "/var/lib/qcom/data/" + kAppName + "/configurations/";
+				result = "/var/lib/qcom/data/" + kAppName + "/";
 			#endif
 		}
 

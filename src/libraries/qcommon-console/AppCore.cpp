@@ -13,8 +13,8 @@
 #include <QJsonDocument>
 #include <QJsonObject>
 
-const QString kWindowsInternalBuildPath(QStringLiteral("C:\\Program Files (x86)\\Qualcomm\\QTAC\\ib.conf"));
-const QString kLinuxInternalBuildPath(QStringLiteral("/opt/qcom/QTAC/bin/ib.conf"));
+const QString kWindowsInternalBuildPath(QStringLiteral("C:\\Program Files (x86)\\Qualcomm\\Alpaca\\ib.conf"));
+const QString kLinuxInternalBuildPath(QStringLiteral("/opt/qcom/Alpaca/bin/ib.conf"));
 
 AppCore* AppCore::_appCore{Q_NULLPTR};
 
