@@ -354,7 +354,12 @@ bool FTDICheckApplication::checkLibraryVersion(const QString& filePath)
 bool FTDICheckApplication::isExpectedProductVersion(const QString& fileName, const QString& version)
 {
 	bool result{false};
-	auto fileData = _expectedProductVersionMap.find(fileName);
+	// Windows filesystem lookups (e.g. GetModuleFileNameA) return whatever case
+	// the file happens to be stored on disk (e.g. "FTD2XX.dll"), which may not
+	// match the lowercase keys in _expectedProductVersionMap. Compare
+	// case-insensitively so a correctly-installed driver isn't misreported as
+	// an unexpected version purely due to filename casing.
+	auto fileData = _expectedProductVersionMap.find(fileName.toLower());
 	if (fileData != _expectedProductVersionMap.end())
 	{
 		if (fileData.value() == version)
