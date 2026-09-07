@@ -45,7 +45,7 @@ QString applicationDataPath()
 			#endif
 
 			#ifdef Q_OS_LINUX
-				result = "/var/lib/qcom/data/" + kAppName + "/tac_configs/";
+				result = "/var/lib/qcom/data/Alpaca/tac_configs/";
 			#endif
 		}
 
