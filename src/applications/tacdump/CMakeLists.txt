@@ -29,8 +29,12 @@ target_link_libraries(${APP_NAME} PRIVATE
     Qt6::Core
     Qt6::SerialPort
 
-    $<$<CONFIG:Debug>:QCommonConsoled;ftd2xx>
-    $<$<NOT:$<CONFIG:Debug>>:QCommonConsole;ftd2xx>
+    # Quote the generator expression so target_link_libraries receives it as a
+    # single item. An unquoted $<...> containing ';' is split by CMake before the
+    # expression is evaluated; that split is only tolerated since CMake 3.23,
+    # whereas quoting works on the 3.22 minimum too.
+    "$<$<CONFIG:Debug>:QCommonConsoled;ftd2xx>"
+    "$<$<NOT:$<CONFIG:Debug>>:QCommonConsole;ftd2xx>"
 )
 
 if(WIN32)
