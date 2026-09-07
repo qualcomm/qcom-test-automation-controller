@@ -36,20 +36,68 @@ QString applicationBinPath()
 
 QString applicationDataPath()
 {
-	QString result = "../../../../configurations/";
+	// 1. Bin-relative resolution for dev/build-tree layouts: walk up from the
+	//    actual executable directory (not the process's current working
+	//    directory, which is fragile and launch-method-dependent) looking
+	//    for a sibling "configurations" folder.
+	QDir dir(QCoreApplication::applicationDirPath());
+	for (int i = 0; i < 5; ++i)
+	{
+		const QString candidate = dir.absolutePath() + "/configurations";
+		if (QDir(candidate).exists())
+			return QDir::cleanPath(candidate) + "/";
 
-	if (QDir(result).exists() == false)
+		dir.cdUp();
+	}
+
+	// 2. The standalone installer's own ProgramData location
+	//    (packaging/windows/install.ps1's default DataRoot).
+	#ifdef Q_OS_WIN
+		const QString standaloneCandidate =
+			"C:/ProgramData/Qualcomm/" + kAppName + "/configurations/";
+	#endif
+	#ifdef Q_OS_LINUX
+		const QString standaloneCandidate =
+			"/var/lib/qcom/data/" + kAppName + "/configurations/";
+	#endif
+
+	if (QDir(standaloneCandidate).exists())
+		return standaloneCandidate;
+
+	// 3. TAC may also be distributed as part of a larger bundled/packaged
+	//    product that stages these files under a shared ProgramData root
+	//    using its own product folder name instead of kAppName. Rather
+	//    than hardcoding any specific downstream product name, generically
+	//    scan sibling folders under the shared Qualcomm ProgramData root
+	//    for one that actually contains the expected data file. This
+	//    keeps a raw standalone install and any bundled/packaged
+	//    distribution both working without either needing to be named
+	//    here.
+	#ifdef Q_OS_WIN
+		const QString programDataRoot = "C:/ProgramData/Qualcomm";
+	#endif
+	#ifdef Q_OS_LINUX
+		const QString programDataRoot = "/var/lib/qcom/data";
+	#endif
+
+	{
+		QDir root(programDataRoot);
+		const QStringList subdirs = root.entryList(QDir::Dirs | QDir::NoDotAndDotDot);
+		for (const QString& subdir : subdirs)
 		{
-			#ifdef Q_OS_WIN
-				result = "C:/ProgramData/Qualcomm/" + kAppName + "/configurations/";
-			#endif
+			if (subdir == kAppName)
+				continue; // already checked above
 
-			#ifdef Q_OS_LINUX
-				result = "/var/lib/qcom/data/" + kAppName + "/configurations/";
-			#endif
+			const QString candidate = programDataRoot + "/" + subdir + "/configurations/";
+			if (QFileInfo::exists(candidate + "devicelist.json"))
+				return candidate;
 		}
+	}
 
-	return result;
+	// 4. Preserve prior behavior as the final fallback (keeps existing
+	//    callers' error-handling paths working when no known location
+	//    exists at all -- e.g. first run before ProgramData is populated).
+	return standaloneCandidate;
 }
 
 QString documentsDataPath
