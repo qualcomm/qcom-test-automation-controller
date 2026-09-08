@@ -80,6 +80,13 @@ python3 -c "import json,jsonschema,sys; jsonschema.validate(json.load(open(sys.a
   - `initial_value` — state applied at initialization.
   - `priority` / `initialization_priority` — initialization order.
   - `classic_action` — PSOC/PIC32CX built-in action binding.
+- **`variant`** / **`slaves[]`** / **`i2c_addr[]`** — PSOC "GPIO with I2C" boards only.
+  `variant` selects the board flavour, `slaves[]` describes the fitted I2C GPIO
+  expanders (`reg_addr`, `config_addr`, `port_count` and the chip `variant`), and
+  `i2c_addr[]` holds one entry per expander pin. An expander pin is identified by
+  `pin_number`+`slave_addr`+`write_addr` and carries the same hardware fields as a
+  direct pin (`command`, `inverted`, `classic_action`); its labels and placement live
+  in the `.tcnf` alongside a matching `ref`.
 - **`variables[]`** — `name` + `default_value`. The script substitutes `$name`
   tokens (e.g. `delay $edl`). Labels/tooltips/layout for these live in the `.tcnf`.
 - **`script`** — the "Alpaca" automation language. `def <fn>()` blocks made of:
@@ -119,11 +126,23 @@ identity fields used in the pinout file). UI-only pin fields: `enabled`, `name`
 (display label), `help_hint` (tooltip), `group`/`tab_name`, `command_group`,
 `run_priority` (grid cell).
 
+PSOC "GPIO with I2C" boards carry a second such array, `i2c_addr[]`, holding the UI
+half of each expander pin. It follows the same pattern: a `ref` of
+`pin_number`+`slave_addr`+`write_addr` joining back to the pinout file, plus
+`enabled`, `name`, `help_hint`, `tab_name`, `command_group` and `run_priority`.
+
 ## Backward compatibility & migration
 
 QTAC still loads **legacy combined `.tcnf`** files (everything inline, no
 `pinout_ref`). Opening and saving such a file in the Configuration Editor upgrades
 it to the two-file layout automatically.
+
+The Configuration Editor always writes the two-file layout, both when saving an
+existing configuration and when creating one from scratch (**File -> New**); the
+pinout file is named after the `.tcnf` and referenced from it, so the pair stays
+together. Because a configuration is now two files, both must travel together: the
+editor refuses to open a `.tcnf` whose `pinout_ref` cannot be resolved, and reports
+which file is missing rather than silently presenting an empty board.
 
 To migrate a folder of legacy configs in bulk, use the `TACConfigSplit` utility:
 

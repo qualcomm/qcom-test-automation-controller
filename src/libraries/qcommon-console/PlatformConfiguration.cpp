@@ -111,6 +111,11 @@ const QString kPriority(QStringLiteral("priority"));
 const QString kInitializationPriority(QStringLiteral("initialization_priority"));
 const QString kClassicAction(QStringLiteral("classic_action"));
 const QString kSupportedFirmwareVer(QStringLiteral("supportedFirmwareVer"));
+const QString kPSOCVariant(QStringLiteral("variant"));
+const QString kI2CSlaveArray(QStringLiteral("slaves"));
+const QString kI2CPinArray(QStringLiteral("i2c_addr"));
+const QString kI2CSlaveAddress(QStringLiteral("slave_addr"));
+const QString kI2CWriteAddress(QStringLiteral("write_addr"));
 
 // Per-pin key fields (identify a physical pin; written flat into the pinout file
 // and inside the "ref" object in the overlay). Platforms disagree on how a pin is
@@ -125,9 +130,19 @@ const QStringList kPinHardwareFields{
 	kCommand, kInput, kInverted, kInitialValue, kPriority,
 	kInitializationPriority, kClassicAction};
 
-// Top-level keys that belong only to the shared pinout file.
+// PSOC "GPIO with I2C" boards drive some pins through an I2C GPIO expander. Those
+// entries have the same hardware/UI mix as "pins" and are partitioned the same way:
+// the expander address identifies the pin, command/inverted/classic_action describe
+// what the hardware does, and the rest is presentation.
+const QStringList kI2CPinKeyFields{kPinNumber, kI2CSlaveAddress, kI2CWriteAddress};
+const QStringList kI2CPinHardwareFields{kCommand, kInverted, kClassicAction};
+
+// Top-level keys that belong only to the shared pinout file. "variant" and "slaves"
+// describe the board's I2C topology (which expander chips are fitted), so they
+// travel with the hardware rather than the UI.
 const QStringList kPinoutOnlyFields{
-	kUSBDescriptor, kResetEnabled, kScript, kChipCount, kBusArray, kSupportedFirmwareVer};
+	kUSBDescriptor, kResetEnabled, kScript, kChipCount, kBusArray, kSupportedFirmwareVer,
+	kPSOCVariant, kI2CSlaveArray};
 // Top-level identity keys duplicated into both files (overlay stays authoritative).
 const QStringList kIdentityFields{kName, kDescription, kPlatformType, kPlatformId};
 
@@ -233,7 +248,13 @@ PlatformConfiguration _PlatformConfiguration::openPlatformConfiguration
 
 		if (result)
 		{
-			result->load(filePath);
+			// A configuration is now two files, so opening one can fail on the sibling
+			// pinout (missing, unparseable, wrong format) after the .tcnf itself read
+			// fine. Discard the half-built configuration in that case: returning it
+			// would hand the caller a default-initialised board that looks valid and
+			// silently replaces the user's own settings on the next save.
+			if (result->load(filePath) == false)
+				result = PlatformConfiguration();
 		}
 	}
 
@@ -1053,6 +1074,11 @@ QString _PlatformConfiguration::filePath()
 	return QDir::cleanPath(_platformPath + QDir::separator() + _platformFile);
 }
 
+QString _PlatformConfiguration::pinoutFileName()
+{
+	return _pinoutFile;
+}
+
 void _PlatformConfiguration::setSupportedFirmwareVer(const QList<quint32> &firmwareList)
 {
 	_supportedFirmwareVer = firmwareList;
@@ -1099,15 +1125,105 @@ void _PlatformConfiguration::setUSBDescriptor(const QByteArray& usbDescriptor)
 // Stable identity string for a physical pin, built from whichever key fields are
 // present (FTDI: chip_index+bus+pin_number; PSOC/PIC32: pin_number). Used to join
 // the hardware pin in the pinout file to its UI counterpart in the overlay.
-static QString pinKeyString(const QJsonObject& keyHolder)
+static QString entryKeyString(const QJsonObject& keyHolder, const QStringList& keyFields)
 {
 	QStringList parts;
-	for (const QString& field : kPinKeyFields)
+	for (const QString& field : keyFields)
 	{
 		if (keyHolder.contains(field))
 			parts << keyHolder.value(field).toVariant().toString();
 	}
 	return parts.join(QLatin1Char('|'));
+}
+
+// Splits an array whose entries mix hardware and UI fields (pins, i2c_addr) into a
+// hardware array for the pinout file and a UI array for the overlay. Key fields are
+// written flat into the hardware entry and repeated inside the overlay entry's "ref"
+// so the two halves can be rejoined on load.
+static void splitEntryArray
+(
+	const QJsonArray& entries,
+	const QStringList& keyFields,
+	const QStringList& hardwareFields,
+	QJsonArray& hardwareEntries,
+	QJsonArray& overlayEntries
+)
+{
+	const QSet<QString> keys(keyFields.cbegin(), keyFields.cend());
+	const QSet<QString> hardware(hardwareFields.cbegin(), hardwareFields.cend());
+
+	for (const QJsonValue& value : entries)
+	{
+		const QJsonObject entry = value.toObject();
+
+		QJsonObject hardwareEntry;
+		QJsonObject overlayEntry;
+		QJsonObject ref;
+
+		for (auto it = entry.constBegin(); it != entry.constEnd(); ++it)
+		{
+			const QString& key = it.key();
+
+			if (keys.contains(key))
+			{
+				hardwareEntry[key] = it.value();
+				ref[key] = it.value();
+			}
+			else if (hardware.contains(key))
+			{
+				hardwareEntry[key] = it.value();
+			}
+			else
+			{
+				overlayEntry[key] = it.value();
+			}
+		}
+
+		overlayEntry[kPinRef] = ref;
+
+		hardwareEntries.append(hardwareEntry);
+		overlayEntries.append(overlayEntry);
+	}
+}
+
+// Inverse of splitEntryArray(): joins each hardware entry to its overlay counterpart
+// on the key fields. Hardware order wins; an overlay entry with no match is dropped,
+// exactly as an orphaned UI row would be ignored.
+static QJsonArray mergeEntryArray
+(
+	const QJsonArray& hardwareEntries,
+	const QJsonArray& overlayEntries,
+	const QStringList& keyFields
+)
+{
+	QHash<QString, QJsonObject> overlayByKey;
+	for (const QJsonValue& value : overlayEntries)
+	{
+		const QJsonObject overlayEntry = value.toObject();
+		overlayByKey.insert(entryKeyString(overlayEntry.value(kPinRef).toObject(), keyFields), overlayEntry);
+	}
+
+	QJsonArray combined;
+	for (const QJsonValue& value : hardwareEntries)
+	{
+		QJsonObject entry = value.toObject();
+
+		const auto found = overlayByKey.constFind(entryKeyString(entry, keyFields));
+		if (found != overlayByKey.constEnd())
+		{
+			const QJsonObject overlayEntry = found.value();
+			for (auto it = overlayEntry.constBegin(); it != overlayEntry.constEnd(); ++it)
+			{
+				if (it.key() == kPinRef)
+					continue;
+				entry[it.key()] = it.value();
+			}
+		}
+
+		combined.append(entry);
+	}
+
+	return combined;
 }
 
 static bool writeJsonObjectToFile(const QString& path, const QJsonObject& object)
@@ -1164,7 +1280,7 @@ void _PlatformConfiguration::splitConfiguration
 	{
 		const QString& key = it.key();
 
-		if (key == kPins || key == kScriptVariables)
+		if (key == kPins || key == kScriptVariables || key == kI2CPinArray)
 			continue;
 
 		if (identity.contains(key))
@@ -1183,48 +1299,26 @@ void _PlatformConfiguration::splitConfiguration
 	}
 
 	// Pins: hardware fields + key -> pinout; key (as "ref") + UI fields -> overlay.
-	const QSet<QString> keyFields(kPinKeyFields.cbegin(), kPinKeyFields.cend());
-	const QSet<QString> hardwareFields(kPinHardwareFields.cbegin(), kPinHardwareFields.cend());
-
-	const QJsonArray pins = combined.value(kPins).toArray();
 	QJsonArray pinoutPins;
 	QJsonArray overlayPins;
-
-	for (const QJsonValue& pinValue : pins)
-	{
-		const QJsonObject pin = pinValue.toObject();
-
-		QJsonObject hardwarePin;
-		QJsonObject uiPin;
-		QJsonObject ref;
-
-		for (auto it = pin.constBegin(); it != pin.constEnd(); ++it)
-		{
-			const QString& key = it.key();
-
-			if (keyFields.contains(key))
-			{
-				hardwarePin[key] = it.value();
-				ref[key] = it.value();
-			}
-			else if (hardwareFields.contains(key))
-			{
-				hardwarePin[key] = it.value();
-			}
-			else
-			{
-				uiPin[key] = it.value();
-			}
-		}
-
-		uiPin[kPinRef] = ref;
-
-		pinoutPins.append(hardwarePin);
-		overlayPins.append(uiPin);
-	}
+	splitEntryArray(combined.value(kPins).toArray(), kPinKeyFields, kPinHardwareFields,
+	                pinoutPins, overlayPins);
 
 	pinout[kPins] = pinoutPins;
 	overlay[kPins] = overlayPins;
+
+	// I2C expander pins (PSOC "GPIO with I2C" only): same treatment as pins. Absent
+	// on every other board, and an absent key stays absent in both halves.
+	if (combined.contains(kI2CPinArray))
+	{
+		QJsonArray pinoutI2C;
+		QJsonArray overlayI2C;
+		splitEntryArray(combined.value(kI2CPinArray).toArray(), kI2CPinKeyFields,
+		                kI2CPinHardwareFields, pinoutI2C, overlayI2C);
+
+		pinout[kI2CPinArray] = pinoutI2C;
+		overlay[kI2CPinArray] = overlayI2C;
+	}
 
 	// Variables: defaults travel with the hardware (the script references them);
 	// label/tooltip/type/layout stay in the overlay. Joined later on name.
@@ -1278,7 +1372,7 @@ QJsonObject _PlatformConfiguration::mergeConfiguration
 	for (auto it = overlay.constBegin(); it != overlay.constEnd(); ++it)
 	{
 		const QString& key = it.key();
-		if (key == kPinoutRef || key == kPins || key == kScriptVariables)
+		if (key == kPinoutRef || key == kPins || key == kScriptVariables || key == kI2CPinArray)
 			continue;
 		combined[key] = it.value();
 	}
@@ -1289,43 +1383,24 @@ QJsonObject _PlatformConfiguration::mergeConfiguration
 	for (auto it = pinout.constBegin(); it != pinout.constEnd(); ++it)
 	{
 		const QString& key = it.key();
-		if (envelope.contains(key) || key == kPins || key == kScriptVariables)
+		if (envelope.contains(key) || key == kPins || key == kScriptVariables || key == kI2CPinArray)
 			continue;
 		if (combined.contains(key) == false)
 			combined[key] = it.value();
 	}
 
 	// Join hardware pins to their UI counterparts on the physical-pin key.
-	const QJsonArray hardwarePins = pinout.value(kPins).toArray();
-	const QJsonArray uiPins = overlay.value(kPins).toArray();
+	combined[kPins] = mergeEntryArray(pinout.value(kPins).toArray(),
+	                                  overlay.value(kPins).toArray(),
+	                                  kPinKeyFields);
 
-	QHash<QString, QJsonObject> uiPinByKey;
-	for (const QJsonValue& value : uiPins)
+	// Same for the I2C expander pins, when the board has them.
+	if (pinout.contains(kI2CPinArray) || overlay.contains(kI2CPinArray))
 	{
-		const QJsonObject uiPin = value.toObject();
-		uiPinByKey.insert(pinKeyString(uiPin.value(kPinRef).toObject()), uiPin);
+		combined[kI2CPinArray] = mergeEntryArray(pinout.value(kI2CPinArray).toArray(),
+		                                         overlay.value(kI2CPinArray).toArray(),
+		                                         kI2CPinKeyFields);
 	}
-
-	QJsonArray combinedPins;
-	for (const QJsonValue& value : hardwarePins)
-	{
-		QJsonObject pin = value.toObject();
-
-		const auto found = uiPinByKey.constFind(pinKeyString(pin));
-		if (found != uiPinByKey.constEnd())
-		{
-			const QJsonObject uiPin = found.value();
-			for (auto it = uiPin.constBegin(); it != uiPin.constEnd(); ++it)
-			{
-				if (it.key() == kPinRef)
-					continue;
-				pin[it.key()] = it.value();
-			}
-		}
-
-		combinedPins.append(pin);
-	}
-	combined[kPins] = combinedPins;
 
 	// Join variable defaults (pinout) to labels/layout (overlay) on name.
 	const QJsonArray hardwareVars = pinout.value(kScriptVariables).toArray();

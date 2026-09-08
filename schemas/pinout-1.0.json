@@ -24,7 +24,10 @@
         "pins":                 { "$ref": "#/definitions/pins" },
         "variables":            { "$ref": "#/definitions/variables" },
         "supportedFirmwareVer": { "type": "array", "items": { "type": "integer", "minimum": 1 } },
-        "script":               { "type": "string" }
+        "script":               { "type": "string" },
+        "variant":              { "type": "integer" },
+        "slaves":               { "$ref": "#/definitions/slaves" },
+        "i2c_addr":             { "$ref": "#/definitions/i2c_addr" }
     },
     "if":   { "properties": { "platform_type": { "enum": ["FTDI", "FT232H"] } } },
     "then": { "required": ["chip_count", "bus"] },
@@ -96,6 +99,39 @@
                 "pin":      { "type": "string" },
                 "command":  { "type": "string" },
                 "inverted": { "type": "boolean" }
+            }
+        },
+        "slaves": {
+            "type": "array",
+            "items": {
+                "type": "object",
+                "required": ["variant", "reg_addr", "config_addr", "port_count"],
+                "additionalProperties": false,
+                "properties": {
+                    "variant":     { "type": "integer" },
+                    "reg_addr":    { "type": "integer" },
+                    "config_addr": { "type": "integer" },
+                    "port_count":  { "type": "integer" }
+                }
+            }
+        },
+        "i2c_addr": {
+            "type": "array",
+            "items": {
+                "type": "object",
+                "required": [
+                    "pin_number", "slave_addr", "write_addr",
+                    "command", "inverted", "classic_action"
+                ],
+                "additionalProperties": false,
+                "properties": {
+                    "pin_number":     { "type": "string" },
+                    "slave_addr":     { "type": "integer" },
+                    "write_addr":     { "type": "integer" },
+                    "command":        { "type": "string" },
+                    "inverted":       { "type": "boolean" },
+                    "classic_action": { "type": "string" }
+                }
             }
         },
         "bus": {

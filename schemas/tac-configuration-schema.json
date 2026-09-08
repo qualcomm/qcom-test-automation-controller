@@ -24,7 +24,6 @@
         "buttons":           { "$ref": "#/definitions/buttons" },
         "variables":         { "$ref": "#/definitions/variables" },
         "pins":              { "$ref": "#/definitions/pins" },
-        "slaves":            { "$ref": "#/definitions/slaves" },
         "i2c_addr":          { "$ref": "#/definitions/i2c_addr" }
     },
     "definitions": {
@@ -176,44 +175,34 @@
                 "pin": { "type": "string" }
             }
         },
-        "slaves": {
-            "type": "array",
-            "items": {
-                "type": "object",
-                "required": ["variant", "reg_addr", "config_addr", "port_count"],
-                "additionalProperties": false,
-                "properties": {
-                    "variant":     { "type": "integer" },
-                    "reg_addr":    { "type": "integer" },
-                    "config_addr": { "type": "integer" },
-                    "port_count":  { "type": "integer" }
-                }
-            }
-        },
         "i2c_addr": {
             "type": "array",
             "items": {
                 "type": "object",
                 "required": [
-                    "pin_number", "slave_addr", "write_addr", "enabled",
-                    "name", "help_hint", "command", "command_group",
-                    "classic_action", "tab_name", "run_priority", "inverted"
+                    "ref", "enabled", "name", "help_hint",
+                    "command_group", "run_priority", "tab_name"
                 ],
                 "additionalProperties": false,
                 "properties": {
-                    "pin_number":     { "type": "string" },
-                    "slave_addr":     { "type": "integer" },
-                    "write_addr":     { "type": "integer" },
-                    "enabled":        { "type": "boolean" },
-                    "name":           { "type": "string" },
-                    "help_hint":      { "type": "string" },
-                    "command":        { "type": "string" },
-                    "command_group":  { "type": "integer" },
-                    "classic_action": { "type": "string" },
-                    "tab_name":       { "type": "string" },
-                    "run_priority":   { "type": "string", "pattern": "^-?[0-9]+,-?[0-9]+$" },
-                    "inverted":       { "type": "boolean" }
+                    "ref":           { "$ref": "#/definitions/i2c_ref" },
+                    "enabled":       { "type": "boolean" },
+                    "name":          { "type": "string" },
+                    "help_hint":     { "type": "string" },
+                    "command_group": { "type": "integer" },
+                    "run_priority":  { "type": "string", "pattern": "^-?[0-9]+,-?[0-9]+$" },
+                    "tab_name":      { "type": "string" }
                 }
+            }
+        },
+        "i2c_ref": {
+            "type": "object",
+            "required": ["pin_number", "slave_addr", "write_addr"],
+            "additionalProperties": false,
+            "properties": {
+                "pin_number": { "type": "string" },
+                "slave_addr": { "type": "integer" },
+                "write_addr": { "type": "integer" }
             }
         }
     }
