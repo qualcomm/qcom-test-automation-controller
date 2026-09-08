@@ -173,6 +173,11 @@ public:
 	void setFilePath(const QString& filePath);
 	QString filePath();
 
+	// Name of the sibling hardware pinout file this configuration reads from and
+	// writes to (empty until the configuration has been loaded from, or saved to, the
+	// two-file layout).
+	QString pinoutFileName();
+
 	void setSupportedFirmwareVer(const QList<quint32> &firmwareList);
 	QList<quint32> supportedFirmwareVer();
 
