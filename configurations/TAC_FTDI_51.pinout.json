@@ -1,0 +1,371 @@
+{
+    "$schema": "https://qualcomm.github.io/tac/schemas/pinout-1.0.json",
+    "bus": [
+        {
+            "bus": "A",
+            "bus_function": 1,
+            "chip_index": 0
+        },
+        {
+            "bus": "B",
+            "bus_function": 1,
+            "chip_index": 0
+        },
+        {
+            "bus": "C",
+            "bus_function": 2,
+            "chip_index": 0
+        },
+        {
+            "bus": "D",
+            "bus_function": 2,
+            "chip_index": 0
+        }
+    ],
+    "chip_count": 1,
+    "description": "ALPACA-LITE GLYMUR COB QCB",
+    "format": "tac-pinout",
+    "name": "Glymur CoB QCB",
+    "pins": [
+        {
+            "bus": "A",
+            "chip_index": 0,
+            "command": "",
+            "initial_value": false,
+            "input": false,
+            "inverted": false,
+            "pin_number": "0",
+            "priority": -1
+        },
+        {
+            "bus": "B",
+            "chip_index": 0,
+            "command": "",
+            "initial_value": false,
+            "input": false,
+            "inverted": false,
+            "pin_number": "0",
+            "priority": -1
+        },
+        {
+            "bus": "C",
+            "chip_index": 0,
+            "command": "pshold",
+            "initial_value": false,
+            "input": false,
+            "inverted": false,
+            "pin_number": "0",
+            "priority": -1
+        },
+        {
+            "bus": "D",
+            "chip_index": 0,
+            "command": "volup",
+            "initial_value": false,
+            "input": false,
+            "inverted": false,
+            "pin_number": "0",
+            "priority": -1
+        },
+        {
+            "bus": "A",
+            "chip_index": 0,
+            "command": "",
+            "initial_value": false,
+            "input": false,
+            "inverted": false,
+            "pin_number": "1",
+            "priority": -1
+        },
+        {
+            "bus": "B",
+            "chip_index": 0,
+            "command": "",
+            "initial_value": false,
+            "input": false,
+            "inverted": false,
+            "pin_number": "1",
+            "priority": -1
+        },
+        {
+            "bus": "C",
+            "chip_index": 0,
+            "command": "uim1",
+            "initial_value": false,
+            "input": false,
+            "inverted": false,
+            "pin_number": "1",
+            "priority": -1
+        },
+        {
+            "bus": "D",
+            "chip_index": 0,
+            "command": "battery",
+            "initial_value": false,
+            "input": false,
+            "inverted": true,
+            "pin_number": "1",
+            "priority": 2
+        },
+        {
+            "bus": "A",
+            "chip_index": 0,
+            "command": "",
+            "initial_value": false,
+            "input": false,
+            "inverted": false,
+            "pin_number": "2",
+            "priority": -1
+        },
+        {
+            "bus": "B",
+            "chip_index": 0,
+            "command": "",
+            "initial_value": false,
+            "input": false,
+            "inverted": false,
+            "pin_number": "2",
+            "priority": -1
+        },
+        {
+            "bus": "C",
+            "chip_index": 0,
+            "command": "usb3456",
+            "initial_value": false,
+            "input": false,
+            "inverted": true,
+            "pin_number": "2",
+            "priority": 2
+        },
+        {
+            "bus": "D",
+            "chip_index": 0,
+            "command": "voldn",
+            "initial_value": false,
+            "input": false,
+            "inverted": false,
+            "pin_number": "2",
+            "priority": -1
+        },
+        {
+            "bus": "A",
+            "chip_index": 0,
+            "command": "",
+            "initial_value": false,
+            "input": false,
+            "inverted": false,
+            "pin_number": "3",
+            "priority": -1
+        },
+        {
+            "bus": "B",
+            "chip_index": 0,
+            "command": "",
+            "initial_value": false,
+            "input": false,
+            "inverted": false,
+            "pin_number": "3",
+            "priority": -1
+        },
+        {
+            "bus": "C",
+            "chip_index": 0,
+            "command": "phybatt",
+            "initial_value": false,
+            "input": false,
+            "inverted": false,
+            "pin_number": "3",
+            "priority": 2
+        },
+        {
+            "bus": "D",
+            "chip_index": 0,
+            "command": "pkey",
+            "initial_value": false,
+            "input": false,
+            "inverted": false,
+            "pin_number": "3",
+            "priority": -1
+        },
+        {
+            "bus": "A",
+            "chip_index": 0,
+            "command": "",
+            "initial_value": false,
+            "input": false,
+            "inverted": false,
+            "pin_number": "4",
+            "priority": -1
+        },
+        {
+            "bus": "B",
+            "chip_index": 0,
+            "command": "",
+            "initial_value": false,
+            "input": false,
+            "inverted": false,
+            "pin_number": "4",
+            "priority": -1
+        },
+        {
+            "bus": "C",
+            "chip_index": 0,
+            "command": "sdcard",
+            "initial_value": false,
+            "input": false,
+            "inverted": false,
+            "pin_number": "4",
+            "priority": -1
+        },
+        {
+            "bus": "D",
+            "chip_index": 0,
+            "command": "eud",
+            "initial_value": false,
+            "input": false,
+            "inverted": false,
+            "pin_number": "4",
+            "priority": -1
+        },
+        {
+            "bus": "A",
+            "chip_index": 0,
+            "command": "",
+            "initial_value": false,
+            "input": false,
+            "inverted": false,
+            "pin_number": "5",
+            "priority": -1
+        },
+        {
+            "bus": "B",
+            "chip_index": 0,
+            "command": "",
+            "initial_value": false,
+            "input": false,
+            "inverted": false,
+            "pin_number": "5",
+            "priority": -1
+        },
+        {
+            "bus": "C",
+            "chip_index": 0,
+            "command": "bc1high",
+            "initial_value": false,
+            "input": false,
+            "inverted": false,
+            "pin_number": "5",
+            "priority": -1
+        },
+        {
+            "bus": "D",
+            "chip_index": 0,
+            "command": "pedl",
+            "initial_value": false,
+            "input": false,
+            "inverted": false,
+            "pin_number": "5",
+            "priority": -1
+        },
+        {
+            "bus": "A",
+            "chip_index": 0,
+            "command": "",
+            "initial_value": false,
+            "input": false,
+            "inverted": false,
+            "pin_number": "6",
+            "priority": -1
+        },
+        {
+            "bus": "B",
+            "chip_index": 0,
+            "command": "",
+            "initial_value": false,
+            "input": false,
+            "inverted": false,
+            "pin_number": "6",
+            "priority": -1
+        },
+        {
+            "bus": "C",
+            "chip_index": 0,
+            "command": "usb1",
+            "initial_value": false,
+            "input": false,
+            "inverted": true,
+            "pin_number": "6",
+            "priority": 2
+        },
+        {
+            "bus": "D",
+            "chip_index": 0,
+            "command": "<type a command>",
+            "initial_value": true,
+            "input": false,
+            "inverted": false,
+            "pin_number": "6",
+            "priority": 1
+        },
+        {
+            "bus": "A",
+            "chip_index": 0,
+            "command": "",
+            "initial_value": false,
+            "input": false,
+            "inverted": false,
+            "pin_number": "7",
+            "priority": -1
+        },
+        {
+            "bus": "B",
+            "chip_index": 0,
+            "command": "",
+            "initial_value": false,
+            "input": false,
+            "inverted": false,
+            "pin_number": "7",
+            "priority": -1
+        },
+        {
+            "bus": "C",
+            "chip_index": 0,
+            "command": "sresn",
+            "initial_value": false,
+            "input": false,
+            "inverted": false,
+            "pin_number": "7",
+            "priority": -1
+        },
+        {
+            "bus": "D",
+            "chip_index": 0,
+            "command": "usb0",
+            "initial_value": false,
+            "input": false,
+            "inverted": true,
+            "pin_number": "7",
+            "priority": 2
+        }
+    ],
+    "platform_id": 51,
+    "platform_type": "FTDI",
+    "reset_enabled": false,
+    "schema_version": "1.0",
+    "script": "def powerOffTheDevice() \n\tlogComment ====== powerOffTheDevice sequence start ======\n\n\tbattery 1\n\tusb0 1\n\tusb1 1\n                        usb3456 1\n\n\tlogComment ====== powerOffTheDevice sequence finish ======\n\ndef powerOnTheDevice()\n\tlogComment ====== powerOnTheDevice sequence start ======\n\n\tdelay 500\n\tbattery 0\n\tdelay 900\n\tusb0 0\n\tusb1 0\n                        usb3456 0\n\tdelay 30\n\n\tlogComment ====== powerOnTheDevice sequence finish ======\n\ndef powerOff()\n\tlogComment ====== powerOff start ======\n\n\tpowerOffTheDevice\n\n\tpkey 0\n\tvolup 0\n\tvoldn 0\n\n\tpedl 0\n\n\tlogComment ====== powerOff finish ======\n\ndef powerOn()\n\tlogComment ====== powerOn start ======\n\n\tpowerOff\n\n\tpowerOnTheDevice\n\n\tpkey 1\n\tdelay 800\n\tpkey 0\n\n\tlogComment ====== powerOn finish ======\n\ndef bootToEDL()\n\tlogComment ====== bootToEDL start ======\n\n\tpowerOffTheDevice\n\n\tpkey 0\n\tvolup 0\n\tvoldn 0\n\n\tpedl 1\n\n\tpowerOnTheDevice\n\n\tpkey 1\n\tdelay $edl\n\tpkey 0\n\n\tpedl 0\n\n\tlogComment ====== bootToEDL finish ======\n\ndef bootToSecondaryEDL()\n\tlogComment ====== bootToSecondaryEDL start ======\n\n\tpowerOffTheDevice\n\n\tpkey 0\n\tvolup 0\n\tvoldn 0\n\n\tsedl 1\n\n\tpowerOnTheDevice\n\n\tpkey 1\n\tdelay 800\n\tpkey 0\n\n\tdelay 1300\n\n\tsedl 0\n\n\tlogComment ====== bootToSecondaryEDL finish ======\n\ndef bootToUEFI()\n\tlogComment ====== bootToUEFIMenu start ======\n\n\tpowerOffTheDevice\n\n\t// Put buttons in a set state\n\tpkey 0\n\tvolup 1\n\tvoldn 0\n\n\tpedl 0\n\n\tpowerOnTheDevice\n\n\tpkey 1\n\tdelay $uefi\n\tpkey 0\n\tvolup 0\n\tdelay 12\n\tpkey 1\n\tvolup 1\n\n\tpkey 0\n\tvolup 0\n\n\tlogComment ====== bootToUEFIMenu finish ======\n\ndef bootToFastboot()\n\tlogComment ====== bootToFastboot start ======\n\n\tpowerOffTheDevice\n\n\tpkey 0\n\tvolup 0\n\tvoldn 1\n\n\tpedl 0\n\n\tpowerOnTheDevice\n\n\tpkey 1\n\tdelay 800\n\tpkey 0\n\n\tdelay $fastboot\n\tvoldn 0\n\tdelay 30\n\tvoldn 1\n\n\tvoldn 0\n\n\tlogComment ====== bootToFastboot finished ======\n",
+    "usb_descriptor": "ALPACA-LITE GLYMUR COB QCB",
+    "variables": [
+        {
+            "default_value": "1300",
+            "name": "edl"
+        },
+        {
+            "default_value": "8000",
+            "name": "fastboot"
+        },
+        {
+            "default_value": "8000",
+            "name": "uefi"
+        }
+    ]
+}

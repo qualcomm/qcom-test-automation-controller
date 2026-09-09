@@ -182,7 +182,7 @@ Execute `build.sh` to generate executables:
 | Directory | Content |
 | :-- | :-- |
 | `.github` | CI/CD build pipelines |
-| `configurations` | Platform-specific pin configurations |
+| `configurations` | Platform-specific pin configurations (shared `*.pinout.json` + UI `*.tcnf`) |
 | `docs` | Documentation and guides |
 | `examples` | Device-control automation scripts |
 | `interfaces` | APIs for C++, Python, C#, and Java |
@@ -197,6 +197,7 @@ Execute `build.sh` to generate executables:
 
 - [Build Using Qt Creator](./docs/getting-started/01-Build-Using-Qt-Creator.md)
 - [Python API Guide](./docs/bootcamp/01-Bootcamp.md)
+- [Configuration File Format](./docs/configuration-pinout-format.md) — the shared `*.pinout.json` hardware schema and `*.tcnf` UI overlay
 
 ## Support & Contributing
 
