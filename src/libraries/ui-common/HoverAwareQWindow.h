@@ -31,7 +31,7 @@ public slots:
 
 private slots:
 	void fadeOutAnimComplete();
-	void on__clearAllLabel_linkActivated(const QString &link);
+	void on__clearAllBtn_clicked();
 
 	void on__notificationListContainer_customContextMenuRequested(const QPoint &pos);
 
@@ -41,14 +41,17 @@ signals:
 private:
 	void setupNotificationTimer();
 	quint16 maxNotificationView();
+	int visibleListHeight();
 
 	void buildListView();
 	void clearFrame();
+	void removeNotification(quint64 id);
 
 	Ui::HoverAwareQWindow*      _ui{Q_NULLPTR};
 	QList<Notification>         _notifications;
 	QTimer                      _timer;
 	QPropertyAnimation*         _winAnim{Q_NULLPTR};
+	quint64                      _nextNotificationId{1};
 };
 
 #endif // HOVERAWAREQWINDOW_H

@@ -3,6 +3,7 @@
 
 #include "ColorConversion.h"
 
+const QColor kDebugNotice(0xdc, 0xd6, 0xf0);
 const QColor kWarnNotice(0xff, 0xe0, 0xc0);
 const QColor kInfoNotice(0x22, 0xbf, 0xe2);
 const QColor kErrorNoticeQColor(0xfc, 0x5e, 0x03);
@@ -33,6 +34,7 @@ QColor ColorConversion::getLabelColor(const NotificationLevel level)
 	switch(level)
 	{
 	case eDebugNotification:
+		labelColor = kDebugNotice;
 		break;
 	case eInfoNotification:
 		labelColor = kInfoNotice;

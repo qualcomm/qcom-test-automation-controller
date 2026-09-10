@@ -7,21 +7,31 @@
 
 #include <QClipboard>
 #include <QCursor>
+#include <QGraphicsDropShadowEffect>
 #include <QListWidget>
 #include <QMenu>
 #include <QPropertyAnimation>
 
 const quint32 kNoticeTime(3000);
 const quint16 kMaxNotifications(4);
+const quint16 kMaxNotificationHistory(100);
 const QSize kLabelSize(kNotificationLabelWidth, kNotificationLabelHeight);
+const int kNotificationListWidth(362);
+
 
 HoverAwareQWindow::HoverAwareQWindow(QWidget* parent, Qt::WindowFlags flags):
 	QMainWindow(parent, flags),
 	_ui(new Ui::HoverAwareQWindow)
 {
 	_ui->setupUi(this);
-	setWindowFlags(Qt::Popup | Qt::Window | Qt::FramelessWindowHint);
-	_ui->_notificationListContainer->setLayoutMode(QListView::Batched);
+	setAttribute(Qt::WA_TranslucentBackground);
+
+	QGraphicsDropShadowEffect* shadow = new QGraphicsDropShadowEffect(_ui->_centralWgt);
+	shadow->setBlurRadius(24);
+	shadow->setXOffset(0);
+	shadow->setYOffset(4);
+	shadow->setColor(QColor(0, 0, 0, 90));
+	_ui->_centralWgt->setGraphicsEffect(shadow);
 
 	connect(&_timer, &QTimer::timeout, this, &HoverAwareQWindow::onTimerTimeout);
 	connect(this, &HoverAwareQWindow::clearAll, this, &HoverAwareQWindow::onNotificationCleared);
@@ -38,8 +48,24 @@ HoverAwareQWindow::~HoverAwareQWindow()
 
 void HoverAwareQWindow::insertNotification(const QString &message, const NotificationLevel notificationLevel)
 {
-	Notification newNotice(message, notificationLevel);
+	for (int i = 0; i < _notifications.size(); ++i)
+	{
+		if (_notifications.at(i).getLevel() == notificationLevel && _notifications.at(i).getMessage() == message)
+		{
+			Notification existing = _notifications.at(i);
+			existing.addOccurrence();
+
+			_notifications.removeAt(i);
+			_notifications.insert(0, existing);
+			return;
+		}
+	}
+
+	Notification newNotice(message, notificationLevel, _nextNotificationId++);
 	_notifications.insert(0, newNotice);
+
+	while (_notifications.size() > kMaxNotificationHistory)
+		_notifications.removeLast();
 }
 
 void HoverAwareQWindow::setWindowLocation(const QSize& windowSize, const QPoint& windowLoc)
@@ -48,12 +74,20 @@ void HoverAwareQWindow::setWindowLocation(const QSize& windowSize, const QPoint&
 	int mainWindowXPos = windowSize.width() + windowLoc.x();
 	int mainWindowYPos = windowSize.height() + windowLoc.y();
 
+	if (_winAnim != Q_NULLPTR)
+	{
+		_winAnim->stop();
+		delete _winAnim;
+		_winAnim = Q_NULLPTR;
+	}
+	setWindowOpacity(1.0);
+
 	buildListView();
 
-	_ui->_notificationListContainer->setFixedSize(362, kNotificationLabelHeight*maxNotificationView());
+	_ui->_notificationListContainer->setFixedSize(kNotificationListWidth, visibleListHeight());
 
 	int x = mainWindowXPos - 380;
-	int y = mainWindowYPos - kNotificationLabelHeight*maxNotificationView() - 60;
+	int y = mainWindowYPos - visibleListHeight() - 60;
 
 	QPoint loc{0,0};
 
@@ -94,24 +128,44 @@ void HoverAwareQWindow::onTimerTimeout()
 
 void HoverAwareQWindow::buildListView()
 {
-	quint16 notificationCount = _notifications.size();
-
-	if (notificationCount > 0)
+	for (const Notification& notification : _notifications)
 	{
-		for (const Notification& notification : _notifications)
+		QString text = notification.getMessage();
+
+		if (notification.getOccurrenceCount() > 1)
+			text += QString(" (x%1)").arg(notification.getOccurrenceCount());
+
+		QListWidgetItem* lwi = new QListWidgetItem(_ui->_notificationListContainer);
+		lwi->setText(text);
+		lwi->setSizeHint(kLabelSize);
+		lwi->setData(Qt::UserRole, notification.getId());
+
+		QColor labelColor = ColorConversion::getLabelColor(notification.getLevel());
+		lwi->setBackground(QBrush(labelColor));
+
+		_ui->_notificationListContainer->addItem(lwi);
+	}
+}
+
+void HoverAwareQWindow::removeNotification(quint64 id)
+{
+	for (int i = 0; i < _notifications.size(); ++i)
+	{
+		if (_notifications.at(i).getId() == id)
 		{
-			QListWidgetItem* lwi = new QListWidgetItem(_ui->_notificationListContainer);
-			lwi->setText(notification.getMessage());
-			lwi->setSizeHint(kLabelSize);
-
-			QColor labelColor = ColorConversion::getLabelColor(notification.getLevel());
-
-			QBrush brushColor(labelColor);
-			lwi->setBackground(brushColor);
-
-			_ui->_notificationListContainer->addItem(lwi);
+			_notifications.removeAt(i);
+			break;
 		}
 	}
+
+	clearFrame();
+	buildListView();
+
+	_ui->_notificationListContainer->setFixedSize(kNotificationListWidth, visibleListHeight());
+	resize(kNotificationLabelWidth, visibleListHeight() + 33);
+
+	if (_notifications.isEmpty())
+		emit clearAll();
 }
 
 void HoverAwareQWindow::onNotificationCleared()
@@ -145,6 +199,17 @@ quint16 HoverAwareQWindow::maxNotificationView()
 		return kMaxNotifications;
 }
 
+int HoverAwareQWindow::visibleListHeight()
+{
+	quint16 visibleRows = maxNotificationView();
+	int totalHeight = 0;
+
+	for (quint16 i = 0; i < visibleRows; ++i)
+		totalHeight += _ui->_notificationListContainer->sizeHintForRow(i);
+
+	return totalHeight;
+}
+
 void HoverAwareQWindow::clearFrame()
 {
 	QListWidgetItem* wgt{Q_NULLPTR};
@@ -156,9 +221,8 @@ void HoverAwareQWindow::clearFrame()
 	resize(kNotificationLabelWidth, kNotificationLabelHeight);
 }
 
-void HoverAwareQWindow::on__clearAllLabel_linkActivated(const QString &link)
+void HoverAwareQWindow::on__clearAllBtn_clicked()
 {
-	Q_UNUSED(link);
 	emit clearAll();
 }
 
@@ -172,19 +236,32 @@ void HoverAwareQWindow::on__notificationListContainer_customContextMenuRequested
 
 		if (lwi)
 		{
+			quint64 notificationId = lwi->data(Qt::UserRole).toULongLong();
+
 			QMenu menu;
 			QAction* copyAction = menu.addAction("Copy text");
+			QAction* removeAction = menu.addAction("Remove");
 			QAction* result = menu.exec(lw->mapToGlobal(pos));
 
 			if (result != Q_NULLPTR)
 			{
 				if (result == copyAction)
 				{
-					QClipboard *clipboard = QGuiApplication::clipboard();
-					if (clipboard != Q_NULLPTR)
+					for (const Notification& notification : _notifications)
 					{
-						clipboard->setText(lwi->text());
+						if (notification.getId() == notificationId)
+						{
+							QClipboard* clipboard = QGuiApplication::clipboard();
+							if (clipboard != Q_NULLPTR)
+								clipboard->setText(notification.getMessage());
+
+							break;
+						}
 					}
+				}
+				else if (result == removeAction)
+				{
+					removeNotification(notificationId);
 				}
 			}
 		}
