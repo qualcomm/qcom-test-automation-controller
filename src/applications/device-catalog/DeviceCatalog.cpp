@@ -10,6 +10,7 @@
 // Qt
 
 #include <QDir>
+#include <QFile>
 #include <QMenu>
 #include <QMessageBox>
 #include <QMediaPlayer>
@@ -297,9 +298,9 @@ void DeviceCatalog::on__deviceTable_itemClicked(QTableWidgetItem *item)
 		{
 			if (twi->text() == "PSOC")
 			{
-				// _firmwareUpdateBtn->setEnabled(true);
-				// _firmwareLabel->setEnabled(true);
-				// _firmwareSelect->setEnabled(true);
+				_firmwareUpdateBtn->setEnabled(true);
+				_firmwareLabel->setEnabled(true);
+				_firmwareSelect->setEnabled(true);
 			}
 			else
 			{
@@ -344,8 +345,47 @@ void DeviceCatalog::on__programBtn_clicked()
 
 void DeviceCatalog::on__firmwareUpdateBtn_clicked()
 {
-	// firmware programming capabilities cannot be enabled
-	// due to lack of open-source hardware protocols in psoc
+	// The connected debug board may use either the LP030 or LP038 PSOC
+	// variant, and this app has no reliable way to detect which one is
+	// physically connected. FWUpdate itself reads the target silicon ID
+	// out of the .cyacd header and refuses to flash a mismatched image
+	// (CyBtldr_StartBootloadOperation returns CYRET_ERR_DEVICE), so it is
+	// safe to try each known variant file for the selected firmware
+	// version in turn without risking flashing the wrong image.
+	static const QStringList kVariants{"LP030", "LP038"};
+
+	for (const auto& variant : kVariants)
+	{
+		QString firmwarePath = QString(_firmwareDir) + QDir::separator() + variant + QDir::separator() + "MicroEpm.cyacd";
+
+		if (QFile::exists(firmwarePath) == false)
+			continue;
+
+		QString program = applicationBinPath() + "FWUpdate";
+		QStringList arguments;
+		arguments << "path=" + firmwarePath;
+
+		QProcess* process = new QProcess(Q_NULLPTR);
+
+		process->setProgram(program);
+		process->setArguments(arguments);
+		process->start();
+		process->waitForFinished(30000);
+
+		if (process->exitCode() == 0)
+		{
+			QMessageBox::information(this, "Firmware Update Complete",
+				QString("The device has been programmed with firmware from %1.").arg(firmwarePath));
+			process->deleteLater();
+			return;
+		}
+
+		process->deleteLater();
+	}
+
+	QMessageBox::warning(this, "Firmware Update Failed",
+		"Unable to program the connected device with the selected firmware version. "
+		"Confirm a supported debug board is connected and try again.");
 }
 
 void DeviceCatalog::on__docsBtn_clicked()
