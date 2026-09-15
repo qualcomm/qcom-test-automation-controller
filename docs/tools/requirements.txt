@@ -1,0 +1,5 @@
+Sphinx<7.0.0
+docutils<0.19
+pallets-sphinx-themes==2.1.0
+myst-parser==1.0.0
+sphinx-markdown-tables==0.0.17

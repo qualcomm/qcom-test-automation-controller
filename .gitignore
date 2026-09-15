@@ -34,6 +34,9 @@ examples/MCP/**/*.log
 # Qt build directory
 __Builds/
 
+# Generated documentation
+docs/tools/_build/
+
 # Driver packages
 ftd2xx.lib
 *.zip

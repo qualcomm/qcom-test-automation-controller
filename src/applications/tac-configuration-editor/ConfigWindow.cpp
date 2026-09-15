@@ -75,7 +75,7 @@ ConfigWindow::ConfigWindow(QWidget* parent) :
 	_metaSplitter->setSizes({1,0});
 
 	// lambda
-	connect(_actionContents, &QAction::triggered, [=]{ startLocalBrowser(docsRoot() + "/getting-started/07-TAC-Config-Editor.html");});
+	connect(_actionContents, &QAction::triggered, [=]{ startLocalBrowser(docsRoot() + "/getting-started/04-TAC-Config-Editor.html");});
 	connect(_actionAbout, &QAction::triggered, [=] { ConfigEditorApplication::appInstance()->showAboutDialog();});
 	connect(_buttonEditor, &ButtonEditor::buttonsTableUpdated, this, &ConfigWindow::onButtonsTableUpdated);
 	connect(_firmwareBtnGroup, &QButtonGroup::buttonClicked, this, &ConfigWindow::onFirmwareSelectionUpdated);

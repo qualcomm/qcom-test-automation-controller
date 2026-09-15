@@ -10,6 +10,7 @@
 // Qt
 
 #include <QDir>
+#include <QFile>
 #include <QMenu>
 #include <QMessageBox>
 #include <QMediaPlayer>
@@ -30,6 +31,8 @@ const int kPlatformID{2};
 const QByteArray kv16FirmwareNotice(QByteArrayLiteral("You've chosen to program the v16 firmware. This firmware may contain updates not applicable to all teams. Uncheck unless you know what you're doing"));
 const QByteArray kv17FirmwareNotice(QByteArrayLiteral("You've chosen to program the v17 firmware. This firmware may contain updates not applicable to all teams. Uncheck unless you know what you're doing"));
 const QByteArray kDefaultNotice(QByteArrayLiteral("This space is used to share notification to user"));
+const QStringList kVariants{"LP030", "LP038"};
+
 
 DeviceCatalog::DeviceCatalog(QWidget* parent) :QDialog(parent)
 {
@@ -297,9 +300,9 @@ void DeviceCatalog::on__deviceTable_itemClicked(QTableWidgetItem *item)
 		{
 			if (twi->text() == "PSOC")
 			{
-				// _firmwareUpdateBtn->setEnabled(true);
-				// _firmwareLabel->setEnabled(true);
-				// _firmwareSelect->setEnabled(true);
+				_firmwareUpdateBtn->setEnabled(true);
+				_firmwareLabel->setEnabled(true);
+				_firmwareSelect->setEnabled(true);
 			}
 			else
 			{
@@ -344,13 +347,43 @@ void DeviceCatalog::on__programBtn_clicked()
 
 void DeviceCatalog::on__firmwareUpdateBtn_clicked()
 {
-	// firmware programming capabilities cannot be enabled
-	// due to lack of open-source hardware protocols in psoc
+	for (const auto& variant : kVariants)
+	{
+		QString firmwarePath = QString(_firmwareDir) + QDir::separator() + variant + QDir::separator() + "MicroEpm.cyacd";
+
+		if (QFile::exists(firmwarePath) == false)
+			continue;
+
+		QString program = applicationBinPath() + "FWUpdate";
+		QStringList arguments;
+		arguments << "path=" + firmwarePath;
+
+		QProcess* process = new QProcess(Q_NULLPTR);
+
+		process->setProgram(program);
+		process->setArguments(arguments);
+		process->start();
+		process->waitForFinished(30000);
+
+		if (process->exitCode() == 0)
+		{
+			QMessageBox::information(this, "Firmware Update Complete",
+				QString("The device has been programmed with firmware from %1.").arg(firmwarePath));
+			process->deleteLater();
+			return;
+		}
+
+		process->deleteLater();
+	}
+
+	QMessageBox::warning(this, "Firmware Update Failed",
+		"Unable to program the connected device with the selected firmware version. "
+		"Confirm whether a PSOC debug board is connected and try again.");
 }
 
 void DeviceCatalog::on__docsBtn_clicked()
 {
-	startLocalBrowser(docsRoot() + "/getting-started/08-Device-Catalog.html");
+	startLocalBrowser(docsRoot() + "/getting-started/05-Device-Catalog.html");
 }
 
 void DeviceCatalog::onInfoGroupCloseBtnClicked()
@@ -385,6 +418,16 @@ void DeviceCatalog::on__firmwareSelect_currentTextChanged(const QString &firmwar
 			break;
 		case 17:
 			_firmwareDir = applicationDataPath().toLatin1() + QDir::separator().toLatin1() + "firmware/1.x.17.0";
+			_infoLabelText->setText(kv17FirmwareNotice);
+			_infoGroupBox->show();
+			break;
+		case 18:
+			_firmwareDir = applicationDataPath().toLatin1() + QDir::separator().toLatin1() + "firmware/1.x.18.0";
+			_infoLabelText->setText(kv17FirmwareNotice);
+			_infoGroupBox->show();
+			break;
+		case 19:
+			_firmwareDir = applicationDataPath().toLatin1() + QDir::separator().toLatin1() + "firmware/1.x.19.0";
 			_infoLabelText->setText(kv17FirmwareNotice);
 			_infoGroupBox->show();
 		}

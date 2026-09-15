@@ -195,7 +195,7 @@ Execute `build.sh` to generate executables:
 
 ## Advanced Topics
 
-- [Build Using Qt Creator](./docs/getting-started/01-Build-Using-Qt-Creator.md)
+- [Build Using Qt Creator](./docs/getting-started/02-Build-Using-Qt-Creator.md)
 - [Python API Guide](./docs/bootcamp/01-Bootcamp.md)
 
 ## Support & Contributing

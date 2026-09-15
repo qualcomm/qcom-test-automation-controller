@@ -10,7 +10,8 @@
 #include <QStatusBar>
 
 const QSize kNotificationIconSize(10,10);
-const quint32 kNoticeTime(100);
+const quint32 kProgressClearDelay(100);
+const quint32 kToastDisplayTime(3000);
 const QString kProgressStyle("QProgressBar::chunk {background-color: %1; width: 1px;}");
 const QByteArray kOperationMsg("Operation in progress...");
 
@@ -21,12 +22,9 @@ NotificationWidget::NotificationWidget(QWidget *parent)
 	_ui->setupUi(this);
 
 	_notificationWindow = new HoverAwareQWindow(this);
+	connect(_notificationWindow, &HoverAwareQWindow::clearAll, this, &NotificationWidget::onNotificationCleared);
 
-	QIcon notificationIcon;
-	notificationIcon.addFile(QString::fromUtf8(":/NotificationBellSilent.png"), kNotificationIconSize, QIcon::Normal, QIcon::Off);
-	_ui->_notificationBtn->setIcon(notificationIcon);
-
-	_ui->_progressBar->hide();
+	updateBellIcon();
 
 	connect(this, &NotificationWidget::notificationAdded, this, &NotificationWidget::onNotificationAdded);
 	connect(this, &NotificationWidget::progress, this, &NotificationWidget::onProgressUpdated);
@@ -34,7 +32,7 @@ NotificationWidget::NotificationWidget(QWidget *parent)
 	connect(&_timer, &QTimer::timeout, this, &NotificationWidget::onTimerTimeout);
 
 	_timer.setTimerType(Qt::PreciseTimer);
-	_timer.setInterval(kNoticeTime);
+	_timer.setInterval(kProgressClearDelay);
 	_timer.setSingleShot(true);
 }
 
@@ -62,39 +60,36 @@ void NotificationWidget::insertNotification(const QString &message, const Notifi
 	if (_notificationWindow != Q_NULLPTR)
 		_notificationWindow->insertNotification(message, notificationLevel);
 
-	QIcon notificationIcon;
-	notificationIcon.addFile(QString::fromUtf8(":/NotificationBellRing.png"), kNotificationIconSize, QIcon::Normal, QIcon::Off);
-	_ui->_notificationBtn->setIcon(notificationIcon);
+	_hasUnread = true;
+	updateBellIcon();
 
 	emit notificationAdded(message, notificationLevel);
 }
 
 void NotificationWidget::onNotificationAdded(const QString &message, const NotificationLevel notificationLevel)
 {
-	makeNotificationLabel(message, notificationLevel);
+	if (_silent == false)
+		makeNotificationLabel(message, notificationLevel);
+
 	_ui->_notificationBtn->setToolTip("Click to see notifications");
 	_ui->_notificationBtn->setEnabled(true);
 }
 
 void NotificationWidget::onNotificationCleared()
 {
-	QIcon notificationIcon;
-	notificationIcon.addFile(QString::fromUtf8(":/NotificationBellSilent.png"), kNotificationIconSize, QIcon::Normal, QIcon::Off);
+	_hasUnread = false;
+	updateBellIcon();
 
-	_ui->_notificationBtn->setIcon(notificationIcon);
 	_ui->_notificationBtn->setToolTip("You do not have new notifications");
 	_ui->_notificationBtn->setEnabled(false);
 }
 
 void NotificationWidget::onNotificationButtonClicked()
 {
-	QWidget* wgt = qobject_cast<QWidget*>(sender()->parent()->parent()->parent());
+	QWidget* topLevelWindow = this->window();
 
-	if (wgt != Q_NULLPTR)
-	{
-		_notificationWindow->setWindowLocation(wgt->size(), wgt->pos());
-		connect(_notificationWindow, &HoverAwareQWindow::clearAll, this, &NotificationWidget::onNotificationCleared);
-	}
+	if (topLevelWindow != Q_NULLPTR)
+		_notificationWindow->setWindowLocation(topLevelWindow->size(), topLevelWindow->pos());
 }
 
 void NotificationWidget::onProgressUpdated(const quint8 newValue, NotificationLevel level)
@@ -161,8 +156,10 @@ void NotificationWidget::onTimerTimeout()
 
 void NotificationWidget::makeNotificationLabel(const QString& message, const NotificationLevel notificationLevel)
 {
-	QLabel* popup = new QLabel(this);
-	popup->setWindowFlags(Qt::Popup);
+	QLabel* popup = new QLabel(this->window());
+	popup->setWindowFlags(Qt::ToolTip | Qt::FramelessWindowHint | Qt::WindowStaysOnTopHint | Qt::WindowDoesNotAcceptFocus);
+	popup->setAttribute(Qt::WA_ShowWithoutActivating);
+	popup->setAttribute(Qt::WA_TransparentForMouseEvents);
 	popup->setText(message);
 
 	QPalette qPalette = popup->palette();
@@ -181,11 +178,23 @@ void NotificationWidget::makeNotificationLabel(const QString& message, const Not
 	QSize windowSize = this->window()->size();
 	QPoint windowLoc = this->window()->pos();
 
-	notificationWgtPos.setX(windowSize.width() + windowLoc.x() - kNotificationLabelWidth);
-	notificationWgtPos.setY(windowSize.height() + windowLoc.y() - kNotificationLabelHeight - 10);
+	notificationWgtPos.setX(windowSize.width() + windowLoc.x() - kNotificationLabelWidth - 10);
+	notificationWgtPos.setY(windowSize.height() + windowLoc.y() - kNotificationLabelHeight - 40);
 
 	popup->move(notificationWgtPos);
 	popup->show();
 
-	QTimer::singleShot(kNoticeTime, popup, &QLabel::hide);
+	QTimer::singleShot(kToastDisplayTime, popup, &QLabel::deleteLater);
+}
+
+void NotificationWidget::updateBellIcon()
+{
+	QString iconPath = _hasUnread
+		? QStringLiteral(":/NotificationBellRing.png")
+		: QStringLiteral(":/NotificationBellSilent.png");
+
+	QIcon notificationIcon;
+	notificationIcon.addFile(iconPath, kNotificationIconSize, QIcon::Normal, QIcon::Off);
+
+	_ui->_notificationBtn->setIcon(notificationIcon);
 }

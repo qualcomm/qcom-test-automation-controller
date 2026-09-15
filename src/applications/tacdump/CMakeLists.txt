@@ -29,8 +29,9 @@ target_link_libraries(${APP_NAME} PRIVATE
     Qt6::Core
     Qt6::SerialPort
 
-    $<$<CONFIG:Debug>:QCommonConsoled;ftd2xx>
-    $<$<NOT:$<CONFIG:Debug>>:QCommonConsole;ftd2xx>
+
+    "$<$<CONFIG:Debug>:QCommonConsoled;ftd2xx>"
+    "$<$<NOT:$<CONFIG:Debug>>:QCommonConsole;ftd2xx>"
 )
 
 if(WIN32)
