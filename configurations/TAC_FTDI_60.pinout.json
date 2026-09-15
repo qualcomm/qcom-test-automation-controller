@@ -1,0 +1,371 @@
+{
+    "$schema": "https://qualcomm.github.io/tac/schemas/pinout-1.0.json",
+    "bus": [
+        {
+            "bus": "A",
+            "bus_function": 1,
+            "chip_index": 0
+        },
+        {
+            "bus": "B",
+            "bus_function": 1,
+            "chip_index": 0
+        },
+        {
+            "bus": "C",
+            "bus_function": 2,
+            "chip_index": 0
+        },
+        {
+            "bus": "D",
+            "bus_function": 2,
+            "chip_index": 0
+        }
+    ],
+    "chip_count": 1,
+    "description": "Glymur Battery Enabled Device",
+    "format": "tac-pinout",
+    "name": "Glymur Battery Enabled Device",
+    "pins": [
+        {
+            "bus": "A",
+            "chip_index": 0,
+            "command": "",
+            "initial_value": false,
+            "input": false,
+            "inverted": false,
+            "pin_number": "0",
+            "priority": -1
+        },
+        {
+            "bus": "B",
+            "chip_index": 0,
+            "command": "",
+            "initial_value": false,
+            "input": false,
+            "inverted": false,
+            "pin_number": "0",
+            "priority": -1
+        },
+        {
+            "bus": "C",
+            "chip_index": 0,
+            "command": "pshold",
+            "initial_value": false,
+            "input": false,
+            "inverted": false,
+            "pin_number": "0",
+            "priority": 0
+        },
+        {
+            "bus": "D",
+            "chip_index": 0,
+            "command": "volup",
+            "initial_value": false,
+            "input": false,
+            "inverted": false,
+            "pin_number": "0",
+            "priority": 0
+        },
+        {
+            "bus": "A",
+            "chip_index": 0,
+            "command": "",
+            "initial_value": false,
+            "input": false,
+            "inverted": false,
+            "pin_number": "1",
+            "priority": -1
+        },
+        {
+            "bus": "B",
+            "chip_index": 0,
+            "command": "",
+            "initial_value": false,
+            "input": false,
+            "inverted": false,
+            "pin_number": "1",
+            "priority": -1
+        },
+        {
+            "bus": "C",
+            "chip_index": 0,
+            "command": "uim1",
+            "initial_value": false,
+            "input": false,
+            "inverted": false,
+            "pin_number": "1",
+            "priority": 0
+        },
+        {
+            "bus": "D",
+            "chip_index": 0,
+            "command": "battery",
+            "initial_value": false,
+            "input": false,
+            "inverted": true,
+            "pin_number": "1",
+            "priority": 2
+        },
+        {
+            "bus": "A",
+            "chip_index": 0,
+            "command": "",
+            "initial_value": false,
+            "input": false,
+            "inverted": false,
+            "pin_number": "2",
+            "priority": -1
+        },
+        {
+            "bus": "B",
+            "chip_index": 0,
+            "command": "",
+            "initial_value": false,
+            "input": false,
+            "inverted": false,
+            "pin_number": "2",
+            "priority": -1
+        },
+        {
+            "bus": "C",
+            "chip_index": 0,
+            "command": "headset",
+            "initial_value": false,
+            "input": false,
+            "inverted": false,
+            "pin_number": "2",
+            "priority": 0
+        },
+        {
+            "bus": "D",
+            "chip_index": 0,
+            "command": "voldn",
+            "initial_value": false,
+            "input": false,
+            "inverted": false,
+            "pin_number": "2",
+            "priority": 0
+        },
+        {
+            "bus": "A",
+            "chip_index": 0,
+            "command": "",
+            "initial_value": false,
+            "input": false,
+            "inverted": false,
+            "pin_number": "3",
+            "priority": -1
+        },
+        {
+            "bus": "B",
+            "chip_index": 0,
+            "command": "",
+            "initial_value": false,
+            "input": false,
+            "inverted": false,
+            "pin_number": "3",
+            "priority": -1
+        },
+        {
+            "bus": "C",
+            "chip_index": 0,
+            "command": "uim2",
+            "initial_value": false,
+            "input": false,
+            "inverted": false,
+            "pin_number": "3",
+            "priority": 0
+        },
+        {
+            "bus": "D",
+            "chip_index": 0,
+            "command": "pkey",
+            "initial_value": false,
+            "input": false,
+            "inverted": false,
+            "pin_number": "3",
+            "priority": -1
+        },
+        {
+            "bus": "A",
+            "chip_index": 0,
+            "command": "",
+            "initial_value": false,
+            "input": false,
+            "inverted": false,
+            "pin_number": "4",
+            "priority": -1
+        },
+        {
+            "bus": "B",
+            "chip_index": 0,
+            "command": "",
+            "initial_value": false,
+            "input": false,
+            "inverted": false,
+            "pin_number": "4",
+            "priority": -1
+        },
+        {
+            "bus": "C",
+            "chip_index": 0,
+            "command": "sdcard",
+            "initial_value": false,
+            "input": false,
+            "inverted": false,
+            "pin_number": "4",
+            "priority": -1
+        },
+        {
+            "bus": "D",
+            "chip_index": 0,
+            "command": "eud",
+            "initial_value": false,
+            "input": false,
+            "inverted": false,
+            "pin_number": "4",
+            "priority": 0
+        },
+        {
+            "bus": "A",
+            "chip_index": 0,
+            "command": "",
+            "initial_value": false,
+            "input": false,
+            "inverted": false,
+            "pin_number": "5",
+            "priority": -1
+        },
+        {
+            "bus": "B",
+            "chip_index": 0,
+            "command": "",
+            "initial_value": false,
+            "input": false,
+            "inverted": false,
+            "pin_number": "5",
+            "priority": -1
+        },
+        {
+            "bus": "C",
+            "chip_index": 0,
+            "command": "sedl",
+            "initial_value": false,
+            "input": false,
+            "inverted": false,
+            "pin_number": "5",
+            "priority": -1
+        },
+        {
+            "bus": "D",
+            "chip_index": 0,
+            "command": "pedl",
+            "initial_value": false,
+            "input": false,
+            "inverted": false,
+            "pin_number": "5",
+            "priority": 0
+        },
+        {
+            "bus": "A",
+            "chip_index": 0,
+            "command": "",
+            "initial_value": false,
+            "input": false,
+            "inverted": false,
+            "pin_number": "6",
+            "priority": -1
+        },
+        {
+            "bus": "B",
+            "chip_index": 0,
+            "command": "",
+            "initial_value": false,
+            "input": false,
+            "inverted": false,
+            "pin_number": "6",
+            "priority": -1
+        },
+        {
+            "bus": "C",
+            "chip_index": 0,
+            "command": "usb1",
+            "initial_value": false,
+            "input": false,
+            "inverted": true,
+            "pin_number": "6",
+            "priority": 0
+        },
+        {
+            "bus": "D",
+            "chip_index": 0,
+            "command": "TC_READY_N",
+            "initial_value": true,
+            "input": false,
+            "inverted": false,
+            "pin_number": "6",
+            "priority": 1
+        },
+        {
+            "bus": "A",
+            "chip_index": 0,
+            "command": "",
+            "initial_value": false,
+            "input": false,
+            "inverted": false,
+            "pin_number": "7",
+            "priority": -1
+        },
+        {
+            "bus": "B",
+            "chip_index": 0,
+            "command": "",
+            "initial_value": false,
+            "input": false,
+            "inverted": false,
+            "pin_number": "7",
+            "priority": -1
+        },
+        {
+            "bus": "C",
+            "chip_index": 0,
+            "command": "sresn",
+            "initial_value": false,
+            "input": false,
+            "inverted": false,
+            "pin_number": "7",
+            "priority": -1
+        },
+        {
+            "bus": "D",
+            "chip_index": 0,
+            "command": "usb0",
+            "initial_value": false,
+            "input": false,
+            "inverted": true,
+            "pin_number": "7",
+            "priority": 0
+        }
+    ],
+    "platform_id": 60,
+    "platform_type": "FTDI",
+    "reset_enabled": false,
+    "schema_version": "1.0",
+    "script": "def reset() \n\tlogComment ====== reset sequence start ======\n\t\n\tusb0 1\n\tusb1 1\n\tpkey 0\n\tvolup 0\n\tvoldn 0\n\tpedl 0\n\tdelay 900\n\tusb0 0\n\tusb1 0\n\tdelay 30\n\tpkey 1\n\tdelay $reset\n\tpkey 0\n\n\tlogComment ====== reset sequence finish ======\n\ndef bootToEDL()\n\tlogComment ====== bootToEDL start ======\n\tusb0 1\n\tusb1 1\n\tpkey 0\n\tvolup 0\n\tvoldn 0\n\tpedl 1\n\tdelay 900\n\tusb0 0\n\tusb1 0\n\tdelay 30\n\tpkey 1\n\tdelay $edl\n\tpkey 0\n\tpedl 0\n\n\tlogComment ====== bootToEDL finish ======\n\ndef bootToUEFI()\n\tlogComment ====== bootToUEFIMenu start ======\n\n\t// Put buttons in a set state\n\tpkey 0\n\tpedl 0\n\tvolup 0\n\tdelay 900\n\n\tpkey 1\n\tdelay 900\n\tvolup 1\n\n\tdelay $uefi\n\t\n\tvolup 0\n\tdelay 900\n\tpkey 0\n\n\tlogComment ====== bootToUEFIMenu finish ======\n",
+    "usb_descriptor": "ALPACA-LITE GLYMUR CRD BATTERY",
+    "variables": [
+        {
+            "default_value": "17000",
+            "name": "edl"
+        },
+        {
+            "default_value": "20000",
+            "name": "reset"
+        },
+        {
+            "default_value": "20000",
+            "name": "uefi"
+        }
+    ]
+}

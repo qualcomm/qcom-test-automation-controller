@@ -1,0 +1,179 @@
+{
+    "$schema": "https://qualcomm.github.io/tac/schemas/pinout-1.0.json",
+    "description": "CCARD525 PSoC",
+    "format": "tac-pinout",
+    "name": "CCARD525",
+    "pins": [
+        {
+            "classic_action": "TAC_SOFT_RESET",
+            "command": "sftrst",
+            "initial_value": false,
+            "initialization_priority": -1,
+            "inverted": false,
+            "pin_number": "15"
+        },
+        {
+            "classic_action": "TC_EUD_EARLY_BOOT_EN",
+            "command": "eud",
+            "initial_value": false,
+            "initialization_priority": -1,
+            "inverted": false,
+            "pin_number": "16"
+        },
+        {
+            "classic_action": "TAC_UIM1_DIS",
+            "command": "uim1",
+            "initial_value": false,
+            "initialization_priority": -1,
+            "inverted": false,
+            "pin_number": "18"
+        },
+        {
+            "classic_action": "TAC_UIM2_DIS",
+            "command": "uim2",
+            "initial_value": false,
+            "initialization_priority": -1,
+            "inverted": false,
+            "pin_number": "19"
+        },
+        {
+            "classic_action": "TAC_HEADSET_DIS",
+            "command": "<type a command>",
+            "initial_value": false,
+            "initialization_priority": -1,
+            "inverted": false,
+            "pin_number": "21"
+        },
+        {
+            "classic_action": "",
+            "command": "<type a command>",
+            "initial_value": false,
+            "initialization_priority": -1,
+            "inverted": false,
+            "pin_number": "29"
+        },
+        {
+            "classic_action": "TAC_FORCE_USB_BOOT_SEC",
+            "command": "EAPedl",
+            "initial_value": false,
+            "initialization_priority": -1,
+            "inverted": false,
+            "pin_number": "30"
+        },
+        {
+            "classic_action": "TAC_RESET_SEC",
+            "command": "EAPres",
+            "initial_value": false,
+            "initialization_priority": -1,
+            "inverted": false,
+            "pin_number": "31"
+        },
+        {
+            "classic_action": "TAC_VOL_UP",
+            "command": "volup",
+            "initial_value": false,
+            "initialization_priority": -1,
+            "inverted": false,
+            "pin_number": "34"
+        },
+        {
+            "classic_action": "TAC_USB1_DIS",
+            "command": "EAPusb",
+            "initial_value": false,
+            "initialization_priority": -1,
+            "inverted": false,
+            "pin_number": "36"
+        },
+        {
+            "classic_action": "TAC_FORCE_PS_HOLD",
+            "command": "pshold",
+            "initial_value": false,
+            "initialization_priority": -1,
+            "inverted": false,
+            "pin_number": "37"
+        },
+        {
+            "classic_action": "",
+            "command": "<type a command>",
+            "initial_value": false,
+            "initialization_priority": -1,
+            "inverted": false,
+            "pin_number": "38"
+        },
+        {
+            "classic_action": "",
+            "command": "<type a command>",
+            "initial_value": false,
+            "initialization_priority": -1,
+            "inverted": false,
+            "pin_number": "39"
+        },
+        {
+            "classic_action": "",
+            "command": "<type a command>",
+            "initial_value": false,
+            "initialization_priority": -1,
+            "inverted": false,
+            "pin_number": "46"
+        },
+        {
+            "classic_action": "TAC_SDCARD_DISC",
+            "command": "sdcard",
+            "initial_value": false,
+            "initialization_priority": -1,
+            "inverted": false,
+            "pin_number": "47"
+        },
+        {
+            "classic_action": "TAC_TC_START",
+            "command": "pkey",
+            "initial_value": false,
+            "initialization_priority": -1,
+            "inverted": false,
+            "pin_number": "50"
+        },
+        {
+            "classic_action": "TAC_RESET_PRI",
+            "command": "voldn",
+            "initial_value": false,
+            "initialization_priority": -1,
+            "inverted": false,
+            "pin_number": "51"
+        },
+        {
+            "classic_action": "TAC_POWER_OFF",
+            "command": "12vpoweroff",
+            "initial_value": false,
+            "initialization_priority": -1,
+            "inverted": false,
+            "pin_number": "53"
+        },
+        {
+            "classic_action": "TAC_SW_DWNLD_PRI",
+            "command": "NADedl",
+            "initial_value": false,
+            "initialization_priority": -1,
+            "inverted": false,
+            "pin_number": "54"
+        },
+        {
+            "classic_action": "TAC_USB0_DIS",
+            "command": "NADusb",
+            "initial_value": false,
+            "initialization_priority": -1,
+            "inverted": false,
+            "pin_number": "55"
+        }
+    ],
+    "platform_id": 31,
+    "platform_type": "PSOC",
+    "reset_enabled": true,
+    "schema_version": "1.0",
+    "script": "def powerOffTheDevice() \n\tlogComment ====== powerOffTheDevice sequence start ======\n\n\t12vpoweroff 1\n\tNADusb 1\n\tEAPusb 1\n\n\tlogComment ====== powerOffTheDevice sequence finish ======\n\ndef powerOnTheDevice()\n\tlogComment ====== powerOnTheDevice sequence start ======\n\n\tdelay 500\n\t12vpoweroff 0\n\tdelay 900\n\tNADusb 0\n\tEAPusb 0\n\tdelay 30\n\n\tlogComment ====== powerOnTheDevice sequence finish ======\n\ndef powerOff()\n\tlogComment ====== powerOff start ======\n\n\tpowerOffTheDevice\n\n\tpkey 0\n\tvolup 0\n\tvoldn 0\n\n\tNADedl 0\n\n\tlogComment ====== powerOff finish ======\n\ndef powerOn()\n\tlogComment ====== powerOn start ======\n\n\tpowerOff\n\n\tpowerOnTheDevice\n\n\tpkey 1\n\tdelay 800\n\tpkey 0\n\n\tlogComment ====== powerOn finish ======\n\ndef bootToNADEDL()\n\tlogComment ====== bootToEDL start ======\n\n\tpowerOffTheDevice\n\n\tpkey 0\n\tvolup 0\n\tvoldn 0\n\n\tNADedl 1\n\n\tpowerOnTheDevice\n\n\tpkey 1\n\tdelay 1300\n\tpkey 0\n\n\tNADedl 0\n\n\tlogComment ====== bootToEDL finish ======\n\ndef bootToEAPEDL()\n\tlogComment ====== bootToSecondaryEDL start ======\n\n\tpowerOffTheDevice\n\n\tpkey 0\n\tvolup 0\n\tvoldn 0\n\n\tEAPedl 1\n\n\tpowerOnTheDevice\n\n\tpkey 1\n\tdelay 800\n\tpkey 0\n\n\tdelay 1300\n\n\tEAPedl 0\n\n\tlogComment ====== bootToSecondaryEDL finish ======\n\ndef bootToUEFI()\n\tlogComment ====== bootToUEFIMenu start ======\n\n\tpowerOffTheDevice\n\n\t// Put buttons in a set state\n\tpkey 0\n\tvolup 1\n\tvoldn 0\n\n\tNADedl 0\n\n\tpowerOnTheDevice\n\n\tpkey 1\n\tdelay 8000\n\tpkey 0\n\tvolup 0\n\tdelay 12\n\tpkey 1\n\tvolup 1\n\n\tpkey 0\n\tvolup 0\n\n\tlogComment ====== bootToUEFIMenu finish ======\n\ndef bootToFastboot()\n\tlogComment ====== bootToFastboot start ======\n\n\tpowerOffTheDevice\n\n\tpkey 0\n\tvolup 0\n\tvoldn 1\n\n\tNADedl 0\n\n\tpowerOnTheDevice\n\n\tpkey 1\n\tdelay 800\n\tpkey 0\n\n\tdelay 8000\n\tvoldn 0\n\tdelay 30\n\tvoldn 1\n\n\tvoldn 0\n\n\tlogComment ====== bootToFastboot finished ======\n",
+    "supportedFirmwareVer": [
+        15
+    ],
+    "usb_descriptor": "",
+    "variables": [
+    ]
+}

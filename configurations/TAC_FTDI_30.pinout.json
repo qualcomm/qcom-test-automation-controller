@@ -1,0 +1,359 @@
+{
+    "$schema": "https://qualcomm.github.io/tac/schemas/pinout-1.0.json",
+    "bus": [
+        {
+            "bus": "A",
+            "bus_function": 1,
+            "chip_index": 0
+        },
+        {
+            "bus": "B",
+            "bus_function": 2,
+            "chip_index": 0
+        },
+        {
+            "bus": "C",
+            "bus_function": 2,
+            "chip_index": 0
+        },
+        {
+            "bus": "D",
+            "bus_function": 1,
+            "chip_index": 0
+        }
+    ],
+    "chip_count": 1,
+    "description": "Disable UART to collect BootKPI",
+    "format": "tac-pinout",
+    "name": "Qualcomm AIR 8775",
+    "pins": [
+        {
+            "bus": "A",
+            "chip_index": 0,
+            "command": "",
+            "initial_value": false,
+            "input": false,
+            "inverted": false,
+            "pin_number": "0",
+            "priority": -1
+        },
+        {
+            "bus": "B",
+            "chip_index": 0,
+            "command": "MD_UART",
+            "initial_value": true,
+            "input": false,
+            "inverted": false,
+            "pin_number": "0",
+            "priority": -1
+        },
+        {
+            "bus": "C",
+            "chip_index": 0,
+            "command": "SAIL_UART",
+            "initial_value": true,
+            "input": false,
+            "inverted": false,
+            "pin_number": "0",
+            "priority": -1
+        },
+        {
+            "bus": "D",
+            "chip_index": 0,
+            "command": "volup",
+            "initial_value": false,
+            "input": false,
+            "inverted": false,
+            "pin_number": "0",
+            "priority": -1
+        },
+        {
+            "bus": "A",
+            "chip_index": 0,
+            "command": "",
+            "initial_value": false,
+            "input": false,
+            "inverted": false,
+            "pin_number": "1",
+            "priority": -1
+        },
+        {
+            "bus": "B",
+            "chip_index": 0,
+            "command": "<type a command>",
+            "initial_value": false,
+            "input": false,
+            "inverted": false,
+            "pin_number": "1",
+            "priority": -1
+        },
+        {
+            "bus": "C",
+            "chip_index": 0,
+            "command": "uim1",
+            "initial_value": false,
+            "input": false,
+            "inverted": false,
+            "pin_number": "1",
+            "priority": -1
+        },
+        {
+            "bus": "D",
+            "chip_index": 0,
+            "command": "battery",
+            "initial_value": false,
+            "input": false,
+            "inverted": true,
+            "pin_number": "1",
+            "priority": 2
+        },
+        {
+            "bus": "A",
+            "chip_index": 0,
+            "command": "",
+            "initial_value": false,
+            "input": false,
+            "inverted": false,
+            "pin_number": "2",
+            "priority": -1
+        },
+        {
+            "bus": "B",
+            "chip_index": 0,
+            "command": "<type a command>",
+            "initial_value": false,
+            "input": false,
+            "inverted": false,
+            "pin_number": "2",
+            "priority": -1
+        },
+        {
+            "bus": "C",
+            "chip_index": 0,
+            "command": "headset",
+            "initial_value": false,
+            "input": false,
+            "inverted": false,
+            "pin_number": "2",
+            "priority": -1
+        },
+        {
+            "bus": "D",
+            "chip_index": 0,
+            "command": "voldn",
+            "initial_value": false,
+            "input": false,
+            "inverted": false,
+            "pin_number": "2",
+            "priority": -1
+        },
+        {
+            "bus": "A",
+            "chip_index": 0,
+            "command": "",
+            "initial_value": false,
+            "input": false,
+            "inverted": false,
+            "pin_number": "3",
+            "priority": -1
+        },
+        {
+            "bus": "B",
+            "chip_index": 0,
+            "command": "<type a command>",
+            "initial_value": false,
+            "input": false,
+            "inverted": false,
+            "pin_number": "3",
+            "priority": -1
+        },
+        {
+            "bus": "C",
+            "chip_index": 0,
+            "command": "uim2",
+            "initial_value": false,
+            "input": false,
+            "inverted": false,
+            "pin_number": "3",
+            "priority": -1
+        },
+        {
+            "bus": "D",
+            "chip_index": 0,
+            "command": "pkey",
+            "initial_value": false,
+            "input": false,
+            "inverted": false,
+            "pin_number": "3",
+            "priority": -1
+        },
+        {
+            "bus": "A",
+            "chip_index": 0,
+            "command": "",
+            "initial_value": false,
+            "input": false,
+            "inverted": false,
+            "pin_number": "4",
+            "priority": -1
+        },
+        {
+            "bus": "B",
+            "chip_index": 0,
+            "command": "<type a command>",
+            "initial_value": false,
+            "input": false,
+            "inverted": false,
+            "pin_number": "4",
+            "priority": -1
+        },
+        {
+            "bus": "C",
+            "chip_index": 0,
+            "command": "sdcard",
+            "initial_value": false,
+            "input": false,
+            "inverted": false,
+            "pin_number": "4",
+            "priority": -1
+        },
+        {
+            "bus": "D",
+            "chip_index": 0,
+            "command": "eud",
+            "initial_value": false,
+            "input": false,
+            "inverted": false,
+            "pin_number": "4",
+            "priority": -1
+        },
+        {
+            "bus": "A",
+            "chip_index": 0,
+            "command": "",
+            "initial_value": false,
+            "input": false,
+            "inverted": false,
+            "pin_number": "5",
+            "priority": -1
+        },
+        {
+            "bus": "B",
+            "chip_index": 0,
+            "command": "<type a command>",
+            "initial_value": false,
+            "input": false,
+            "inverted": false,
+            "pin_number": "5",
+            "priority": -1
+        },
+        {
+            "bus": "C",
+            "chip_index": 0,
+            "command": "sedl",
+            "initial_value": false,
+            "input": false,
+            "inverted": false,
+            "pin_number": "5",
+            "priority": -1
+        },
+        {
+            "bus": "D",
+            "chip_index": 0,
+            "command": "pedl",
+            "initial_value": false,
+            "input": false,
+            "inverted": false,
+            "pin_number": "5",
+            "priority": -1
+        },
+        {
+            "bus": "A",
+            "chip_index": 0,
+            "command": "",
+            "initial_value": false,
+            "input": false,
+            "inverted": false,
+            "pin_number": "6",
+            "priority": -1
+        },
+        {
+            "bus": "B",
+            "chip_index": 0,
+            "command": "<type a command>",
+            "initial_value": false,
+            "input": false,
+            "inverted": false,
+            "pin_number": "6",
+            "priority": -1
+        },
+        {
+            "bus": "C",
+            "chip_index": 0,
+            "command": "usb1",
+            "initial_value": false,
+            "input": false,
+            "inverted": false,
+            "pin_number": "6",
+            "priority": 2
+        },
+        {
+            "bus": "D",
+            "chip_index": 0,
+            "command": "<type a command>",
+            "initial_value": true,
+            "input": false,
+            "inverted": false,
+            "pin_number": "6",
+            "priority": 1
+        },
+        {
+            "bus": "A",
+            "chip_index": 0,
+            "command": "",
+            "initial_value": false,
+            "input": false,
+            "inverted": false,
+            "pin_number": "7",
+            "priority": -1
+        },
+        {
+            "bus": "B",
+            "chip_index": 0,
+            "command": "<type a command>",
+            "initial_value": false,
+            "input": false,
+            "inverted": false,
+            "pin_number": "7",
+            "priority": -1
+        },
+        {
+            "bus": "C",
+            "chip_index": 0,
+            "command": "sresn",
+            "initial_value": false,
+            "input": false,
+            "inverted": false,
+            "pin_number": "7",
+            "priority": -1
+        },
+        {
+            "bus": "D",
+            "chip_index": 0,
+            "command": "usb0",
+            "initial_value": false,
+            "input": false,
+            "inverted": true,
+            "pin_number": "7",
+            "priority": 2
+        }
+    ],
+    "platform_id": 30,
+    "platform_type": "FTDI",
+    "reset_enabled": false,
+    "schema_version": "1.0",
+    "script": "def powerOffTheDevice() \r\n\tlogComment ====== powerOffTheDevice sequence start ======\r\n\r\n\tbattery 1\r\n\tusb0 1\r\n\tusb1 1\r\n\r\n\tlogComment ====== powerOffTheDevice sequence finish ======\r\n\r\ndef powerOnTheDevice()\r\n\tlogComment ====== powerOnTheDevice sequence start ======\r\n\r\n\tdelay 500\r\n\tbattery 0\r\n\tdelay 900\r\n\tusb0 0\r\n\tusb1 0\r\n\tdelay 30\r\n\r\n\tlogComment ====== powerOnTheDevice sequence finish ======\r\n\r\ndef powerOff()\r\n\tlogComment ====== powerOff start ======\r\n\r\n\tpowerOffTheDevice\r\n\r\n\tpkey 0\r\n\tvolup 0\r\n\tvoldn 0\r\n\r\n\tpedl 0\r\n\r\n\tlogComment ====== powerOff finish ======\r\n\r\ndef powerOn()\r\n\tlogComment ====== powerOn start ======\r\n\r\n\tpowerOff\r\n\r\n\tpowerOnTheDevice\r\n\r\n\tpkey 1\r\n\tdelay 800\r\n\tpkey 0\r\n\r\n\tlogComment ====== powerOn finish ======\r\n\r\ndef bootToEDL()\r\n\tlogComment ====== bootToEDL start ======\r\n\r\n\tpowerOffTheDevice\r\n\r\n\tpkey 0\r\n\tvolup 0\r\n\tvoldn 0\r\n\r\n\tpedl 1\r\n\r\n\tpowerOnTheDevice\r\n\r\n\tpkey 1\r\n\tdelay 1300\r\n\tpkey 0\r\n\r\n\tpedl 0\r\n\r\n\tlogComment ====== bootToEDL finish ======\r\n\r\ndef bootToSecondaryEDL()\r\n\tlogComment ====== bootToSecondaryEDL start ======\r\n\r\n\tpowerOffTheDevice\r\n\r\n\tpkey 0\r\n\tvolup 0\r\n\tvoldn 0\r\n\r\n\tsedl 1\r\n\r\n\tpowerOnTheDevice\r\n\r\n\tpkey 1\r\n\tdelay 800\r\n\tpkey 0\r\n\r\n\tdelay 1300\r\n\r\n\tsedl 0\r\n\r\n\tlogComment ====== bootToSecondaryEDL finish ======\r\n\r\ndef bootToUEFI()\r\n\tlogComment ====== bootToUEFIMenu start ======\r\n\r\n\tpowerOffTheDevice\r\n\r\n\t// Put buttons in a set state\r\n\tpkey 0\r\n\tvolup 1\r\n\tvoldn 0\r\n\r\n\tpedl 0\r\n\r\n\tpowerOnTheDevice\r\n\r\n\tpkey 1\r\n\tdelay 8000\r\n\tpkey 0\r\n\tvolup 0\r\n\tdelay 12\r\n\tpkey 1\r\n\tvolup 1\r\n\r\n\tpkey 0\r\n\tvolup 0\r\n\r\n\tlogComment ====== bootToUEFIMenu finish ======\r\n\r\ndef bootToFastboot()\r\n\tlogComment ====== bootToFastboot start ======\r\n\r\n\tpowerOffTheDevice\r\n\r\n\tpkey 0\r\n\tvolup 0\r\n\tvoldn 1\r\n\r\n\tpedl 0\r\n\r\n\tpowerOnTheDevice\r\n\r\n\tpkey 1\r\n\tdelay 800\r\n\tpkey 0\r\n\r\n\tdelay 8000\r\n\tvoldn 0\r\n\tdelay 30\r\n\tvoldn 1\r\n\r\n\tvoldn 0\r\n\r\n\tlogComment ====== bootToFastboot finished ======\r\n",
+    "usb_descriptor": "ALPACA-LITE AIR 8775",
+    "variables": [
+    ]
+}

@@ -1,0 +1,253 @@
+{
+    "$schema": "https://qualcomm.github.io/tac/schemas/pinout-1.0.json",
+    "description": "IQ10 RRD V1",
+    "format": "tac-pinout",
+    "name": "IQ10 RRD V1",
+    "pins": [
+        {
+            "command": "kratos",
+            "inverted": false,
+            "pin_number": 110
+        },
+        {
+            "command": "forcemdpshold",
+            "inverted": false,
+            "pin_number": 120
+        },
+        {
+            "command": "iic7",
+            "inverted": false,
+            "pin_number": 320
+        },
+        {
+            "command": "pcie2",
+            "inverted": false,
+            "pin_number": 101
+        },
+        {
+            "command": "iic4",
+            "inverted": false,
+            "pin_number": 111
+        },
+        {
+            "command": "eud",
+            "inverted": false,
+            "pin_number": 311
+        },
+        {
+            "command": "forcesspshold",
+            "inverted": false,
+            "pin_number": 121
+        },
+        {
+            "command": "iic13",
+            "inverted": false,
+            "pin_number": 221
+        },
+        {
+            "command": "fastboot",
+            "inverted": false,
+            "pin_number": 321
+        },
+        {
+            "command": "pcie3",
+            "inverted": false,
+            "pin_number": 102
+        },
+        {
+            "command": "usb1",
+            "inverted": false,
+            "pin_number": 312
+        },
+        {
+            "command": "iic10",
+            "inverted": false,
+            "pin_number": 103
+        },
+        {
+            "command": "",
+            "inverted": false,
+            "pin_number": 123
+        },
+        {
+            "command": "",
+            "inverted": false,
+            "pin_number": 204
+        },
+        {
+            "command": "qccbld",
+            "inverted": false,
+            "pin_number": 114
+        },
+        {
+            "command": "inputpoff",
+            "inverted": false,
+            "pin_number": 224
+        },
+        {
+            "command": "usb2",
+            "inverted": false,
+            "pin_number": 205
+        },
+        {
+            "command": "bbbld",
+            "inverted": false,
+            "pin_number": 115
+        },
+        {
+            "command": "mode1",
+            "inverted": false,
+            "pin_number": 215
+        },
+        {
+            "command": "inputpms",
+            "inverted": false,
+            "pin_number": 225
+        },
+        {
+            "command": "inputpwr",
+            "inverted": false,
+            "pin_number": 206
+        },
+        {
+            "command": "sfastboot",
+            "inverted": false,
+            "pin_number": 116
+        },
+        {
+            "command": "pedl",
+            "inverted": false,
+            "pin_number": 216
+        },
+        {
+            "command": "bbblden",
+            "inverted": false,
+            "pin_number": 226
+        },
+        {
+            "command": "mode0",
+            "inverted": false,
+            "pin_number": 207
+        },
+        {
+            "command": "iic5",
+            "inverted": false,
+            "pin_number": 117
+        },
+        {
+            "command": "mode0",
+            "inverted": false,
+            "pin_number": 217
+        },
+        {
+            "command": "qccblden",
+            "inverted": false,
+            "pin_number": 227
+        },
+        {
+            "command": "inputvr4p5",
+            "inverted": false,
+            "pin_number": 118
+        },
+        {
+            "command": "usb0",
+            "inverted": false,
+            "pin_number": 128
+        },
+        {
+            "command": "mode2",
+            "inverted": false,
+            "pin_number": 228
+        },
+        {
+            "command": "inputvr3p3",
+            "inverted": false,
+            "pin_number": 119
+        },
+        {
+            "command": "sedl",
+            "inverted": false,
+            "pin_number": 219
+        },
+        {
+            "command": "pgood",
+            "inverted": false,
+            "pin_number": 129
+        },
+        {
+            "command": "sresn",
+            "inverted": false,
+            "pin_number": 10
+        },
+        {
+            "command": "pkey",
+            "inverted": false,
+            "pin_number": 20
+        },
+        {
+            "command": "pmspwr",
+            "inverted": false,
+            "pin_number": 11
+        },
+        {
+            "command": "pcie0",
+            "inverted": false,
+            "pin_number": 21
+        },
+        {
+            "command": "uefi",
+            "inverted": false,
+            "pin_number": 16
+        },
+        {
+            "command": "pcie1",
+            "inverted": false,
+            "pin_number": 27
+        },
+        {
+            "command": "pshold",
+            "inverted": false,
+            "pin_number": 0
+        },
+        {
+            "command": "iic2",
+            "inverted": false,
+            "pin_number": 3
+        },
+        {
+            "command": "battery",
+            "inverted": false,
+            "pin_number": 4
+        },
+        {
+            "command": "kkpwr",
+            "inverted": false,
+            "pin_number": 6
+        },
+        {
+            "command": "pshold",
+            "inverted": false,
+            "pin_number": 7
+        }
+    ],
+    "platform_id": 85,
+    "platform_type": "PIC32CXAuto",
+    "reset_enabled": false,
+    "schema_version": "1.0",
+    "script": "def powerOff()\r\n\tlogComment ====== powerOff start ======\r\n\r\n\r\n\tbattery 1\r\n\r\n\r\n\tlogComment ====== powerOff finish ======\r\n\r\ndef powerOn()\r\n\tlogComment ====== powerOn start ======\r\n\r\n\r\n\tbattery 1\r\n\tdelay 900\r\n\tbattery 0\r\n\r\n\tlogComment ====== powerOn finish ======\r\n\r\ndef bootToEDL()\r\n\tlogComment ====== bootToEDL start ======\r\n\r\n\tsedl 0\r\n\tuefi 0\r\n\tbattery 1\r\n\tpedl 1\r\n\tdelay 900\r\n\tbattery 0\r\n\tdelay $edl\r\n\tpedl 0\r\n\r\n\tlogComment ====== bootToEDL finish ======\r\n\r\ndef bootToSecondaryEDL()\r\n\tlogComment ====== bootToSecondaryEDL start ======\r\n\r\n\tpedl 0\r\n\tuefi 0\r\n\tbattery 1\r\n\tsedl 1\r\n\tdelay 900\r\n\tbattery 0\r\n\tdelay $edl\r\n\tsedl 0\r\n\r\n\tlogComment ====== bootToSecondaryEDL finish ======\r\n\r\ndef bootToUEFI()\r\n\tlogComment ====== bootToUEFIMenu start ======\r\n\r\n\tkkpwr 1\r\n\tuefi 1\r\n\tbattery 1\r\n\tdelay 900\r\n\tbattery 0\r\n\tdelay $uefi\r\n\tuefi 0\r\n\tkkpwr 0\r\n\r\ndef bootToFastboot()\r\n\tlogComment ====== bootToFastboot start ======\r\n\r\n\tpedl 0\r\n\tsedl 0\r\n\tuefi 0\r\n\tsfastboot 0\r\n\tbattery 1\r\n\tfastboot 1\r\n\tdelay 900\r\n\tbattery 0\r\n\tdelay $fastboot\r\n\tfastboot 0\r\n\r\n\tlogComment ====== bootToFastboot finished ======\r\n\r\ndef bootToSecondaryFastboot()\r\n\tlogComment ====== bootToSecondaryFastboot start ======\r\n\r\n\tpedl 0\r\n\tsedl 0\r\n\tuefi 0\r\n\tbattery 1\r\n\tsfastboot 1\r\n\tfastboot 1\r\n\tdelay 900\r\n\tbattery 0\r\n\tdelay $fastboot\r\n\tsfastboot 0\r\n\tfastboot 0\r\n\r\n\tlogComment ====== bootToSecondaryFastboot finished ======\r\n",
+    "usb_descriptor": "IQ10rrd",
+    "variables": [
+        {
+            "default_value": "2500",
+            "name": "edl"
+        },
+        {
+            "default_value": "12000",
+            "name": "fastboot"
+        },
+        {
+            "default_value": "13000",
+            "name": "uefi"
+        }
+    ]
+}
