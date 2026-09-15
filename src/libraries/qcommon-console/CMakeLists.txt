@@ -9,10 +9,6 @@ else()
     set(LIBRARY_NAME QCommonConsole)
 endif()
 
-qt_add_resources(QCOMMONCONSOLE_RESOURCES
-    resources/QCCResource.qrc
-)
-
 qt_add_library(${LIBRARY_NAME} STATIC
     AlpacaDefines.cpp AlpacaDefines.h
     AlpacaDevice.cpp AlpacaDevice.h
@@ -103,8 +99,6 @@ qt_add_library(${LIBRARY_NAME} STATIC
 	private/TACSTM32DriveThread.h private/TACSTM32DriveThread.cpp
 	private/TACSTM32Protocol.h private/TACSTM32Protocol.cpp
     version.h
-
-    ${QCOMMONCONSOLE_RESOURCES}
 )
 
 set_target_properties(${LIBRARY_NAME} PROPERTIES
