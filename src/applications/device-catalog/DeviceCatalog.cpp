@@ -31,6 +31,8 @@ const int kPlatformID{2};
 const QByteArray kv16FirmwareNotice(QByteArrayLiteral("You've chosen to program the v16 firmware. This firmware may contain updates not applicable to all teams. Uncheck unless you know what you're doing"));
 const QByteArray kv17FirmwareNotice(QByteArrayLiteral("You've chosen to program the v17 firmware. This firmware may contain updates not applicable to all teams. Uncheck unless you know what you're doing"));
 const QByteArray kDefaultNotice(QByteArrayLiteral("This space is used to share notification to user"));
+const QStringList kVariants{"LP030", "LP038"};
+
 
 DeviceCatalog::DeviceCatalog(QWidget* parent) :QDialog(parent)
 {
@@ -345,15 +347,6 @@ void DeviceCatalog::on__programBtn_clicked()
 
 void DeviceCatalog::on__firmwareUpdateBtn_clicked()
 {
-	// The connected debug board may use either the LP030 or LP038 PSOC
-	// variant, and this app has no reliable way to detect which one is
-	// physically connected. FWUpdate itself reads the target silicon ID
-	// out of the .cyacd header and refuses to flash a mismatched image
-	// (CyBtldr_StartBootloadOperation returns CYRET_ERR_DEVICE), so it is
-	// safe to try each known variant file for the selected firmware
-	// version in turn without risking flashing the wrong image.
-	static const QStringList kVariants{"LP030", "LP038"};
-
 	for (const auto& variant : kVariants)
 	{
 		QString firmwarePath = QString(_firmwareDir) + QDir::separator() + variant + QDir::separator() + "MicroEpm.cyacd";
@@ -385,7 +378,7 @@ void DeviceCatalog::on__firmwareUpdateBtn_clicked()
 
 	QMessageBox::warning(this, "Firmware Update Failed",
 		"Unable to program the connected device with the selected firmware version. "
-		"Confirm a supported debug board is connected and try again.");
+		"Confirm whether a PSOC debug board is connected and try again.");
 }
 
 void DeviceCatalog::on__docsBtn_clicked()
@@ -425,6 +418,16 @@ void DeviceCatalog::on__firmwareSelect_currentTextChanged(const QString &firmwar
 			break;
 		case 17:
 			_firmwareDir = applicationDataPath().toLatin1() + QDir::separator().toLatin1() + "firmware/1.x.17.0";
+			_infoLabelText->setText(kv17FirmwareNotice);
+			_infoGroupBox->show();
+			break;
+		case 18:
+			_firmwareDir = applicationDataPath().toLatin1() + QDir::separator().toLatin1() + "firmware/1.x.18.0";
+			_infoLabelText->setText(kv17FirmwareNotice);
+			_infoGroupBox->show();
+			break;
+		case 19:
+			_firmwareDir = applicationDataPath().toLatin1() + QDir::separator().toLatin1() + "firmware/1.x.19.0";
 			_infoLabelText->setText(kv17FirmwareNotice);
 			_infoGroupBox->show();
 		}
