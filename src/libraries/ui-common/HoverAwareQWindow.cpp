@@ -16,15 +16,13 @@ const quint32 kNoticeTime(3000);
 const quint16 kMaxNotifications(4);
 const quint16 kMaxNotificationHistory(100);
 const QSize kLabelSize(kNotificationLabelWidth, kNotificationLabelHeight);
-const int kNotificationListWidth(362);
 
 
-HoverAwareQWindow::HoverAwareQWindow(QWidget* parent, Qt::WindowFlags flags):
-	QMainWindow(parent, flags),
+HoverAwareQWindow::HoverAwareQWindow(QWidget* parent):
+	QMainWindow(parent),
 	_ui(new Ui::HoverAwareQWindow)
 {
 	_ui->setupUi(this);
-	setAttribute(Qt::WA_TranslucentBackground);
 
 	QGraphicsDropShadowEffect* shadow = new QGraphicsDropShadowEffect(_ui->_centralWgt);
 	shadow->setBlurRadius(24);
@@ -39,6 +37,13 @@ HoverAwareQWindow::HoverAwareQWindow(QWidget* parent, Qt::WindowFlags flags):
 	_timer.setTimerType(Qt::VeryCoarseTimer);
 	_timer.setInterval(kNoticeTime);
 	_timer.setSingleShot(true);
+
+	_winAnim = new QPropertyAnimation(this, "windowOpacity", this);
+	_winAnim->setDuration(kNoticeTime);
+	_winAnim->setStartValue(1.0);
+	_winAnim->setEndValue(0.0);
+	_winAnim->setEasingCurve(QEasingCurve::OutBack);
+	connect(_winAnim, &QPropertyAnimation::finished, this, &HoverAwareQWindow::fadeOutAnimComplete);
 }
 
 HoverAwareQWindow::~HoverAwareQWindow()
@@ -74,17 +79,12 @@ void HoverAwareQWindow::setWindowLocation(const QSize& windowSize, const QPoint&
 	int mainWindowXPos = windowSize.width() + windowLoc.x();
 	int mainWindowYPos = windowSize.height() + windowLoc.y();
 
-	if (_winAnim != Q_NULLPTR)
-	{
-		_winAnim->stop();
-		delete _winAnim;
-		_winAnim = Q_NULLPTR;
-	}
+	_winAnim->stop();
 	setWindowOpacity(1.0);
 
 	buildListView();
 
-	_ui->_notificationListContainer->setFixedSize(kNotificationListWidth, visibleListHeight());
+	_ui->_notificationListContainer->setFixedHeight(visibleListHeight());
 
 	int x = mainWindowXPos - 380;
 	int y = mainWindowYPos - visibleListHeight() - 60;
@@ -105,22 +105,8 @@ void HoverAwareQWindow::onTimerTimeout()
 
 	if (geometry().contains(pos) == false)
 	{
-		if (_winAnim == Q_NULLPTR)
-		{
-			_winAnim = new QPropertyAnimation(this, "windowOpacity");
-
-			connect(_winAnim, &QPropertyAnimation::finished, this, &HoverAwareQWindow::fadeOutAnimComplete);
-
-			_winAnim->setDuration(kNoticeTime);
-			_winAnim->setStartValue(1.0);
-			_winAnim->setEndValue(0.0);
-
-			_winAnim->setEasingCurve(QEasingCurve::OutBack);
-			_winAnim->start(QPropertyAnimation::DeleteWhenStopped);
-		}
-
-		if (_winAnim != Q_NULLPTR)
-			_winAnim->start(QPropertyAnimation::DeleteWhenStopped);
+		_winAnim->stop();
+		_winAnim->start();
 	}
 	else
 		setupNotificationTimer();
@@ -161,7 +147,7 @@ void HoverAwareQWindow::removeNotification(quint64 id)
 	clearFrame();
 	buildListView();
 
-	_ui->_notificationListContainer->setFixedSize(kNotificationListWidth, visibleListHeight());
+	_ui->_notificationListContainer->setFixedHeight(visibleListHeight());
 	resize(kNotificationLabelWidth, visibleListHeight() + 33);
 
 	if (_notifications.isEmpty())
@@ -180,9 +166,6 @@ void HoverAwareQWindow::fadeOutAnimComplete()
 	hide();
 	clearFrame();
 	setWindowOpacity(1.0);
-
-	delete _winAnim;
-	_winAnim = Q_NULLPTR;
 }
 
 void HoverAwareQWindow::setupNotificationTimer()

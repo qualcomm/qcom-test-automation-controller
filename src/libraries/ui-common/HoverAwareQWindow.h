@@ -18,7 +18,7 @@ class HoverAwareQWindow : public QMainWindow
 {
 	Q_OBJECT
 public:
-	HoverAwareQWindow(QWidget *parent = Q_NULLPTR, Qt::WindowFlags flags = Qt::FramelessWindowHint);
+	HoverAwareQWindow(QWidget *parent = Q_NULLPTR);
 	~HoverAwareQWindow();
 
 	void insertNotification(const QString& message, const NotificationLevel notificationLevel = eInfoNotification);

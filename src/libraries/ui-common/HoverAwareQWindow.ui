@@ -16,10 +16,10 @@
   <property name="windowTitle">
    <string>Notification Window</string>
   </property>
-  <property name="autoFillBackground">
-   <bool>false</bool>
-  </property>
   <widget class="QWidget" name="_centralWgt">
+   <property name="autoFillBackground">
+    <bool>true</bool>
+   </property>
    <layout class="QVBoxLayout" name="verticalLayout">
     <property name="spacing">
      <number>0</number>
@@ -88,6 +88,18 @@
     </item>
     <item>
      <widget class="QListWidget" name="_notificationListContainer">
+      <property name="minimumSize">
+       <size>
+        <width>362</width>
+        <height>0</height>
+       </size>
+      </property>
+      <property name="maximumSize">
+       <size>
+        <width>362</width>
+        <height>16777215</height>
+       </size>
+      </property>
       <property name="contextMenuPolicy">
        <enum>Qt::CustomContextMenu</enum>
       </property>
