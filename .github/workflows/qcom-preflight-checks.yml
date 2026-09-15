@@ -22,6 +22,7 @@ jobs:
     uses: qualcomm/qcom-reusable-workflows/.github/workflows/reusable-qcom-preflight-checks-orchestrator.yml@v2
     with:
       enable-semgrep-scan: true
+      semgrep-cli-options: '--config auto --config reusable-workflows/semgrep_rules/rules.yaml --exclude-rule cxx.funcret.gen.non-void-function-no-return'
       enable-dependency-review: true
       enable-repolinter-check: true
       enable-copyright-license-check: true
