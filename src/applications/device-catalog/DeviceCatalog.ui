@@ -448,6 +448,16 @@ QPushButton:pressed {
                   <string>17</string>
                  </property>
                 </item>
+                <item>
+                 <property name="text">
+                  <string>18</string>
+                 </property>
+                </item>
+                <item>
+                 <property name="text">
+                  <string>19</string>
+                 </property>
+                </item>
                </widget>
               </item>
              </layout>
