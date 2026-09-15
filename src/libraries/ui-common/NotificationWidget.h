@@ -44,11 +44,13 @@ private slots:
 
 private:
 	void makeNotificationLabel(const QString &message, const NotificationLevel notificationLevel);
+	void updateBellIcon();
 
 	Ui::NotificationWidgetClass*            _ui{Q_NULLPTR};
 	HoverAwareQWindow*                      _notificationWindow{Q_NULLPTR};
 	QTimer									_timer;
-	bool                                    _silent;
+	bool                                    _silent{false};
+	bool                                    _hasUnread{false};
 };
 
 #endif // NOTIFICATIONWIDGET_H

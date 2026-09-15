@@ -57,8 +57,32 @@ jobs:
       shell: pwsh
       run: curl --ssl-no-revoke "https://web.archive.org/web/20250821211500/https://ftdichip.com/wp-content/uploads/2025/03/CDM-v2.12.36.20-for-ARM64-WHQL-Certified.zip" -o "third-party\CDM-v2.12.36.20-for-ARM64-WHQL-Certified.zip"
 
+  build-docs:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v6
+
+    - name: Set up Python
+      uses: actions/setup-python@v6
+      with:
+        python-version: '3.x'
+
+    - name: Install doc build dependencies
+      run: pip install -r docs/tools/requirements.txt
+
+    - name: Build HTML documentation
+      working-directory: docs/tools
+      run: python generate-docs.py
+
+    - name: Upload docs artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: qtac-docs-html
+        path: docs/tools/_build/html
+        if-no-files-found: error
+
   build-linux:
-    needs: fetch-ftdi-linux
+    needs: [fetch-ftdi-linux, build-docs]
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
@@ -110,6 +134,17 @@ jobs:
     - name: Install patchelf
       run: sudo apt-get install -y patchelf
 
+    - name: Download built docs artifact
+      uses: actions/download-artifact@v4
+      with:
+        name: qtac-docs-html
+        path: docs-html
+
+    - name: Replace docs source with built HTML
+      run: |
+        rm -rf docs
+        mv docs-html docs
+
     - name: Package QTAC
       run: |
         chmod +x packaging/linux/package_QTAC.sh
@@ -123,7 +158,7 @@ jobs:
         if-no-files-found: error
 
   build-windows:
-    needs: fetch-ftdi-windows
+    needs: [fetch-ftdi-windows, build-docs]
     runs-on: windows-2022
     strategy:
       fail-fast: false
@@ -173,6 +208,18 @@ jobs:
         & "__Builds\x64\Release\bin\UpdateDeviceList.exe" "dir=$configRoot"
         Copy-Item (Join-Path $configRoot "devicelist.json") "configurations\devicelist.json" -Force
 
+    - name: Download built docs artifact
+      uses: actions/download-artifact@v4
+      with:
+        name: qtac-docs-html
+        path: docs-html
+
+    - name: Replace docs source with built HTML
+      shell: pwsh
+      run: |
+        Remove-Item -Recurse -Force docs
+        Move-Item docs-html docs
+
     - name: Build installer (QTAC-windows-x64.exe)
       shell: pwsh
       run: .\packaging\windows\build-installer.ps1
@@ -185,7 +232,7 @@ jobs:
         if-no-files-found: error
 
   build-windows-arm64:
-    needs: fetch-ftdi-windows-arm64
+    needs: [fetch-ftdi-windows-arm64, build-docs]
     runs-on: windows-11-arm
     strategy:
       fail-fast: false
@@ -230,6 +277,18 @@ jobs:
         Copy-Item "configurations\*.tcnf" $configRoot -Force
         & "__Builds\ARM64\Release\bin\UpdateDeviceList.exe" "dir=$configRoot"
         Copy-Item (Join-Path $configRoot "devicelist.json") "configurations\devicelist.json" -Force
+
+    - name: Download built docs artifact
+      uses: actions/download-artifact@v4
+      with:
+        name: qtac-docs-html
+        path: docs-html
+
+    - name: Replace docs source with built HTML
+      shell: pwsh
+      run: |
+        Remove-Item -Recurse -Force docs
+        Move-Item docs-html docs
 
     - name: Build installer (QTAC-windows-arm64.exe)
       shell: pwsh

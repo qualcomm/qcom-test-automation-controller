@@ -14,7 +14,7 @@ After you have installed the QTAC software suite from the QPM, please navigate
 to the below path depending on the OS, you've installed.
 
 - Linux: `/opt/qcom/QTAC/python/`
-- Windows: `C:\ProgramData\Qualcomm\Alpaca\Python\XPlatform`
+- Windows: `C:\ProgramData\Qualcomm\QTAC\Python\XPlatform`
 
 Execute the `setup.sh` if the OS is Linux and `setup.bat` if the OS is Windows.
 
