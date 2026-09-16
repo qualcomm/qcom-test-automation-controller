@@ -38,16 +38,18 @@ QString applicationDataPath()
 {
 	QString result = "../../../../configurations/";
 
-	if (QDir(result).exists() == false)
-		{
-			#ifdef Q_OS_WIN
-				result = "C:/ProgramData/Qualcomm/" + kAppName + "/configurations/";
-			#endif
+	QString deviceListJsonPath = result.append("devicelist.json");
+	bool isdeviceListJsonPathPresent = QFile(deviceListJsonPath).exists();
+	if (isdeviceListJsonPathPresent == false)
+	{
+		#ifdef Q_OS_WIN
+			result = "C:/ProgramData/Qualcomm/" + kAppName + "/configurations/";
+		#endif
 
-			#ifdef Q_OS_LINUX
-				result = "/var/lib/qcom/data/" + kAppName + "/configurations/";
-			#endif
-		}
+		#ifdef Q_OS_LINUX
+			result = "/var/lib/qcom/data/" + kAppName + "/configurations/";
+		#endif
+	}
 
 	return result;
 }

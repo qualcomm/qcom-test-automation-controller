@@ -5,7 +5,7 @@
 
 // major.minor.patch
 
-#define QTAC_VERSION			"6.8.0"
+#define QTAC_VERSION			"6.8.2"
 #define TAC_CONFIG_VERSION		"4.0.0"
 
 #define QCOMMONCONSOLE_VERSION  "4.0.0"
