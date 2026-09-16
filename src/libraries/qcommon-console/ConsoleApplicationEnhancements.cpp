@@ -38,7 +38,7 @@ QString applicationDataPath()
 {
 	QString result = "../../../../configurations/";
 
-	QString deviceListJsonPath = result.append("devicelist.json");
+	QString deviceListJsonPath = result + "devicelist.json";
 	bool isdeviceListJsonPathPresent = QFile(deviceListJsonPath).exists();
 	if (isdeviceListJsonPathPresent == false)
 	{
