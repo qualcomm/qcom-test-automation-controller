@@ -6,6 +6,7 @@
 # 	Don't modify this file.  If you do, you run the risk of missing out on bug fixes and product updates
 
 import logging
+import os
 import platform
 import struct
 import time
@@ -22,6 +23,30 @@ _LIBS = {
     ("win32",  "ARM64"): Path("__Builds/ARM64/Release/bin/TACDev.dll"),
     ("linux",  "x86_64"): Path("__Builds/Linux/Release/lib/libTACDev.so"),
 }
+
+_INSTALLED_LIB_NAME = {
+    "win32": "TACDev.dll",
+    "linux": "libTACDev.so",
+}
+
+
+def _find_installed_lib(os_key: str) -> Path:
+    """
+    Search the directories on PATH for TACDev's shared library. Any packaged
+    distribution that bundles TAC (e.g. Alpaca, QTAC standalone) adds its own
+    install directory to PATH, so this works generically across distributions
+    without hardcoding any particular product's install location.
+    """
+    libName = _INSTALLED_LIB_NAME[os_key]
+
+    for directory in os.environ.get("PATH", "").split(os.pathsep):
+        if not directory:
+            continue
+        candidate = Path(directory) / libName
+        if candidate.is_file():
+            return candidate.resolve()
+
+    return None
 
 
 def _find_lib() -> Path:
@@ -43,6 +68,9 @@ def _find_lib() -> Path:
         )
         exit(1)
 
+    # 1. Dev-tree layout: walk up from the current working directory looking
+    #    for a build output folder (works when running from within a repo
+    #    checkout that has already been built).
     candidate = Path.cwd()
     for _ in range(8):
         lib = candidate / rel
@@ -50,10 +78,20 @@ def _find_lib() -> Path:
             return lib.resolve()
         candidate = candidate.parent
 
+    # 2. Installed-package layout: this script itself may be run from a
+    #    completely unrelated location (e.g. a plain venv with no dev-tree
+    #    checkout nearby at all), so also search PATH for the library
+    #    directly. This is the case that matters for an end user who just
+    #    installed a packaged distribution and wants to `import TACDev`.
+    installedLib = _find_installed_lib(os_key)
+    if installedLib is not None:
+        return installedLib
+
     logger.error(
         f"TACDev library not found.\n"
         f"  Expected: {Path.cwd().resolve() / rel}\n"
-        "  Build the project first using build.bat / build.sh."
+        "  Build the project first using build.bat / build.sh, or ensure the\n"
+        "  directory containing TACDev.dll/libTACDev.so is on PATH."
     )
     exit(1)
 
