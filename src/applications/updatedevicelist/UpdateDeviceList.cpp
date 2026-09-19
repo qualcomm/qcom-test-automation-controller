@@ -82,14 +82,20 @@ void UpdateDeviceList::save(const QString &filePath)
 		{
 			USBDescriptor usbDescriptor;
 
-			const QString kUSBDescriptorPath = tacConfigRoot(false);
-
 			usbDescriptor._platformID = platformConfiguration->getPlatformId();
 			usbDescriptor._debugBoardType = platformConfiguration->getPlatform();
 			usbDescriptor._name = platformConfiguration->name();
 			usbDescriptor._description = platformConfiguration->description();
 			usbDescriptor._revision = platformConfiguration->fileVersion();
-			usbDescriptor._configurationFilePath = QDir::cleanPath(QString(kUSBDescriptorPath + entryInfo.fileName())).toLatin1();
+			// Store a bare filename rather than a resolved absolute path. This tool
+			// may run in an environment whose config root has nothing to do with
+			// where an end-user's installed package will look for its configuration
+			// files (e.g. a CI build runner's checkout path, or a different
+			// developer's local repo checkout). Writing a bare filename here defers
+			// path resolution to runtime, where
+			// PlatformConfiguration::getConfiguration() resolves it against the
+			// correct config root on whatever machine actually runs the app.
+			usbDescriptor._configurationFilePath = entryInfo.fileName().toLatin1();
 			usbDescriptor._usbDescriptor = platformConfiguration->getUSBDescriptor();
 
 			if (usbDescriptor._debugBoardType == eFTDI)
