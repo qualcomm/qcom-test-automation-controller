@@ -1,0 +1,79 @@
+# Copyright (c) Qualcomm Technologies, Inc. and/or its subsidiaries.
+# SPDX-License-Identifier: BSD-3-Clause
+#
+# QTAC Static Analysis PR Check (self-contained)
+name: QTAC Static Analysis
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+    branches:
+      - main
+      - master
+      - develop
+      - 'feature/**'
+      - 'release/**'
+      - 'hotfix/**'
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  static-analysis:
+    name: Static Analysis (${{ matrix.os_name }})
+    runs-on: ${{ matrix.os }}
+    if: ${{ !contains(github.event.pull_request.body, '[skip-review]') }}
+
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-latest
+            os_name: linux
+          - os: windows-latest
+            os_name: windows
+
+    permissions:
+      pull-requests: write
+      contents: read
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.USER_TOKEN || secrets.GITHUB_TOKEN }}
+          fetch-depth: 0   # need base + head to diff changed lines
+
+      # ── Tooling ───────────────────────────────────────────────────────────────
+      - name: Install Python Tools
+        run: pip install flake8 bandit PyYAML
+
+      - name: Install cppcheck & clang-format (Linux)
+        if: matrix.os == 'ubuntu-latest'
+        run: sudo apt-get update -qq && sudo apt-get install -y cppcheck clang-format
+
+      - name: Install cppcheck & LLVM (Windows)
+        if: matrix.os == 'windows-latest'
+        run: |
+          choco install cppcheck --no-progress -y
+          choco install llvm --no-progress -y
+
+      # ── Run the self-contained checker ──────────────────────────────────────
+      - name: Run Static Analysis
+        env:
+          GH_TOKEN: ${{ secrets.USER_TOKEN || secrets.GITHUB_TOKEN }}
+          REPO_FULL_NAME: ${{ github.repository }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+          RUNNER_OS: ${{ matrix.os_name }}
+        run: python .github/scripts/static_checks.py
+
+      - name: Upload Results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: qtac-static-analysis-${{ matrix.os_name }}-${{ github.run_number }}
+          path: review_results_*.json
+          if-no-files-found: ignore
