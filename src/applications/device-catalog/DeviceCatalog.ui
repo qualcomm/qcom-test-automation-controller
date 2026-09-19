@@ -176,7 +176,7 @@
 }</string>
                </property>
                <property name="text">
-                <string>&lt;div style='font-family: Segoe UI, Arial, sans-serif; font-size: 13px; color: #1f1f1f;'&gt;&lt;strong&gt;Quick Start:&lt;/strong&gt; &lt;a href='qrc:/resources/DeviceCatalog_UpdateFW.mp4' style='color: #0066cc; text-decoration: none;'&gt;Update Firmware&lt;/a&gt; | &lt;a href='qrc:/resources/DeviceCatalog_ProgDevice.mp4' style='color: #0066cc; text-decoration: none;'&gt;Program Device&lt;/a&gt; - Click to watch tutorials!&lt;/div&gt;</string>
+                <string>&lt;div style='font-family: Segoe UI, Arial, sans-serif; font-size: 13px; color: #1f1f1f;'&gt;&lt;strong&gt;Quick Start:&lt;/strong&gt; &lt;a href='qrc:/DeviceCatalog_UpdateFW.mp4' style='color: #0066cc; text-decoration: none;'&gt;Update Firmware&lt;/a&gt; | &lt;a href='qrc:/DeviceCatalog_ProgDevice.mp4' style='color: #0066cc; text-decoration: none;'&gt;Program Device&lt;/a&gt; - Click to watch tutorials!&lt;/div&gt;</string>
                </property>
                <property name="wordWrap">
                 <bool>true</bool>
