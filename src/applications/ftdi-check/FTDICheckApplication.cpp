@@ -25,11 +25,11 @@
 // Windows driver paths
 const QString kWindowsDriverDir(QStringLiteral("C:\\Windows\\INF\\"));
 
-const QString kInstallerX64FTDIBusDriverPath(QStringLiteral("C:\\ProgramData\\Qualcomm\\QTAC\\FTDI\\x64\\ftdibus.inf"));
-const QString kInstallerX64FTDIPortDriverPath(QStringLiteral("C:\\ProgramData\\Qualcomm\\QTAC\\FTDI\\x64\\ftdiport.inf"));
+const QString kInstallerX64FTDIBusDriverPath(QStringLiteral("C:\\ProgramData\\Qualcomm\\Shared\\FTDI\\x64\\ftdibus.inf"));
+const QString kInstallerX64FTDIPortDriverPath(QStringLiteral("C:\\ProgramData\\Qualcomm\\Shared\\FTDI\\x64\\ftdiport.inf"));
 
-const QString kInstallerARMFTDIBusDriverPath(QStringLiteral("C:\\ProgramData\\Qualcomm\\QTAC\\FTDI\\arm\\ARM64\\Release\\ftdibus.inf"));
-const QString kInstallerARMFTDIPortDriverPath(QStringLiteral("C:\\ProgramData\\Qualcomm\\QTAC\\FTDI\\arm\\ARM64\\Release\\ftdiport.inf"));
+const QString kInstallerARMFTDIBusDriverPath(QStringLiteral("C:\\ProgramData\\Qualcomm\\Shared\\FTDI\\arm\\ARM64\\Release\\ftdibus.inf"));
+const QString kInstallerARMFTDIPortDriverPath(QStringLiteral("C:\\ProgramData\\Qualcomm\\Shared\\FTDI\\arm\\ARM64\\Release\\ftdiport.inf"));
 
 const QString kWindowsFTDIBusDriverPath(QStringLiteral("C:\\Windows\\System32\\drivers\\ftdibus.sys"));
 const QString kWindowsFTDIPortDriverPath(QStringLiteral("C:\\Windows\\System32\\drivers\\ftser2k.sys"));
@@ -354,7 +354,12 @@ bool FTDICheckApplication::checkLibraryVersion(const QString& filePath)
 bool FTDICheckApplication::isExpectedProductVersion(const QString& fileName, const QString& version)
 {
 	bool result{false};
-	auto fileData = _expectedProductVersionMap.find(fileName);
+	// Windows filesystem lookups (e.g. GetModuleFileNameA) return whatever case
+	// the file happens to be stored on disk (e.g. "FTD2XX.dll"), which may not
+	// match the lowercase keys in _expectedProductVersionMap. Compare
+	// case-insensitively so a correctly-installed driver isn't misreported as
+	// an unexpected version purely due to filename casing.
+	auto fileData = _expectedProductVersionMap.find(fileName.toLower());
 	if (fileData != _expectedProductVersionMap.end())
 	{
 		if (fileData.value() == version)
