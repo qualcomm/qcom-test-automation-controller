@@ -1496,6 +1496,15 @@ PlatformConfiguration TACPlatformEntry::getConfiguration()
 
 			if (platformPath.isEmpty() == false)
 			{
+				// Resolve bare filenames against tacConfigRoot() so installed packages
+				// find configs under their actual install location instead of failing
+				// to load a path that was baked in relative to wherever the catalog
+				// happened to be generated (e.g. a build machine's repo checkout).
+				if (!QDir::isAbsolutePath(platformPath) &&
+					!platformPath.contains(QLatin1Char('/')) &&
+					!platformPath.contains(QLatin1Char('\\')))
+					platformPath = tacConfigRoot() + platformPath;
+
 				_platformConfiguration = _PlatformConfiguration::openPlatformConfiguration(platformPath);
 				if (_platformConfiguration.isNull() == false)
 				{
