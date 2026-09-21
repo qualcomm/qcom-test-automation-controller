@@ -22,12 +22,14 @@ public:
 	void setDevices(AlpacaDevices deviceList);
 
 	QString currentSerialNumber();
+	AlpacaDevice currentDevice();
 
 private slots:
 	void on__deviceSelectionBox_currentIndexChanged(int index);
 
 private:
 	Ui::DeviceSelectionDialog *ui;
+	AlpacaDevices              _devices;
 };
 
 #endif // DEVICESELECTIONDIALOG_H
