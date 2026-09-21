@@ -394,7 +394,12 @@ void DeviceCatalog::onInfoGroupCloseBtnClicked()
 
 void DeviceCatalog::onInfoGroupLinkClicked(const QString& link)
 {
-	_player.playback(QMediaPlayer::PlayingState, link);
+	// Expand the splitter to reveal the video player pane, which starts
+	// collapsed to zero width in the constructor ({1,0}) since no video
+	// is playing until a tutorial link is clicked.
+	_splitter->setSizes({int(0.6 * width()), int(0.4 * width())});
+
+	_player->playback(QMediaPlayer::PlayingState, link);
 }
 
 void DeviceCatalog::on__firmwareSelect_currentTextChanged(const QString &firmwareVersion)
