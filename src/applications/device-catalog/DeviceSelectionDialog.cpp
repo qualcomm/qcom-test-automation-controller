@@ -23,6 +23,8 @@ DeviceSelectionDialog::~DeviceSelectionDialog()
 
 void DeviceSelectionDialog::setDevices(AlpacaDevices alpacaDevices)
 {
+	_devices = alpacaDevices;
+
 	QStringList deviceList;
 	deviceList << kDefaultDevice;
 
@@ -44,6 +46,20 @@ QString DeviceSelectionDialog::currentSerialNumber()
 		currentSerialNumber = currentDevice.split(" : ", Qt::SkipEmptyParts).at(1);
 
 	return currentSerialNumber;
+}
+
+AlpacaDevice DeviceSelectionDialog::currentDevice()
+{
+	AlpacaDevice result;
+
+	int index = ui->_deviceSelectionBox->currentIndex();
+
+	// index 0 is always the "<select a device>" placeholder, so the real
+	// devices in _devices are offset by -1 relative to the combo box index.
+	if (index > 0 && (index - 1) < _devices.size())
+		result = _devices.at(index - 1);
+
+	return result;
 }
 
 void DeviceSelectionDialog::on__deviceSelectionBox_currentIndexChanged(int index)

@@ -347,43 +347,86 @@ void DeviceCatalog::on__programBtn_clicked()
 
 void DeviceCatalog::on__firmwareUpdateBtn_clicked()
 {
-	for (const auto& variant : kVariants)
+	if (QDir(_firmwareDir).exists() == false)
 	{
-		QString firmwarePath = QString(_firmwareDir) + QDir::separator() + variant + QDir::separator() + "MicroEpm.cyacd";
-
-		if (QFile::exists(firmwarePath) == false)
-			continue;
-
-		QString program = applicationBinPath() + "FWUpdate";
-		QStringList arguments;
-		arguments << "path=" + firmwarePath;
-
-		QProcess* process = new QProcess(Q_NULLPTR);
-
-		process->setProgram(program);
-		process->setArguments(arguments);
-		process->start();
-		process->waitForFinished(30000);
-
-		if (process->exitCode() == 0)
-		{
-			QMessageBox::information(this, "Firmware Update Complete",
-				QString("The device has been programmed with firmware from %1.").arg(firmwarePath));
-			process->deleteLater();
-			return;
-		}
-
-		process->deleteLater();
+		QMessageBox::critical(this, "Missing Firmware Directory",
+			QString("The firmware directory is not available at the intended install location: %1").arg(_firmwareDir));
+		return;
 	}
 
-	QMessageBox::warning(this, "Firmware Update Failed",
-		"Unable to program the connected device with the selected firmware version. "
-		"Confirm whether a PSOC debug board is connected and try again.");
+	AlpacaDevices alpacaDevices = enumerateDevices(ePSOC);
+	DeviceSelectionDialog* selectionDialog = new DeviceSelectionDialog(this);
+	selectionDialog->setDevices(alpacaDevices);
+
+	if (selectionDialog->exec() == QDialog::Accepted)
+	{
+		AlpacaDevice alpacaDevice = selectionDialog->currentDevice();
+
+		if (alpacaDevice.isNull() == false)
+		{
+			// Query the actual connected chip variant rather than guessing:
+			// a firmware image built for the wrong PSOC silicon is not
+			// guaranteed to be safely rejected, so this must match the
+			// real, physically connected device.
+			QString chipVariant = alpacaDevice->chipVersion();
+
+			if (kVariants.contains(chipVariant) == false)
+			{
+				QMessageBox::critical(this, "Unknown Debug Board Chip Variant",
+					QString("Could not determine a known PSOC chip variant (%1) for the selected device %2. "
+						"This debug board may not have been programmed by the factory.")
+						.arg(chipVariant, alpacaDevice->serialNumber()));
+			}
+			else
+			{
+				QString firmwarePath = QString(_firmwareDir) + QDir::separator() + chipVariant + QDir::separator() + "MicroEpm.cyacd";
+
+				if (QFile::exists(firmwarePath) == false)
+				{
+					QMessageBox::critical(this, "Missing Firmware File",
+						QString("No firmware image was found for chip variant %1 at: %2").arg(chipVariant, firmwarePath));
+				}
+				else
+				{
+					QString program = applicationBinPath() + "FWUpdate";
+					QStringList arguments;
+					arguments << "path=" + firmwarePath;
+
+					QProcess* process = new QProcess(Q_NULLPTR);
+
+					process->setProgram(program);
+					process->setArguments(arguments);
+					process->start();
+					process->waitForFinished(30000);
+
+					const QByteArray processOutput = process->readAllStandardOutput() + process->readAllStandardError();
+
+					if (process->exitCode() == 0)
+					{
+						QMessageBox::information(this, "Firmware Update Complete",
+							QString("The device has been programmed with firmware from %1.").arg(firmwarePath));
+					}
+					else
+					{
+						QMessageBox::warning(this, "Firmware Update Failed",
+							QString("Unable to program the connected device with firmware from %1. Exit code: %2.\n\n%3")
+								.arg(firmwarePath)
+								.arg(process->exitCode())
+								.arg(QString::fromLatin1(processOutput)));
+					}
+
+					process->deleteLater();
+				}
+			}
+		}
+	}
+
+	selectionDialog->deleteLater();
 }
 
 void DeviceCatalog::on__docsBtn_clicked()
 {
-	startLocalBrowser(docsRoot() + "/getting-started/05-Device-Catalog.html");
+	startLocalBrowser(docsRoot() + "/getting-started/08-Device-Catalog.html");
 }
 
 void DeviceCatalog::onInfoGroupCloseBtnClicked()
