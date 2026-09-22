@@ -118,7 +118,13 @@ DeviceCatalog::DeviceCatalog(QWidget* parent) :QDialog(parent)
 		_deviceTable->resizeColumnsToContents();
 	}
 
-	_firmwareDir = applicationDataPath().toLatin1() + QDir::separator().toLatin1() + "firmware/1.x.15.0";
+	// applicationDataPath() returns the "configurations" subfolder (e.g.
+	// .../Alpaca/configurations/), not the app's ProgramData root - the real
+	// firmware/ directory is a sibling of configurations/, not nested inside
+	// it. Resolve via ".." rather than assuming applicationDataPath()'s
+	// return value directly is the app root, so this keeps working correctly
+	// regardless of how that shared helper's return path is formatted.
+	_firmwareDir = QDir::cleanPath(applicationDataPath() + "/../firmware/1.x.15.0").toLatin1();
 
 	connect(_infoCloseBtn, &QPushButton::clicked, this, &::DeviceCatalog::onInfoGroupCloseBtnClicked);
 	connect(_infoLabelText, &QLabel::linkActivated, this, &::DeviceCatalog::onInfoGroupLinkClicked);
@@ -450,27 +456,27 @@ void DeviceCatalog::on__firmwareSelect_currentTextChanged(const QString &firmwar
 		switch (version)
 		{
 		case 15:
-			_firmwareDir = applicationDataPath().toLatin1() + QDir::separator().toLatin1() + "firmware/1.x.15.0";
+			_firmwareDir = QDir::cleanPath(applicationDataPath() + "/../firmware/1.x.15.0").toLatin1();
 			_infoLabelText->setText(kDefaultNotice);
 			_infoGroupBox->hide();
 			break;
 		case 16:
-			_firmwareDir = applicationDataPath().toLatin1() + QDir::separator().toLatin1() + "firmware/1.x.16.0";
+			_firmwareDir = QDir::cleanPath(applicationDataPath() + "/../firmware/1.x.16.0").toLatin1();
 			_infoLabelText->setText(kv16FirmwareNotice);
 			_infoGroupBox->show();
 			break;
 		case 17:
-			_firmwareDir = applicationDataPath().toLatin1() + QDir::separator().toLatin1() + "firmware/1.x.17.0";
+			_firmwareDir = QDir::cleanPath(applicationDataPath() + "/../firmware/1.x.17.0").toLatin1();
 			_infoLabelText->setText(kv17FirmwareNotice);
 			_infoGroupBox->show();
 			break;
 		case 18:
-			_firmwareDir = applicationDataPath().toLatin1() + QDir::separator().toLatin1() + "firmware/1.x.18.0";
+			_firmwareDir = QDir::cleanPath(applicationDataPath() + "/../firmware/1.x.18.0").toLatin1();
 			_infoLabelText->setText(kv17FirmwareNotice);
 			_infoGroupBox->show();
 			break;
 		case 19:
-			_firmwareDir = applicationDataPath().toLatin1() + QDir::separator().toLatin1() + "firmware/1.x.19.0";
+			_firmwareDir = QDir::cleanPath(applicationDataPath() + "/../firmware/1.x.19.0").toLatin1();
 			_infoLabelText->setText(kv17FirmwareNotice);
 			_infoGroupBox->show();
 		}
