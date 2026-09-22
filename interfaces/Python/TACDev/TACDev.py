@@ -1,10 +1,7 @@
 # Copyright (c) Qualcomm Technologies, Inc. and/or its subsidiaries.
 # SPDX-License-Identifier: BSD-3-Clause
-
-# TACDev Python Library
-# 	Written by Michael Simpson (msimpson@qti.qualcomm.com) and edited by Biswajit Roy (biswroy@qti.qualcomm.com)
-# 	Don't modify this file.  If you do, you run the risk of missing out on bug fixes and product updates
-
+# Don't modify this file or copy it's contents to directories.
+# If you do, you run the risk of missing out on bug fixes and product updates.
 import logging
 import platform
 import struct
@@ -16,6 +13,23 @@ from sys import exit
 # Configure logging
 logger = logging.getLogger(__name__)
 logging.basicConfig(format=logging.BASIC_FORMAT, level=logging.INFO)
+
+# Installed product locations searched before the local development build.
+_INSTALL_DIRS = {
+    "win32": [
+        Path(r"C:\Program Files\Qualcomm\QTAC"),
+        Path(r"C:\Program Files\Qualcomm\Alpaca"),
+    ],
+    "linux": [
+        Path("/opt/qcom/QTAC/lib"),
+        Path("/opt/qcom/Alpaca/lib"),
+    ],
+}
+
+_LIB_NAMES = {
+    "win32": "TACDev.dll",
+    "linux": "libTACDev.so",
+}
 
 _LIBS = {
     ("win32",  "AMD64"): Path("__Builds/x64/Release/bin/TACDev.dll"),
@@ -43,17 +57,30 @@ def _find_lib() -> Path:
         )
         exit(1)
 
+    searched = []
+
+    # 1) Installed product locations
+    libName = _LIB_NAMES[os_key]
+    for installDir in _INSTALL_DIRS[os_key]:
+        lib = installDir / libName
+        searched.append(lib)
+        if lib.exists():
+            return lib.resolve()
+
+    # 2) Local development build, walking up from the current directory
     candidate = Path.cwd()
     for _ in range(8):
         lib = candidate / rel
         if lib.exists():
             return lib.resolve()
         candidate = candidate.parent
+    searched.append(Path.cwd().resolve() / rel)
 
     logger.error(
-        f"TACDev library not found.\n"
-        f"  Expected: {Path.cwd().resolve() / rel}\n"
-        "  Build the project first using build.bat / build.sh."
+        "TACDev library not found.\n"
+        "  Searched:\n"
+        + "\n".join(f"    {p}" for p in searched) + "\n"
+        "  Install QTAC/Alpaca or build the project first using build.bat / build.sh."
     )
     exit(1)
 
@@ -518,6 +545,7 @@ class TACDevice:
     def SetupClassEntries(self, tacDll):
         self.__openByNameFunc = tacDll.OpenHandleByDescription
         self.__openByNameFunc.argtypes = [c_char_p]
+        self.__openByNameFunc.restype = c_ulong
 
         self.__closeFunc = tacDll.CloseTACHandle
         self.__nameFunc = tacDll.GetName
