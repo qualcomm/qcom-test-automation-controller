@@ -36,18 +36,31 @@ QString applicationBinPath()
 
 QString applicationDataPath()
 {
+	// QCoreApplication::applicationDirPath() prints "Please instantiate the
+	// QApplication object first" (and returns an empty path) when called
+	// before a QCoreApplication/QApplication instance exists - which is the
+	// normal case for callers using TACDev.dll directly via Python ctypes
+	// (no Qt application object is ever created there). Only attempt this
+	// bin-relative resolution when an application instance actually exists
+	// (i.e. real GUI/console apps that link Qt and construct one), so
+	// pure-ctypes callers skip straight to the ProgramData-based lookup
+	// below without ever triggering that warning.
+
 	// 1. Bin-relative resolution for dev/build-tree layouts: walk up from the
 	//    actual executable directory (not the process's current working
 	//    directory, which is fragile and launch-method-dependent) looking
 	//    for a sibling "configurations" folder.
-	QDir dir(QCoreApplication::applicationDirPath());
-	for (int i = 0; i < 5; ++i)
+	if (QCoreApplication::instance() != Q_NULLPTR)
 	{
-		const QString candidate = dir.absolutePath() + "/configurations";
-		if (QDir(candidate).exists())
-			return QDir::cleanPath(candidate) + "/";
+		QDir dir(QCoreApplication::applicationDirPath());
+		for (int i = 0; i < 5; ++i)
+		{
+			const QString candidate = dir.absolutePath() + "/configurations";
+			if (QDir(candidate).exists())
+				return QDir::cleanPath(candidate) + "/";
 
-		dir.cdUp();
+			dir.cdUp();
+		}
 	}
 
 	// 2. The standalone installer's own ProgramData location
