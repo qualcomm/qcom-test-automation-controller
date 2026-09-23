@@ -374,7 +374,16 @@ void DeviceCatalog::on__firmwareUpdateBtn_clicked()
 			// a firmware image built for the wrong PSOC silicon is not
 			// guaranteed to be safely rejected, so this must match the
 			// real, physically connected device.
+			// The variant is only read off the hardware inside
+			// PSOCDevice::open() (which populates _chipVersion). On a device
+			// that was enumerated but never opened, _chipVersion is still its
+			// default 0, so chipVersion() returns "None" and every good board
+			// is wrongly rejected. Open first, read the variant, then close
+			// again so FWUpdate can take exclusive access to the port.
+			const bool openedForVariantQuery = alpacaDevice->open();
 			QString chipVariant = alpacaDevice->chipVersion();
+			if (openedForVariantQuery)
+				alpacaDevice->close();
 
 			if (kVariants.contains(chipVariant) == false)
 			{
