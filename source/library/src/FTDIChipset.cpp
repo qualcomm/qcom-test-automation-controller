@@ -636,7 +636,7 @@ void _FTDIChipset::linuxTraversal()
 		}
 	}
 
-	delete[] devInfoList; // nosemgrep: cpp.mismatched.new-delete-array
+	delete[] devInfoList; // nosemgrep: reusable-workflows.semgrep_rules.cpp.mismatched.new-delete-array
 }
 
 void _FTDIChipset::windowsTraversal() {}
@@ -735,7 +735,7 @@ void _FTDIChipset::windowsTraversal()
 		}
 	}
 
-	delete[] devInfoList; // nosemgrep: cpp.mismatched.new-delete-array
+	delete[] devInfoList; // nosemgrep: reusable-workflows.semgrep_rules.cpp.mismatched.new-delete-array
 }
 #endif // _WIN32
 
