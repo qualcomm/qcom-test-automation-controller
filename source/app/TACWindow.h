@@ -44,7 +44,7 @@
 #include <QTimer>
 
 QT_BEGIN_NAMESPACE
-namespace Ui { class TACWindowClass; }
+namespace Ui { class TACWindowClass; } // nosemgrep: cxx.funcret.gen.non-void-function-no-return
 QT_END_NAMESPACE
 
 namespace qtac { class TACDriveThread; }
