@@ -1,0 +1,107 @@
+// Copyright (c) Qualcomm Technologies, Inc. and/or its subsidiaries.
+//
+// Redistribution and use in source and binary forms, with or without
+// modification, are permitted (subject to the limitations in the
+// disclaimer below) provided that the following conditions are met:
+//
+//     * Redistributions of source code must retain the above copyright
+//         notice, this list of conditions and the following disclaimer.
+//
+//     * Redistributions in binary form must reproduce the above
+//         copyright notice, this list of conditions and the following
+//         disclaimer in the documentation and/or other materials provided
+//         with the distribution.
+//
+//     * Neither the name of Qualcomm Technologies, Inc. nor the names of its
+//         contributors may be used to endorse or promote products derived
+//         from this software without specific prior written permission.
+//
+// NO EXPRESS OR IMPLIED LICENSES TO ANY PARTY'S PATENT RIGHTS ARE
+// GRANTED BY THIS LICENSE. THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT
+// HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED
+// WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
+// MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED.
+// IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR
+// ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+// DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE
+// GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+// INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER
+// IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
+// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN
+// IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+#pragma once
+
+#include "TACPreferences.h"
+
+#include <TACDeviceBridge.h>
+
+#include <QByteArray>
+#include <QElapsedTimer>
+#include <QFile>
+#include <QMainWindow>
+#include <QTextStream>
+#include <QTimer>
+
+QT_BEGIN_NAMESPACE
+namespace Ui { class TACWindowClass; } // nosemgrep
+QT_END_NAMESPACE
+
+namespace qtac { class TACDriveThread; }
+class TACPinFrame;
+
+// ---------------------------------------------------------------------------
+// TACWindow — main window.
+//
+// Uses TACDeviceBridge (wraps qtac-core _AlpacaDevice + TACLiteDriveThread)
+// rather than the Qt-based _AlpacaDevice from QCommonConsole.
+// ---------------------------------------------------------------------------
+class TACWindow : public QMainWindow
+{
+    Q_OBJECT
+
+public:
+    explicit TACWindow(QWidget* parent = nullptr);
+    ~TACWindow() override;
+
+    void openPort(const QByteArray& portName);
+    QByteArray portName() const;
+    bool inUse() const { return _bridge != nullptr; }
+    void shutDown();
+
+private slots:
+    void onConnectClicked();
+    void onDisconnectClicked();
+
+    void onDeviceConnected();
+    void onDeviceDisconnected();
+    void onFirmwareVersionUpdated(const QString& version);
+    void onHardwareTypeUpdated(const QString& hwType);
+    void onNameUpdated(const QString& name);
+    void onPinStateChanged(quint64 pin, bool state);
+    void onError(const QByteArray& message);
+    void onLogLine(const QByteArray& line);
+
+    void onContentsTriggered();
+    void onAboutTriggered();
+    void onPreferencesTriggered();
+    void onAutoShutdownTimeout();
+
+private:
+    void setupAutoShutdownTimer();
+    void openLogFile();
+    void closeLogFile();
+    void writeLogLine(const QByteArray& line);
+
+    Ui::TACWindowClass*          _ui{nullptr};
+    TACPinFrame*                 _pinFrame{nullptr};
+    TACDeviceBridge*             _bridge{nullptr};
+    qtac::TACDriveThread*        _driveThread{nullptr};
+
+    TACPreferences               _prefs;
+    QTimer                       _autoShutdownTimer;
+    QElapsedTimer                _autoShutdownDeadline;
+
+    QFile                        _logFile;
+    QTextStream                  _logStream;
+};
