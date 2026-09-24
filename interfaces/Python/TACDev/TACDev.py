@@ -29,20 +29,57 @@ _INSTALLED_LIB_NAME = {
     "linux": "libTACDev.so",
 }
 
+# Well-known default install locations, used only as a fallback when the
+# library could not be found on PATH (see _find_installed_lib). These are a
+# convenience for an install whose PATH entry is missing or not yet visible to
+# the current process; they are deliberately NOT the primary mechanism, since
+# hardcoding install locations is exactly the assumption that breaks for
+# custom install paths and for any future product that bundles TAC.
+_FALLBACK_INSTALL_DIRS = {
+    "win32": [
+        Path(r"C:\Program Files\Qualcomm\QTAC"),
+        Path(r"C:\Program Files\Qualcomm\Alpaca"),
+    ],
+    "linux": [
+        Path("/opt/qcom/QTAC/lib"),
+        Path("/opt/qcom/Alpaca/lib"),
+    ],
+}
 
-def _find_installed_lib(os_key: str) -> Path:
+
+def _find_installed_lib(os_key: str, searched: list = None) -> Path:
     """
-    Search the directories on PATH for TACDev's shared library. Any packaged
-    distribution that bundles TAC (e.g. Alpaca, QTAC standalone) adds its own
-    install directory to PATH, so this works generically across distributions
-    without hardcoding any particular product's install location.
+    Locate an installed copy of TACDev's shared library.
+
+    PATH is searched first and is the authoritative source: the installer
+    registers the directory the product was actually installed into (the QIK
+    project sets chkAddToPATH=True), so PATH reflects the real install
+    location even when the user chose a custom one via
+    'qpm-cli --install --path'. Searching it therefore works generically
+    across distributions (Alpaca, standalone QTAC, future bundles) without
+    hardcoding any particular product's install location.
+
+    The well-known default locations in _FALLBACK_INSTALL_DIRS are tried only
+    afterwards, to cover an install whose PATH entry is absent or not visible
+    to this process yet.
     """
     libName = _INSTALLED_LIB_NAME[os_key]
 
+    # 1. PATH - authoritative, follows the real (possibly custom) install dir.
     for directory in os.environ.get("PATH", "").split(os.pathsep):
         if not directory:
             continue
         candidate = Path(directory) / libName
+        if searched is not None:
+            searched.append(candidate)
+        if candidate.is_file():
+            return candidate.resolve()
+
+    # 2. Default install locations, in case PATH was not set up.
+    for installDir in _FALLBACK_INSTALL_DIRS[os_key]:
+        candidate = installDir / libName
+        if searched is not None:
+            searched.append(candidate)
         if candidate.is_file():
             return candidate.resolve()
 
@@ -68,30 +105,37 @@ def _find_lib() -> Path:
         )
         exit(1)
 
+    searched = []
+
     # 1. Dev-tree layout: walk up from the current working directory looking
     #    for a build output folder (works when running from within a repo
-    #    checkout that has already been built).
+    #    checkout that has already been built). Checked first so that a
+    #    developer's freshly built binary wins over an older installed copy.
     candidate = Path.cwd()
     for _ in range(8):
         lib = candidate / rel
         if lib.exists():
             return lib.resolve()
         candidate = candidate.parent
+    searched.append(Path.cwd().resolve() / rel)
 
-    # 2. Installed-package layout: this script itself may be run from a
-    #    completely unrelated location (e.g. a plain venv with no dev-tree
-    #    checkout nearby at all), so also search PATH for the library
-    #    directly. This is the case that matters for an end user who just
-    #    installed a packaged distribution and wants to `import TACDev`.
-    installedLib = _find_installed_lib(os_key)
+    # 2. Installed-package layout: this script may be run from a completely
+    #    unrelated location (e.g. a plain venv with no dev-tree checkout
+    #    nearby at all), so look for an installed copy - PATH first, then the
+    #    well-known default install directories. This is the case that matters
+    #    for an end user who just installed a packaged distribution and wants
+    #    to `import TACDev`.
+    installedLib = _find_installed_lib(os_key, searched)
     if installedLib is not None:
         return installedLib
 
     logger.error(
-        f"TACDev library not found.\n"
-        f"  Expected: {Path.cwd().resolve() / rel}\n"
-        "  Build the project first using build.bat / build.sh, or ensure the\n"
-        "  directory containing TACDev.dll/libTACDev.so is on PATH."
+        "TACDev library not found.\n"
+        "  Searched:\n"
+        + "\n".join(f"    {p}" for p in searched) + "\n"
+        "  Install QTAC/Alpaca or build the project first using\n"
+        "  build.bat / build.sh, or ensure the directory containing\n"
+        "  TACDev.dll/libTACDev.so is on PATH."
     )
     exit(1)
 
