@@ -30,6 +30,8 @@ const int kPlatformID{2};
 
 const QByteArray kv16FirmwareNotice(QByteArrayLiteral("You've chosen to program the v16 firmware. This firmware may contain updates not applicable to all teams. Uncheck unless you know what you're doing"));
 const QByteArray kv17FirmwareNotice(QByteArrayLiteral("You've chosen to program the v17 firmware. This firmware may contain updates not applicable to all teams. Uncheck unless you know what you're doing"));
+const QByteArray kv18FirmwareNotice(QByteArrayLiteral("You've chosen to program the v18 firmware. This firmware may contain updates not applicable to all teams. Uncheck unless you know what you're doing"));
+const QByteArray kv19FirmwareNotice(QByteArrayLiteral("You've chosen to program the v19 firmware. This firmware may contain updates not applicable to all teams. Uncheck unless you know what you're doing"));
 const QByteArray kDefaultNotice(QByteArrayLiteral("This space is used to share notification to user"));
 const QStringList kVariants{"LP030", "LP038"};
 
@@ -118,7 +120,13 @@ DeviceCatalog::DeviceCatalog(QWidget* parent) :QDialog(parent)
 		_deviceTable->resizeColumnsToContents();
 	}
 
-	_firmwareDir = applicationDataPath().toLatin1() + QDir::separator().toLatin1() + "firmware/1.x.15.0";
+	// applicationDataPath() returns the "configurations" subfolder (e.g.
+	// .../Alpaca/configurations/), not the app's ProgramData root - the real
+	// firmware/ directory is a sibling of configurations/, not nested inside
+	// it. Resolve via ".." rather than assuming applicationDataPath()'s
+	// return value directly is the app root, so this keeps working correctly
+	// regardless of how that shared helper's return path is formatted.
+	_firmwareDir = QDir::cleanPath(applicationDataPath() + "/../firmware/1.x.15.0").toLatin1();
 
 	connect(_infoCloseBtn, &QPushButton::clicked, this, &::DeviceCatalog::onInfoGroupCloseBtnClicked);
 	connect(_infoLabelText, &QLabel::linkActivated, this, &::DeviceCatalog::onInfoGroupLinkClicked);
@@ -368,7 +376,16 @@ void DeviceCatalog::on__firmwareUpdateBtn_clicked()
 			// a firmware image built for the wrong PSOC silicon is not
 			// guaranteed to be safely rejected, so this must match the
 			// real, physically connected device.
+			// The variant is only read off the hardware inside
+			// PSOCDevice::open() (which populates _chipVersion). On a device
+			// that was enumerated but never opened, _chipVersion is still its
+			// default 0, so chipVersion() returns "None" and every good board
+			// is wrongly rejected. Open first, read the variant, then close
+			// again so FWUpdate can take exclusive access to the port.
+			const bool openedForVariantQuery = alpacaDevice->open();
 			QString chipVariant = alpacaDevice->chipVersion();
+			if (openedForVariantQuery)
+				alpacaDevice->close();
 
 			if (kVariants.contains(chipVariant) == false)
 			{
@@ -455,29 +472,30 @@ void DeviceCatalog::on__firmwareSelect_currentTextChanged(const QString &firmwar
 		switch (version)
 		{
 		case 15:
-			_firmwareDir = applicationDataPath().toLatin1() + QDir::separator().toLatin1() + "firmware/1.x.15.0";
+			_firmwareDir = QDir::cleanPath(applicationDataPath() + "/../firmware/1.x.15.0").toLatin1();
 			_infoLabelText->setText(kDefaultNotice);
 			_infoGroupBox->hide();
 			break;
 		case 16:
-			_firmwareDir = applicationDataPath().toLatin1() + QDir::separator().toLatin1() + "firmware/1.x.16.0";
+			_firmwareDir = QDir::cleanPath(applicationDataPath() + "/../firmware/1.x.16.0").toLatin1();
 			_infoLabelText->setText(kv16FirmwareNotice);
 			_infoGroupBox->show();
 			break;
 		case 17:
-			_firmwareDir = applicationDataPath().toLatin1() + QDir::separator().toLatin1() + "firmware/1.x.17.0";
+			_firmwareDir = QDir::cleanPath(applicationDataPath() + "/../firmware/1.x.17.0").toLatin1();
 			_infoLabelText->setText(kv17FirmwareNotice);
 			_infoGroupBox->show();
 			break;
 		case 18:
-			_firmwareDir = applicationDataPath().toLatin1() + QDir::separator().toLatin1() + "firmware/1.x.18.0";
-			_infoLabelText->setText(kv17FirmwareNotice);
+			_firmwareDir = QDir::cleanPath(applicationDataPath() + "/../firmware/1.x.18.0").toLatin1();
+			_infoLabelText->setText(kv18FirmwareNotice);
 			_infoGroupBox->show();
 			break;
 		case 19:
-			_firmwareDir = applicationDataPath().toLatin1() + QDir::separator().toLatin1() + "firmware/1.x.19.0";
-			_infoLabelText->setText(kv17FirmwareNotice);
+			_firmwareDir = QDir::cleanPath(applicationDataPath() + "/../firmware/1.x.19.0").toLatin1();
+			_infoLabelText->setText(kv19FirmwareNotice);
 			_infoGroupBox->show();
+			break;
 		}
 	}
 }
