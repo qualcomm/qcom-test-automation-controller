@@ -36,7 +36,7 @@
 #include <QByteArray>
 
 QT_BEGIN_NAMESPACE
-namespace Ui { class TACDeviceSelectionClass; } // nosemgrep: cxx.funcret.gen.non-void-function-no-return
+namespace Ui { class TACDeviceSelectionClass; } // nosemgrep: reusable-workflows.semgrep_rules.cxx.funcret.gen.non-void-function-no-return
 QT_END_NAMESPACE
 
 class QTimer;
