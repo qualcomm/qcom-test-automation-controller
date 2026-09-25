@@ -27,5 +27,9 @@ void launchFolder(const QString &folderName);
 
 QString QCOMMON_EXPORT docsRoot();
 
+// Resolve a documentation page by its descriptive stem - see the
+// implementation for why the NN- prefix and extension are ignored.
+QString QCOMMON_EXPORT docPage(const QString& section, const QString& stem);
+
 #endif
 

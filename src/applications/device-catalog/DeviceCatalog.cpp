@@ -443,7 +443,7 @@ void DeviceCatalog::on__firmwareUpdateBtn_clicked()
 
 void DeviceCatalog::on__docsBtn_clicked()
 {
-	startLocalBrowser(docsRoot() + "/getting-started/08-Device-Catalog.html");
+	startLocalBrowser(docPage("getting-started", "Device-Catalog"));
 }
 
 void DeviceCatalog::onInfoGroupCloseBtnClicked()

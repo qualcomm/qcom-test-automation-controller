@@ -9,6 +9,8 @@
 #include <QApplication>
 #include <QDateTime>
 #include <QDir>
+#include <QRegularExpression>
+#include <QDebug>
 #include <QFileInfo>
 #include <QHeaderView>
 #include <QLibrary>
@@ -158,4 +160,69 @@ QString docsRoot()
     result = "/opt/qcom/" + appName + "/docs/";
 #endif
 	return result;
+}
+
+QString docPage(const QString& section, const QString& stem)
+{
+	// Resolve a documentation page by its descriptive stem (e.g. "EPM-Scope")
+	// rather than by a full filename, deliberately ignoring both the "NN-"
+	// ordering prefix and the file extension.
+	//
+	// Each product numbers its documentation set independently - standalone
+	// QEPM, standalone QTAC and the bundled Alpaca distribution each order
+	// their pages differently - so the same page is "03-EPM-Scope" in one and
+	// "02-EPM-Scope" in another. Hardcoding a numbered filename therefore
+	// resolves in at most one product and silently opens nothing in the
+	// others, and any future renumbering breaks it again. The descriptive
+	// stem is stable across all of them, so match on that.
+	//
+	// The extension is also ignored: the bundle ships built .html, while a
+	// standalone package may ship the .md sources verbatim. Prefer .html
+	// when both are present, otherwise take whatever is there.
+	const QString root = docsRoot();
+	const QString sectionDir = QDir::cleanPath(root + "/" + section);
+
+	QDir dir(sectionDir);
+	if (dir.exists())
+	{
+		QString htmlMatch;
+		QString otherMatch;
+
+		const QFileInfoList entries = dir.entryInfoList(QDir::Files | QDir::NoDotAndDotDot);
+		for (const QFileInfo& entry : entries)
+		{
+			// Strip a leading "NN-" ordering prefix before comparing.
+			QString base = entry.completeBaseName();
+			static const QRegularExpression orderingPrefix("^\\d+-");
+			base.remove(orderingPrefix);
+
+			if (base.compare(stem, Qt::CaseInsensitive) != 0)
+				continue;
+
+			if (entry.suffix().compare("html", Qt::CaseInsensitive) == 0)
+			{
+				htmlMatch = entry.absoluteFilePath();
+				break;
+			}
+
+			if (otherMatch.isEmpty())
+				otherMatch = entry.absoluteFilePath();
+		}
+
+		if (htmlMatch.isEmpty() == false)
+			return htmlMatch;
+
+		if (otherMatch.isEmpty() == false)
+			return otherMatch;
+	}
+
+	// Nothing matched. Return the conventional .html path so the caller still
+	// has something to report, and log what was actually available so the
+	// mismatch is diagnosable rather than a silently dead menu item.
+	const QString fallback = QDir::cleanPath(sectionDir + "/" + stem + ".html");
+	qWarning().noquote() << "docPage: no documentation page matching stem" << stem
+						 << "found in" << sectionDir
+						 << "- available:" << (dir.exists() ? dir.entryList(QDir::Files | QDir::NoDotAndDotDot).join(", ")
+														    : QString("(directory does not exist)"));
+	return fallback;
 }

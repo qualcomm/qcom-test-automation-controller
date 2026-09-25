@@ -279,7 +279,7 @@ void TACWindow::disconnect()
 
 void TACWindow::on_actionContents_triggered()
 {
-	startLocalBrowser(docsRoot() + "/getting-started/03-Test-Automation-Controller.html");
+	startLocalBrowser(docPage("getting-started", "Test-Automation-Controller"));
 }
 
 void TACWindow::on_actionAbout_triggered()
