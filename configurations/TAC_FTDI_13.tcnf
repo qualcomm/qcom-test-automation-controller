@@ -1,5 +1,5 @@
 {
-    "author": "",
+    "author": "bryantf-qc",
     "bus": [
         {
             "bus": "A",
@@ -26,10 +26,9 @@
     "chip_count": 1,
     "creation_date": "Mon Jul  7 00:00:00 2026",
     "description": "ALPACA LITE (FTDI) - default layout",
-    "fileVersion": 0,
+    "fileVersion": 1,
     "modification_date": "Mon Jul  7 00:00:00 2026",
     "name": "ALPACA LITE (FTDI)",
-    "pineVersion": 2,
     "pins": [
         {
             "bus": "A",
@@ -544,5 +543,9 @@
             "run_priority": "-1,-1"
         }
     ],
-    "platform_id": 13
+    "platform_id": 13,
+    "platform_type": "FTDI",
+    "reset_enabled": false,
+    "script": "",
+    "tabs": []
 }
