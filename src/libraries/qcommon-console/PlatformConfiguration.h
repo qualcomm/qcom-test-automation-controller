@@ -173,6 +173,11 @@ public:
 	void setFilePath(const QString& filePath);
 	QString filePath();
 
+	// Name of the sibling hardware pinout file this configuration reads from and
+	// writes to (empty until the configuration has been loaded from, or saved to, the
+	// two-file layout).
+	QString pinoutFileName();
+
 	void setSupportedFirmwareVer(const QList<quint32> &firmwareList);
 	QList<quint32> supportedFirmwareVer();
 
@@ -184,6 +189,18 @@ protected:
 	virtual bool read(QJsonObject& parentLevel);
 	virtual void write(QJsonObject& parentLevel);
 
+	// On disk a configuration is stored as two files: a shared, self-describing
+	// hardware pinout file (pins, bus map, script, variable defaults) that
+	// external/3rd-party tools can consume directly, and a UI overlay (.tcnf)
+	// that references it (pinout_ref) and carries buttons, tabs and per-pin UI
+	// fields. In memory the model stays unified - the read()/write() pair still
+	// operate on a single combined JSON object. These helpers translate between
+	// the combined object and the two on-disk halves, so the split lives only at
+	// (de)serialization and the platform subclasses are unaffected.
+	static void splitConfiguration(const QJsonObject& combined, QJsonObject& pinout, QJsonObject& overlay);
+	static QJsonObject mergeConfiguration(const QJsonObject& pinout, const QJsonObject& overlay);
+	static QString pinoutFileNameFor(const QString& overlayFileName);
+
 	void defaultAlpacaScript();
 	void defaultScriptVariables();
 
@@ -193,6 +210,7 @@ protected:
 
 	QString						_platformPath;
 	QString						_platformFile;
+	QString						_pinoutFile;
 	PlatformID					_platformId{kDefaultPlatformId};
 	quint32						_fileVersion{0};
 	QString						_name;

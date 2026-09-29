@@ -17,4 +17,6 @@
 #define FTDI_CHECK_VERSION		"2.0.0"
 #define LITE_PGR_COMMAND		"2.0.0"
 
+#define TAC_CONFIG_SPLIT_VERSION	"1.0.0"
+
 #endif // VERSION_H

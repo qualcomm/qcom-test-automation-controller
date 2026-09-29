@@ -3,19 +3,25 @@ name: Validate TAC Configurations
 on:
   pull_request:
     branches: [main, develop, "feature/*"]
-    paths: ["configurations/**.tcnf"]
+    paths: ["configurations/**.tcnf", "configurations/**.pinout.json"]
   push:
     branches: [main, develop, "feature/*"]
-    paths: ["configurations/**.tcnf"]
+    paths: ["configurations/**.tcnf", "configurations/**.pinout.json"]
 
 jobs:
   validate:
-    name: Validate .tcnf files
+    name: Validate configuration files
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
 
-      - name: Validate configurations
+      - name: Install check-jsonschema
+        run: pip install check-jsonschema --quiet
+
+      - name: Validate UI overlays (*.tcnf)
         run: |
-          pip install check-jsonschema --quiet
-          check-jsonschema --schemafile .github/tac-configuration-schema.json configurations/*.tcnf
+          check-jsonschema --schemafile schemas/tac-configuration-schema.json configurations/*.tcnf
+
+      - name: Validate hardware pinouts (*.pinout.json)
+        run: |
+          check-jsonschema --schemafile schemas/pinout-1.0.json configurations/*.pinout.json

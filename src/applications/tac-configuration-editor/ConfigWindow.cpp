@@ -562,6 +562,20 @@ bool ConfigWindow::openFile(const QString& filePath)
 
 		result = true;
 	}
+	else
+	{
+		// A configuration is a .tcnf UI overlay plus the *.pinout.json it references,
+		// so the usual failure here is a missing or unreadable sibling - report the
+		// reason rather than leaving the window blank with no explanation.
+		const QString error = _PlatformConfiguration::getLastError();
+
+		AppCore::writeToApplicationLogLine("[ConfigWindow::openFile]: " + filePath + ": " + error);
+
+		QMessageBox::warning(this, kWindowTitle,
+			"Unable to open " + QFileInfo(filePath).fileName() + ".\n\n" + error +
+			"\n\nA TAC configuration is two files: the .tcnf UI overlay and the "
+			"*.pinout.json it references. Both must be present in the same folder.");
+	}
 
 	return result;
 }
@@ -676,7 +690,8 @@ bool ConfigWindow::save()
 			_platformConfiguration->save();
 
 			QFileInfo fileInfo(_platformConfiguration->filePath());
-			statusbar->showMessage("TAC Configuration File: " + fileInfo.filePath() + " saved", 5000);
+			statusbar->showMessage("TAC Configuration File: " + fileInfo.filePath() +
+			                       " saved (+ " + _platformConfiguration->pinoutFileName() + ")", 5000);
 
 			QString windowTitle = kWindowTitle + " - " +  fileInfo.fileName();
 			setWindowTitle(windowTitle);

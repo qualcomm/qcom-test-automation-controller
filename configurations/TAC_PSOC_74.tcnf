@@ -1,18 +1,5 @@
 {
-    "platform_id": 74,
     "author": "Saivaraprasad Bolloju <svprasad@qti.qualcomm.com>",
-    "creation_date": "Thu Oct 22 15:21:39 2025",
-    "modification_date": "Thu Oct 22 15:21:39 2025",
-    "name": "Aliso CDP",
-    "platform_type": "PSOC",
-    "description": "30-P9415-2 Dongle for Aliso",
-    "usb_descriptor": "",
-    "reset_enabled": false,
-    "script": "def powerOffTheDevice() \r\n\tlogComment ====== powerOffTheDevice sequence start ======\r\n\r\n\tbattery 1\r\n\tusb0 1\r\n\tusb1 1\r\n\r\n\tlogComment ====== powerOffTheDevice sequence finish ======\r\n\r\ndef powerOnTheDevice()\r\n\tlogComment ====== powerOnTheDevice sequence start ======\r\n\r\n\tdelay 500\r\n\tbattery 0\r\n\tdelay 900\r\n\tusb0 0\r\n\tusb1 0\r\n\tdelay 30\r\n\r\n\tlogComment ====== powerOnTheDevice sequence finish ======\r\n\r\ndef powerOff()\r\n\tlogComment ====== powerOff start ======\r\n\r\n\tpowerOffTheDevice\r\n\r\n\tpkey 0\r\n\tvolup 0\r\n\tvoldn 0\r\n\r\n\tpedl 0\r\n\r\n\tlogComment ====== powerOff finish ======\r\n\r\ndef powerOn()\r\n\tlogComment ====== powerOn start ======\r\n\r\n\tpowerOff\r\n\r\n\tpowerOnTheDevice\r\n\r\n\tpkey 1\r\n\tdelay 800\r\n\tpkey 0\r\n\r\n\tlogComment ====== powerOn finish ======\r\n\r\ndef bootToEDL()\r\n\tlogComment ====== bootToEDL start ======\r\n\r\n\tpowerOffTheDevice\r\n\r\n\tpkey 0\r\n\tvolup 0\r\n\tvoldn 0\r\n\r\n\tpedl 1\r\n\r\n\tpowerOnTheDevice\r\n\r\n\tpkey 1\r\n\tdelay $edl\r\n\tpkey 0\r\n\r\n\tpedl 0\r\n\r\n\tlogComment ====== bootToEDL finish ======\r\n\r\ndef bootToSecondaryEDL()\r\n\tlogComment ====== bootToSecondaryEDL start ======\r\n\r\n\tpowerOffTheDevice\r\n\r\n\tpkey 0\r\n\tvolup 0\r\n\tvoldn 0\r\n\r\n\tsedl 1\r\n\r\n\tpowerOnTheDevice\r\n\r\n\tpkey 1\r\n\tdelay 800\r\n\tpkey 0\r\n\r\n\tdelay 1300\r\n\r\n\tsedl 0\r\n\r\n\tlogComment ====== bootToSecondaryEDL finish ======\r\n\r\ndef bootToUEFI()\r\n\tlogComment ====== bootToUEFIMenu start ======\r\n\r\n\tpowerOffTheDevice\r\n\r\n\t// Put buttons in a set state\r\n\tpkey 0\r\n\tvolup 1\r\n\tvoldn 0\r\n\r\n\tpedl 0\r\n\r\n\tpowerOnTheDevice\r\n\r\n\tpkey 1\r\n\tdelay $uefi\r\n\tpkey 0\r\n\tvolup 0\r\n\tdelay 12\r\n\tpkey 1\r\n\tvolup 1\r\n\r\n\tpkey 0\r\n\tvolup 0\r\n\r\n\tlogComment ====== bootToUEFIMenu finish ======\r\n\r\ndef bootToFastboot()\r\n\tlogComment ====== bootToFastboot start ======\r\n\r\n\tpowerOffTheDevice\r\n\r\n\tpkey 0\r\n\tvolup 0\r\n\tvoldn 1\r\n\r\n\tpedl 0\r\n\r\n\tpowerOnTheDevice\r\n\r\n\tpkey 1\r\n\tdelay 800\r\n\tpkey 0\r\n\r\n\tdelay $fastboot\r\n\tvoldn 0\r\n\tdelay 30\r\n\tvoldn 1\r\n\r\n\tvoldn 0\r\n\r\n\tlogComment ====== bootToFastboot finished ======\r\n",
-    "fileVersion": 53,
-    "supportedFirmwareVer": [
-        15
-    ],
     "buttons": [
         {
             "cellLocation": "0,1",
@@ -63,338 +50,280 @@
             "tooltip": "Powers off the MTP/Device"
         }
     ],
+    "creation_date": "Thu Oct 22 15:21:39 2025",
+    "description": "30-P9415-2 Dongle for Aliso",
+    "fileVersion": 53,
+    "modification_date": "Thu Oct 22 15:21:39 2025",
+    "name": "Aliso CDP",
+    "pinout_ref": "TAC_PSOC_74.pinout.json",
     "pins": [
         {
-            "command": "eud",
             "command_group": 3,
             "enabled": true,
             "help_hint": "Enabled the embedded USB debugger",
-            "initial_value": false,
-            "inverted": false,
             "name": "Embedded USB Debug (EUD)",
-            "pin_number": "15",
+            "ref": {
+                "pin_number": "15"
+            },
             "run_priority": "0,4",
-            "classic_action": "TAC_SOFT_RESET",
-            "initialization_priority": -1,
             "tab_name": "General"
         },
         {
-            "command": "eud",
             "command_group": 3,
             "enabled": false,
             "help_hint": "Enabled the embedded USB debugger",
-            "initial_value": false,
-            "inverted": false,
             "name": "Embedded USB Debug (EUD)",
-            "pin_number": "16",
+            "ref": {
+                "pin_number": "16"
+            },
             "run_priority": "0,4",
-            "classic_action": "TC_EUD_EARLY_BOOT_EN",
-            "initialization_priority": -1,
             "tab_name": "General"
         },
         {
-            "command": "uim1",
             "command_group": 3,
             "enabled": true,
             "help_hint": "Disconnects UIM 1",
-            "initial_value": false,
-            "inverted": false,
             "name": "Disconnect UIM 1",
-            "pin_number": "18",
+            "ref": {
+                "pin_number": "18"
+            },
             "run_priority": "0,0",
-            "classic_action": "TAC_UIM1_DIS",
-            "initialization_priority": -1,
             "tab_name": "General"
         },
         {
-            "command": "uim2",
             "command_group": 3,
             "enabled": true,
             "help_hint": "Disconnects UIM 2",
-            "initial_value": false,
-            "inverted": false,
             "name": "Disconnect UIM 2",
-            "pin_number": "19",
+            "ref": {
+                "pin_number": "19"
+            },
             "run_priority": "1,0",
-            "classic_action": "TAC_UIM2_DIS",
-            "initialization_priority": -1,
             "tab_name": "General"
         },
         {
-            "command": "headset",
             "command_group": 3,
             "enabled": true,
             "help_hint": "Disconnects the headset",
-            "initial_value": false,
-            "inverted": false,
             "name": "Headset Disconnect",
-            "pin_number": "21",
+            "ref": {
+                "pin_number": "21"
+            },
             "run_priority": "0,5",
-            "classic_action": "TAC_HEADSET_DIS",
-            "initialization_priority": -1,
             "tab_name": "General"
         },
         {
-            "command": "",
             "command_group": 0,
             "enabled": false,
             "help_hint": "",
-            "initial_value": false,
-            "inverted": false,
             "name": "",
-            "pin_number": "29",
+            "ref": {
+                "pin_number": "29"
+            },
             "run_priority": "-1,-1",
-            "classic_action": "",
-            "initialization_priority": -1,
             "tab_name": ""
         },
         {
-            "command": "sedl",
             "command_group": 3,
             "enabled": true,
             "help_hint": "Secondary EDL",
-            "initial_value": false,
-            "inverted": false,
             "name": "Secondary Emergency Download Mode (EDL)",
-            "pin_number": "30",
+            "ref": {
+                "pin_number": "30"
+            },
             "run_priority": "0,0",
-            "classic_action": "TAC_FORCE_USB_BOOT_SEC",
-            "initialization_priority": -1,
             "tab_name": "Fusion"
         },
         {
-            "command": "sresn",
             "command_group": 3,
             "enabled": true,
             "help_hint": "Secondary PM_RESIN_N",
-            "initial_value": false,
-            "inverted": false,
             "name": "Secondary PM_RESIN_N",
-            "pin_number": "31",
+            "ref": {
+                "pin_number": "31"
+            },
             "run_priority": "0,1",
-            "classic_action": "TAC_RESET_SEC",
-            "initialization_priority": -1,
             "tab_name": "Fusion"
         },
         {
-            "command": "volup",
             "command_group": 2,
             "enabled": true,
             "help_hint": "Presses the volume up button",
-            "initial_value": false,
-            "inverted": false,
             "name": "Volume Up",
-            "pin_number": "34",
+            "ref": {
+                "pin_number": "34"
+            },
             "run_priority": "0,1",
-            "classic_action": "TAC_VOL_UP",
-            "initialization_priority": -1,
             "tab_name": "General"
         },
         {
-            "command": "usb1",
             "command_group": 1,
             "enabled": true,
             "help_hint": "Disconnects VBUS for USB1",
-            "initial_value": false,
-            "inverted": true,
             "name": "USB 1",
-            "pin_number": "36",
+            "ref": {
+                "pin_number": "36"
+            },
             "run_priority": "2,0",
-            "classic_action": "TAC_USB1_DIS",
-            "initialization_priority": 2,
             "tab_name": "General"
         },
         {
-            "command": "pshold",
             "command_group": 3,
             "enabled": false,
             "help_hint": "Forces PSHold high",
-            "initial_value": false,
-            "inverted": false,
             "name": "Force PS_HOLD High",
-            "pin_number": "37",
+            "ref": {
+                "pin_number": "37"
+            },
             "run_priority": "0,2",
-            "classic_action": "TAC_FORCE_PS_HOLD",
-            "initialization_priority": -1,
             "tab_name": "General"
         },
         {
-            "command": "pshold",
             "command_group": 3,
             "enabled": true,
             "help_hint": "Forces PSHold high",
-            "initial_value": false,
-            "inverted": false,
             "name": "Force PS_HOLD High",
-            "pin_number": "38",
+            "ref": {
+                "pin_number": "38"
+            },
             "run_priority": "0,2",
-            "classic_action": "",
-            "initialization_priority": -1,
             "tab_name": "General"
         },
         {
-            "command": "",
             "command_group": 0,
             "enabled": false,
             "help_hint": "",
-            "initial_value": false,
-            "inverted": false,
             "name": "",
-            "pin_number": "39",
+            "ref": {
+                "pin_number": "39"
+            },
             "run_priority": "-1,-1",
-            "classic_action": "",
-            "initialization_priority": -1,
             "tab_name": ""
         },
         {
-            "command": "",
             "command_group": 0,
             "enabled": false,
             "help_hint": "",
-            "initial_value": false,
-            "inverted": false,
             "name": "",
-            "pin_number": "46",
+            "ref": {
+                "pin_number": "46"
+            },
             "run_priority": "-1,-1",
-            "classic_action": "",
-            "initialization_priority": -1,
             "tab_name": ""
         },
         {
-            "command": "sdcard",
             "command_group": 3,
             "enabled": true,
             "help_hint": "Disconnects the SD card slot",
-            "initial_value": false,
-            "inverted": false,
             "name": "Disconnect SD Card",
-            "pin_number": "47",
+            "ref": {
+                "pin_number": "47"
+            },
             "run_priority": "0,3",
-            "classic_action": "TAC_SDCARD_DISC",
-            "initialization_priority": -1,
             "tab_name": "General"
         },
         {
-            "command": "",
             "command_group": 0,
             "enabled": false,
             "help_hint": "",
-            "initial_value": false,
-            "inverted": false,
             "name": "",
-            "pin_number": "48",
+            "ref": {
+                "pin_number": "48"
+            },
             "run_priority": "-1,-1",
-            "classic_action": "",
-            "initialization_priority": -1,
             "tab_name": ""
         },
         {
-            "command": "",
             "command_group": 0,
             "enabled": false,
             "help_hint": "",
-            "initial_value": false,
-            "inverted": false,
             "name": "",
-            "pin_number": "49",
+            "ref": {
+                "pin_number": "49"
+            },
             "run_priority": "-1,-1",
-            "classic_action": "",
-            "initialization_priority": -1,
             "tab_name": ""
         },
         {
-            "command": "pkey",
             "command_group": 2,
             "enabled": true,
             "help_hint": "Presses the power key button",
-            "initial_value": false,
-            "inverted": false,
             "name": "Power Key",
-            "pin_number": "50",
+            "ref": {
+                "pin_number": "50"
+            },
             "run_priority": "0,0",
-            "classic_action": "TAC_TC_START",
-            "initialization_priority": -1,
             "tab_name": "General"
         },
         {
-            "command": "voldn",
             "command_group": 2,
             "enabled": true,
             "help_hint": "Presses the volume down button",
-            "initial_value": false,
-            "inverted": false,
             "name": "Volume Down",
-            "pin_number": "51",
+            "ref": {
+                "pin_number": "51"
+            },
             "run_priority": "0,2",
-            "classic_action": "TAC_RESET_PRI",
-            "initialization_priority": -1,
             "tab_name": "General"
         },
         {
-            "command": "battery",
             "command_group": 1,
             "enabled": true,
             "help_hint": "Battery Disconnect",
-            "initial_value": false,
-            "inverted": true,
             "name": "Battery",
-            "pin_number": "53",
+            "ref": {
+                "pin_number": "53"
+            },
             "run_priority": "0,0",
-            "classic_action": "TAC_POWER_OFF",
-            "initialization_priority": 2,
             "tab_name": "General"
         },
         {
-            "command": "pedl",
             "command_group": 3,
             "enabled": true,
             "help_hint": "Enables Primary Emergency Download Mode",
-            "initial_value": false,
-            "inverted": false,
             "name": "Emergency Download Mode (EDL)",
-            "pin_number": "54",
+            "ref": {
+                "pin_number": "54"
+            },
             "run_priority": "0,1",
-            "classic_action": "TAC_SW_DWNLD_PRI",
-            "initialization_priority": -1,
             "tab_name": "General"
         },
         {
-            "command": "usb0",
             "command_group": 1,
             "enabled": true,
             "help_hint": "Disconnnects VBUS for USB 0",
-            "initial_value": false,
-            "inverted": true,
             "name": "USB 0",
-            "pin_number": "55",
+            "ref": {
+                "pin_number": "55"
+            },
             "run_priority": "1,0",
-            "classic_action": "TAC_USB0_DIS",
-            "initialization_priority": 2,
             "tab_name": "General"
         }
     ],
+    "platform_id": 74,
+    "platform_type": "PSOC",
     "tabs": [
         {
             "configurable": true,
             "moveable": false,
-            "ordinal": 0,
             "name": "General",
+            "ordinal": 0,
             "user_tab": false,
             "visible": true
         },
         {
             "configurable": false,
             "moveable": false,
-            "ordinal": 1,
             "name": "Device Info",
+            "ordinal": 1,
             "user_tab": false,
             "visible": true
         },
         {
             "configurable": true,
             "moveable": true,
-            "ordinal": 3,
             "name": "Fusion",
+            "ordinal": 3,
             "user_tab": true,
             "visible": true
         }
@@ -402,7 +331,6 @@
     "variables": [
         {
             "cellLocation": "0,0",
-            "default_value": "1300",
             "label": "EDL timing (ms)",
             "name": "edl",
             "tooltip": "Configurable Boot to EDL timing in milliseconds",
@@ -410,7 +338,6 @@
         },
         {
             "cellLocation": "1,0",
-            "default_value": "8000",
             "label": "Fastboot timing (ms)",
             "name": "fastboot",
             "tooltip": "Configurable Boot to fastboot timing in milliseconds",
@@ -418,7 +345,6 @@
         },
         {
             "cellLocation": "0,1",
-            "default_value": "8000",
             "label": "UEFI timing (ms)",
             "name": "uefi",
             "tooltip": "Configurable Boot to UEFI timing in milliseconds",

@@ -1077,6 +1077,12 @@ void _PSOCPlatformConfiguration::write(QJsonObject &parentLevel)
 
 	parentLevel[kMinFirmwareVersion] = firmwareVerions;
 
+	// read() restores the variant from this key. Without it a saved "GPIO with I2C"
+	// board reopens as ePSOCUnknown and the guard below then drops its slaves/i2c_addr
+	// on the next save, silently discarding the whole I2C configuration.
+	if (_variant != ePSOCUnknown)
+		parentLevel[kVariant] = static_cast<int>(_variant);
+
 	// Writing platform configuration mapping
 	QJsonArray jsonPlatformPinData;
 

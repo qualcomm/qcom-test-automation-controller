@@ -1,0 +1,359 @@
+{
+    "$schema": "https://qualcomm.github.io/tac/schemas/pinout-1.0.json",
+    "bus": [
+        {
+            "bus": "A",
+            "bus_function": 1,
+            "chip_index": 0
+        },
+        {
+            "bus": "B",
+            "bus_function": 1,
+            "chip_index": 0
+        },
+        {
+            "bus": "C",
+            "bus_function": 1,
+            "chip_index": 0
+        },
+        {
+            "bus": "D",
+            "bus_function": 2,
+            "chip_index": 0
+        }
+    ],
+    "chip_count": 1,
+    "description": "ALPACA-LITE SMART LABEL",
+    "format": "tac-pinout",
+    "name": "ALPACA-LITE SMART LABEL",
+    "pins": [
+        {
+            "bus": "A",
+            "chip_index": 0,
+            "command": "",
+            "initial_value": false,
+            "input": false,
+            "inverted": false,
+            "pin_number": "0",
+            "priority": -1
+        },
+        {
+            "bus": "B",
+            "chip_index": 0,
+            "command": "<type a command>",
+            "initial_value": false,
+            "input": false,
+            "inverted": false,
+            "pin_number": "0",
+            "priority": -1
+        },
+        {
+            "bus": "C",
+            "chip_index": 0,
+            "command": "<type a command>",
+            "initial_value": false,
+            "input": false,
+            "inverted": false,
+            "pin_number": "0",
+            "priority": -1
+        },
+        {
+            "bus": "D",
+            "chip_index": 0,
+            "command": "SoCWakeUp",
+            "initial_value": false,
+            "input": false,
+            "inverted": false,
+            "pin_number": "0",
+            "priority": -1
+        },
+        {
+            "bus": "A",
+            "chip_index": 0,
+            "command": "",
+            "initial_value": false,
+            "input": false,
+            "inverted": false,
+            "pin_number": "1",
+            "priority": -1
+        },
+        {
+            "bus": "B",
+            "chip_index": 0,
+            "command": "<type a command>",
+            "initial_value": false,
+            "input": false,
+            "inverted": false,
+            "pin_number": "1",
+            "priority": -1
+        },
+        {
+            "bus": "C",
+            "chip_index": 0,
+            "command": "<type a command>",
+            "initial_value": false,
+            "input": false,
+            "inverted": false,
+            "pin_number": "1",
+            "priority": -1
+        },
+        {
+            "bus": "D",
+            "chip_index": 0,
+            "command": "TESICMODE2",
+            "initial_value": false,
+            "input": false,
+            "inverted": false,
+            "pin_number": "1",
+            "priority": 2
+        },
+        {
+            "bus": "A",
+            "chip_index": 0,
+            "command": "",
+            "initial_value": false,
+            "input": false,
+            "inverted": false,
+            "pin_number": "2",
+            "priority": -1
+        },
+        {
+            "bus": "B",
+            "chip_index": 0,
+            "command": "<type a command>",
+            "initial_value": false,
+            "input": false,
+            "inverted": false,
+            "pin_number": "2",
+            "priority": -1
+        },
+        {
+            "bus": "C",
+            "chip_index": 0,
+            "command": "<type a command>",
+            "initial_value": false,
+            "input": false,
+            "inverted": false,
+            "pin_number": "2",
+            "priority": -1
+        },
+        {
+            "bus": "D",
+            "chip_index": 0,
+            "command": "QCXRESIN",
+            "initial_value": false,
+            "input": false,
+            "inverted": false,
+            "pin_number": "2",
+            "priority": -1
+        },
+        {
+            "bus": "A",
+            "chip_index": 0,
+            "command": "",
+            "initial_value": false,
+            "input": false,
+            "inverted": false,
+            "pin_number": "3",
+            "priority": -1
+        },
+        {
+            "bus": "B",
+            "chip_index": 0,
+            "command": "<type a command>",
+            "initial_value": false,
+            "input": false,
+            "inverted": false,
+            "pin_number": "3",
+            "priority": -1
+        },
+        {
+            "bus": "C",
+            "chip_index": 0,
+            "command": "<type a command>",
+            "initial_value": false,
+            "input": false,
+            "inverted": false,
+            "pin_number": "3",
+            "priority": -1
+        },
+        {
+            "bus": "D",
+            "chip_index": 0,
+            "command": "pkey",
+            "initial_value": false,
+            "input": false,
+            "inverted": false,
+            "pin_number": "3",
+            "priority": -1
+        },
+        {
+            "bus": "A",
+            "chip_index": 0,
+            "command": "",
+            "initial_value": false,
+            "input": false,
+            "inverted": false,
+            "pin_number": "4",
+            "priority": -1
+        },
+        {
+            "bus": "B",
+            "chip_index": 0,
+            "command": "<type a command>",
+            "initial_value": false,
+            "input": false,
+            "inverted": false,
+            "pin_number": "4",
+            "priority": -1
+        },
+        {
+            "bus": "C",
+            "chip_index": 0,
+            "command": "<type a command>",
+            "initial_value": false,
+            "input": false,
+            "inverted": false,
+            "pin_number": "4",
+            "priority": -1
+        },
+        {
+            "bus": "D",
+            "chip_index": 0,
+            "command": "TESICMODE0",
+            "initial_value": false,
+            "input": false,
+            "inverted": false,
+            "pin_number": "4",
+            "priority": -1
+        },
+        {
+            "bus": "A",
+            "chip_index": 0,
+            "command": "",
+            "initial_value": false,
+            "input": false,
+            "inverted": false,
+            "pin_number": "5",
+            "priority": -1
+        },
+        {
+            "bus": "B",
+            "chip_index": 0,
+            "command": "<type a command>",
+            "initial_value": false,
+            "input": false,
+            "inverted": false,
+            "pin_number": "5",
+            "priority": -1
+        },
+        {
+            "bus": "C",
+            "chip_index": 0,
+            "command": "<type a command>",
+            "initial_value": false,
+            "input": false,
+            "inverted": false,
+            "pin_number": "5",
+            "priority": -1
+        },
+        {
+            "bus": "D",
+            "chip_index": 0,
+            "command": "TESICMODE1",
+            "initial_value": false,
+            "input": false,
+            "inverted": false,
+            "pin_number": "5",
+            "priority": -1
+        },
+        {
+            "bus": "A",
+            "chip_index": 0,
+            "command": "",
+            "initial_value": false,
+            "input": false,
+            "inverted": false,
+            "pin_number": "6",
+            "priority": -1
+        },
+        {
+            "bus": "B",
+            "chip_index": 0,
+            "command": "<type a command>",
+            "initial_value": false,
+            "input": false,
+            "inverted": false,
+            "pin_number": "6",
+            "priority": -1
+        },
+        {
+            "bus": "C",
+            "chip_index": 0,
+            "command": "<type a command>",
+            "initial_value": false,
+            "input": false,
+            "inverted": false,
+            "pin_number": "6",
+            "priority": -1
+        },
+        {
+            "bus": "D",
+            "chip_index": 0,
+            "command": "",
+            "initial_value": true,
+            "input": false,
+            "inverted": false,
+            "pin_number": "6",
+            "priority": 1
+        },
+        {
+            "bus": "A",
+            "chip_index": 0,
+            "command": "",
+            "initial_value": false,
+            "input": false,
+            "inverted": false,
+            "pin_number": "7",
+            "priority": -1
+        },
+        {
+            "bus": "B",
+            "chip_index": 0,
+            "command": "<type a command>",
+            "initial_value": false,
+            "input": false,
+            "inverted": false,
+            "pin_number": "7",
+            "priority": -1
+        },
+        {
+            "bus": "C",
+            "chip_index": 0,
+            "command": "<type a command>",
+            "initial_value": false,
+            "input": false,
+            "inverted": false,
+            "pin_number": "7",
+            "priority": -1
+        },
+        {
+            "bus": "D",
+            "chip_index": 0,
+            "command": "MUXSEL",
+            "initial_value": false,
+            "input": false,
+            "inverted": false,
+            "pin_number": "7",
+            "priority": 2
+        }
+    ],
+    "platform_id": 42,
+    "platform_type": "FTDI",
+    "reset_enabled": false,
+    "schema_version": "1.0",
+    "script": "",
+    "usb_descriptor": "ALPACA-LITE SMART LABEL",
+    "variables": [
+    ]
+}

@@ -22,9 +22,12 @@
 #include <QDir>
 #include <QFile>
 #include <QFileInfo>
+#include <QHash>
 #include <QJsonArray>
 #include <QJsonDocument>
 #include <QJsonObject>
+#include <QSet>
+#include <QStringList>
 #include <QTime>
 
 // Parameters in the JSON TAC Configuration
@@ -78,6 +81,70 @@ const QString kDefaultTab(QStringLiteral("General"));
 const QPoint kDefaultCellLocation(-1,-1);
 
 const QString kNoVariableValue(QStringLiteral("<no value>"));
+
+// Self-describing envelope for the shared hardware pinout file. External tools
+// key off "format" == "tac-pinout".
+const QString kSchema(QStringLiteral("$schema"));
+const QString kSchemaUrl(QStringLiteral("https://qualcomm.github.io/tac/schemas/pinout-1.0.json"));
+const QString kFormat(QStringLiteral("format"));
+const QString kFormatValue(QStringLiteral("tac-pinout"));
+const QString kSchemaVersion(QStringLiteral("schema_version"));
+const QString kSchemaVersionValue(QStringLiteral("1.0"));
+
+// Link from the UI overlay (.tcnf) to its sibling pinout file, and the per-pin
+// key the overlay uses to join back to a hardware pin.
+const QString kPinoutRef(QStringLiteral("pinout_ref"));
+const QString kPinRef(QStringLiteral("ref"));
+const QString kPinoutExtension(QStringLiteral(".pinout.json"));
+
+// Keys partitioned between the two files by splitConfiguration()/mergeConfiguration().
+const QString kPins(QStringLiteral("pins"));
+const QString kBusArray(QStringLiteral("bus"));
+const QString kChipCount(QStringLiteral("chip_count"));
+const QString kChipIndex(QStringLiteral("chip_index"));
+const QString kPinNumber(QStringLiteral("pin_number"));
+const QString kPinIdentifier(QStringLiteral("pin"));
+const QString kInput(QStringLiteral("input"));
+const QString kInverted(QStringLiteral("inverted"));
+const QString kInitialValue(QStringLiteral("initial_value"));
+const QString kPriority(QStringLiteral("priority"));
+const QString kInitializationPriority(QStringLiteral("initialization_priority"));
+const QString kClassicAction(QStringLiteral("classic_action"));
+const QString kSupportedFirmwareVer(QStringLiteral("supportedFirmwareVer"));
+const QString kPSOCVariant(QStringLiteral("variant"));
+const QString kI2CSlaveArray(QStringLiteral("slaves"));
+const QString kI2CPinArray(QStringLiteral("i2c_addr"));
+const QString kI2CSlaveAddress(QStringLiteral("slave_addr"));
+const QString kI2CWriteAddress(QStringLiteral("write_addr"));
+
+// Per-pin key fields (identify a physical pin; written flat into the pinout file
+// and inside the "ref" object in the overlay). Platforms disagree on how a pin is
+// addressed - FTDI/PSOC/PIC32CX use chip_index + bus + pin_number, STM32 uses a
+// single "pin" - so every addressing field is listed here; a pin object carries
+// only the ones its own platform writes.
+const QStringList kPinKeyFields{kChipIndex, kBusArray, kPinNumber, kPinIdentifier};
+// Per-pin hardware fields -> pinout file. Any pin field that is neither a key
+// field nor a hardware field (enabled, name, help_hint, group/tab_name,
+// command_group, run_priority, and any future UI field) goes to the overlay.
+const QStringList kPinHardwareFields{
+	kCommand, kInput, kInverted, kInitialValue, kPriority,
+	kInitializationPriority, kClassicAction};
+
+// PSOC "GPIO with I2C" boards drive some pins through an I2C GPIO expander. Those
+// entries have the same hardware/UI mix as "pins" and are partitioned the same way:
+// the expander address identifies the pin, command/inverted/classic_action describe
+// what the hardware does, and the rest is presentation.
+const QStringList kI2CPinKeyFields{kPinNumber, kI2CSlaveAddress, kI2CWriteAddress};
+const QStringList kI2CPinHardwareFields{kCommand, kInverted, kClassicAction};
+
+// Top-level keys that belong only to the shared pinout file. "variant" and "slaves"
+// describe the board's I2C topology (which expander chips are fitted), so they
+// travel with the hardware rather than the UI.
+const QStringList kPinoutOnlyFields{
+	kUSBDescriptor, kResetEnabled, kScript, kChipCount, kBusArray, kSupportedFirmwareVer,
+	kPSOCVariant, kI2CSlaveArray};
+// Top-level identity keys duplicated into both files (overlay stays authoritative).
+const QStringList kIdentityFields{kName, kDescription, kPlatformType, kPlatformId};
 
 QString _PlatformConfiguration::_lastError;
 Buttons _PlatformConfiguration::_classicButtons;
@@ -146,6 +213,14 @@ PlatformConfiguration _PlatformConfiguration::openPlatformConfiguration
 	if (fileInfo.isFile())
 	{
 		QString fileName = fileInfo.fileName();
+		if (fileName.endsWith(kPinoutExtension, Qt::CaseInsensitive))
+		{
+			// Shared hardware pinout files are loaded as a side effect of opening
+			// their UI overlay (.tcnf); they are never opened directly here.
+			_PlatformConfiguration::_lastError = "Pinout files are not opened directly";
+			return result;
+		}
+
 		if (fileName.contains("_psoc_", Qt::CaseInsensitive))
 		{
 			result = PlatformConfiguration(new _PSOCPlatformConfiguration(ePSOCUnknown));
@@ -173,7 +248,13 @@ PlatformConfiguration _PlatformConfiguration::openPlatformConfiguration
 
 		if (result)
 		{
-			result->load(filePath);
+			// A configuration is now two files, so opening one can fail on the sibling
+			// pinout (missing, unparseable, wrong format) after the .tcnf itself read
+			// fine. Discard the half-built configuration in that case: returning it
+			// would hand the caller a default-initialised board that looks valid and
+			// silently replaces the user's own settings on the next save.
+			if (result->load(filePath) == false)
+				result = PlatformConfiguration();
 		}
 	}
 
@@ -993,6 +1074,11 @@ QString _PlatformConfiguration::filePath()
 	return QDir::cleanPath(_platformPath + QDir::separator() + _platformFile);
 }
 
+QString _PlatformConfiguration::pinoutFileName()
+{
+	return _pinoutFile;
+}
+
 void _PlatformConfiguration::setSupportedFirmwareVer(const QList<quint32> &firmwareList)
 {
 	_supportedFirmwareVer = firmwareList;
@@ -1036,49 +1122,391 @@ void _PlatformConfiguration::setUSBDescriptor(const QByteArray& usbDescriptor)
 	}
 }
 
-bool _PlatformConfiguration::load(const QString& filePath)
+// Stable identity string for a physical pin, built from whichever key fields are
+// present (FTDI: chip_index+bus+pin_number; PSOC/PIC32: pin_number). Used to join
+// the hardware pin in the pinout file to its UI counterpart in the overlay.
+static QString entryKeyString(const QJsonObject& keyHolder, const QStringList& keyFields)
 {
-	bool result(false);
-
-	QJsonDocument document;
-	QFile jsonFile(filePath);
-
-	if (jsonFile.open(QIODevice::ReadOnly))
+	QStringList parts;
+	for (const QString& field : keyFields)
 	{
-		QByteArray jsonFileContents = jsonFile.readAll();
-		if (jsonFileContents.isEmpty() == false)
+		if (keyHolder.contains(field))
+			parts << keyHolder.value(field).toVariant().toString();
+	}
+	return parts.join(QLatin1Char('|'));
+}
+
+// Splits an array whose entries mix hardware and UI fields (pins, i2c_addr) into a
+// hardware array for the pinout file and a UI array for the overlay. Key fields are
+// written flat into the hardware entry and repeated inside the overlay entry's "ref"
+// so the two halves can be rejoined on load.
+static void splitEntryArray
+(
+	const QJsonArray& entries,
+	const QStringList& keyFields,
+	const QStringList& hardwareFields,
+	QJsonArray& hardwareEntries,
+	QJsonArray& overlayEntries
+)
+{
+	const QSet<QString> keys(keyFields.cbegin(), keyFields.cend());
+	const QSet<QString> hardware(hardwareFields.cbegin(), hardwareFields.cend());
+
+	for (const QJsonValue& value : entries)
+	{
+		const QJsonObject entry = value.toObject();
+
+		QJsonObject hardwareEntry;
+		QJsonObject overlayEntry;
+		QJsonObject ref;
+
+		for (auto it = entry.constBegin(); it != entry.constEnd(); ++it)
 		{
-			QJsonParseError parserError;
+			const QString& key = it.key();
 
-			document = QJsonDocument::fromJson(jsonFileContents, &parserError);
-			if (parserError.error == QJsonParseError::NoError)
+			if (keys.contains(key))
 			{
-				if (document.isNull() == false)
-				{
-					result = true;
-
-					QJsonObject rootLevel = document.object();
-					read(rootLevel);
-
-					setFilePath(filePath);
-				}
-				else
-				{
-					_lastError = QObject::tr("JSON Document is NULL") ;
-				}
+				hardwareEntry[key] = it.value();
+				ref[key] = it.value();
+			}
+			else if (hardware.contains(key))
+			{
+				hardwareEntry[key] = it.value();
 			}
 			else
 			{
-				_lastError = QObject::tr("Error parsing configuration file") + parserError.errorString();
+				overlayEntry[key] = it.value();
 			}
 		}
+
+		overlayEntry[kPinRef] = ref;
+
+		hardwareEntries.append(hardwareEntry);
+		overlayEntries.append(overlayEntry);
+	}
+}
+
+// Inverse of splitEntryArray(): joins each hardware entry to its overlay counterpart
+// on the key fields. Hardware order wins; an overlay entry with no match is dropped,
+// exactly as an orphaned UI row would be ignored.
+static QJsonArray mergeEntryArray
+(
+	const QJsonArray& hardwareEntries,
+	const QJsonArray& overlayEntries,
+	const QStringList& keyFields
+)
+{
+	QHash<QString, QJsonObject> overlayByKey;
+	for (const QJsonValue& value : overlayEntries)
+	{
+		const QJsonObject overlayEntry = value.toObject();
+		overlayByKey.insert(entryKeyString(overlayEntry.value(kPinRef).toObject(), keyFields), overlayEntry);
+	}
+
+	QJsonArray combined;
+	for (const QJsonValue& value : hardwareEntries)
+	{
+		QJsonObject entry = value.toObject();
+
+		const auto found = overlayByKey.constFind(entryKeyString(entry, keyFields));
+		if (found != overlayByKey.constEnd())
+		{
+			const QJsonObject overlayEntry = found.value();
+			for (auto it = overlayEntry.constBegin(); it != overlayEntry.constEnd(); ++it)
+			{
+				if (it.key() == kPinRef)
+					continue;
+				entry[it.key()] = it.value();
+			}
+		}
+
+		combined.append(entry);
+	}
+
+	return combined;
+}
+
+static bool writeJsonObjectToFile(const QString& path, const QJsonObject& object)
+{
+	QJsonDocument document(object);
+	if (document.isNull())
+		return false;
+
+	const QByteArray bytes = document.toJson(QJsonDocument::Indented);
+	if (bytes.isEmpty())
+		return false;
+
+	QFile file(path);
+	if (file.open(QIODevice::WriteOnly) == false)
+		return false;
+
+	file.write(bytes);
+	file.close();
+
+	return true;
+}
+
+QString _PlatformConfiguration::pinoutFileNameFor(const QString& overlayFileName)
+{
+	QString base = overlayFileName;
+	const int dot = base.lastIndexOf(QLatin1Char('.'));
+	if (dot > 0)
+		base.truncate(dot);
+
+	return base + kPinoutExtension;
+}
+
+void _PlatformConfiguration::splitConfiguration
+(
+	const QJsonObject& combined,
+	QJsonObject& pinout,
+	QJsonObject& overlay
+)
+{
+	pinout = QJsonObject();
+	overlay = QJsonObject();
+
+	// Self-describing envelope so 3rd-party tools can recognise the pinout file.
+	pinout[kSchema] = kSchemaUrl;
+	pinout[kFormat] = kFormatValue;
+	pinout[kSchemaVersion] = kSchemaVersionValue;
+
+	const QSet<QString> pinoutOnly(kPinoutOnlyFields.cbegin(), kPinoutOnlyFields.cend());
+	const QSet<QString> identity(kIdentityFields.cbegin(), kIdentityFields.cend());
+
+	// Top-level scalar/array fields. Pins and variables are handled separately
+	// because they straddle both files.
+	for (auto it = combined.constBegin(); it != combined.constEnd(); ++it)
+	{
+		const QString& key = it.key();
+
+		if (key == kPins || key == kScriptVariables || key == kI2CPinArray)
+			continue;
+
+		if (identity.contains(key))
+		{
+			pinout[key] = it.value();
+			overlay[key] = it.value();
+		}
+		else if (pinoutOnly.contains(key))
+		{
+			pinout[key] = it.value();
+		}
+		else
+		{
+			overlay[key] = it.value();
+		}
+	}
+
+	// Pins: hardware fields + key -> pinout; key (as "ref") + UI fields -> overlay.
+	QJsonArray pinoutPins;
+	QJsonArray overlayPins;
+	splitEntryArray(combined.value(kPins).toArray(), kPinKeyFields, kPinHardwareFields,
+	                pinoutPins, overlayPins);
+
+	pinout[kPins] = pinoutPins;
+	overlay[kPins] = overlayPins;
+
+	// I2C expander pins (PSOC "GPIO with I2C" only): same treatment as pins. Absent
+	// on every other board, and an absent key stays absent in both halves.
+	if (combined.contains(kI2CPinArray))
+	{
+		QJsonArray pinoutI2C;
+		QJsonArray overlayI2C;
+		splitEntryArray(combined.value(kI2CPinArray).toArray(), kI2CPinKeyFields,
+		                kI2CPinHardwareFields, pinoutI2C, overlayI2C);
+
+		pinout[kI2CPinArray] = pinoutI2C;
+		overlay[kI2CPinArray] = overlayI2C;
+	}
+
+	// Variables: defaults travel with the hardware (the script references them);
+	// label/tooltip/type/layout stay in the overlay. Joined later on name.
+	const QJsonArray variables = combined.value(kScriptVariables).toArray();
+	QJsonArray pinoutVars;
+	QJsonArray overlayVars;
+
+	for (const QJsonValue& varValue : variables)
+	{
+		const QJsonObject variable = varValue.toObject();
+
+		QJsonObject hardwareVar;
+		QJsonObject uiVar;
+
+		for (auto it = variable.constBegin(); it != variable.constEnd(); ++it)
+		{
+			const QString& key = it.key();
+
+			if (key == kName)
+			{
+				hardwareVar[key] = it.value();
+				uiVar[key] = it.value();
+			}
+			else if (key == kDefaultScriptDefaultValue)
+			{
+				hardwareVar[key] = it.value();
+			}
+			else
+			{
+				uiVar[key] = it.value();
+			}
+		}
+
+		pinoutVars.append(hardwareVar);
+		overlayVars.append(uiVar);
+	}
+
+	pinout[kScriptVariables] = pinoutVars;
+	overlay[kScriptVariables] = overlayVars;
+}
+
+QJsonObject _PlatformConfiguration::mergeConfiguration
+(
+	const QJsonObject& pinout,
+	const QJsonObject& overlay
+)
+{
+	QJsonObject combined;
+
+	// Overlay owns metadata, tabs, buttons and UI fields.
+	for (auto it = overlay.constBegin(); it != overlay.constEnd(); ++it)
+	{
+		const QString& key = it.key();
+		if (key == kPinoutRef || key == kPins || key == kScriptVariables || key == kI2CPinArray)
+			continue;
+		combined[key] = it.value();
+	}
+
+	// Layer in pinout-owned top-level fields (script, bus, chip_count, usb, ...).
+	// Skip the envelope; identity fields already came from the overlay.
+	static const QSet<QString> envelope{kSchema, kFormat, kSchemaVersion};
+	for (auto it = pinout.constBegin(); it != pinout.constEnd(); ++it)
+	{
+		const QString& key = it.key();
+		if (envelope.contains(key) || key == kPins || key == kScriptVariables || key == kI2CPinArray)
+			continue;
+		if (combined.contains(key) == false)
+			combined[key] = it.value();
+	}
+
+	// Join hardware pins to their UI counterparts on the physical-pin key.
+	combined[kPins] = mergeEntryArray(pinout.value(kPins).toArray(),
+	                                  overlay.value(kPins).toArray(),
+	                                  kPinKeyFields);
+
+	// Same for the I2C expander pins, when the board has them.
+	if (pinout.contains(kI2CPinArray) || overlay.contains(kI2CPinArray))
+	{
+		combined[kI2CPinArray] = mergeEntryArray(pinout.value(kI2CPinArray).toArray(),
+		                                         overlay.value(kI2CPinArray).toArray(),
+		                                         kI2CPinKeyFields);
+	}
+
+	// Join variable defaults (pinout) to labels/layout (overlay) on name.
+	const QJsonArray hardwareVars = pinout.value(kScriptVariables).toArray();
+	const QJsonArray uiVars = overlay.value(kScriptVariables).toArray();
+
+	QHash<QString, QJsonObject> uiVarByName;
+	for (const QJsonValue& value : uiVars)
+	{
+		const QJsonObject uiVar = value.toObject();
+		uiVarByName.insert(uiVar.value(kName).toString(), uiVar);
+	}
+
+	QJsonArray combinedVars;
+	for (const QJsonValue& value : hardwareVars)
+	{
+		QJsonObject variable = value.toObject();
+
+		const auto found = uiVarByName.constFind(variable.value(kName).toString());
+		if (found != uiVarByName.constEnd())
+		{
+			const QJsonObject uiVar = found.value();
+			for (auto it = uiVar.constBegin(); it != uiVar.constEnd(); ++it)
+				variable[it.key()] = it.value();
+		}
+
+		combinedVars.append(variable);
+	}
+	combined[kScriptVariables] = combinedVars;
+
+	return combined;
+}
+
+bool _PlatformConfiguration::load(const QString& filePath)
+{
+	QFile jsonFile(filePath);
+	if (jsonFile.open(QIODevice::ReadOnly) == false)
+	{
+		_lastError = QObject::tr("Unable to open platform configuration file ") + filePath;
+		return false;
+	}
+
+	const QByteArray jsonFileContents = jsonFile.readAll();
+	if (jsonFileContents.isEmpty())
+	{
+		_lastError = QObject::tr("Empty platform configuration file ") + filePath;
+		return false;
+	}
+
+	QJsonParseError parserError;
+	const QJsonDocument document = QJsonDocument::fromJson(jsonFileContents, &parserError);
+	if (parserError.error != QJsonParseError::NoError)
+	{
+		_lastError = QObject::tr("Error parsing configuration file ") + parserError.errorString();
+		return false;
+	}
+	if (document.isNull())
+	{
+		_lastError = QObject::tr("JSON Document is NULL");
+		return false;
+	}
+
+	const QJsonObject overlay = document.object();
+	QJsonObject combined;
+
+	if (overlay.contains(kPinoutRef))
+	{
+		// New two-file format: resolve and merge the sibling pinout file.
+		const QString pinoutName = overlay.value(kPinoutRef).toString();
+		const QString pinoutPath = QDir(QFileInfo(filePath).absolutePath()).filePath(pinoutName);
+
+		QFile pinoutFile(pinoutPath);
+		if (pinoutFile.open(QIODevice::ReadOnly) == false)
+		{
+			_lastError = QObject::tr("Unable to open pinout file ") + pinoutPath;
+			return false;
+		}
+
+		QJsonParseError pinoutError;
+		const QJsonDocument pinoutDocument = QJsonDocument::fromJson(pinoutFile.readAll(), &pinoutError);
+		if (pinoutError.error != QJsonParseError::NoError || pinoutDocument.isNull())
+		{
+			_lastError = QObject::tr("Error parsing pinout file ") + pinoutError.errorString();
+			return false;
+		}
+
+		const QJsonObject pinout = pinoutDocument.object();
+		if (pinout.value(kFormat).toString() != kFormatValue)
+		{
+			_lastError = QObject::tr("Unexpected pinout file format in ") + pinoutPath;
+			return false;
+		}
+
+		combined = mergeConfiguration(pinout, overlay);
+		_pinoutFile = pinoutName;
 	}
 	else
 	{
-		_lastError = QObject::tr("Unable to open platform configuration file ") + filePath;
+		// Legacy combined configuration (pins and script stored inline).
+		combined = overlay;
+		_pinoutFile.clear();
 	}
 
-	return result;
+	read(combined);
+	setFilePath(filePath);
+
+	return true;
 }
 
 void _PlatformConfiguration::save()
@@ -1106,37 +1534,38 @@ void _PlatformConfiguration::save()
 	if (_platformFile.isEmpty())
 		_platformFile = makeConfigName(getPlatformString(), _platformId);
 
-	QString targetFilePath = QDir::cleanPath(_platformPath + QDir::separator() + _platformFile);
+	const QString overlayPath = QDir::cleanPath(_platformPath + QDir::separator() + _platformFile);
 
-	QFile targetFile(targetFilePath);
-	if (targetFile.open(QIODevice::WriteOnly) == true)
+	// Serialize the unified in-memory model, then split it into the shared pinout
+	// file and the UI overlay (.tcnf) that references it.
+	QJsonObject combined;
+	write(combined);
+
+	QJsonObject pinout;
+	QJsonObject overlay;
+	splitConfiguration(combined, pinout, overlay);
+
+	const QString pinoutName = pinoutFileNameFor(_platformFile);
+	overlay[kPinoutRef] = pinoutName;
+
+	const QString pinoutPath = QDir::cleanPath(_platformPath + QDir::separator() + pinoutName);
+
+	if (writeJsonObjectToFile(pinoutPath, pinout) == false)
 	{
-		QJsonObject rootLevel;
-		QJsonDocument document;
-
-		write(rootLevel);
-
-		document = QJsonDocument(rootLevel);
-
-		if (document.isNull() == false)
-		{
-			QByteArray jsonDocument = document.toJson(QJsonDocument::Indented);
-			if (jsonDocument.isEmpty() == false)
-			{
-				QFile jsonFile(targetFilePath);
-
-				if (jsonFile.open(QIODevice::WriteOnly) == true)
-				{
-					jsonFile.write(jsonDocument);
-					jsonFile.close();
-
-					_dirty = false;
-
-					setFilePath(targetFilePath);
-				}
-			}
-		}
+		_lastError = QObject::tr("Unable to write pinout file ") + pinoutPath;
+		return;
 	}
+
+	if (writeJsonObjectToFile(overlayPath, overlay) == false)
+	{
+		_lastError = QObject::tr("Unable to write configuration file ") + overlayPath;
+		return;
+	}
+
+	_pinoutFile = pinoutName;
+	_dirty = false;
+
+	setFilePath(overlayPath);
 }
 
 bool _PlatformConfiguration::read(QJsonObject& parentLevel)
