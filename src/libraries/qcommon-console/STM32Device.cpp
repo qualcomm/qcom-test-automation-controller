@@ -202,16 +202,6 @@ void STM32Device::buildMapping()
 	buildQuickSettings();
 }
 
-void STM32Device::setPinState(PinID pin, bool state)
-{
-	bool physicalState = state;
-
-	if (_stm32PlatformConfiguration != Q_NULLPTR && _stm32PlatformConfiguration->getPinInvertedState(pin))
-		physicalState = !state;
-
-	_AlpacaDevice::setPinState(pin, physicalState);
-}
-
 void STM32Device::buildCommandList()
 {
 	if (_commands.isEmpty() == true)
