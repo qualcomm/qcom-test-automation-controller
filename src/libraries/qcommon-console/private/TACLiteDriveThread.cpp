@@ -115,7 +115,7 @@ void TACLiteDriveThread::externalPowerControl
 	waitForCompletion();
 }
 
-void TACLiteDriveThread::setPinState
+bool TACLiteDriveThread::setPinState
 (
 	quint16 pin,
 	bool state
@@ -127,7 +127,7 @@ void TACLiteDriveThread::setPinState
 		tacCommand.setPinState(pin, state);
 	}
 
-	waitForCompletion();
+	return waitForCompletion();
 }
 
 void TACLiteDriveThread::sendCommandSequence

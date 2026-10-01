@@ -30,7 +30,7 @@ public:
 	virtual void sendCommand(const QByteArray& command, bool console = false,
 		ReceiveInterface* receiveInterface = Q_NULLPTR, bool shouldStore = true);
 
-	virtual void setPinState(quint16 pin, bool state);
+	virtual bool setPinState(quint16 pin, bool state);
 	virtual void sendCommandSequence(CommandEntries& commandEntries);
 
 	virtual int getResetCount();

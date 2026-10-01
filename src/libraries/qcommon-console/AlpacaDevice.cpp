@@ -362,8 +362,7 @@ bool _AlpacaDevice::sendCommand
 	{
 		if (_commands.find(command) != _commands.end())
 		{
-			setPinState(_commands[command]._pin, state);
-			result = true;
+			result = setPinState(_commands[command]._pin, state);
 		}
 		else if (result == false)
 		{
@@ -412,8 +411,12 @@ bool _AlpacaDevice::quickCommand
 				CommandEntries commandEntries = _alpacaScript.getCommandEntries(command);
 				CommandEntries substitutedCommandEntries = _alpacaScript.replaceTokens(scriptVariables, commandEntries);
 				_driveThread->sendCommandSequence(substitutedCommandEntries);
+				result = _driveThread->waitForCompletion();
 
-				result = true;
+				if (result == false)
+				{
+					throw TACException(TAC_COMMAND_TIMEOUT, "quickCommand error: Command timed out waiting for completion");
+				}
 			}
 			else
 			{
@@ -503,7 +506,7 @@ QByteArray _AlpacaDevice::getHelp()
 	return _helpText;
 }
 
-void _AlpacaDevice::setPinState
+bool _AlpacaDevice::setPinState
 (
 	PinID pin,
 	bool state
@@ -513,13 +516,18 @@ void _AlpacaDevice::setPinState
 	{
 		if (active() == true)
 		{
-			_driveThread->setPinState(pin, state);
+			bool result = _driveThread->setPinState(pin, state);
 			if (AppCore::getAppCore()->appLoggingActive())
 			{
 				TACCommand tacCommand = TACCommand::find(pin, _commandList);
 
 				AppCore::writeToApplicationLogLine("_AlpacaDevice::setPinState(" + QString::number(pin) +")  Command:" + tacCommand._command);
 			}
+			if (result == false)
+			{
+				throw TACException(TAC_COMMAND_TIMEOUT, "setPinState error: Command timed out waiting for completion");
+			}
+			return result;
 		}
 		else
 		{
@@ -530,6 +538,7 @@ void _AlpacaDevice::setPinState
 	else
 	{
 		AppCore::writeToApplicationLogLine("_AlpacaDevice::setPinState _driveThread is NULL");
+		throw TACException(TAC_DEVICE_INACTIVE, kSetPinError);
 	}
 }
 
@@ -839,4 +848,3 @@ void _AlpacaDevice::i2CWriteRegister(quint32 addr, quint32 reg, quint32 data)
 	if (_driveThread != Q_NULLPTR)
 		_driveThread->i2CWriteRegister(addr, reg, data);
 }
-

@@ -121,7 +121,7 @@ void TACPIC32CXDriveThread::sendCommand
 	send(decodedCommand, args, console, receiveInterface, shouldStore);
 }
 
-void TACPIC32CXDriveThread::setPinState(quint16 pin, bool state)
+bool TACPIC32CXDriveThread::setPinState(quint16 pin, bool state)
 {
 	{
 		TACPIC32CXCommand tacCommand(this, this);
@@ -129,7 +129,7 @@ void TACPIC32CXDriveThread::setPinState(quint16 pin, bool state)
 		tacCommand.setPinState(pin, state);
 	}
 
-	waitForCompletion();
+	return waitForCompletion();
 }
 
 void TACPIC32CXDriveThread::endTransaction

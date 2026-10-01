@@ -71,7 +71,7 @@ HashType TACDriveThread::hash()
 	return _hash;
 }
 
-void TACDriveThread::waitForCompletion()
+bool TACDriveThread::waitForCompletion()
 {
 	int count{0};
 
@@ -85,8 +85,11 @@ void TACDriveThread::waitForCompletion()
 			AppCore::writeToApplicationLogLine("Wait for completion timed out.");
 
 			_waitForCompletion = false;
+			return false;
 		}
 	}
+
+	return true;
 }
 
 void TACDriveThread::setWaitForCompletion()

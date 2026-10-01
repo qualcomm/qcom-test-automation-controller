@@ -38,7 +38,7 @@ public:
 	void buildCommandList();
 	virtual void buildMapping();
 
-	virtual void setPinState(PinID pin, bool state);
+	virtual bool setPinState(PinID pin, bool state);
 
 	// HID transport - the only place in the codebase permitted to call hidapi functions
 	bool openTransport();

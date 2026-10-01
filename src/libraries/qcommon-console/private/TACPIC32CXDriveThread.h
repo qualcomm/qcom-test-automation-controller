@@ -35,7 +35,7 @@ public:
 	void sendCommand(const QByteArray& command, bool console = false,
 							 ReceiveInterface* receiveInterface = Q_NULLPTR, bool shouldStore = true);
 
-	void setPinState(quint16 pin, bool state);
+	bool setPinState(quint16 pin, bool state);
 	void sendCommandSequence(CommandEntries& commandEntries);
 
 	int getResetCount();
