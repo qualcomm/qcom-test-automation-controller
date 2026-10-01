@@ -845,8 +845,16 @@ TAC_ERROR SetPinState
 	AlpacaDevice alpacaDevice = gDevTACCore.getAlpacaDevice(tacHandle);
 	if (alpacaDevice.isNull() == false)
 	{
-		alpacaDevice->setWaitForCompletion();
-		alpacaDevice->setPinState(pin, state);
+		try
+		{
+			alpacaDevice->setWaitForCompletion();
+			alpacaDevice->setPinState(pin, state);
+		}
+		catch (TACException& e)
+		{
+			result = e.errorCode();
+			gDevTACCore.setLastError(e.getMessage());
+		}
 	}
 	else
 	{
