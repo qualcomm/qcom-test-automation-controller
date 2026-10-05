@@ -132,6 +132,57 @@ bool TACPIC32CXDriveThread::setPinState(quint16 pin, bool state)
 	return waitForCompletion();
 }
 
+// ----------------------------------------------------------------------------
+// resetTransport
+//
+/// Recovers a wedged serial connection to the PIC32CX board.
+///
+/// When the board stops acknowledging, every command fails in
+/// waitForCompletion(). Reopening the TACDev handle alone does not help: the
+/// QSerialPort object is still the same stuck instance, so this tears it down
+/// and re-establishes it, discarding any partially framed data.
+///
+/// @returns true when the port was successfully reopened.
+// ----------------------------------------------------------------------------
+bool TACPIC32CXDriveThread::resetTransport()
+{
+	AppCore::writeToApplicationLogLine("TACPIC32CXDriveThread::resetTransport: resetting serial transport");
+
+	// Any in-flight command is abandoned; otherwise the stale flag would make
+	// the next waitForCompletion() return immediately on a dead connection.
+	clearWaitForCompletion();
+
+	if (_serialPort != Q_NULLPTR)
+	{
+		// Discard partially received frames so the reopened port starts clean.
+		_serialPort->clear();
+		_serialPort->close();
+
+		delete _serialPort;
+		_serialPort = Q_NULLPTR;
+	}
+
+	_connected = false;
+	_readyRead = false;
+	_serialBuffer.clear();
+
+	bool result = openSerialDevice();
+
+	if (result == true && _serialPort != Q_NULLPTR)
+	{
+		// run() wires these up after its own open(); the replacement port is a
+		// new object, so the connections must be re-established or readyRead
+		// will never fire again and every read would time out.
+		connect(_serialPort, &QSerialPort::errorOccurred, this, &TACPIC32CXDriveThread::handleError, Qt::DirectConnection);
+		connect(_serialPort, &QSerialPort::readyRead, this, &TACPIC32CXDriveThread::on_readyRead, Qt::DirectConnection);
+	}
+
+	AppCore::writeToApplicationLogLine(
+		QString("TACPIC32CXDriveThread::resetTransport: %1").arg(result ? "succeeded" : "failed"));
+
+	return result;
+}
+
 void TACPIC32CXDriveThread::endTransaction
 (
 	ReceiveInterface* receiveInterface

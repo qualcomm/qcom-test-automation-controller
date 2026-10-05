@@ -415,6 +415,31 @@ bool _AlpacaDevice::quickCommand
 
 				if (result == false)
 				{
+					// Same rationale as setPinState(): reset the wedged
+					// transport and replay the sequence once. bootToEDL and the
+					// other button commands arrive through here, so without
+					// this they would report a timeout with no attempt to
+					// recover.
+					AppCore::writeToApplicationLogLine(
+						QString("_AlpacaDevice::quickCommand(%1): command timed out, attempting transport reset").arg(command));
+
+					if (resetTransport() == true)
+					{
+						setWaitForCompletion();
+
+						CommandEntries retryEntries = _alpacaScript.replaceTokens(scriptVariables, commandEntries);
+						_driveThread->sendCommandSequence(retryEntries);
+						result = _driveThread->waitForCompletion();
+
+						AppCore::writeToApplicationLogLine(
+							QString("_AlpacaDevice::quickCommand(%1): retry after reset %2")
+								.arg(command)
+								.arg(result ? "succeeded" : "failed"));
+					}
+				}
+
+				if (result == false)
+				{
 					throw TACException(TAC_COMMAND_TIMEOUT, "quickCommand error: Command timed out waiting for completion");
 				}
 			}
@@ -525,6 +550,26 @@ bool _AlpacaDevice::setPinState
 			}
 			if (result == false)
 			{
+				// The board stopped acknowledging. Reopening the TACDev handle
+				// does not clear this, so reset the transport in place and make
+				// one more attempt before reporting the timeout.
+				AppCore::writeToApplicationLogLine(
+					QString("_AlpacaDevice::setPinState(%1): command timed out, attempting transport reset").arg(QString::number(pin)));
+
+				if (resetTransport() == true)
+				{
+					setWaitForCompletion();
+					result = _driveThread->setPinState(pin, state);
+
+					AppCore::writeToApplicationLogLine(
+						QString("_AlpacaDevice::setPinState(%1): retry after reset %2")
+							.arg(QString::number(pin))
+							.arg(result ? "succeeded" : "failed"));
+				}
+			}
+
+			if (result == false)
+			{
 				throw TACException(TAC_COMMAND_TIMEOUT, "setPinState error: Command timed out waiting for completion");
 			}
 			return result;
@@ -540,6 +585,22 @@ bool _AlpacaDevice::setPinState
 		AppCore::writeToApplicationLogLine("_AlpacaDevice::setPinState _driveThread is NULL");
 		throw TACException(TAC_DEVICE_INACTIVE, kSetPinError);
 	}
+}
+
+bool _AlpacaDevice::resetTransport()
+{
+	bool result{false};
+
+	if (_driveThread != Q_NULLPTR)
+	{
+		result = _driveThread->resetTransport();
+	}
+	else
+	{
+		AppCore::writeToApplicationLogLine("_AlpacaDevice::resetTransport _driveThread is NULL");
+	}
+
+	return result;
 }
 
 void _AlpacaDevice::setAddressPinState

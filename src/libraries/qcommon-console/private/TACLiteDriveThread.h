@@ -64,6 +64,8 @@ public:
 
 	QString portDescription();
 
+	bool resetTransport() override;
+
 protected:
 	bool openFTDIDevice();
 

@@ -36,6 +36,7 @@ public:
 							 ReceiveInterface* receiveInterface = Q_NULLPTR, bool shouldStore = true);
 
 	bool setPinState(quint16 pin, bool state);
+	bool resetTransport() override;
 	void sendCommandSequence(CommandEntries& commandEntries);
 
 	int getResetCount();

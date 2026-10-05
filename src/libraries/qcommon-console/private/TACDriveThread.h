@@ -48,6 +48,25 @@ public:
 		ReceiveInterface* receiveInterface = Q_NULLPTR, bool shouldStore = true) = 0;
 
 	virtual bool setPinState(quint16 pin, bool state) = 0;
+
+	// ----------------------------------------------------------------------------
+	// resetTransport
+	//
+	/// Attempts to recover a wedged host-side transport without requiring the
+	/// board to physically re-enumerate on USB.
+	///
+	/// Background: when the debug board stops acknowledging commands,
+	/// waitForCompletion() times out on every subsequent command. Simply
+	/// reopening the TACDev handle is not sufficient, because the underlying
+	/// transport object is still in its stuck state. This gives each transport
+	/// a chance to purge buffers and re-establish its own connection.
+	///
+	/// The base implementation does nothing and reports failure, so transports
+	/// that cannot be reset keep their existing behaviour.
+	///
+	/// @returns true when the transport was reset and is usable again.
+	// ----------------------------------------------------------------------------
+	virtual bool resetTransport() { return false; }
 	virtual void setAddressPinState(const QString& i2cAddress, quint16 pin, bool state) {}
 	virtual void sendCommandSequence(CommandEntries& commandEntries) = 0;
 

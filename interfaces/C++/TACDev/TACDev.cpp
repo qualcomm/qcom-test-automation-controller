@@ -443,7 +443,15 @@ TAC_ERROR SetExternalPowerControl
 	AlpacaDevice alpacaDevice = gDevTACCore.getAlpacaDevice(tacHandle);
 	if (alpacaDevice.isNull() == false)
 	{
-		alpacaDevice->externalPowerControl(state);
+		try
+		{
+			alpacaDevice->externalPowerControl(state);
+		}
+		catch (const TACException& e)
+		{
+			result = e.errorCode();
+			gDevTACCore.setLastError(e.getMessage());
+		}
 	}
 	else
 	{

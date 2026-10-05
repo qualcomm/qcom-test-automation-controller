@@ -101,6 +101,50 @@ bool TACLiteDriveThread::openFTDIDevice()
 	return result;
 }
 
+// ----------------------------------------------------------------------------
+// resetTransport
+//
+/// Recovers a wedged FTDI connection to the Alpaca Lite board.
+///
+/// When the board stops acknowledging, every command fails in
+/// waitForCompletion(). Reopening the TACDev handle does not help because the
+/// FTDI handles are still the same stuck ones, so close and reopen the chipset
+/// to force fresh FT_OpenEx handles.
+///
+/// @returns true when the chipset was successfully reopened.
+// ----------------------------------------------------------------------------
+bool TACLiteDriveThread::resetTransport()
+{
+	AppCore::writeToApplicationLogLine("TACLiteDriveThread::resetTransport: resetting FTDI transport");
+
+	// Abandon any in-flight command, otherwise the stale flag would let the
+	// next waitForCompletion() return immediately on a dead connection.
+	clearWaitForCompletion();
+
+	bool result{false};
+
+	if (_ftdiChipset.isNull() == false)
+	{
+		// openFTDIDevice() only opens when isOpen() is false, so the close must
+		// happen first or the reopen below becomes a no-op.
+		_ftdiChipset->close();
+
+		_connected = false;
+		_readyRead = false;
+
+		result = openFTDIDevice();
+	}
+	else
+	{
+		AppCore::writeToApplicationLogLine("TACLiteDriveThread::resetTransport: _ftdiChipset is NULL");
+	}
+
+	AppCore::writeToApplicationLogLine(
+		QString("TACLiteDriveThread::resetTransport: %1").arg(result ? "succeeded" : "failed"));
+
+	return result;
+}
+
 void TACLiteDriveThread::externalPowerControl
 (
 	bool state
