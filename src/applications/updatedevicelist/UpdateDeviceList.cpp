@@ -15,12 +15,6 @@
 // C++
 #include <iostream>
 
-#ifdef Q_OS_WIN
-const QString kServerConfigDir(QStringLiteral("C:\\github\\open-source\\qcom-test-automation-controller\\configurations"));
-#endif
-#ifdef Q_OS_LINUX
-	const QString kServerConfigDir = expandPath("/local/mnt/workspace/github/open-source/qcom-test-automation-controller/configurations");
-#endif
 
 UpdateDeviceList::UpdateDeviceList()
 {
@@ -155,21 +149,6 @@ void UpdateDeviceList::write()
 	}
 	else
 	{
-		configFilePath = QDir::cleanPath(kServerConfigDir);
-
-		if (QDir(configFilePath).exists())
-		{
-			if (_verbose)
-				std::cout << "Processing path " << configFilePath.toLatin1().data() << std::endl;
-
-			save(configFilePath);
-		}
-		else
-		{
-			// don't print this one
-			// std::cout << configFilePath.toLatin1().data() << " does not exist " << std::endl;
-		}
-
 		configFilePath = QDir::cleanPath(tacConfigRoot());
 		if (QDir(configFilePath).exists())
 		{

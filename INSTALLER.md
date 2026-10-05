@@ -98,7 +98,7 @@ configuration list is generated automatically.
 | Content | Location |
 | :-- | :-- |
 | Applications and libraries | `/opt/qcom/QTAC/bin/`, `/opt/qcom/QTAC/lib/` |
-| Documentation | `/opt/qcom/QTAC/docs/` |
+| Documentation | `/opt/qcom/QTAC/docs/QTAC/` |
 | Example automation scripts | `/opt/qcom/QTAC/examples/` |
 | Python interface files | `/opt/qcom/QTAC/python/` |
 | Device/platform configuration files | `/var/lib/qcom/data/QTAC/configurations/` |

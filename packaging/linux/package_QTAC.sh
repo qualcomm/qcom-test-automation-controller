@@ -114,7 +114,7 @@ trap 'if [ "${NO_CLEANUP:-0}" -ne 1 ]; then rm -rf "$WORKDIR"; fi' EXIT
 mkdir -p "$BUILDROOT/DEBIAN"
 mkdir -p "$BUILDROOT$INSTALL_PREFIX/bin"
 mkdir -p "$BUILDROOT$INSTALL_PREFIX/lib"
-mkdir -p "$BUILDROOT$INSTALL_PREFIX/docs"
+mkdir -p "$BUILDROOT$INSTALL_PREFIX/docs/QTAC"
 mkdir -p "$BUILDROOT$INSTALL_PREFIX/examples"
 mkdir -p "$BUILDROOT$INSTALL_PREFIX/python"
 mkdir -p "$BUILDROOT$INSTALL_PREFIX/plugins"
@@ -136,7 +136,7 @@ cp -a "$CONFIG_SRC_DIR/." \
 
 echo "Copying docs..."
 cp -a "$DOCS_SRC_DIR/." \
-      "$BUILDROOT$INSTALL_PREFIX/docs/"
+      "$BUILDROOT$INSTALL_PREFIX/docs/QTAC/"
 	  
 echo "Copying examples..."
 cp -a "$EXAMPLES_SRC_DIR/." \
@@ -157,7 +157,7 @@ cp -a "$UDEV_RULES_SRC_DIR/." \
 find "$BUILDROOT$INSTALL_PREFIX/bin" -type f -exec chmod 755 {} \;
 find "$BUILDROOT$INSTALL_PREFIX/lib" -type f -exec chmod 755 {} \;
 
-find "$BUILDROOT$INSTALL_PREFIX/docs" -type f -exec chmod 644 {} \; || true
+find "$BUILDROOT$INSTALL_PREFIX/docs/QTAC" -type f -exec chmod 644 {} \; || true
 find "$BUILDROOT$INSTALL_PREFIX/examples" -type f -exec chmod 644 {} \; || true
 find "$BUILDROOT$INSTALL_PREFIX/plugins" -type f -exec chmod 644 {} \; || true
 find "$BUILDROOT$INSTALL_PREFIX/python" -type f -exec chmod 644 {} \; || true
