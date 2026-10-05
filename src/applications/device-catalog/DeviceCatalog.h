@@ -7,7 +7,6 @@
 
 // QCommon
 #include "AlpacaDevice.h"
-#include "MediaPlaybackFrame.h"
 
 class DeviceCatalog :
 	public QDialog,
@@ -42,8 +41,6 @@ private:
 	QByteArray					_firmwareDir;
 	QString						_currentSerialNumber;
 	PlatformID					_currentPlatformId;
-
-	MediaPlaybackFrame			_player;
 };
 
 #endif // DEVICECATALOG_H
