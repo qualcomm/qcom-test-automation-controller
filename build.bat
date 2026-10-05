@@ -10,12 +10,12 @@ setlocal EnableDelayedExpansion
 if /i "%PROCESSOR_ARCHITECTURE%"=="ARM64" (
     set ARCH=ARM64
     set EXPECTED_QT_PATH=msvc2022_arm64
-    set VCVARS_SCRIPT=vcvarsarm64.bat
+    set VCVARS_ARCH_ARG=arm64
     set VS_COMPONENT=MSVC v143 - VS 2022 C++ ARM64 build tools
 ) else (
     set ARCH=x64
     set EXPECTED_QT_PATH=msvc2022_64
-    set VCVARS_SCRIPT=vcvars64.bat
+    set VCVARS_ARCH_ARG=amd64
     set VS_COMPONENT=Desktop development with C++
 )
 
@@ -66,36 +66,42 @@ if errorlevel 1 (
 echo QTBIN               : %QTBIN% [OK]
 
 @REM ---------------------------------------------------------------------------
-@REM  Locate and call VS2022 vcvars
+@REM  Locate and call VS2022 vcvarsall
 @REM ---------------------------------------------------------------------------
 set VCVARS_FOUND=0
 set VS_INSTALL_DIR=
 
-if exist "C:\Program Files\Microsoft Visual Studio\2022\Enterprise\VC\Auxiliary\Build\%VCVARS_SCRIPT%" (
-    call "C:\Program Files\Microsoft Visual Studio\2022\Enterprise\VC\Auxiliary\Build\%VCVARS_SCRIPT%"
-    set VCVARS_FOUND=1
-    set "VS_INSTALL_DIR=C:\Program Files\Microsoft Visual Studio\2022\Enterprise"
-    echo VS2022 toolchain     : Enterprise [OK]
-    goto :vcvars_done
+@REM Use vswhere to locate VS2022 installation dynamically
+set "VSWHERE=%ProgramFiles(x86)%\Microsoft Visual Studio\Installer\vswhere.exe"
+if exist "!VSWHERE!" (
+    "!VSWHERE!" -nologo -latest -property installationPath > "%TEMP%\vs_path.txt" 2>nul
+    set /p VS_INSTALL_DIR= < "%TEMP%\vs_path.txt"
+    del "%TEMP%\vs_path.txt" 2>nul
 )
-if exist "C:\Program Files\Microsoft Visual Studio\2022\Community\VC\Auxiliary\Build\%VCVARS_SCRIPT%" (
-    call "C:\Program Files\Microsoft Visual Studio\2022\Community\VC\Auxiliary\Build\%VCVARS_SCRIPT%"
-    set VCVARS_FOUND=1
-    set "VS_INSTALL_DIR=C:\Program Files\Microsoft Visual Studio\2022\Community"
-    echo VS2022 toolchain     : Community [OK]
-    goto :vcvars_done
+
+if not "!VS_INSTALL_DIR!"=="" (
+    if exist "!VS_INSTALL_DIR!\VC\Auxiliary\Build\vcvarsall.bat" (
+        call "!VS_INSTALL_DIR!\VC\Auxiliary\Build\vcvarsall.bat" %VCVARS_ARCH_ARG%
+        set VCVARS_FOUND=1
+        echo VS2022 toolchain     : !VS_INSTALL_DIR! [OK]
+        goto :vcvars_done
+    )
 )
-if exist "C:\Program Files\Microsoft Visual Studio\2022\Professional\VC\Auxiliary\Build\%VCVARS_SCRIPT%" (
-    call "C:\Program Files\Microsoft Visual Studio\2022\Professional\VC\Auxiliary\Build\%VCVARS_SCRIPT%"
-    set VCVARS_FOUND=1
-    set "VS_INSTALL_DIR=C:\Program Files\Microsoft Visual Studio\2022\Professional"
-    echo VS2022 toolchain     : Professional [OK]
-    goto :vcvars_done
+
+@REM Fall back to well-known paths
+for %%E in (Enterprise Community Professional) do (
+    if exist "C:\Program Files\Microsoft Visual Studio\2022\%%E\VC\Auxiliary\Build\vcvarsall.bat" (
+        call "C:\Program Files\Microsoft Visual Studio\2022\%%E\VC\Auxiliary\Build\vcvarsall.bat" %VCVARS_ARCH_ARG%
+        set VCVARS_FOUND=1
+        set "VS_INSTALL_DIR=C:\Program Files\Microsoft Visual Studio\2022\%%E"
+        echo VS2022 toolchain     : %%E [OK]
+        goto :vcvars_done
+    )
 )
-if exist "C:\Program Files (x86)\Microsoft Visual Studio\2022\BuildTools\VC\Auxiliary\Build\%VCVARS_SCRIPT%" (
-    call "C:\Program Files (x86)\Microsoft Visual Studio\2022\BuildTools\VC\Auxiliary\Build\%VCVARS_SCRIPT%"
+set "BUILDTOOLS=%ProgramFiles(x86)%\Microsoft Visual Studio\2022\BuildTools\VC\Auxiliary\Build\vcvarsall.bat"
+if exist "!BUILDTOOLS!" (
+    call "!BUILDTOOLS!" %VCVARS_ARCH_ARG%
     set VCVARS_FOUND=1
-    set "VS_INSTALL_DIR=C:\Program Files (x86)\Microsoft Visual Studio\2022\BuildTools"
     echo VS2022 toolchain     : BuildTools [OK]
     goto :vcvars_done
 )
@@ -103,15 +109,11 @@ if exist "C:\Program Files (x86)\Microsoft Visual Studio\2022\BuildTools\VC\Auxi
 :vcvars_done
 if "%VCVARS_FOUND%"=="0" (
     echo.
-    echo ERROR: Visual Studio 2022 %ARCH% build tools not found ^(%VCVARS_SCRIPT%^).
+    echo ERROR: Visual Studio 2022 %ARCH% build tools not found.
+    echo        VS found at  : !VS_INSTALL_DIR!
     echo        Open Visual Studio Installer, click Modify on your VS2022 installation,
     echo        go to Individual Components, and install:
     echo          '%VS_COMPONENT%'
-    echo        Searched in:
-    echo          C:\Program Files\Microsoft Visual Studio\2022\Enterprise\VC\Auxiliary\Build
-    echo          C:\Program Files\Microsoft Visual Studio\2022\Community\VC\Auxiliary\Build
-    echo          C:\Program Files\Microsoft Visual Studio\2022\Professional\VC\Auxiliary\Build
-    echo          C:\Program Files ^(x86^)\Microsoft Visual Studio\2022\BuildTools\VC\Auxiliary\Build
     exit /b 1
 )
 
