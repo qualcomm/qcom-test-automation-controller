@@ -63,7 +63,6 @@
     "fileVersion": 2,
     "modification_date": "Thu Oct 1 17:59:12 2026",
     "name": "Seca CoB STAR",
-    "pineVersion": 1,
     "pins": [
         {
             "command": "kratos",

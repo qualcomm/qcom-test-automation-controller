@@ -62,7 +62,6 @@
     "fileVersion": 19,
     "modification_date": "Thu Jan 29 19:01:06 2026",
     "name": "CSM X100",
-    "pineVersion": 5,
     "pins": [
         {
             "bus": "A",
