@@ -1,2 +1,6 @@
 # Third-party code — not subject to Semgrep analysis
 third-party/
+
+# Vendor headers bundled with the source library
+source/library/ftd2xx.h
+source/library/WinTypes.h
