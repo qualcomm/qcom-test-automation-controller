@@ -7,10 +7,14 @@
 #include "PSOCDevice.h"
 #include "PIC32CXDevice.h"
 #include "STM32Device.h"
+#include "USBTopology.h"
 
 // QCommon
 #include "AppCore.h"
 #include "StringUtilities.h"
+
+const PlatformID kPairedFTDIPlatformID{65};
+const PlatformID kPairedPSOCPlatformID{66};
 
 const QByteArray kSendCommandError("sendCommand error: Attempted operation on inactive device");
 const QByteArray kSetPinError("setPinState error: Attempted operation on inactive device");
@@ -59,7 +63,38 @@ quint32 _AlpacaDevice::updateAlpacaDevices()
 	PIC32CXDevice::updateAlpacaDevices();
 	STM32Device::updateAlpacaDevices();
 
+	selectivelyEnableFTDI();
+
 	return _AlpacaDevice::_alpacaDevices.count();
+}
+
+void _AlpacaDevice::selectivelyEnableFTDI()
+{
+	for (auto& ftdiDevice: _AlpacaDevice::_alpacaDevices)
+	{
+		if (ftdiDevice->active() == false || ftdiDevice->platformID() != kPairedFTDIPlatformID)
+			continue;
+
+		QByteArray ftdiHubId = _USBTopology::parentHubIdForFtdiDevice(ftdiDevice->serialNumber() + "A");
+		if (ftdiHubId.isEmpty())
+			continue;
+
+		for (const auto& psocDevice: _AlpacaDevice::_alpacaDevices)
+		{
+			if (psocDevice->active() == false || psocDevice->platformID() != kPairedPSOCPlatformID)
+				continue;
+
+			QByteArray psocHubId = _USBTopology::parentHubIdForSerialPort(psocDevice->portName());
+			if (psocHubId.isEmpty())
+				continue;
+
+			if (ftdiHubId == psocHubId)
+			{
+				ftdiDevice->setActive(false);
+				break;
+			}
+		}
+	}
 }
 
 AlpacaDevice _AlpacaDevice::findAlpacaDevice

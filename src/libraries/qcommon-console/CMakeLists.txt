@@ -80,6 +80,7 @@ qt_add_library(${LIBRARY_NAME} STATIC
     ThreadedLog.cpp ThreadedLog.h
     TickCount.cpp TickCount.h
     USBDescriptors.cpp USBDescriptors.h
+    USBTopology.cpp USBTopology.h
     mymemcpy.cpp mymemcpy.h
     private/TACDriveThread.cpp private/TACDriveThread.h
     private/TACLiteCoder.cpp private/TACLiteCoder.h
@@ -124,4 +125,6 @@ target_link_libraries(${LIBRARY_NAME} PUBLIC
     Qt6::Xml
     ftd2xx
     hidapi::hidapi
+    $<$<PLATFORM_ID:Windows>:SetupAPI>
+    $<$<PLATFORM_ID:Windows>:Cfgmgr32>
 )

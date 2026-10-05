@@ -142,6 +142,8 @@ public slots:
 	void onDeviceDisconnect();
 
 protected:
+	static void selectivelyEnableFTDI();
+
 	static QMutex				_mutex;
 	static AlpacaDevices		_alpacaDevices;
 
