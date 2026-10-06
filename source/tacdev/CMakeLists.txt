@@ -55,9 +55,16 @@ target_include_directories(TACDev PRIVATE
 )
 
 if(WIN32)
+    if(CMAKE_SIZEOF_VOID_P EQUAL 4)
+        set(_TACDEV_WINTARGET "Win32")
+    elseif(CMAKE_SYSTEM_PROCESSOR MATCHES "ARM64|aarch64" OR CMAKE_GENERATOR_PLATFORM STREQUAL "ARM64")
+        set(_TACDEV_WINTARGET "ARM64")
+    else()
+        set(_TACDEV_WINTARGET "x64")
+    endif()
     target_link_directories(TACDev PRIVATE
-        "${CMAKE_CURRENT_SOURCE_DIR}/../../__Builds/x64/Release/lib"
-        "${CMAKE_CURRENT_SOURCE_DIR}/../../__Builds/x64/Debug/lib"
+        "${CMAKE_CURRENT_SOURCE_DIR}/../../__Builds/${_TACDEV_WINTARGET}/Release/lib"
+        "${CMAKE_CURRENT_SOURCE_DIR}/../../__Builds/${_TACDEV_WINTARGET}/Debug/lib"
     )
 endif()
 
@@ -67,8 +74,10 @@ target_link_libraries(TACDev PRIVATE
 )
 
 if(WIN32)
+    if(COMMAND link_ftd2xx)
+        link_ftd2xx(TACDev)
+    endif()
     target_link_libraries(TACDev PRIVATE
-        ftd2xx
         Advapi32
         SetupAPI
         cfgmgr32
