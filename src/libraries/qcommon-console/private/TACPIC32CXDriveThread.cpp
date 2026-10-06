@@ -133,7 +133,7 @@ bool TACPIC32CXDriveThread::setPinState(quint16 pin, bool state)
 }
 
 // ----------------------------------------------------------------------------
-// resetTransport
+// performTransportReset
 //
 /// Recovers a wedged serial connection to the PIC32CX board.
 ///
@@ -142,11 +142,17 @@ bool TACPIC32CXDriveThread::setPinState(quint16 pin, bool state)
 /// QSerialPort object is still the same stuck instance, so this tears it down
 /// and re-establishes it, discarding any partially framed data.
 ///
+/// Threading: runs on the drive thread only, called from
+/// processPendingTransportReset(). QSerialPort is not thread safe and must be
+/// used from its owning thread, and run() reads and writes _serialPort
+/// continuously, so destroying it from the caller's thread would be a race and
+/// a use after free.
+///
 /// @returns true when the port was successfully reopened.
 // ----------------------------------------------------------------------------
-bool TACPIC32CXDriveThread::resetTransport()
+bool TACPIC32CXDriveThread::performTransportReset()
 {
-	AppCore::writeToApplicationLogLine("TACPIC32CXDriveThread::resetTransport: resetting serial transport");
+	AppCore::writeToApplicationLogLine("TACPIC32CXDriveThread::performTransportReset: resetting serial transport");
 
 	// Any in-flight command is abandoned; otherwise the stale flag would make
 	// the next waitForCompletion() return immediately on a dead connection.
@@ -154,6 +160,10 @@ bool TACPIC32CXDriveThread::resetTransport()
 
 	if (_serialPort != Q_NULLPTR)
 	{
+		// Drop the signal connections before teardown so a queued readyRead
+		// cannot be delivered against the object being destroyed.
+		disconnect(_serialPort, Q_NULLPTR, this, Q_NULLPTR);
+
 		// Discard partially received frames so the reopened port starts clean.
 		_serialPort->clear();
 		_serialPort->close();
@@ -178,7 +188,7 @@ bool TACPIC32CXDriveThread::resetTransport()
 	}
 
 	AppCore::writeToApplicationLogLine(
-		QString("TACPIC32CXDriveThread::resetTransport: %1").arg(result ? "succeeded" : "failed"));
+		QString("TACPIC32CXDriveThread::performTransportReset: %1").arg(result ? "succeeded" : "failed"));
 
 	return result;
 }
@@ -487,6 +497,11 @@ void TACPIC32CXDriveThread::run()
 
 			while (!loopFinished)
 			{
+				// Serviced here, before picking up the next frame, so the
+				// transport is never torn down mid-operation. resetTransport()
+				// blocks the requesting thread until this completes.
+				processPendingTransportReset();
+
 				FramePackage framePackage = _protocolInterface->getNextFramePackage();
 				if (framePackage.isNull() == false)
 				{
@@ -531,8 +546,10 @@ void TACPIC32CXDriveThread::run()
 				{
 					if (weAreRunning() == false)
 						loopFinished = true;
-					else
+					else if (_serialPort != Q_NULLPTR)
 						_serialPort->waitForReadyRead(10);
+					else
+						msleep(10);
 				}
 
 				if (readSerialData() == true)
@@ -542,13 +559,27 @@ void TACPIC32CXDriveThread::run()
 			}
 		}
 
-		_serialPort->close();
+		if (_serialPort != Q_NULLPTR)
+			_serialPort->close();
 
 		_connected = false;
 	}
 	else
 	{
 		emit errorOnOpen(lastErrorMessage());
+	}
+
+	// Release anyone blocked in resetTransport() now that this thread is gone,
+	// otherwise the caller would wait out the full reset timeout for nothing.
+	{
+		QMutexLocker lock(&_resetMutex);
+		if (_resetRequested == true)
+		{
+			_resetRequested = false;
+			_resetResult = false;
+			_resetDone = true;
+			_resetCondition.wakeAll();
+		}
 	}
 
 	shutdownLogging();

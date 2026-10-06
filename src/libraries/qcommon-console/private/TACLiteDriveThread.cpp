@@ -102,7 +102,7 @@ bool TACLiteDriveThread::openFTDIDevice()
 }
 
 // ----------------------------------------------------------------------------
-// resetTransport
+// performTransportReset
 //
 /// Recovers a wedged FTDI connection to the Alpaca Lite board.
 ///
@@ -111,11 +111,15 @@ bool TACLiteDriveThread::openFTDIDevice()
 /// FTDI handles are still the same stuck ones, so close and reopen the chipset
 /// to force fresh FT_OpenEx handles.
 ///
+/// Threading: runs on the drive thread only, called from
+/// processPendingTransportReset(). run() writes through _ftdiChipset
+/// continuously, so closing it from the caller's thread would be a race.
+///
 /// @returns true when the chipset was successfully reopened.
 // ----------------------------------------------------------------------------
-bool TACLiteDriveThread::resetTransport()
+bool TACLiteDriveThread::performTransportReset()
 {
-	AppCore::writeToApplicationLogLine("TACLiteDriveThread::resetTransport: resetting FTDI transport");
+	AppCore::writeToApplicationLogLine("TACLiteDriveThread::performTransportReset: resetting FTDI transport");
 
 	// Abandon any in-flight command, otherwise the stale flag would let the
 	// next waitForCompletion() return immediately on a dead connection.
@@ -136,11 +140,11 @@ bool TACLiteDriveThread::resetTransport()
 	}
 	else
 	{
-		AppCore::writeToApplicationLogLine("TACLiteDriveThread::resetTransport: _ftdiChipset is NULL");
+		AppCore::writeToApplicationLogLine("TACLiteDriveThread::performTransportReset: _ftdiChipset is NULL");
 	}
 
 	AppCore::writeToApplicationLogLine(
-		QString("TACLiteDriveThread::resetTransport: %1").arg(result ? "succeeded" : "failed"));
+		QString("TACLiteDriveThread::performTransportReset: %1").arg(result ? "succeeded" : "failed"));
 
 	return result;
 }
@@ -359,6 +363,11 @@ void TACLiteDriveThread::run()
 
 		while (!loopFinished)
 		{
+			// Serviced here, before picking up the next frame, so the transport
+			// is never torn down mid-operation. resetTransport() blocks the
+			// requesting thread until this completes.
+			processPendingTransportReset();
+
 			FramePackage framePackage = _protocolInterface->getNextFramePackage();
 			if (framePackage.isNull() == false)
 			{
@@ -433,6 +442,19 @@ void TACLiteDriveThread::run()
 		_ftdiChipset->close();
 
 	_connected = false;
+
+	// Release anyone blocked in resetTransport() now that this thread is gone,
+	// otherwise the caller would wait out the full reset timeout for nothing.
+	{
+		QMutexLocker lock(&_resetMutex);
+		if (_resetRequested == true)
+		{
+			_resetRequested = false;
+			_resetResult = false;
+			_resetDone = true;
+			_resetCondition.wakeAll();
+		}
+	}
 
 	emit deviceDisconnected();
 

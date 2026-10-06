@@ -92,6 +92,92 @@ bool TACDriveThread::waitForCompletion()
 	return true;
 }
 
+// ----------------------------------------------------------------------------
+// resetTransport
+//
+/// Posts a reset request to the drive thread and waits for it to complete.
+///
+/// Called from the thread issuing the command. The transport object is owned
+/// and continuously used by run() on this QThread, so it must not be torn down
+/// here - doing so would race with, and free memory under, the drive thread.
+// ----------------------------------------------------------------------------
+bool TACDriveThread::resetTransport()
+{
+	// A reset is pointless if the drive thread is not running to service it,
+	// and waiting would block until the timeout for no reason.
+	if (weAreRunning() == false)
+	{
+		AppCore::writeToApplicationLogLine("TACDriveThread::resetTransport: drive thread not running, cannot reset");
+		return false;
+	}
+
+	QMutexLocker lock(&_resetMutex);
+
+	_resetRequested = true;
+	_resetDone = false;
+	_resetResult = false;
+
+	// Release the stale wait flag so run() is not stuck in a command that will
+	// never complete; otherwise it may not reach the reset service point.
+	_waitForCompletion = false;
+
+	// Bounded wait: if the drive thread is itself wedged, report failure rather
+	// than hanging the caller. The caller then surfaces the original timeout.
+	const unsigned long kResetTimeoutMs{15000};
+
+	while (_resetDone == false)
+	{
+		if (_resetCondition.wait(&_resetMutex, kResetTimeoutMs) == false)
+		{
+			AppCore::writeToApplicationLogLine("TACDriveThread::resetTransport: timed out waiting for drive thread to reset transport");
+
+			// Withdraw the request so a later reset is not serviced by a stale
+			// flag after this caller has already given up.
+			_resetRequested = false;
+			return false;
+		}
+	}
+
+	return _resetResult;
+}
+
+// ----------------------------------------------------------------------------
+// processPendingTransportReset
+//
+/// Services a reset posted by resetTransport(). Runs on the drive thread, so
+/// performTransportReset() can safely touch the transport.
+// ----------------------------------------------------------------------------
+void TACDriveThread::processPendingTransportReset()
+{
+	bool shouldReset{false};
+
+	{
+		QMutexLocker lock(&_resetMutex);
+		shouldReset = _resetRequested;
+	}
+
+	if (shouldReset == false)
+		return;
+
+	// Performed outside the lock: the reset reopens hardware and can take
+	// seconds, and holding _resetMutex would serialise unrelated callers.
+	bool result = performTransportReset();
+
+	{
+		QMutexLocker lock(&_resetMutex);
+
+		// If the caller already timed out it cleared _resetRequested; the reset
+		// still happened, so just drop the result rather than signalling.
+		if (_resetRequested == true)
+		{
+			_resetRequested = false;
+			_resetResult = result;
+			_resetDone = true;
+			_resetCondition.wakeAll();
+		}
+	}
+}
+
 void TACDriveThread::setWaitForCompletion()
 {
 	_waitForCompletion = true;
