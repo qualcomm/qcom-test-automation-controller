@@ -160,6 +160,7 @@ bool TACPIC32CXDriveThread::performTransportReset()
 	// the next waitForCompletion() return immediately on a dead connection.
 	clearWaitForCompletion();
 
+	// ---- teardown -----------------------------------------------------------
 	if (_serialPort != Q_NULLPTR)
 	{
 		// Drop the signal connections before teardown so a queued readyRead
@@ -174,25 +175,131 @@ bool TACPIC32CXDriveThread::performTransportReset()
 		_serialPort = Q_NULLPTR;
 	}
 
+	// The protocol can be holding a partially assembled frame, a pending frame
+	// awaiting a response, and queued commands from the operation that timed
+	// out. Reopening the port without discarding these leaves the reopened
+	// connection framed against a stale conversation, which looks identical to
+	// an unresponsive board.
+	_protocolInterface->clearPendingFrame();
+	while (_protocolInterface->queueSize() > 0)
+	{
+		FramePackage stale = _protocolInterface->getNextFramePackage();
+		if (stale.isNull())
+			break;
+
+		_protocolInterface->clearPendingFrame();
+	}
+
 	_connected = false;
 	_readyRead = false;
 	_serialBuffer.clear();
 
+	// Give the board time to settle before reopening. The first attempt at this
+	// reset reopened within ~50 ms and the retry still failed, which is
+	// consistent with the device not being ready that quickly after its CDC
+	// endpoint is dropped.
+	msleep(kTransportResetSettleMs);
+
+	// ---- reopen, mirroring run()'s startup ---------------------------------
 	bool result = openSerialDevice();
 
-	if (result == true && _serialPort != Q_NULLPTR)
+	if (result == false)
 	{
-		// run() wires these up after its own open(); the replacement port is a
-		// new object, so the connections must be re-established or readyRead
-		// will never fire again and every read would time out.
-		connect(_serialPort, &QSerialPort::errorOccurred, this, &TACPIC32CXDriveThread::handleError, Qt::DirectConnection);
-		connect(_serialPort, &QSerialPort::readyRead, this, &TACPIC32CXDriveThread::on_readyRead, Qt::DirectConnection);
+		AppCore::writeToApplicationLogLine("TACPIC32CXDriveThread::performTransportReset: failed (reopen)");
+		return false;
 	}
 
-	AppCore::writeToApplicationLogLine(
-		QString("TACPIC32CXDriveThread::performTransportReset: %1").arg(result ? "succeeded" : "failed"));
+	// run() wires these up after its own open(); the replacement port is a new
+	// object, so the connections must be re-established or readyRead will never
+	// fire again and every read would time out.
+	connect(_serialPort, &QSerialPort::errorOccurred, this, &TACPIC32CXDriveThread::handleError, Qt::DirectConnection);
+	connect(_serialPort, &QSerialPort::readyRead, this, &TACPIC32CXDriveThread::on_readyRead, Qt::DirectConnection);
 
-	return result;
+	// openSerialDevice() queues a clearBuffer, and run() follows its own open
+	// with platformID(). On startup those are serviced by the run() loop before
+	// any command is issued - the board answers and setupConnected() fires.
+	// Here we are inside that loop, so nothing drains them unless we do it, and
+	// the caller's retry would otherwise be the first thing on the wire.
+	{
+		TACPIC32CXCommand tacCommand(this, this);
+		tacCommand.platformID();
+	}
+
+	bool handshook = drainHandshake();
+
+	AppCore::writeToApplicationLogLine(
+		QString("TACPIC32CXDriveThread::performTransportReset: %1 (handshake %2)")
+			.arg(handshook ? "succeeded" : "failed")
+			.arg(handshook ? "acknowledged" : "no response"));
+
+	// Report failure when the board never answered. Claiming success on a
+	// reopened-but-silent port is what made the previous attempt look like the
+	// reset had worked when the retry was always going to fail.
+	return handshook;
+}
+
+// ----------------------------------------------------------------------------
+// drainHandshake
+//
+/// Services the frames queued by the reopen until the board has identified
+/// itself, mirroring what run() does during normal startup.
+///
+/// Runs on the drive thread, called from performTransportReset(), so it is safe
+/// to touch the port and the protocol directly.
+///
+/// @returns true when the board responded and the connection is usable.
+// ----------------------------------------------------------------------------
+bool TACPIC32CXDriveThread::drainHandshake()
+{
+	const int kPollIntervalMs{20};
+	const int kMaxPolls{kTransportResetHandshakeMs / kPollIntervalMs};
+
+	for (int poll = 0; poll < kMaxPolls; poll++)
+	{
+		if (_serialPort == Q_NULLPTR)
+			return false;
+
+		FramePackage framePackage = _protocolInterface->getNextFramePackage();
+		if (framePackage.isNull() == false)
+		{
+			if (framePackage->_delayInMilliSeconds != 0 ||
+				framePackage->_comment.isEmpty() == false ||
+				framePackage->_endTransaction == true ||
+				checkLocalStore(framePackage) == true)
+			{
+				receive(framePackage);
+			}
+			else
+			{
+				// Same pre-write buffer clear that run() performs for the
+				// identify command, so a stale byte cannot corrupt the reply we
+				// are about to wait for.
+				if (framePackage->_requestHash == kPIC32CXVersionCommandHash)
+					_serialPort->clear(QSerialPort::AllDirections);
+
+				if (_serialPort->write(framePackage->_codedRequest) == -1)
+				{
+					AppCore::writeToApplicationLogLine(
+						"TACPIC32CXDriveThread::drainHandshake: write failed, " + _serialPort->errorString().toLatin1());
+					return false;
+				}
+			}
+		}
+		else
+		{
+			_serialPort->waitForReadyRead(kPollIntervalMs);
+		}
+
+		if (readSerialData() == true)
+			_protocolInterface->idle();
+
+		// setupConnected() sets this once the board has answered the identify
+		// request, which is the same signal startup relies on.
+		if (_connected == true)
+			return true;
+	}
+
+	return false;
 }
 
 void TACPIC32CXDriveThread::endTransaction
