@@ -179,9 +179,75 @@ FetchContent_Declare(
 FetchContent_MakeAvailable(hidapi)
 
 # ---------------------------------------------------------------------------
-# Boost include path (vendored in third-party/)
+# Boost — fetch header-only boost::json and boost::predef via FetchContent
 # ---------------------------------------------------------------------------
-set(BOOST_ROOT "${CMAKE_SOURCE_DIR}/../third-party")
+FetchContent_Declare(
+    boost_json
+    GIT_REPOSITORY https://github.com/boostorg/json.git
+    GIT_TAG        boost-1.78.0
+    GIT_SHALLOW    TRUE
+)
+FetchContent_Declare(
+    boost_predef
+    GIT_REPOSITORY https://github.com/boostorg/predef.git
+    GIT_TAG        boost-1.78.0
+    GIT_SHALLOW    TRUE
+)
+FetchContent_Declare(
+    boost_config
+    GIT_REPOSITORY https://github.com/boostorg/config.git
+    GIT_TAG        boost-1.78.0
+    GIT_SHALLOW    TRUE
+)
+FetchContent_Declare(
+    boost_assert
+    GIT_REPOSITORY https://github.com/boostorg/assert.git
+    GIT_TAG        boost-1.78.0
+    GIT_SHALLOW    TRUE
+)
+FetchContent_Declare(
+    boost_mp11
+    GIT_REPOSITORY https://github.com/boostorg/mp11.git
+    GIT_TAG        boost-1.78.0
+    GIT_SHALLOW    TRUE
+)
+FetchContent_Declare(
+    boost_throw_exception
+    GIT_REPOSITORY https://github.com/boostorg/throw_exception.git
+    GIT_TAG        boost-1.78.0
+    GIT_SHALLOW    TRUE
+)
+FetchContent_Declare(
+    boost_container_hash
+    GIT_REPOSITORY https://github.com/boostorg/container_hash.git
+    GIT_TAG        boost-1.78.0
+    GIT_SHALLOW    TRUE
+)
+FetchContent_Declare(
+    boost_describe
+    GIT_REPOSITORY https://github.com/boostorg/describe.git
+    GIT_TAG        boost-1.78.0
+    GIT_SHALLOW    TRUE
+)
+FetchContent_MakeAvailable(
+    boost_json
+    boost_predef
+    boost_config
+    boost_assert
+    boost_mp11
+    boost_throw_exception
+    boost_container_hash
+    boost_describe
+)
+
+# Collect all fetched Boost include dirs into a single interface target
+add_library(boost_headers INTERFACE)
+foreach(_boost_lib IN ITEMS
+        boost_json boost_predef boost_config boost_assert
+        boost_mp11 boost_throw_exception boost_container_hash boost_describe)
+    target_include_directories(boost_headers INTERFACE
+        "${${_boost_lib}_SOURCE_DIR}/include")
+endforeach()
 
 # ---------------------------------------------------------------------------
 # Subtargets
