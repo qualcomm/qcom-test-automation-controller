@@ -205,6 +205,35 @@ add_library(boost_headers INTERFACE)
 target_include_directories(boost_headers INTERFACE "${boost_SOURCE_DIR}")
 
 # ---------------------------------------------------------------------------
+# Output directories — must be set at this scope so all subdirectories
+# (library, app, tacdev, test) inherit the same output paths.
+# This mirrors the logic in library/cmake/QtacCommon.cmake (QTAC_WINTARGET).
+# ---------------------------------------------------------------------------
+if(WIN32)
+    if(CMAKE_SIZEOF_VOID_P EQUAL 4)
+        set(_QTAC_WINTARGET "Win32")
+    elseif(CMAKE_SYSTEM_PROCESSOR MATCHES "ARM64|aarch64" OR CMAKE_GENERATOR_PLATFORM STREQUAL "ARM64")
+        set(_QTAC_WINTARGET "ARM64")
+    else()
+        set(_QTAC_WINTARGET "x64")
+    endif()
+    if(CMAKE_BUILD_TYPE STREQUAL "Debug")
+        set(_QTAC_OUTDIR "${CMAKE_SOURCE_DIR}/__Builds/${_QTAC_WINTARGET}/Debug")
+    else()
+        set(_QTAC_OUTDIR "${CMAKE_SOURCE_DIR}/__Builds/${_QTAC_WINTARGET}/Release")
+    endif()
+else()
+    if(CMAKE_BUILD_TYPE STREQUAL "Debug")
+        set(_QTAC_OUTDIR "${CMAKE_SOURCE_DIR}/__Builds/Linux/Debug")
+    else()
+        set(_QTAC_OUTDIR "${CMAKE_SOURCE_DIR}/__Builds/Linux/Release")
+    endif()
+endif()
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${_QTAC_OUTDIR}/bin")
+set(CMAKE_LIBRARY_OUTPUT_DIRECTORY "${_QTAC_OUTDIR}/lib")
+set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY "${_QTAC_OUTDIR}/lib")
+
+# ---------------------------------------------------------------------------
 # Subtargets
 # ---------------------------------------------------------------------------
 find_package(QT NAMES Qt6 REQUIRED COMPONENTS Core Multimedia)
