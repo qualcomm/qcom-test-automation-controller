@@ -224,4 +224,11 @@ if(QTAC_BUILD_FTDI)
     target_include_directories(qtac-core PRIVATE
         ${CMAKE_CURRENT_SOURCE_DIR}
     )
+
+    # ARM64 ships FTD2XXstatic.lib (no import lib / no DLL), so the header
+    # must not use __declspec(dllimport).  Define FTD2XX_STATIC only when the
+    # static lib is actually being linked (ARM64 Windows).
+    if(WIN32 AND (CMAKE_SYSTEM_PROCESSOR MATCHES "ARM64|aarch64" OR CMAKE_GENERATOR_PLATFORM STREQUAL "ARM64"))
+        target_compile_definitions(qtac-core PUBLIC FTD2XX_STATIC)
+    endif()
 endif()
