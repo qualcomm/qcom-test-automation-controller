@@ -36,8 +36,10 @@ QString applicationBinPath()
 
 QString applicationDataPath()
 {
+	QString result;
+
 	#ifdef Q_OS_WIN
-			result = "C:/ProgramData/Qualcomm/" + kAppName;
+		result = "C:/ProgramData/Qualcomm/" + kAppName;
 	#endif
 
 	#ifdef Q_OS_LINUX
