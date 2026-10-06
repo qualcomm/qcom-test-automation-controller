@@ -179,75 +179,30 @@ FetchContent_Declare(
 FetchContent_MakeAvailable(hidapi)
 
 # ---------------------------------------------------------------------------
-# Boost — fetch header-only boost::json and boost::predef via FetchContent
+# Boost — download the full 1.78.0 headers-only tarball via FetchContent.
+# We use the complete tarball rather than individual per-module repos because
+# boost::json has an extensive transitive dependency tree within the
+# superproject; fetching them individually requires resolving every
+# subdependency manually. The tarball download is cached after the first run.
+# BOOST_ALL_NO_LIB disables Windows auto-link pragmas for any precompiled lib.
 # ---------------------------------------------------------------------------
+cmake_policy(PUSH)
+if(POLICY CMP0169)
+    cmake_policy(SET CMP0169 OLD)
+endif()
 FetchContent_Declare(
-    boost_json
-    GIT_REPOSITORY https://github.com/boostorg/json.git
-    GIT_TAG        boost-1.78.0
-    GIT_SHALLOW    TRUE
+    boost
+    URL      https://archives.boost.io/release/1.78.0/source/boost_1_78_0.tar.gz
+    URL_HASH SHA256=94ced8b72956591c4775ae2207a9763d3600b30d9d7446562c552f0a14a63be7
 )
-FetchContent_Declare(
-    boost_predef
-    GIT_REPOSITORY https://github.com/boostorg/predef.git
-    GIT_TAG        boost-1.78.0
-    GIT_SHALLOW    TRUE
-)
-FetchContent_Declare(
-    boost_config
-    GIT_REPOSITORY https://github.com/boostorg/config.git
-    GIT_TAG        boost-1.78.0
-    GIT_SHALLOW    TRUE
-)
-FetchContent_Declare(
-    boost_assert
-    GIT_REPOSITORY https://github.com/boostorg/assert.git
-    GIT_TAG        boost-1.78.0
-    GIT_SHALLOW    TRUE
-)
-FetchContent_Declare(
-    boost_mp11
-    GIT_REPOSITORY https://github.com/boostorg/mp11.git
-    GIT_TAG        boost-1.78.0
-    GIT_SHALLOW    TRUE
-)
-FetchContent_Declare(
-    boost_throw_exception
-    GIT_REPOSITORY https://github.com/boostorg/throw_exception.git
-    GIT_TAG        boost-1.78.0
-    GIT_SHALLOW    TRUE
-)
-FetchContent_Declare(
-    boost_container_hash
-    GIT_REPOSITORY https://github.com/boostorg/container_hash.git
-    GIT_TAG        boost-1.78.0
-    GIT_SHALLOW    TRUE
-)
-FetchContent_Declare(
-    boost_describe
-    GIT_REPOSITORY https://github.com/boostorg/describe.git
-    GIT_TAG        boost-1.78.0
-    GIT_SHALLOW    TRUE
-)
-FetchContent_MakeAvailable(
-    boost_json
-    boost_predef
-    boost_config
-    boost_assert
-    boost_mp11
-    boost_throw_exception
-    boost_container_hash
-    boost_describe
-)
+FetchContent_GetProperties(boost)
+if(NOT boost_POPULATED)
+    FetchContent_Populate(boost)
+endif()
+cmake_policy(POP)
 
-# Collect all fetched Boost include dirs into a single interface target
 add_library(boost_headers INTERFACE)
-foreach(_boost_lib IN ITEMS
-        boost_json boost_predef boost_config boost_assert
-        boost_mp11 boost_throw_exception boost_container_hash boost_describe)
-    target_include_directories(boost_headers INTERFACE
-        "${${_boost_lib}_SOURCE_DIR}/include")
-endforeach()
+target_include_directories(boost_headers INTERFACE "${boost_SOURCE_DIR}")
 
 # ---------------------------------------------------------------------------
 # Subtargets
