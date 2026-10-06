@@ -371,6 +371,7 @@ jobs:
           | grep "$QT_ROOT" \
           | xargs -I{} cp -an {} "$DEPLOY_LIB_DIR/" || true
         find "$QT_ROOT/lib" -maxdepth 1 -name "libQt6*.so*" -exec cp -an {} "$DEPLOY_LIB_DIR/" \; || true
+        find "$QT_ROOT/lib" -maxdepth 1 -name "libicu*.so*" -exec cp -an {} "$DEPLOY_LIB_DIR/" \; || true
         for plugin_dir in iconengines imageformats platforminputcontexts platforms platformthemes xcbglintegrations; do
           if [ -d "$QT_ROOT/plugins/$plugin_dir" ]; then
             mkdir -p "$DEPLOY_PLUGIN_DIR/$plugin_dir"
