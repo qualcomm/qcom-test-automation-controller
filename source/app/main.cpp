@@ -87,18 +87,34 @@ static LONG CALLBACK vectoredExceptionHandler(PEXCEPTION_POINTERS ep)
     SymInitialize(GetCurrentProcess(), nullptr, TRUE);
 
     CONTEXT ctx = *ep->ContextRecord;
+#if defined(_M_ARM64)
+    // StackWalk64 does not support ARM64; log the PC only.
+    fprintf(gCrashLog, "  PC=%p  (stack walk not supported on ARM64)\n",
+            reinterpret_cast<void*>(static_cast<uintptr_t>(ctx.Pc)));
+    char symBuf[sizeof(SYMBOL_INFO) + 256];
+    SYMBOL_INFO* sym = reinterpret_cast<SYMBOL_INFO*>(symBuf);
+    sym->SizeOfStruct = sizeof(SYMBOL_INFO);
+    sym->MaxNameLen   = 255;
+    DWORD64 disp = 0;
+    if (SymFromAddr(GetCurrentProcess(),
+                    static_cast<DWORD64>(ctx.Pc), &disp, sym))
+    {
+        fprintf(gCrashLog, "  %s + 0x%llx\n",
+                sym->Name, (unsigned long long)disp);
+    }
+#else
     STACKFRAME64 sf = {};
-#ifdef _WIN64
+# ifdef _WIN64
     sf.AddrPC.Offset    = ctx.Rip;
     sf.AddrFrame.Offset = ctx.Rbp;
     sf.AddrStack.Offset = ctx.Rsp;
     DWORD machType = IMAGE_FILE_MACHINE_AMD64;
-#else
+# else
     sf.AddrPC.Offset    = ctx.Eip;
     sf.AddrFrame.Offset = ctx.Ebp;
     sf.AddrStack.Offset = ctx.Esp;
     DWORD machType = IMAGE_FILE_MACHINE_I386;
-#endif
+# endif
     sf.AddrPC.Mode = sf.AddrFrame.Mode = sf.AddrStack.Mode = AddrModeFlat;
 
     char symBuf[sizeof(SYMBOL_INFO) + 256];
@@ -130,6 +146,7 @@ static LONG CALLBACK vectoredExceptionHandler(PEXCEPTION_POINTERS ep)
                     reinterpret_cast<void*>(sf.AddrPC.Offset));
         }
     }
+#endif // _M_ARM64
 
     SymCleanup(GetCurrentProcess());
     fflush(gCrashLog);
