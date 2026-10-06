@@ -301,6 +301,272 @@ jobs:
         path: __Builds\installer\QTAC-windows-arm64.exe
         if-no-files-found: error
 
+  build-source-linux:
+    needs: [fetch-ftdi-linux, build-docs]
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-22.04, ubuntu-latest]
+        qt_version: ['6.9.2', '6.10.0']
+
+    steps:
+    - uses: actions/checkout@v6
+
+    - name: Install dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y python3-pip wget libxkbcommon-x11-0 x11-common libxcb-xinerama0-dev build-essential libgl1-mesa-dev mesa-common-dev uuid-dev libpulse-dev ninja-build libudev-dev
+
+    - name: Cache Qt installation on Linux
+      uses: actions/cache@v5
+      with:
+        path: ${{ matrix.qt_version }}/gcc_64
+        key: ${{ matrix.os }}-qt-${{ matrix.qt_version }}
+
+    - name: Install aqtinstall
+      run: pip install aqtinstall
+
+    - name: Install Qt ${{ matrix.qt_version }} on ${{ matrix.os }}
+      run: |
+        aqt install-qt linux desktop ${{ matrix.qt_version }} linux_gcc_64 -m qtmultimedia qtserialport
+        echo "QTBIN=$HOME/work/qcom-test-automation-controller/qcom-test-automation-controller/${{ matrix.qt_version }}/gcc_64/bin" >> $GITHUB_ENV
+
+    - name: Restore FTDI archive on Linux
+      uses: actions/cache/restore@v5
+      with:
+        path: third-party/libftd2xx-linux-x86_64-1.4.33.tgz
+        key: ftdi-linux-1.4.33
+
+    - name: Configure
+      run: |
+        export PATH="$QTBIN:$PATH"
+        cmake -S source -B build/source/Release \
+          -DCMAKE_PREFIX_PATH="$(dirname $QTBIN)" \
+          -DCMAKE_COLOR_DIAGNOSTICS=ON \
+          -DCMAKE_GENERATOR=Ninja \
+          -DCMAKE_BUILD_TYPE=Release
+
+    - name: Build
+      run: cmake --build build/source/Release
+
+    - name: Run tests
+      run: |
+        cd build/source/Release
+        ctest --output-on-failure
+
+    - name: Install patchelf
+      run: sudo apt-get install -y patchelf
+
+    - name: Deploy Qt runtime
+      run: |
+        export PATH="$QTBIN:$PATH"
+        QT_ROOT="$(dirname $QTBIN)"
+        DEPLOY_BIN_DIR="__Builds/Linux/Release/bin"
+        DEPLOY_LIB_DIR="__Builds/Linux/Release/lib"
+        DEPLOY_PLUGIN_DIR="__Builds/Linux/Release/plugins"
+        mkdir -p "$DEPLOY_LIB_DIR" "$DEPLOY_PLUGIN_DIR"
+        find "$DEPLOY_BIN_DIR" -type f -executable -exec ldd {} \; 2>/dev/null \
+          | awk '/=>/ {print $3}' | sort -u \
+          | grep "$QT_ROOT" \
+          | xargs -I{} cp -an {} "$DEPLOY_LIB_DIR/" || true
+        find "$QT_ROOT/lib" -maxdepth 1 -name "libQt6*.so*" -exec cp -an {} "$DEPLOY_LIB_DIR/" \; || true
+        for plugin_dir in iconengines imageformats platforminputcontexts platforms platformthemes xcbglintegrations; do
+          if [ -d "$QT_ROOT/plugins/$plugin_dir" ]; then
+            mkdir -p "$DEPLOY_PLUGIN_DIR/$plugin_dir"
+            cp -a "$QT_ROOT/plugins/$plugin_dir/." "$DEPLOY_PLUGIN_DIR/$plugin_dir/"
+          fi
+        done
+        find "$DEPLOY_BIN_DIR" -type f -executable | while read exe; do
+          patchelf --set-rpath '$ORIGIN/../lib' "$exe" || true
+        done
+
+    - name: Download built docs artifact
+      uses: actions/download-artifact@v4
+      with:
+        name: qtac-docs-html
+        path: docs-html
+
+    - name: Replace docs source with built HTML
+      run: |
+        rm -rf docs
+        mv docs-html docs
+
+    - name: Package QTAC (source)
+      run: |
+        chmod +x packaging/linux/package_QTAC.sh
+        PKG_NAME=qualcomm-qtac-source ./packaging/linux/package_QTAC.sh
+
+    - name: Upload installer artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: QTAC-source-${{ matrix.os }}-qt${{ matrix.qt_version }}.deb
+        path: packaging/linux/build/*.deb
+        if-no-files-found: error
+
+  build-source-windows:
+    needs: [fetch-ftdi-windows, build-docs]
+    runs-on: windows-2022
+    strategy:
+      fail-fast: false
+      matrix:
+        qt_version: ['6.9.2', '6.10.0']
+
+    steps:
+    - uses: actions/checkout@v6
+
+    - name: Install Python dependencies
+      shell: pwsh
+      run: pip install aqtinstall
+
+    - name: Cache Qt installation on Windows
+      uses: actions/cache@v5
+      with:
+        path: C:\Qt\${{ matrix.qt_version }}\msvc2022_64
+        key: ${{ runner.os }}-qt-${{ matrix.qt_version }}
+
+    - name: Install Qt ${{ matrix.qt_version }} for MSVC
+      shell: pwsh
+      run: |
+        aqt install-qt windows desktop ${{ matrix.qt_version }} win64_msvc2022_64 --outputdir "C:\Qt" -m qtserialport qtmultimedia
+        echo "QTBIN=C:\Qt\${{ matrix.qt_version }}\msvc2022_64\bin" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+
+    - name: Restore FTDI archive on Windows
+      uses: actions/cache/restore@v5
+      with:
+        path: third-party\CDM-v2.12.36.4-WHQL-Certified.zip
+        key: ftdi-windows-2.12.36.4
+
+    - name: Install .NET Framework 4.8 Developer Pack
+      shell: pwsh
+      run: choco install netfx-4.8-devpack -y
+
+    - name: Build (source)
+      shell: pwsh
+      run: |
+        $env:QTDIR = "C:\Qt\${{ matrix.qt_version }}\msvc2022_64"
+        .\build_app.ps1
+
+    - name: Run tests
+      shell: pwsh
+      run: |
+        cd build\Release
+        ctest --output-on-failure
+
+    - name: Download built docs artifact
+      uses: actions/download-artifact@v4
+      with:
+        name: qtac-docs-html
+        path: docs-html
+
+    - name: Replace docs source with built HTML
+      shell: pwsh
+      run: |
+        Remove-Item -Recurse -Force docs
+        Move-Item docs-html docs
+
+    - name: Build installer (QTAC-source-windows-x64.exe)
+      shell: pwsh
+      run: .\packaging\windows\build-installer.ps1
+
+    - name: Upload installer artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: QTAC-source-windows-x64-qt${{ matrix.qt_version }}
+        path: __Builds\installer\QTAC-windows-x64.exe
+        if-no-files-found: error
+
+  build-source-windows-arm64:
+    needs: [fetch-ftdi-windows-arm64, build-docs]
+    runs-on: windows-11-arm
+    strategy:
+      fail-fast: false
+      matrix:
+        qt_version: ['6.9.2', '6.10.0']
+
+    steps:
+    - uses: actions/checkout@v6
+
+    - name: Install Python dependencies
+      shell: pwsh
+      run: pip install aqtinstall
+
+    - name: Cache Qt installation for ARM64
+      uses: actions/cache@v5
+      with:
+        path: C:\Qt\${{ matrix.qt_version }}\msvc2022_arm64
+        key: windows-arm64-qt-${{ matrix.qt_version }}
+
+    - name: Install Qt ${{ matrix.qt_version }} for MSVC ARM64
+      shell: pwsh
+      run: |
+        aqt install-qt windows_arm64 desktop ${{ matrix.qt_version }} win64_msvc2022_arm64 --outputdir "C:\Qt" --autodesktop -m qtserialport qtmultimedia
+        echo "QTBIN=C:\Qt\${{ matrix.qt_version }}\msvc2022_arm64\bin" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+
+    - name: Restore FTDI archive for ARM64
+      uses: actions/cache/restore@v5
+      with:
+        path: third-party\CDM-v2.12.36.20-for-ARM64-WHQL-Certified.zip
+        key: ftdi-windows-arm64-2.12.36.20
+
+    - name: Build (source)
+      shell: pwsh
+      run: |
+        $env:QTDIR = "C:\Qt\${{ matrix.qt_version }}\msvc2022_arm64"
+        $vswhere = "${env:ProgramFiles(x86)}\Microsoft Visual Studio\Installer\vswhere.exe"
+        $vsPath  = ""
+        if (Test-Path $vswhere) {
+          $vsPath = & $vswhere -nologo -latest -property installationPath 2>$null
+        }
+        if (-not $vsPath) {
+          foreach ($e in @('Enterprise','Community','Professional')) {
+            $p = "C:\Program Files\Microsoft Visual Studio\2022\$e"
+            if (Test-Path $p) { $vsPath = $p; break }
+          }
+        }
+        if (-not $vsPath) { throw "VS2022 not found" }
+        $vcvarsall = "$vsPath\VC\Auxiliary\Build\vcvarsall.bat"
+        $envLines = cmd /c "`"$vcvarsall`" arm64 && set" 2>&1
+        $envLines | Where-Object { $_ -match '^[A-Za-z_][A-Za-z0-9_]+=.' } | ForEach-Object {
+          $kv = $_ -split '=', 2
+          if ($kv.Count -eq 2) { [System.Environment]::SetEnvironmentVariable($kv[0], $kv[1]) }
+        }
+        $qtRoot = $env:QTDIR
+        $env:PATH = "$qtRoot\bin;$env:PATH"
+        cmake -S source -B build\Release -DCMAKE_PREFIX_PATH="$qtRoot" -G Ninja -DCMAKE_BUILD_TYPE=Release
+        if ($LASTEXITCODE -ne 0) { throw "Configure failed" }
+        cmake --build build\Release
+        if ($LASTEXITCODE -ne 0) { throw "Build failed" }
+
+    - name: Run tests
+      shell: pwsh
+      run: |
+        cd build\Release
+        ctest --output-on-failure
+
+    - name: Download built docs artifact
+      uses: actions/download-artifact@v4
+      with:
+        name: qtac-docs-html
+        path: docs-html
+
+    - name: Replace docs source with built HTML
+      shell: pwsh
+      run: |
+        Remove-Item -Recurse -Force docs
+        Move-Item docs-html docs
+
+    - name: Build installer (QTAC-source-windows-arm64.exe)
+      shell: pwsh
+      run: .\packaging\windows\build-installer.ps1
+
+    - name: Upload installer artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: QTAC-source-windows-arm64-qt${{ matrix.qt_version }}
+        path: __Builds\installer\QTAC-windows-arm64.exe
+        if-no-files-found: error
+
   publish-release-linux:
     name: Publish release (Linux)
     if: github.ref_type == 'tag'
