@@ -362,9 +362,9 @@ jobs:
       run: |
         export PATH="$QTBIN:$PATH"
         QT_ROOT="$(dirname $QTBIN)"
-        DEPLOY_BIN_DIR="__Builds/Linux/Release/bin"
-        DEPLOY_LIB_DIR="__Builds/Linux/Release/lib"
-        DEPLOY_PLUGIN_DIR="__Builds/Linux/Release/plugins"
+        DEPLOY_BIN_DIR="source/__Builds/Linux/Release/bin"
+        DEPLOY_LIB_DIR="source/__Builds/Linux/Release/lib"
+        DEPLOY_PLUGIN_DIR="source/__Builds/Linux/Release/plugins"
         mkdir -p "$DEPLOY_LIB_DIR" "$DEPLOY_PLUGIN_DIR"
         find "$DEPLOY_BIN_DIR" -type f -executable -exec ldd {} \; 2>/dev/null \
           | awk '/=>/ {print $3}' | sort -u \
@@ -395,7 +395,9 @@ jobs:
     - name: Package QTAC (source)
       run: |
         chmod +x packaging/linux/package_QTAC.sh
-        PKG_NAME=qualcomm-qtac-source ./packaging/linux/package_QTAC.sh
+        PKG_NAME=qualcomm-qtac-source \
+          SRC_DIR="$(pwd)/source/__Builds/Linux/Release" \
+          ./packaging/linux/package_QTAC.sh
 
     - name: Upload installer artifact
       uses: actions/upload-artifact@v4
