@@ -154,6 +154,8 @@ void TACLiteDriveThread::externalPowerControl
 	bool state
 )
 {
+	setLastCommandDescription(QString("externalPowerControl(state=%1)").arg(state ? "on" : "off"));
+
 	{
 		TACLiteCommand tacCommand(this, this);
 
@@ -169,6 +171,8 @@ bool TACLiteDriveThread::setPinState
 	bool state
 )
 {
+	setLastCommandDescription(QString("setPinState(pin=%1, state=%2)").arg(pin).arg(state ? "on" : "off"));
+
 	{
 		TACLiteCommand tacCommand(this, this);
 
@@ -183,6 +187,8 @@ void TACLiteDriveThread::sendCommandSequence
 	CommandEntries& commandEntries
 )
 {
+	setLastCommandDescription(QString("sendCommandSequence(%1 entries)").arg(commandEntries.count()));
+
 	{
 		TACLiteCommand tacCommand(this, this);
 

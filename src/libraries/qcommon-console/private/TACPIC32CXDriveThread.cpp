@@ -123,6 +123,8 @@ void TACPIC32CXDriveThread::sendCommand
 
 bool TACPIC32CXDriveThread::setPinState(quint16 pin, bool state)
 {
+	setLastCommandDescription(QString("setPinState(pin=%1, state=%2)").arg(pin).arg(state ? "on" : "off"));
+
 	{
 		TACPIC32CXCommand tacCommand(this, this);
 
@@ -203,6 +205,8 @@ void TACPIC32CXDriveThread::endTransaction
 
 void TACPIC32CXDriveThread::sendCommandSequence(CommandEntries& commandEntries)
 {
+	setLastCommandDescription(QString("sendCommandSequence(%1 entries)").arg(commandEntries.count()));
+
 	for (const auto& commandEntry: commandEntries)
 	{
         {

@@ -423,19 +423,25 @@ bool _AlpacaDevice::quickCommand
 					AppCore::writeToApplicationLogLine(
 						QString("_AlpacaDevice::quickCommand(%1): command timed out, attempting transport reset").arg(command));
 
-					if (resetTransport() == true)
+					bool resetOk = resetTransport();
+
+					if (resetOk == true)
 					{
 						setWaitForCompletion();
 
 						CommandEntries retryEntries = _alpacaScript.replaceTokens(scriptVariables, commandEntries);
 						_driveThread->sendCommandSequence(retryEntries);
 						result = _driveThread->waitForCompletion();
-
-						AppCore::writeToApplicationLogLine(
-							QString("_AlpacaDevice::quickCommand(%1): retry after reset %2")
-								.arg(command)
-								.arg(result ? "succeeded" : "failed"));
 					}
+
+					// One line carrying the whole outcome, so support does not
+					// have to stitch the story together from separate entries.
+					AppCore::writeToApplicationLogLine(
+						QString("TIMEOUT RECOVERY: command=quickCommand(%1) reset=%2 retry=%3 port=%4")
+							.arg(command)
+							.arg(resetOk ? "succeeded" : "failed")
+							.arg(resetOk ? (result ? "succeeded" : "failed") : "skipped")
+							.arg(_portName.isEmpty() ? QByteArray("unknown") : _portName));
 				}
 
 				if (result == false)
@@ -556,16 +562,23 @@ bool _AlpacaDevice::setPinState
 				AppCore::writeToApplicationLogLine(
 					QString("_AlpacaDevice::setPinState(%1): command timed out, attempting transport reset").arg(QString::number(pin)));
 
-				if (resetTransport() == true)
+				bool resetOk = resetTransport();
+
+				if (resetOk == true)
 				{
 					setWaitForCompletion();
 					result = _driveThread->setPinState(pin, state);
-
-					AppCore::writeToApplicationLogLine(
-						QString("_AlpacaDevice::setPinState(%1): retry after reset %2")
-							.arg(QString::number(pin))
-							.arg(result ? "succeeded" : "failed"));
 				}
+
+				// One line carrying the whole outcome, so support does not have
+				// to stitch the story together from separate entries.
+				AppCore::writeToApplicationLogLine(
+					QString("TIMEOUT RECOVERY: command=setPinState(pin=%1, state=%2) reset=%3 retry=%4 port=%5")
+						.arg(QString::number(pin))
+						.arg(state ? "on" : "off")
+						.arg(resetOk ? "succeeded" : "failed")
+						.arg(resetOk ? (result ? "succeeded" : "failed") : "skipped")
+						.arg(_portName.isEmpty() ? QByteArray("unknown") : _portName));
 			}
 
 			if (result == false)

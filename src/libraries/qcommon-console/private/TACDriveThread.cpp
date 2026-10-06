@@ -73,23 +73,63 @@ HashType TACDriveThread::hash()
 
 bool TACDriveThread::waitForCompletion()
 {
+	const int kMaxPolls{50};
+	const int kPollIntervalMs{100};
+
 	int count{0};
 
 	while (_waitForCompletion)
 	{
-		QThread::msleep(100);				// Give our high priority time to process
+		QThread::msleep(kPollIntervalMs);	// Give our high priority time to process
 		QCoreApplication::processEvents();  // Give the UI a timeslice to update
 
-		if (count++ > 50)
+		if (count++ > kMaxPolls)
 		{
-			AppCore::writeToApplicationLogLine("Wait for completion timed out.");
+			// The leading text must stay exactly "Wait for completion timed out"
+			// because downstream consumers (TacService) match on that substring
+			// to decide whether to reinitialize. Context is appended, not
+			// substituted, so those matches keep working.
+			AppCore::writeToApplicationLogLine(
+				QString("Wait for completion timed out. Board stopped acknowledging after %1 ms"
+						" (port=%2, driveTrain=%3, lastCommand=%4)")
+					.arg(count * kPollIntervalMs)
+					.arg(_portName.isEmpty() ? QByteArray("unknown") : _portName)
+					.arg(_driveTrainName)
+					.arg(_lastCommandDescription.isEmpty() ? QString("unknown") : _lastCommandDescription));
 
 			_waitForCompletion = false;
 			return false;
 		}
 	}
 
+	// A command that completes but takes an unusually long time is an early
+	// warning of the same fault. Without this the duration is only visible
+	// buried in a frame dump, which is easy to miss.
+	const int kSlowCommandPolls{10};
+	if (count > kSlowCommandPolls)
+	{
+		AppCore::writeToApplicationLogLine(
+			QString("Slow command completion: %1 ms (port=%2, lastCommand=%3)")
+				.arg(count * kPollIntervalMs)
+				.arg(_portName.isEmpty() ? QByteArray("unknown") : _portName)
+				.arg(_lastCommandDescription.isEmpty() ? QString("unknown") : _lastCommandDescription));
+	}
+
 	return true;
+}
+
+// ----------------------------------------------------------------------------
+// setLastCommandDescription
+//
+/// Records what the transport is currently doing so a timeout can name it.
+///
+/// Without this, "Wait for completion timed out" gives no indication of which
+/// command stalled, and the command has to be inferred from surrounding log
+/// lines after the fact.
+// ----------------------------------------------------------------------------
+void TACDriveThread::setLastCommandDescription(const QString& description)
+{
+	_lastCommandDescription = description;
 }
 
 // ----------------------------------------------------------------------------
