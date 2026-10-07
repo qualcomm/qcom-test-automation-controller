@@ -141,15 +141,7 @@ void PreferencesBase::saveRunLogPath
 
 QString PreferencesBase::defaultPlatformConfigLocation()
 {
-	QString result;
-
-#ifdef DEBUG
-	result = "C:\\github\\open-source\\qcom-test-automation-controller\\configurations\\";
-#else
-	result = tacConfigRoot();
-#endif
-
-	return result;
+	return tacConfigRoot();
 }
 
 QString PreferencesBase::platformConfigLocation()

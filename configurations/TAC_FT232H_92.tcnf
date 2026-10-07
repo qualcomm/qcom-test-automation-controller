@@ -301,7 +301,7 @@
             "run_priority": "-1,-1"
         }
     ],
-    "platform_id": 81,
+    "platform_id": 92,
     "platform_type": "FT232H",
     "reset_enabled": false,
     "script": "def powerOff()\n\tlogComment ====== powerOff sequence start ======\n\tbattery 1\n\tlogComment ====== powerOff sequence finish ======\n\ndef powerOn()\n\tlogComment ====== powerOn sequence start ======\n\tpowerOff\n\tdelay $pon\n\tedl 0\n\tbattery 0\n\tlogComment ====== powerOn sequence finish ======\n\ndef bootToEDL()\n\tlogComment ====== bootToEDL sequence start ======\n\tpowerOff\n\tdelay $edl\n\tedl 1\n\tbattery 0\n\tlogComment ====== bootToEDL sequence finish ======",

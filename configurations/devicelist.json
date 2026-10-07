@@ -153,8 +153,8 @@
             "description": "CSM - X100",
             "name": "CSM X100",
             "platform_id": 16,
-            "revision": 1,
-            "usb_descriptor": "ALPACA-LITE CSM X100 DEBUG BOARD"
+            "revision": 19,
+            "usb_descriptor": "ALPACA-LITE CSM X100 DEBUG"
         },
         {
             "configPath": "../../../../configurations/TAC_PSOC_17.tcnf",
@@ -776,13 +776,13 @@
             "usb_descriptor": ""
         },
         {
-            "configPath": "../../../../configurations/TAC_FT232H_81.tcnf",
-            "debugBoardType": 5,
-            "description": "Arduino Ventuno Q",
-            "name": "Arduino Ventuno Q",
+            "configPath": "../../../../configurations/TAC_PIC32CXAuto_81.tcnf",
+            "debugBoardType": 4,
+            "description": "Seca CoB STAR",
+            "name": "Seca CoB STAR",
             "platform_id": 81,
-            "revision": 16,
-            "usb_descriptor": "VentunoQ BugHopper"
+            "revision": 2,
+            "usb_descriptor": "TORO"
         },
         {
             "configPath": "../../../../configurations/TAC_PSOC_82.tcnf",
@@ -812,6 +812,15 @@
             "usb_descriptor": ""
         },
         {
+            "configPath": "../../../../configurations/TAC_FT232H_92.tcnf",
+            "debugBoardType": 5,
+            "description": "Arduino Ventuno Q",
+            "name": "Arduino Ventuno Q",
+            "platform_id": 92,
+            "revision": 16,
+            "usb_descriptor": "VentunoQ BugHopper"
+        },
+        {
             "configPath": "",
             "debugBoardType": 6,
             "description": "Arduino BugHopper V2 (Default)",
@@ -821,5 +830,5 @@
             "usb_descriptor": ""
         }
     ],
-    "modification_date": "Mon Aug 31 00:17:17 2026"
+    "modification_date": "Wed Oct 7 01:49:31 2026"
 }
