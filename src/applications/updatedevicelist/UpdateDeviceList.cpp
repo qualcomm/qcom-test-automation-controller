@@ -76,7 +76,7 @@ void UpdateDeviceList::save(const QString &filePath)
 		{
 			USBDescriptor usbDescriptor;
 
-			const QString kUSBDescriptorPath = tacConfigRoot();
+			const QString kUSBDescriptorPath = _fileDir.isEmpty() ? tacConfigRoot() : QDir::cleanPath(filePath) + QDir::separator();
 
 			usbDescriptor._platformID = platformConfiguration->getPlatformId();
 			usbDescriptor._debugBoardType = platformConfiguration->getPlatform();
