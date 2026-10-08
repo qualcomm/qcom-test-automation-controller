@@ -400,10 +400,17 @@ jobs:
           SRC_DIR="$(pwd)/source/__Builds/Linux/Release" \
           ./packaging/linux/package_QTAC.sh
 
+    - name: Package QTAC (source, no-GUI)
+      run: |
+        PKG_NAME=qualcomm-qtac-source-nogui \
+          SRC_DIR="$(pwd)/source/__Builds/Linux/Release" \
+          NO_GUI=1 \
+          ./packaging/linux/package_QTAC.sh
+
     - name: Upload installer artifact
       uses: actions/upload-artifact@v4
       with:
-        name: QTAC-source-${{ matrix.os }}-qt${{ matrix.qt_version }}.deb
+        name: QTAC-source-${{ matrix.os }}-qt${{ matrix.qt_version }}
         path: packaging/linux/build/*.deb
         if-no-files-found: error
 
@@ -472,11 +479,19 @@ jobs:
       shell: pwsh
       run: .\packaging\windows\build-installer.ps1
 
+    - name: Build installer (QTAC-source-windows-x64-nogui.exe)
+      shell: pwsh
+      run: |
+        $env:QTDIR = "C:\Qt\${{ matrix.qt_version }}\msvc2022_64"
+        .\packaging\windows\build-installer.ps1 `
+          -BinDir "source\__Builds\x64\Release\bin" `
+          -NoGui
+
     - name: Upload installer artifact
       uses: actions/upload-artifact@v4
       with:
         name: QTAC-source-windows-x64-qt${{ matrix.qt_version }}
-        path: __Builds\installer\QTAC-windows-x64.exe
+        path: __Builds\installer\QTAC-windows-*.exe
         if-no-files-found: error
 
   build-source-windows-arm64:
@@ -563,11 +578,18 @@ jobs:
       shell: pwsh
       run: .\packaging\windows\build-installer.ps1
 
+    - name: Build installer (QTAC-source-windows-arm64-nogui.exe)
+      shell: pwsh
+      run: |
+        .\packaging\windows\build-installer.ps1 `
+          -BinDir "source\__Builds\ARM64\Release\bin" `
+          -NoGui
+
     - name: Upload installer artifact
       uses: actions/upload-artifact@v4
       with:
         name: QTAC-source-windows-arm64-qt${{ matrix.qt_version }}
-        path: __Builds\installer\QTAC-windows-arm64.exe
+        path: __Builds\installer\QTAC-windows-*.exe
         if-no-files-found: error
 
   publish-release-linux:
