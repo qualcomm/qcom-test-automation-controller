@@ -410,8 +410,35 @@ bool _AlpacaDevice::quickCommand
 				ScriptVariables scriptVariables = _platformConfiguration->getVariables();
 				CommandEntries commandEntries = _alpacaScript.getCommandEntries(command);
 				CommandEntries substitutedCommandEntries = _alpacaScript.replaceTokens(scriptVariables, commandEntries);
+
+				// Record whether the completion flag is armed before we queue.
+				// waitForCompletion() loops only while the flag is set, so an
+				// unarmed flag makes it return success without the board having
+				// acknowledged anything. Callers are expected to arm it; log the
+				// state so a silent success is identifiable from the log alone
+				// rather than inferred from suspiciously fast timing.
+				bool armed = _driveThread->waitForCompletionStatus();
+
+				AppCore::writeToApplicationLogLine(
+					QString("_AlpacaDevice::quickCommand(%1): queueing %2 entries, completionArmed=%3")
+						.arg(command)
+						.arg(substitutedCommandEntries.count())
+						.arg(armed ? "yes" : "NO"));
+
+				if (armed == false)
+				{
+					AppCore::writeToApplicationLogLine(
+						QString("_AlpacaDevice::quickCommand(%1): completion flag not armed, the wait"
+								" will return immediately and the command cannot be verified").arg(command));
+				}
+
 				_driveThread->sendCommandSequence(substitutedCommandEntries);
 				result = _driveThread->waitForCompletion();
+
+				AppCore::writeToApplicationLogLine(
+					QString("_AlpacaDevice::quickCommand(%1): completion %2")
+						.arg(command)
+						.arg(result ? "confirmed" : "timed out"));
 
 				if (result == false)
 				{
