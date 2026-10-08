@@ -95,6 +95,7 @@ TAC_BAD_TAC_HANDLE = 2
 TACDEV_COMMAND_NOT_FOUND = 3
 TACDEV_BAD_INDEX = 4
 TACDEV_INIT_FAILED = 5
+TACDEV_COMMAND_TIMEOUT = 7
 
 
 def GetErrorString(errorCode: int) -> str:
@@ -106,6 +107,7 @@ def GetErrorString(errorCode: int) -> str:
         4: "Bad TAC index",
         5: "TAC initialization failed",
         6: "TAC Script variable was not found",
+        7: "TAC command timed out waiting for completion",
     }
     return errorDict.get(errorCode, f"Error string cannot be determined. Error code: {errorCode}")
 

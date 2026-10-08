@@ -13,6 +13,7 @@ const quint32 TAC_COMMAND_NOT_FOUND{3};
 const quint32 TAC_BAD_INDEX{4};
 const quint32 TAC_DEVICE_INACTIVE{5};
 const quint32 TAC_SCRIPT_VARIABLE_NOT_FOUND{6};
+const quint32 TAC_COMMAND_TIMEOUT{7};
 
 class QCOMMONCONSOLE_EXPORT TACException :
 	public QException

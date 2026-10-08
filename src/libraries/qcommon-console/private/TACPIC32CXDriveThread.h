@@ -35,7 +35,7 @@ public:
 	void sendCommand(const QByteArray& command, bool console = false,
 							 ReceiveInterface* receiveInterface = Q_NULLPTR, bool shouldStore = true);
 
-	void setPinState(quint16 pin, bool state);
+	bool setPinState(quint16 pin, bool state);
 	void sendCommandSequence(CommandEntries& commandEntries);
 
 	int getResetCount();
@@ -57,6 +57,20 @@ public:
 	void endTransaction(ReceiveInterface *receiveInterface);
 protected:
 	bool openSerialDevice();
+	bool performTransportReset() override;
+
+	// Settle time after dropping the port, before reopening. The first version
+	// of this reset reopened within ~50 ms and the board still did not answer,
+	// which is consistent with the device needing longer after its CDC endpoint
+	// goes away.
+	static const int kTransportResetSettleMs{500};
+
+	// How long to wait for the board to identify itself after a reopen. Normal
+	// startup sees the reply in roughly half a second; this allows generous
+	// headroom while staying well inside the caller's 15s reset timeout.
+	static const int kTransportResetHandshakeMs{5000};
+
+	bool drainHandshake();
 
 protected slots:
 	void handleError(QSerialPort::SerialPortError error);
