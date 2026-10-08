@@ -104,6 +104,17 @@ void _STM32PlatformConfiguration::initialize()
         v._cellY        = 0;
         _variables[v._name] = v;
     }
+    {
+        qtac::VariableEntry v;
+        v._name         = "pon";
+        v._label        = "Power on delay (ms)";
+        v._tooltip      = "Configurable power on delay in milliseconds";
+        v._type         = qtac::VariableType::Integer;
+        v._defaultValue = 500u;
+        v._cellX        = 1;
+        v._cellY        = 0;
+        _variables[v._name] = v;
+    }
 
     // --- AlpacaScript (exact text from upstream) ---
     static const char* kDefaultScript =
@@ -114,6 +125,7 @@ void _STM32PlatformConfiguration::initialize()
         "def powerOn()\n"
         "logComment ====== powerOn sequence start ======\n"
         "powerOff\n"
+        "delay $pon\n"
         "battery 0\n"
         "edl 0\n"
         "voldn 0\n"
@@ -123,6 +135,7 @@ void _STM32PlatformConfiguration::initialize()
         "edl 0\n"
         "voldn 0\n"
         "powerOff\n"
+        "delay $pon\n"
         "powerOn\n"
         "logComment ====== reset sequence finish ======\n\n"
         "def bootToEDL()\n"
