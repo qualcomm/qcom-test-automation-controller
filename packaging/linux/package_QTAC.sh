@@ -25,8 +25,8 @@ OPTION_ZIP="${1:-}"
 
 BASE_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
-# Source directories
-SRC_DIR="$(realpath "$BASE_DIR/../../__Builds/Linux/Release")"
+# Source directories — can be overridden via env var for out-of-tree builds
+SRC_DIR="${SRC_DIR:-$(realpath "$BASE_DIR/../../__Builds/Linux/Release")}"
 CONFIG_SRC_DIR="$(realpath "$BASE_DIR/../../configurations")"
 DOCS_SRC_DIR="$(realpath "$BASE_DIR/../../docs")"
 EXAMPLES_SRC_DIR="$(realpath "$BASE_DIR/../../examples")"

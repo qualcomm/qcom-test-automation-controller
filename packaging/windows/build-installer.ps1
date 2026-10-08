@@ -82,8 +82,17 @@ $iexpress = Join-Path $env:WinDir 'System32\iexpress.exe'
 if (-not (Test-Path $iexpress)) { throw "iexpress.exe not found at $iexpress." }
 
 if (-not $Version) {
-    $vc = Get-Content (Join-Path $SourceRoot 'src\libraries\qcommon-console\version.cmake') -Raw
-    if ($vc -match 'QTAC_VERSION\s+"([^"]+)"') { $Version = $Matches[1] } else { $Version = '0.0.0' }
+    $versionCmake = Join-Path $SourceRoot 'src\libraries\qcommon-console\version.cmake'
+    $versionH     = Join-Path $SourceRoot 'source\library\include\qtac\version.h'
+    if (Test-Path $versionCmake) {
+        $vc = Get-Content $versionCmake -Raw
+        if ($vc -match 'QTAC_VERSION\s+"([^"]+)"') { $Version = $Matches[1] }
+    }
+    if (-not $Version -and (Test-Path $versionH)) {
+        $vh = Get-Content $versionH -Raw
+        if ($vh -match 'TAC_LIB_VERSION\s+"([^"]+)"') { $Version = $Matches[1] }
+    }
+    if (-not $Version) { $Version = '0.0.0' }
 }
 
 Write-Host "Building QTAC installer: arch=$Arch version=$Version"
