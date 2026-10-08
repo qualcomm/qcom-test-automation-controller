@@ -31,6 +31,7 @@ CONFIG_SRC_DIR="$(realpath "$BASE_DIR/../../configurations")"
 DOCS_SRC_DIR="$(realpath "$BASE_DIR/../../docs")"
 EXAMPLES_SRC_DIR="$(realpath "$BASE_DIR/../../examples")"
 PYTHON_SRC_DIR="$(realpath "$BASE_DIR/../../interfaces/Python")"
+INTERFACES_SRC_DIR="$(realpath "$BASE_DIR/../../interfaces")"
 UDEV_RULES_SRC_DIR="$(realpath "$BASE_DIR/../../udev-rules")"
 PLUGINS_SRC_DIR="$SRC_DIR/plugins"
 
@@ -92,6 +93,11 @@ if [ ! -d "$PYTHON_SRC_DIR" ]; then
     missing=1
 fi
 
+if [ ! -d "$INTERFACES_SRC_DIR" ]; then
+    echo "ERROR: Missing interfaces directory: $INTERFACES_SRC_DIR" >&2
+    missing=1
+fi
+
 if [ ! -d "$UDEV_RULES_SRC_DIR" ]; then
     echo "ERROR: Missing udev-rules directory: $UDEV_RULES_SRC_DIR" >&2
     missing=1
@@ -120,6 +126,7 @@ mkdir -p "$BUILDROOT$INSTALL_PREFIX/python"
 mkdir -p "$BUILDROOT$INSTALL_PREFIX/plugins"
 mkdir -p "$BUILDROOT$INSTALL_PREFIX/utils"
 mkdir -p "$BUILDROOT$CONFIG_INSTALL_DIR/configurations"
+mkdir -p "$BUILDROOT$CONFIG_INSTALL_DIR/interfaces"
 mkdir -p "$OUTPUT_DIR"
 
 chmod 0755 "$BUILDROOT/DEBIAN"
@@ -146,6 +153,30 @@ echo "Copying Python..."
 cp -a "$PYTHON_SRC_DIR/." \
       "$BUILDROOT$INSTALL_PREFIX/python/"
 
+echo "Copying interfaces..."
+
+if [ -d "$INTERFACES_SRC_DIR/C++/TACDev" ]; then
+    mkdir -p "$BUILDROOT$CONFIG_INSTALL_DIR/interfaces/C++/TACDev"
+    if ls "$INTERFACES_SRC_DIR/C++/TACDev/"*.h >/dev/null 2>&1; then
+        cp -a "$INTERFACES_SRC_DIR/C++/TACDev/"*.h \
+              "$BUILDROOT$CONFIG_INSTALL_DIR/interfaces/C++/TACDev/"
+    else
+        echo "WARNING: No C++ headers found in $INTERFACES_SRC_DIR/C++/TACDev" >&2
+    fi
+else
+    echo "WARNING: Missing interfaces/C++/TACDev; C++ headers will be absent." >&2
+fi
+
+for lang in Python Java; do
+    if [ -d "$INTERFACES_SRC_DIR/$lang" ]; then
+        mkdir -p "$BUILDROOT$CONFIG_INSTALL_DIR/interfaces/$lang"
+        cp -a "$INTERFACES_SRC_DIR/$lang/." \
+              "$BUILDROOT$CONFIG_INSTALL_DIR/interfaces/$lang/"
+    else
+        echo "WARNING: Missing interfaces/$lang; $lang interface will be absent." >&2
+    fi
+done
+
 echo "Copying plugins..."
 cp -a "$PLUGINS_SRC_DIR/." \
       "$BUILDROOT$INSTALL_PREFIX/plugins/"
@@ -163,6 +194,82 @@ find "$BUILDROOT$INSTALL_PREFIX/plugins" -type f -exec chmod 644 {} \; || true
 find "$BUILDROOT$INSTALL_PREFIX/python" -type f -exec chmod 644 {} \; || true
 
 find "$BUILDROOT$CONFIG_INSTALL_DIR/configurations" -type f -exec chmod 644 {} \; || true
+
+find "$BUILDROOT$CONFIG_INSTALL_DIR/interfaces" -type f -exec chmod 644 {} \; || true
+find "$BUILDROOT$CONFIG_INSTALL_DIR/interfaces" -type f -name "*.sh" -exec chmod 755 {} \; || true
+
+###############################################################################
+# Validate Interfaces Payload
+###############################################################################
+
+echo ""
+echo "Validating interfaces payload..."
+
+INTERFACES_STAGE_DIR="$BUILDROOT$CONFIG_INSTALL_DIR/interfaces"
+interfaces_invalid=0
+
+for rel in "C++/TACDev" "Python" "Java"; do
+
+    staged="$INTERFACES_STAGE_DIR/$rel"
+
+    if [ ! -d "$INTERFACES_SRC_DIR/$rel" ]; then
+        echo "  SKIP  interfaces/$rel (not present in source tree)"
+        continue
+    fi
+
+    if [ ! -d "$staged" ]; then
+        echo "  ERROR interfaces/$rel was not staged at $staged" >&2
+        interfaces_invalid=1
+        continue
+    fi
+
+    count="$(find "$staged" -type f | wc -l | tr -d '[:space:]')"
+
+    if [ "$count" -eq 0 ]; then
+        echo "  ERROR interfaces/$rel staged but contains no files" >&2
+        interfaces_invalid=1
+        continue
+    fi
+
+    echo "  OK    interfaces/$rel ($count file(s))"
+
+done
+
+if [ "$interfaces_invalid" -ne 0 ]; then
+    echo ""
+    echo "ERROR: Interfaces payload validation failed." >&2
+    echo "Expected interfaces under: $CONFIG_INSTALL_DIR/interfaces" >&2
+    exit 1
+fi
+
+# C++ side must ship headers only (no sources / build files), matching the
+# Windows installer which copies interfaces\C++\TACDev\*.h exclusively.
+if [ -d "$INTERFACES_STAGE_DIR/C++/TACDev" ]; then
+
+    unexpected="$(
+        find "$INTERFACES_STAGE_DIR/C++/TACDev" \
+            -type f \
+            ! -name "*.h" \
+            ! -name "*.hpp" \
+            -printf '%p\n' 2>/dev/null || true
+    )"
+
+    if [ -n "$unexpected" ]; then
+        echo ""
+        echo "ERROR: Unexpected non-header files staged under interfaces/C++/TACDev:" >&2
+        echo "$unexpected" >&2
+        exit 1
+    fi
+
+    if ! find "$INTERFACES_STAGE_DIR/C++/TACDev" -name "*.h" | grep -q .; then
+        echo ""
+        echo "ERROR: No C++ headers staged under interfaces/C++/TACDev." >&2
+        exit 1
+    fi
+
+fi
+
+echo "Interfaces payload validation passed."
 
 ###############################################################################
 # Validate Qt Plugin Dependencies
@@ -438,6 +545,54 @@ else
 fi
 
 echo "Successfully built: $OUTPUT_DEB"
+
+###############################################################################
+# Verify Generated Package Contents
+###############################################################################
+
+echo ""
+echo "Verifying generated package contents..."
+
+DEB_CONTENTS="$WORKDIR/deb-contents.txt"
+dpkg-deb -c "$OUTPUT_DEB" > "$DEB_CONTENTS"
+
+pkg_invalid=0
+
+# Strip the leading '.' dpkg-deb prints for absolute paths.
+expected_paths=(
+    "$INSTALL_PREFIX/bin/"
+    "$INSTALL_PREFIX/lib/"
+    "$CONFIG_INSTALL_DIR/configurations/"
+    "$CONFIG_INSTALL_DIR/interfaces/"
+)
+
+for lang_rel in "C++/TACDev" "Python" "Java"; do
+    if [ -d "$INTERFACES_SRC_DIR/$lang_rel" ]; then
+        expected_paths+=("$CONFIG_INSTALL_DIR/interfaces/$lang_rel/")
+    fi
+done
+
+for p in "${expected_paths[@]}"; do
+
+    if grep -q -F " .$p" "$DEB_CONTENTS"; then
+        echo "  OK    $p"
+    else
+        echo "  ERROR $p missing from $OUTPUT_DEB" >&2
+        pkg_invalid=1
+    fi
+
+done
+
+if [ "$pkg_invalid" -ne 0 ]; then
+    echo ""
+    echo "ERROR: Generated package is missing expected content." >&2
+    echo "Full package listing:" >&2
+    cat "$DEB_CONTENTS" >&2
+    exit 1
+fi
+
+interfaces_in_deb="$(grep -c -F " .$CONFIG_INSTALL_DIR/interfaces/" "$DEB_CONTENTS" || true)"
+echo "Package content verification passed ($interfaces_in_deb interfaces entries)."
 
 ZIP_FOLDER="${PKG_NAME}_${VERSION}_${ARCH}"
 

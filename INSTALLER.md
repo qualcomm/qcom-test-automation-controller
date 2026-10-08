@@ -102,6 +102,7 @@ configuration list is generated automatically.
 | Example automation scripts | `/opt/qcom/QTAC/examples/` |
 | Python interface files | `/opt/qcom/QTAC/python/` |
 | Device/platform configuration files | `/var/lib/qcom/data/QTAC/configurations/` |
+| C++, Python & Java interface files | `/var/lib/qcom/data/QTAC/interfaces/` |
 | USB device rule (for accessing debug boards without root) | `/etc/udev/rules.d/99-QTAC-USB.rules` |
 
 ### Uninstalling (Linux)
