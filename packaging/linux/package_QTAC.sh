@@ -13,6 +13,9 @@ MAINTAINER="${MAINTAINER:-Maintainer <maintainer@example.com>}"
 DESCRIPTION="${DESCRIPTION:-Qualcomm QTAC tool package}"
 INSTALL_PREFIX="${INSTALL_PREFIX:-/opt/qcom/QTAC}"
 CONFIG_INSTALL_DIR="/var/lib/qcom/data/QTAC"
+# Set NO_GUI=1 to produce the headless/automation variant (lib + support
+# files only; no GUI binary, no Qt plugins, no xcb dependencies).
+NO_GUI="${NO_GUI:-0}"
 
 case "${1:-}" in
   -v|--version|version)
@@ -25,8 +28,8 @@ OPTION_ZIP="${1:-}"
 
 BASE_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
-# Source directories
-SRC_DIR="$(realpath "$BASE_DIR/../../__Builds/Linux/Release")"
+# Source directories — can be overridden via env var for out-of-tree builds
+SRC_DIR="${SRC_DIR:-$(realpath "$BASE_DIR/../../__Builds/Linux/Release")}"
 CONFIG_SRC_DIR="$(realpath "$BASE_DIR/../../configurations")"
 DOCS_SRC_DIR="$(realpath "$BASE_DIR/../../docs")"
 EXAMPLES_SRC_DIR="$(realpath "$BASE_DIR/../../examples")"
@@ -62,7 +65,7 @@ fi
 
 missing=0
 
-for d in bin lib; do
+for d in lib; do
     if [ ! -d "$SRC_DIR/$d" ]; then
         echo "ERROR: Missing source directory: $SRC_DIR/$d" >&2
         missing=1
@@ -71,6 +74,16 @@ for d in bin lib; do
         missing=1
     fi
 done
+
+if [ "$NO_GUI" -ne 1 ]; then
+    if [ ! -d "$SRC_DIR/bin" ]; then
+        echo "ERROR: Missing source directory: $SRC_DIR/bin" >&2
+        missing=1
+    elif [ -z "$(ls -A "$SRC_DIR/bin")" ]; then
+        echo "ERROR: Source directory empty: $SRC_DIR/bin" >&2
+        missing=1
+    fi
+fi
 
 if [ ! -d "$CONFIG_SRC_DIR" ]; then
     echo "ERROR: Missing configurations directory: $CONFIG_SRC_DIR" >&2
@@ -97,7 +110,7 @@ if [ ! -d "$UDEV_RULES_SRC_DIR" ]; then
     missing=1
 fi
 
-if [ ! -d "$PLUGINS_SRC_DIR" ]; then
+if [ "$NO_GUI" -ne 1 ] && [ ! -d "$PLUGINS_SRC_DIR" ]; then
     echo "ERROR: Missing plugins directory: $PLUGINS_SRC_DIR" >&2
     missing=1
 fi
@@ -112,20 +125,24 @@ BUILDROOT="$WORKDIR/${PKG_NAME}_${VERSION}"
 trap 'if [ "${NO_CLEANUP:-0}" -ne 1 ]; then rm -rf "$WORKDIR"; fi' EXIT
 
 mkdir -p "$BUILDROOT/DEBIAN"
-mkdir -p "$BUILDROOT$INSTALL_PREFIX/bin"
+if [ "$NO_GUI" -ne 1 ]; then
+    mkdir -p "$BUILDROOT$INSTALL_PREFIX/bin"
+    mkdir -p "$BUILDROOT$INSTALL_PREFIX/plugins"
+fi
 mkdir -p "$BUILDROOT$INSTALL_PREFIX/lib"
 mkdir -p "$BUILDROOT$INSTALL_PREFIX/docs"
 mkdir -p "$BUILDROOT$INSTALL_PREFIX/examples"
 mkdir -p "$BUILDROOT$INSTALL_PREFIX/python"
-mkdir -p "$BUILDROOT$INSTALL_PREFIX/plugins"
 mkdir -p "$BUILDROOT$INSTALL_PREFIX/utils"
 mkdir -p "$BUILDROOT$CONFIG_INSTALL_DIR/configurations"
 mkdir -p "$OUTPUT_DIR"
 
 chmod 0755 "$BUILDROOT/DEBIAN"
 
-echo "Copying bin..."
-cp -a "$SRC_DIR/bin/." "$BUILDROOT$INSTALL_PREFIX/bin/"
+if [ "$NO_GUI" -ne 1 ]; then
+    echo "Copying bin..."
+    cp -a "$SRC_DIR/bin/." "$BUILDROOT$INSTALL_PREFIX/bin/"
+fi
 
 echo "Copying lib..."
 cp -a "$SRC_DIR/lib/." "$BUILDROOT$INSTALL_PREFIX/lib/"
@@ -146,30 +163,35 @@ echo "Copying Python..."
 cp -a "$PYTHON_SRC_DIR/." \
       "$BUILDROOT$INSTALL_PREFIX/python/"
 
-echo "Copying plugins..."
-cp -a "$PLUGINS_SRC_DIR/." \
-      "$BUILDROOT$INSTALL_PREFIX/plugins/"
-	  
+if [ "$NO_GUI" -ne 1 ]; then
+    echo "Copying plugins..."
+    cp -a "$PLUGINS_SRC_DIR/." \
+          "$BUILDROOT$INSTALL_PREFIX/plugins/"
+fi
+
 echo "Copying udev rules..."
 cp -a "$UDEV_RULES_SRC_DIR/." \
       "$BUILDROOT$INSTALL_PREFIX/utils/"
 
-find "$BUILDROOT$INSTALL_PREFIX/bin" -type f -exec chmod 755 {} \;
+if [ "$NO_GUI" -ne 1 ]; then
+    find "$BUILDROOT$INSTALL_PREFIX/bin" -type f -exec chmod 755 {} \;
+fi
 find "$BUILDROOT$INSTALL_PREFIX/lib" -type f -exec chmod 755 {} \;
 
 find "$BUILDROOT$INSTALL_PREFIX/docs" -type f -exec chmod 644 {} \; || true
 find "$BUILDROOT$INSTALL_PREFIX/examples" -type f -exec chmod 644 {} \; || true
-find "$BUILDROOT$INSTALL_PREFIX/plugins" -type f -exec chmod 644 {} \; || true
+if [ "$NO_GUI" -ne 1 ]; then
+    find "$BUILDROOT$INSTALL_PREFIX/plugins" -type f -exec chmod 644 {} \; || true
+fi
 find "$BUILDROOT$INSTALL_PREFIX/python" -type f -exec chmod 644 {} \; || true
 
 find "$BUILDROOT$CONFIG_INSTALL_DIR/configurations" -type f -exec chmod 644 {} \; || true
 
 ###############################################################################
-# Validate Qt Plugin Dependencies
+# Validate Qt Plugin Dependencies  (GUI only)
 ###############################################################################
 
-echo ""
-echo "Validating Qt plugin dependencies..."
+if [ "$NO_GUI" -ne 1 ]; then
 
 find "$BUILDROOT$INSTALL_PREFIX/plugins" \
     -type f \
@@ -250,6 +272,8 @@ else
 
 fi
 
+fi # NO_GUI
+
 chown -R root:root "$BUILDROOT" 2>/dev/null || true
 
 cat > "$BUILDROOT/DEBIAN/control" <<EOF
@@ -259,7 +283,7 @@ Section: utils
 Priority: optional
 Architecture: $DEB_ARCH
 Maintainer: $MAINTAINER
-Depends: bash, coreutils, libxcb-cursor0, libxcb-icccm4, libxcb-util1, libxcb-image0, libxcb-keysyms1, libxcb-render-util0
+Depends: bash, coreutils$([ "$NO_GUI" -ne 1 ] && echo ", libxcb-cursor0, libxcb-icccm4, libxcb-util1, libxcb-image0, libxcb-keysyms1, libxcb-render-util0")
 Description: $DESCRIPTION
 EOF
 
@@ -290,31 +314,35 @@ chmod -R 0755 "$CONFIG_INSTALL_DIR" || true
 
 chown -R root:root "\$INSTALL_PREFIX" || true
 chown -R root:root "$CONFIG_INSTALL_DIR" || true
+EOF
 
-echo "[QTAC] Executing UpdateDeviceList..." >> "\$LOG_FILE"
-echo "[QTAC] Command: \$INSTALL_PREFIX/bin/UpdateDeviceList dir=\$CONFIG_DIR" >> "\$LOG_FILE"
+if [ "$NO_GUI" -ne 1 ]; then
+cat >> "$BUILDROOT/DEBIAN/postinst" <<'POSTINST_GUI'
 
-if [ -x "\$INSTALL_PREFIX/bin/UpdateDeviceList" ]; then
+echo "[QTAC] Executing UpdateDeviceList..." >> "$LOG_FILE"
+echo "[QTAC] Command: $INSTALL_PREFIX/bin/UpdateDeviceList dir=$CONFIG_DIR" >> "$LOG_FILE"
 
-    if "\$INSTALL_PREFIX/bin/UpdateDeviceList" \
-        dir="\$CONFIG_DIR" \
-        >> "\$LOG_FILE" 2>&1
+if [ -x "$INSTALL_PREFIX/bin/UpdateDeviceList" ]; then
+
+    if "$INSTALL_PREFIX/bin/UpdateDeviceList" \
+        dir="$CONFIG_DIR" \
+        >> "$LOG_FILE" 2>&1
     then
 
-        echo "[QTAC] UpdateDeviceList completed successfully." >> "\$LOG_FILE"
+        echo "[QTAC] UpdateDeviceList completed successfully." >> "$LOG_FILE"
 
     else
 
-        RET=\$?
+        RET=$?
 
-        echo "[QTAC] WARNING: UpdateDeviceList failed with return code \$RET" \
-            >> "\$LOG_FILE"
+        echo "[QTAC] WARNING: UpdateDeviceList failed with return code $RET" \
+            >> "$LOG_FILE"
 
     fi
 
 else
 
-    echo "[QTAC] ERROR: UpdateDeviceList not found or not executable." >> "\$LOG_FILE"
+    echo "[QTAC] ERROR: UpdateDeviceList not found or not executable." >> "$LOG_FILE"
 
 fi
 
@@ -325,10 +353,10 @@ fi
 if ! ldconfig -p 2>/dev/null | grep -q "libxcb-cursor.so.0"; then
 
     echo "[QTAC] libxcb-cursor0 not found. Installing..." \
-        >> "\$LOG_FILE"
+        >> "$LOG_FILE"
 
     apt-get update \
-        >> "\$LOG_FILE" 2>&1 || true
+        >> "$LOG_FILE" 2>&1 || true
 
     DEBIAN_FRONTEND=noninteractive \
 	apt-get install -y \
@@ -338,23 +366,27 @@ if ! ldconfig -p 2>/dev/null | grep -q "libxcb-cursor.so.0"; then
 		libxcb-image0 \
 		libxcb-keysyms1 \
 		libxcb-render-util0 \
-    >> "\$LOG_FILE" 2>&1 || true
+    >> "$LOG_FILE" 2>&1 || true
 
     ldconfig >/dev/null 2>&1 || true
 
     if ldconfig -p 2>/dev/null | grep -q "libxcb-cursor.so.0"; then
 
         echo "[QTAC] Successfully installed libxcb-cursor0." \
-            >> "\$LOG_FILE"
+            >> "$LOG_FILE"
 
     else
 
         echo "[QTAC] WARNING: Failed to install libxcb-cursor0." \
-            >> "\$LOG_FILE"
+            >> "$LOG_FILE"
 
     fi
 
 fi
+POSTINST_GUI
+fi
+
+cat >> "$BUILDROOT/DEBIAN/postinst" <<EOF
 
 echo "[QTAC] Installing udev rules..." >> "\$LOG_FILE"
 

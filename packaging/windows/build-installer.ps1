@@ -3,12 +3,15 @@
 
 [CmdletBinding()]
 param(
-    [string] $SourceRoot,        
-    [string] $BinDir,            
-    [string] $SevenZipDir,       
-    [string] $OutDir,            
-    [string] $Version,           
-    [switch] $MockPayload        
+    [string] $SourceRoot,
+    [string] $BinDir,
+    [string] $SevenZipDir,
+    [string] $OutDir,
+    [string] $Version,
+    [switch] $MockPayload,
+    # Produce the headless/automation variant: only TACDev.dll + support files,
+    # no GUI binary, no Qt runtime.
+    [switch] $NoGui
 )
 
 $ErrorActionPreference = 'Stop'
@@ -82,8 +85,17 @@ $iexpress = Join-Path $env:WinDir 'System32\iexpress.exe'
 if (-not (Test-Path $iexpress)) { throw "iexpress.exe not found at $iexpress." }
 
 if (-not $Version) {
-    $vc = Get-Content (Join-Path $SourceRoot 'src\libraries\qcommon-console\version.cmake') -Raw
-    if ($vc -match 'QTAC_VERSION\s+"([^"]+)"') { $Version = $Matches[1] } else { $Version = '0.0.0' }
+    $versionCmake = Join-Path $SourceRoot 'src\libraries\qcommon-console\version.cmake'
+    $versionH     = Join-Path $SourceRoot 'source\library\include\qtac\version.h'
+    if (Test-Path $versionCmake) {
+        $vc = Get-Content $versionCmake -Raw
+        if ($vc -match 'QTAC_VERSION\s+"([^"]+)"') { $Version = $Matches[1] }
+    }
+    if (-not $Version -and (Test-Path $versionH)) {
+        $vh = Get-Content $versionH -Raw
+        if ($vh -match 'TAC_LIB_VERSION\s+"([^"]+)"') { $Version = $Matches[1] }
+    }
+    if (-not $Version) { $Version = '0.0.0' }
 }
 
 Write-Host "Building QTAC installer: arch=$Arch version=$Version"
@@ -96,14 +108,34 @@ Remove-Item $pkg -Recurse -Force -ErrorAction SilentlyContinue
 New-Item -ItemType Directory -Force -Path (Join-Path $data 'app') | Out-Null
 
 if ($MockPayload) {
-    Set-Content (Join-Path $data 'app\TAC.exe') 'placeholder'
-    Set-Content (Join-Path $data 'app\FTDICheck.exe') 'placeholder'
-    Set-Content (Join-Path $data 'app\Qt6Core.dll') 'placeholder'
+    if ($NoGui) {
+        Set-Content (Join-Path $data 'app\TACDev.dll') 'placeholder'
+        Set-Content (Join-Path $data 'app\TACDev.lib') 'placeholder'
+    } else {
+        Set-Content (Join-Path $data 'app\TAC.exe') 'placeholder'
+        Set-Content (Join-Path $data 'app\FTDICheck.exe') 'placeholder'
+        Set-Content (Join-Path $data 'app\Qt6Core.dll') 'placeholder'
+    }
 } else {
     if (-not (Test-Path $BinDir)) {
         throw "Build output not found: $BinDir. Run build.bat first (see README > Build & Usage)."
     }
-    Copy-Item (Join-Path $BinDir '*') (Join-Path $data 'app') -Recurse -Force
+    if ($NoGui) {
+        # No-GUI variant: ship only TACDev.dll and its import lib.
+        $libDir = Join-Path (Split-Path $BinDir -Parent) 'lib'
+        foreach ($f in @('TACDev.dll')) {
+            $src = Join-Path $BinDir $f
+            if (Test-Path $src) { Copy-Item $src (Join-Path $data 'app') -Force }
+            else { Write-Warning "$f not found in $BinDir" }
+        }
+        foreach ($f in @('TACDev.lib')) {
+            $src = Join-Path $libDir $f
+            if (Test-Path $src) { Copy-Item $src (Join-Path $data 'app') -Force }
+            else { Write-Warning "$f not found in $libDir" }
+        }
+    } else {
+        Copy-Item (Join-Path $BinDir '*') (Join-Path $data 'app') -Recurse -Force
+    }
 }
 
 if (Test-Path (Join-Path $SourceRoot 'docs')) {
