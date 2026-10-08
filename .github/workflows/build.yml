@@ -475,14 +475,24 @@ jobs:
         Remove-Item -Recurse -Force docs
         Move-Item docs-html docs
 
+    - name: Deploy Qt runtime (source, x64)
+      shell: pwsh
+      run: |
+        $qtBin = "C:\Qt\${{ matrix.qt_version }}\msvc2022_64\bin"
+        $binDir = "source\__Builds\x64\Release\bin"
+        $env:PATH = "$qtBin;$env:PATH"
+        & "$qtBin\windeployqt.exe" --release --no-translations --no-system-d3d-compiler `
+          (Get-ChildItem $binDir -Filter "*.exe" | Select-Object -First 1 -ExpandProperty FullName)
+
     - name: Build installer (QTAC-source-windows-x64.exe)
       shell: pwsh
-      run: .\packaging\windows\build-installer.ps1
+      run: |
+        .\packaging\windows\build-installer.ps1 `
+          -BinDir "source\__Builds\x64\Release\bin"
 
     - name: Build installer (QTAC-source-windows-x64-nogui.exe)
       shell: pwsh
       run: |
-        $env:QTDIR = "C:\Qt\${{ matrix.qt_version }}\msvc2022_64"
         .\packaging\windows\build-installer.ps1 `
           -BinDir "source\__Builds\x64\Release\bin" `
           -NoGui
@@ -574,9 +584,20 @@ jobs:
         Remove-Item -Recurse -Force docs
         Move-Item docs-html docs
 
+    - name: Deploy Qt runtime (source, ARM64)
+      shell: pwsh
+      run: |
+        $qtBin = "C:\Qt\${{ matrix.qt_version }}\msvc2022_arm64\bin"
+        $binDir = "source\__Builds\ARM64\Release\bin"
+        $env:PATH = "$qtBin;$env:PATH"
+        & "$qtBin\windeployqt.exe" --release --no-translations --no-system-d3d-compiler `
+          (Get-ChildItem $binDir -Filter "*.exe" | Select-Object -First 1 -ExpandProperty FullName)
+
     - name: Build installer (QTAC-source-windows-arm64.exe)
       shell: pwsh
-      run: .\packaging\windows\build-installer.ps1
+      run: |
+        .\packaging\windows\build-installer.ps1 `
+          -BinDir "source\__Builds\ARM64\Release\bin"
 
     - name: Build installer (QTAC-source-windows-arm64-nogui.exe)
       shell: pwsh
@@ -727,6 +748,143 @@ jobs:
             --generate-notes
           if ($LASTEXITCODE -ne 0) {
             # Another job likely created it first; verify it now exists.
+            gh release view "$env:TAG" --repo "$env:GITHUB_REPOSITORY"
+          }
+        }
+        $assets = Get-ChildItem release-assets -File | ForEach-Object { $_.FullName }
+        gh release upload "$env:TAG" $assets `
+          --repo "$env:GITHUB_REPOSITORY" `
+          --clobber
+
+  publish-release-source-linux:
+    name: Publish release (source Linux)
+    if: github.ref_type == 'tag'
+    needs: build-source-linux
+    runs-on: ubuntu-22.04
+    permissions:
+      contents: write
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v6
+      with:
+        fetch-depth: 0
+
+    - name: Verify tag is on main branch
+      id: verify_main
+      run: |
+        set -euo pipefail
+        git fetch origin main --quiet
+        if git merge-base --is-ancestor "$GITHUB_SHA" origin/main; then
+          echo "Tagged commit $GITHUB_SHA is on main; proceeding with release."
+          echo "on_main=true" >> "$GITHUB_OUTPUT"
+        else
+          echo "Tagged commit $GITHUB_SHA is NOT on main; skipping release publish."
+          echo "on_main=false" >> "$GITHUB_OUTPUT"
+        fi
+
+    - name: Download source Linux build artifacts
+      if: steps.verify_main.outputs.on_main == 'true'
+      uses: actions/download-artifact@v4
+      with:
+        pattern: QTAC-source-*ubuntu*
+        path: release-artifacts
+
+    - name: Flatten artifacts into a single directory
+      if: steps.verify_main.outputs.on_main == 'true'
+      run: |
+        set -euo pipefail
+        mkdir -p release-assets
+        find release-artifacts -mindepth 2 -type f -print0 | while IFS= read -r -d '' f; do
+          artifact_name="$(basename "$(dirname "$f")")"
+          filename="$(basename "$f")"
+          cp "$f" "release-assets/${artifact_name}_${filename}"
+        done
+        echo "Source Linux release assets to upload:"
+        ls -la release-assets
+
+    - name: Ensure GitHub Release exists and upload assets
+      if: steps.verify_main.outputs.on_main == 'true'
+      env:
+        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        TAG: ${{ github.ref_name }}
+      run: |
+        set -euo pipefail
+        if ! gh release view "$TAG" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
+          gh release create "$TAG" \
+            --repo "$GITHUB_REPOSITORY" \
+            --title "$TAG" \
+            --generate-notes || \
+          gh release view "$TAG" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1
+        fi
+        gh release upload "$TAG" release-assets/* \
+          --repo "$GITHUB_REPOSITORY" \
+          --clobber
+
+  publish-release-source-windows:
+    name: Publish release (source Windows)
+    if: github.ref_type == 'tag'
+    needs: [build-source-windows, build-source-windows-arm64]
+    runs-on: windows-2022
+    permissions:
+      contents: write
+    steps:
+    - name: Checkout repository (full history)
+      uses: actions/checkout@v6
+      with:
+        fetch-depth: 0
+
+    - name: Verify tag is on main branch
+      id: verify_main
+      shell: pwsh
+      run: |
+        $ErrorActionPreference = 'Stop'
+        git fetch origin main --quiet
+        git merge-base --is-ancestor "$env:GITHUB_SHA" origin/main
+        if ($LASTEXITCODE -eq 0) {
+          Write-Host "Tagged commit $env:GITHUB_SHA is on main; proceeding with release."
+          "on_main=true" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
+        } else {
+          Write-Host "Tagged commit $env:GITHUB_SHA is NOT on main; skipping release publish."
+          "on_main=false" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
+        }
+
+    - name: Download source Windows build artifacts
+      if: steps.verify_main.outputs.on_main == 'true'
+      uses: actions/download-artifact@v4
+      with:
+        pattern: QTAC-source-windows-*
+        path: release-artifacts
+
+    - name: Flatten artifacts into a single directory
+      if: steps.verify_main.outputs.on_main == 'true'
+      shell: pwsh
+      run: |
+        New-Item -ItemType Directory -Force -Path release-assets | Out-Null
+        Get-ChildItem release-artifacts -Directory | ForEach-Object {
+          $artifactName = $_.Name
+          Get-ChildItem $_.FullName -File -Recurse | ForEach-Object {
+            $target = Join-Path 'release-assets' ("${artifactName}_$($_.Name)")
+            Copy-Item $_.FullName $target -Force
+          }
+        }
+        Write-Host "Source Windows release assets to upload:"
+        Get-ChildItem release-assets | Format-Table -AutoSize
+
+    - name: Ensure GitHub Release exists and upload assets
+      if: steps.verify_main.outputs.on_main == 'true'
+      shell: pwsh
+      env:
+        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        TAG: ${{ github.ref_name }}
+      run: |
+        $ErrorActionPreference = 'Stop'
+        gh release view "$env:TAG" --repo "$env:GITHUB_REPOSITORY" 2>$null
+        if ($LASTEXITCODE -ne 0) {
+          gh release create "$env:TAG" `
+            --repo "$env:GITHUB_REPOSITORY" `
+            --title "$env:TAG" `
+            --generate-notes
+          if ($LASTEXITCODE -ne 0) {
             gh release view "$env:TAG" --repo "$env:GITHUB_REPOSITORY"
           }
         }
