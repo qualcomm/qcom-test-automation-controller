@@ -593,11 +593,14 @@ pkg_invalid=0
 
 # Strip the leading '.' dpkg-deb prints for absolute paths.
 expected_paths=(
-    "$INSTALL_PREFIX/bin/"
     "$INSTALL_PREFIX/lib/"
     "$CONFIG_INSTALL_DIR/configurations/"
     "$CONFIG_INSTALL_DIR/interfaces/"
 )
+
+if [ "$NO_GUI" -ne 1 ]; then
+    expected_paths+=("$INSTALL_PREFIX/bin/")
+fi
 
 for lang_rel in "C++/TACDev" "Python" "Java"; do
     if [ -d "$INTERFACES_SRC_DIR/$lang_rel" ]; then
