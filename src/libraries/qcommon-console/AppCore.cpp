@@ -140,14 +140,20 @@ void AppCore::setAppLogging
 	{
 		QString logPath;
 
+		QString logDirectory;
+
 		if (_preferences != Q_NULLPTR)
-		{
-			logPath = QDir::cleanPath(_preferences->appLogPath() + QDir::separator() + _ThreadedLog::createLogName(_appName + "_"));
-		}
+			logDirectory = _preferences->appLogPath();
 		else
-		{
-			logPath = QDir::cleanPath(defaultGlobalLoggingPath() + QDir::separator() + _ThreadedLog::createLogName(_appName + "_"));
-		}
+			logDirectory = defaultGlobalLoggingPath();
+
+		// An empty directory means no writable log location could be found.
+		// Appending to it would produce a path at the filesystem root, so skip
+		// logging rather than attempt a write that cannot succeed.
+		if (logDirectory.isEmpty())
+			return;
+
+		logPath = QDir::cleanPath(logDirectory + QDir::separator() + _ThreadedLog::createLogName(_appName + "_"));
 
 		_appThreadedLog = _ThreadedLog::createThreadedLog();
 		_appThreadedLog->open(logPath);
@@ -175,14 +181,19 @@ void AppCore::setRunLogging(bool loggingState)
 	{
 		QString logPath;
 
+		QString logDirectory;
+
 		if (_preferences != Q_NULLPTR)
-		{
-			logPath = QDir::cleanPath(_preferences->runLogPath() + QDir::separator() + _ThreadedLog::createLogName(_appName + "_"));
-		}
+			logDirectory = _preferences->runLogPath();
 		else
-		{
-			logPath = QDir::cleanPath(defaultLoggingPath(_appName) + QDir::separator() + _ThreadedLog::createLogName(_appName + "_"));
-		}
+			logDirectory = defaultLoggingPath(_appName);
+
+		// See setAppLogging(): without a writable directory there is nowhere to
+		// log, and building a path anyway would target the filesystem root.
+		if (logDirectory.isEmpty())
+			return;
+
+		logPath = QDir::cleanPath(logDirectory + QDir::separator() + _ThreadedLog::createLogName(_appName + "_"));
 
 		_runThreadedLog = _ThreadedLog::createThreadedLog();
 		_runThreadedLog->open(logPath);

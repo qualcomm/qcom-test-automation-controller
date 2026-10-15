@@ -8,12 +8,14 @@
 // Qt
 #include <QCoreApplication>
 #include <QDateTime>
+#include <QDebug>
 #include <QDir>
 #include <QFileInfo>
 #include <QLibrary>
 #include <QProcess>
 #include <QSettings>
 #include <QStandardPaths>
+#include <QTemporaryFile>
 
 #ifdef Q_OS_WINDOWS
 	#include <windows.h>
@@ -26,6 +28,31 @@
 #endif
 
 const QString kAppName("QTAC");
+
+namespace
+{
+
+// Confirms a directory exists and actually accepts writes.
+//
+// Existence alone is not enough. A home directory can be present but read
+// only, full, or over its storage quota, and in those cases every later write
+// fails. Probing with a real file is the only reliable test.
+bool directoryIsWritable(const QString& path)
+{
+	QDir dir(path);
+
+	if (path.isEmpty() || dir.exists() == false)
+		return false;
+
+	// The unique name template keeps concurrent processes from colliding, and
+	// the probe removes itself when it goes out of scope.
+	QTemporaryFile probe(dir.filePath(QStringLiteral("qtac-probe-XXXXXX.tmp")));
+	probe.setAutoRemove(true);
+
+	return probe.open();
+}
+
+} // namespace
 
 QString applicationBinPath()
 {
@@ -49,12 +76,22 @@ QString applicationDataPath()
 	return result;
 }
 
+// Returns the per user directory that holds configuration, or an empty string
+// when no such directory can be established.
+//
+// Callers must treat an empty return value as "configuration storage is not
+// available" and fail rather than carry on, because continuing without
+// configuration means device settings cannot be read or written.
+//
+// Diagnostics here deliberately use qWarning() rather than the application log.
+// The application log location is itself derived from this function, so logging
+// through it would recurse.
 QString documentsDataPath
 (
 	const QString& append
 )
 {
-	QString result;
+	QString base;
 	QString appName;
 
 	appName = QCoreApplication::applicationName();
@@ -63,21 +100,62 @@ QString documentsDataPath
 
 #ifdef Q_OS_WIN
 	// QStandardPaths would return the "One Drive" location. Excel documents don't like living here
-	result = QDir::homePath() + QDir::separator() + "Documents";
+	base = QDir::homePath() + QDir::separator() + "Documents";
 #else
-	result = QStandardPaths::writableLocation(QStandardPaths::DocumentsLocation);
+	base = QStandardPaths::writableLocation(QStandardPaths::DocumentsLocation);
 #endif
 
-	result = QDir::cleanPath(result + QDir::separator() + appName);
+	// QStandardPaths yields an empty string when it cannot resolve a location.
+	// Concatenating onto that would silently produce a relative path rooted at
+	// the working directory, so reject it instead.
+	if (base.isEmpty())
+	{
+		qWarning() << "Alpaca: no documents location is available for the current user."
+				   << "Configuration cannot be read or written.";
+		return QString();
+	}
+
+	// QDir::homePath() falls back to the root directory when HOME is not set.
+	// That is worth reporting, because configuration then lands somewhere the
+	// user almost certainly did not intend. Whether it is usable is decided by
+	// the writability check below rather than assumed here.
+	if (QDir::cleanPath(QDir::homePath()) == QDir::rootPath())
+	{
+		qWarning() << "Alpaca: the home directory resolves to the root directory."
+				   << "HOME is probably not set for this process.";
+	}
+
+	QString result = QDir::cleanPath(base + QDir::separator() + appName);
 	if (append.isEmpty() == false)
 	{
 		result = QDir::cleanPath(result + QDir::separator() + append);
 	}
 
 	if (QDir(result).exists() == false)
-		QDir().mkpath(result);
+	{
+		if (QDir().mkpath(result) == false)
+		{
+			qWarning() << "Alpaca: unable to create the configuration directory" << result
+					   << "- the location may be missing, read only, or out of space.";
+			return QString();
+		}
+	}
+
+	// The directory can exist and still refuse writes, for example when the
+	// volume is full or the user is over quota.
+	if (directoryIsWritable(result) == false)
+	{
+		qWarning() << "Alpaca: the configuration directory" << result
+				   << "is not writable - the location may be read only, full, or over quota.";
+		return QString();
+	}
 
 	return result;
+}
+
+bool documentsDataPathAvailable()
+{
+	return documentsDataPath(QString()).isEmpty() == false;
 }
 
 QString toCamelCase
@@ -94,10 +172,18 @@ QString toCamelCase
 
 QString defaultGlobalLoggingPath()
 {
+	// An empty base means there is nowhere to log. Returning empty keeps the
+	// caller from building a path rooted at the filesystem root.
 	QString result = documentsDataPath("global");
+	if (result.isEmpty())
+		return QString();
+
 	result = QDir::cleanPath(result);
 	if (QDir(result).exists() == false)
-		QDir().mkpath(result);
+	{
+		if (QDir().mkpath(result) == false)
+			return QString();
+	}
 
 	return result;
 }
@@ -107,10 +193,16 @@ QString defaultLoggingPath
 	const QString& appName
 )
 {
-	QString result = documentsDataPath(appName) + QDir::separator() + "logs";
-	result = QDir::cleanPath(result);
+	QString base = documentsDataPath(appName);
+	if (base.isEmpty())
+		return QString();
+
+	QString result = QDir::cleanPath(base + QDir::separator() + "logs");
 	if (QDir(result).exists() == false)
-		QDir().mkpath(result);
+	{
+		if (QDir().mkpath(result) == false)
+			return QString();
+	}
 
 	return result;
 }

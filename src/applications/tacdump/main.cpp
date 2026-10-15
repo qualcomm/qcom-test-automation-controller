@@ -7,6 +7,7 @@
 
 // QCommon
 #include "AppCore.h"
+#include "ConsoleApplicationEnhancements.h"
 #include "QCommonConsole.h"
 
 // Qt
@@ -53,6 +54,15 @@ private:
 	AppCore*					_appCore{Q_NULLPTR};
 };
 
+namespace
+{
+
+// Exit status used when configuration storage is unusable. Any nonzero value
+// would do; a distinct one lets callers tell this apart from "no devices".
+const int kConfigurationUnavailable{2};
+
+} // namespace
+
 int main(int argc, char *argv[])
 {
 	QCoreApplication a(argc, argv);
@@ -60,6 +70,20 @@ int main(int argc, char *argv[])
 	DevTACCore tacCore;
 
 	InitializeQCommonConsole();
+
+	// Device to port mappings live in the per user configuration directory.
+	// Without it, enumeration cannot report which port belongs to which
+	// device, so callers could act on the wrong one. Fail here instead of
+	// printing a list that may be wrong.
+	if (documentsDataPathAvailable() == false)
+	{
+		cerr << "Error: the Alpaca configuration directory is not available or not writable."
+			 << endl
+			 << "Device information cannot be reported reliably. Check that the home"
+			 << " directory exists, is writable, and is not out of space." << endl;
+
+		return kConfigurationUnavailable;
+	}
 
 	QString errorString;
 	bool forQuts{false};
@@ -103,4 +127,6 @@ int main(int argc, char *argv[])
 			cout << errorString.toLatin1().data() << endl;
 		}
 	}
+
+	return 0;
 }

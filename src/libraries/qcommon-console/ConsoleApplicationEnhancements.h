@@ -12,7 +12,14 @@
 
 QString QCOMMONCONSOLE_EXPORT applicationBinPath();
 QString QCOMMONCONSOLE_EXPORT applicationDataPath();
+// Returns the per user configuration directory, or an empty string when no
+// writable location could be established. An empty result means configuration
+// cannot be read or written and callers must fail rather than continue.
 QString QCOMMONCONSOLE_EXPORT documentsDataPath(const QString& append);
+
+// Convenience check for callers that only need to know whether configuration
+// storage is usable before they begin work.
+bool QCOMMONCONSOLE_EXPORT documentsDataPathAvailable();
 QString QCOMMONCONSOLE_EXPORT defaultGlobalLoggingPath();
 QString QCOMMONCONSOLE_EXPORT defaultLoggingPath(const QString& appName);
 
@@ -34,4 +41,3 @@ bool QCOMMONCONSOLE_EXPORT isUserPrivileged();
 bool QCOMMONCONSOLE_EXPORT executeBinaryAsAdministrator(const QString &binary, const QString &cmdArgs);
 
 #endif
-
