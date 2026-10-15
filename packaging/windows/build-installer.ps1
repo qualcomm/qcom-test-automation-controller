@@ -212,9 +212,10 @@ $uninstallSedLines = Build-IExpressSed `
 if (-not (Test-Path $uninstallExe)) { throw "IExpress did not produce $uninstallExe." }
 Write-Host "  uninstall.exe : $uninstallExe"
 
-$setup = Join-Path $OutDir "QTAC-windows-$Arch.exe"
+$guiSuffix = if ($NoGui) { '-nogui' } else { '' }
+$setup = Join-Path $OutDir "QTAC-windows-$Arch$guiSuffix.exe"
 Remove-Item $setup -Force -ErrorAction SilentlyContinue
-$sed = Join-Path $OutDir "QTAC-$Arch.sed"
+$sed = Join-Path $OutDir "QTAC-$Arch$guiSuffix.sed"
 $sedLines = Build-IExpressSed `
     -TargetName $setup `
     -FriendlyName 'Qualcomm Test Automation Controller' `
