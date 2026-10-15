@@ -12,6 +12,9 @@
 #include "AppCore.h"
 #include "StringUtilities.h"
 
+// std
+#include <functional>
+
 const QByteArray kSendCommandError("sendCommand error: Attempted operation on inactive device");
 const QByteArray kSetPinError("setPinState error: Attempted operation on inactive device");
 const QByteArray kQuickCommandError("quickCommand error: Attempted operation on inactive device");
@@ -19,6 +22,82 @@ const QByteArray kCommandStatusError("commandQueueStatus error: Attempted operat
 
 QMutex _AlpacaDevice::_mutex;
 AlpacaDevices _AlpacaDevice::_alpacaDevices;
+
+namespace
+{
+
+typedef std::function<QByteArray(const AlpacaDevice&)> DeviceFieldAccessor;
+
+// Resolves a caller supplied identifier against one field of every known device.
+//
+// One device's identifier can be a prefix of another's - "VTP1" and "VTP12"
+// being the reported case - so a plain substring scan that returns the first
+// hit resolves to whichever device happens to be enumerated first. Matching is
+// therefore done in two passes:
+//
+//   1. an exact, case insensitive comparison, which always wins; and
+//   2. a substring comparison, which is only honoured when it matches exactly
+//      one device.
+//
+// An ambiguous partial query is rejected rather than resolved arbitrarily,
+// because silently acting on the wrong device is worse than reporting that the
+// caller was not specific enough.
+AlpacaDevice findDeviceByField
+(
+	const AlpacaDevices& devices,
+	const QByteArray& query,
+	const DeviceFieldAccessor& field,
+	bool usePartial
+)
+{
+	const QByteArray searchTerm{query.trimmed().toLower()};
+
+	// An empty identifier cannot select a device. Rejecting it here also keeps
+	// the partial pass honest, because QByteArray::contains() is true for every
+	// candidate when the search term is empty.
+	if (searchTerm.isEmpty())
+		return AlpacaDevice(Q_NULLPTR);
+
+	AlpacaDevice partialMatch{Q_NULLPTR};
+	int partialMatchCount{0};
+
+	for (const auto& alpacaDevice: devices)
+	{
+		if (alpacaDevice.isNull())
+			continue;
+
+		const QByteArray candidate{field(alpacaDevice).trimmed().toLower()};
+
+		// A device that does not populate this field must never match.
+		if (candidate.isEmpty())
+			continue;
+
+		if (candidate == searchTerm)
+			return alpacaDevice;
+
+		if (usePartial && candidate.contains(searchTerm))
+		{
+			partialMatch = alpacaDevice;
+			partialMatchCount++;
+		}
+	}
+
+	if (partialMatchCount == 1)
+		return partialMatch;
+
+	if (partialMatchCount > 1)
+	{
+		AppCore::writeToApplicationLogLine(
+			QString("Device lookup for '%1' is ambiguous: %2 devices match. "
+					"Use the complete identifier to select one.")
+				.arg(QString::fromLatin1(query))
+				.arg(partialMatchCount));
+	}
+
+	return AlpacaDevice(Q_NULLPTR);
+}
+
+} // namespace
 
 _AlpacaDevice::~_AlpacaDevice()
 {
@@ -81,18 +160,25 @@ AlpacaDevice _AlpacaDevice::findAlpacaDevice
 	const QByteArray& portName
 )
 {
-	QByteArray searchTerm{portName.toLower()};
+	// A device is addressable by either its port name or its serial number.
+	// Port names are checked first and in full, so an exact port name is never
+	// shadowed by a serial number that merely contains the same text.
+	AlpacaDevice result = findDeviceByField(
+		_AlpacaDevice::_alpacaDevices,
+		portName,
+		[] (const AlpacaDevice& device) { return device->_portName; },
+		true);
 
-	for (const auto& alpacaDevice: _AlpacaDevice::_alpacaDevices)
+	if (result.isNull())
 	{
-		if (alpacaDevice->_portName.toLower().contains(searchTerm))
-			return alpacaDevice;
-
-		if (alpacaDevice->_serialNumber.toLower().contains(searchTerm))
-			return alpacaDevice;
+		result = findDeviceByField(
+			_AlpacaDevice::_alpacaDevices,
+			portName,
+			[] (const AlpacaDevice& device) { return device->_serialNumber; },
+			true);
 	}
 
-	return AlpacaDevice(Q_NULLPTR);
+	return result;
 }
 
 AlpacaDevice _AlpacaDevice::findAlpacaDeviceBySerialNumber
@@ -101,24 +187,11 @@ AlpacaDevice _AlpacaDevice::findAlpacaDeviceBySerialNumber
 	bool usePartial
 )
 {
-	for (const auto& alpacaDevice: _AlpacaDevice::_alpacaDevices)
-	{
-		QByteArray testSerial{serialNumber.toLower()};
-		QByteArray serialNumber{alpacaDevice->_serialNumber.toLower()};
-
-		if (usePartial)
-		{
-			if (testSerial.contains(serialNumber))
-				return alpacaDevice;
-		}
-		else
-		{
-			if (testSerial == serialNumber)
-				return alpacaDevice;
-		}
-	}
-
-	return AlpacaDevice(Q_NULLPTR);
+	return findDeviceByField(
+		_AlpacaDevice::_alpacaDevices,
+		serialNumber,
+		[] (const AlpacaDevice& device) { return device->_serialNumber; },
+		usePartial);
 }
 
 AlpacaDevice _AlpacaDevice::findAlpacaDeviceByDescription
@@ -127,24 +200,11 @@ AlpacaDevice _AlpacaDevice::findAlpacaDeviceByDescription
 	bool usePartial // = true
 )
 {
-	for (const auto& tacDevice: _AlpacaDevice::_alpacaDevices)
-	{
-		QByteArray testDescription{description.toLower()};
-		QByteArray deviceDescription{tacDevice->description().toLower()};
-
-		if (usePartial)
-		{
-			if (testDescription.contains(deviceDescription))
-				return tacDevice;
-		}
-		else
-		{
-			if (testDescription == deviceDescription)
-				return tacDevice;
-		}
-	}
-
-	return AlpacaDevice(Q_NULLPTR);
+	return findDeviceByField(
+		_AlpacaDevice::_alpacaDevices,
+		description,
+		[] (const AlpacaDevice& device) { return device->_description; },
+		usePartial);
 }
 
 AlpacaDevice _AlpacaDevice::findAlpacaDeviceByUSBDescriptor
@@ -153,24 +213,11 @@ AlpacaDevice _AlpacaDevice::findAlpacaDeviceByUSBDescriptor
 	bool usePartial
 )
 {
-	for (const auto& alpacaDevice: std::as_const(_AlpacaDevice::_alpacaDevices))
-	{
-		QByteArray testDescriptor{descriptor.toLower()};
-		QByteArray deviceDescriptor{alpacaDevice->_usbDescriptor.toLower()};
-
-		if (usePartial)
-		{
-			if (testDescriptor.contains(deviceDescriptor))
-				return alpacaDevice;
-		}
-		else
-		{
-			if (testDescriptor == deviceDescriptor)
-				return alpacaDevice;
-		}
-	}
-
-	return AlpacaDevice(Q_NULLPTR);
+	return findDeviceByField(
+		_AlpacaDevice::_alpacaDevices,
+		descriptor,
+		[] (const AlpacaDevice& device) { return device->_usbDescriptor; },
+		usePartial);
 }
 
 QByteArray _AlpacaDevice::getLastError()
@@ -839,4 +886,3 @@ void _AlpacaDevice::i2CWriteRegister(quint32 addr, quint32 reg, quint32 data)
 	if (_driveThread != Q_NULLPTR)
 		_driveThread->i2CWriteRegister(addr, reg, data);
 }
-
