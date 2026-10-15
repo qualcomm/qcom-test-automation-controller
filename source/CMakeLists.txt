@@ -111,6 +111,14 @@ if(WIN32)
             file(RENAME "${CMAKE_SOURCE_DIR}/../__Builds/${FTDI_WIN_ARCH}/Release/bin/${SOURCE_DLL_NAME}"
                         "${CMAKE_SOURCE_DIR}/../__Builds/${FTDI_WIN_ARCH}/Release/bin/ftd2xx.dll")
         endif()
+        # Also copy into the source/ subtree output bin so qtac-app.exe can find
+        # it at runtime and the installer packages it alongside the executable.
+        file(MAKE_DIRECTORY "${CMAKE_SOURCE_DIR}/__Builds/${FTDI_WIN_ARCH}/Debug/bin")
+        file(MAKE_DIRECTORY "${CMAKE_SOURCE_DIR}/__Builds/${FTDI_WIN_ARCH}/Release/bin")
+        file(COPY "${CMAKE_SOURCE_DIR}/../__Builds/${FTDI_WIN_ARCH}/Debug/bin/ftd2xx.dll"
+             DESTINATION "${CMAKE_SOURCE_DIR}/__Builds/${FTDI_WIN_ARCH}/Debug/bin")
+        file(COPY "${CMAKE_SOURCE_DIR}/../__Builds/${FTDI_WIN_ARCH}/Release/bin/ftd2xx.dll"
+             DESTINATION "${CMAKE_SOURCE_DIR}/__Builds/${FTDI_WIN_ARCH}/Release/bin")
     endif()
     if(NOT SOURCE_LIB AND FTDI_WIN_ARCH STREQUAL "x64")
         file(GLOB SOURCE_LIB "${TEMP_DIR}/Static/amd64/ftd2xx.lib")
