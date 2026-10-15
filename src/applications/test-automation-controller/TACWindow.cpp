@@ -17,6 +17,7 @@
 #include "AlpacaDefines.h"
 #include "AlpacaSettings.h"
 #include "ApplicationEnhancements.h"
+#include "ConsoleApplicationEnhancements.h"
 
 // QT
 #include <QDir>
@@ -289,11 +290,7 @@ void TACWindow::on_actionAbout_triggered()
 
 void TACWindow::on_actionSubmit_Bug_Report_triggered()
 {
-#ifdef Q_OS_LINUX
-	QString program = "/opt/qcom/QTAC/bin/BugWriter"; // Linux Sucks
-#else
-	QString program = "BugWriter";
-#endif
+	QString program = applicationBinPath() + "BugWriter";
 
 	QStringList arguments;
 	arguments << "product:QTAC";

@@ -1,0 +1,113 @@
+// Copyright (c) Qualcomm Technologies, Inc. and/or its subsidiaries.
+//
+// Redistribution and use in source and binary forms, with or without
+// modification, are permitted (subject to the limitations in the
+// disclaimer below) provided that the following conditions are met:
+//
+//     * Redistributions of source code must retain the above copyright
+//         notice, this list of conditions and the following disclaimer.
+//
+//     * Redistributions in binary form must reproduce the above
+//         copyright notice, this list of conditions and the following
+//         disclaimer in the documentation and/or other materials provided
+//         with the distribution.
+//
+//     * Neither the name of Qualcomm Technologies, Inc. nor the names of its
+//         contributors may be used to endorse or promote products derived
+//         from this software without specific prior written permission.
+//
+// NO EXPRESS OR IMPLIED LICENSES TO ANY PARTY'S PATENT RIGHTS ARE
+// GRANTED BY THIS LICENSE. THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT
+// HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED
+// WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
+// MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED.
+// IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR
+// ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+// DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE
+// GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+// INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER
+// IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
+// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN
+// IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+#include "TACApplication.h"
+#include "TACPreferences.h"
+#include "TACWindow.h"
+
+#include <qtac/FTDIDevice.h>
+#include <qtac/PSOCDevice.h>
+#include <qtac/PIC32CXDevice.h>
+#include <qtac/AlpacaDevice.h>
+
+QList<TACWindow*> TACApplication::_windows;
+QPoint            TACApplication::_nextOrigin(40, 40);
+
+TACApplication::TACApplication(int& argc, char** argv)
+    : QApplication(argc, argv)
+{
+    setApplicationName("QTAC");
+    setApplicationVersion("1.0");
+    setOrganizationName("Qualcomm");
+}
+
+TACApplication::~TACApplication() = default;
+
+TACApplication* TACApplication::instance()
+{
+    return qobject_cast<TACApplication*>(QApplication::instance());
+}
+
+TACWindow* TACApplication::createTACWindow(bool show)
+{
+    auto* w = new TACWindow;
+    w->move(_nextOrigin);
+    _nextOrigin += QPoint(20, 20);
+    _windows.append(w);
+    if (show)
+        w->show();
+    return w;
+}
+
+void TACApplication::disconnectTACWindow(TACWindow* w)
+{
+    _windows.removeAll(w);
+}
+
+bool TACApplication::isPortInUse(const QByteArray& portName)
+{
+    for (TACWindow* w : _windows)
+        if (w->portName() == portName)
+            return true;
+    return false;
+}
+
+void TACApplication::quit()
+{
+    // Close all windows cleanly before exiting.
+    for (TACWindow* w : _windows)
+        w->close();
+    _windows.clear();
+    QApplication::quit();
+}
+
+void TACApplication::tryOpenLastDevice()
+{
+    TACPreferences prefs;
+    if (!prefs.openLastDevice()) return;
+    QString last = prefs.lastDevice();
+    if (last.isEmpty()) return;
+
+    FTDIDevice::updateAlpacaDevices();
+    PSOCDevice::updateAlpacaDevices();
+    PIC32CXDevice::updateAlpacaDevices();
+    QByteArray port = last.toLatin1();
+    AlpacaDevice dev = _AlpacaDevice::findAlpacaDevice(
+        qtac::ByteArray(port.constData(), port.size()));
+    if (!dev)
+    {
+        prefs.setLastDevice("");   // device gone — clear it
+        return;
+    }
+    if (!_windows.isEmpty())
+        _windows.first()->openPort(port);
+}

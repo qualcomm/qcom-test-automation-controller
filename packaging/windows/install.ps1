@@ -125,7 +125,7 @@ Write-Host "  Examples      : $ExamplesRoot"
 
 # 1. Application binaries + Qt runtime + docs
 Copy-Tree (Join-Path $src 'app')  $InstallRoot
-Copy-Tree (Join-Path $src 'docs') (Join-Path $InstallRoot 'docs')
+Copy-Tree (Join-Path $src 'docs') (Join-Path $InstallRoot 'docs\QTAC')
 
 # 2. Shared, machine-wide data
 Copy-Tree (Join-Path $src 'configurations') (Join-Path $DataRoot 'configurations')

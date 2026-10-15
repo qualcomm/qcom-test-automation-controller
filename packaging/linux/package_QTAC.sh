@@ -13,6 +13,9 @@ MAINTAINER="${MAINTAINER:-Maintainer <maintainer@example.com>}"
 DESCRIPTION="${DESCRIPTION:-Qualcomm QTAC tool package}"
 INSTALL_PREFIX="${INSTALL_PREFIX:-/opt/qcom/QTAC}"
 CONFIG_INSTALL_DIR="/var/lib/qcom/data/QTAC"
+# Set NO_GUI=1 to produce the headless/automation variant (lib + support
+# files only; no GUI binary, no Qt plugins, no xcb dependencies).
+NO_GUI="${NO_GUI:-0}"
 
 case "${1:-}" in
   -v|--version|version)
@@ -25,12 +28,13 @@ OPTION_ZIP="${1:-}"
 
 BASE_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
-# Source directories
-SRC_DIR="$(realpath "$BASE_DIR/../../__Builds/Linux/Release")"
+# Source directories — can be overridden via env var for out-of-tree builds
+SRC_DIR="${SRC_DIR:-$(realpath "$BASE_DIR/../../__Builds/Linux/Release")}"
 CONFIG_SRC_DIR="$(realpath "$BASE_DIR/../../configurations")"
 DOCS_SRC_DIR="$(realpath "$BASE_DIR/../../docs")"
 EXAMPLES_SRC_DIR="$(realpath "$BASE_DIR/../../examples")"
 PYTHON_SRC_DIR="$(realpath "$BASE_DIR/../../interfaces/Python")"
+INTERFACES_SRC_DIR="$(realpath "$BASE_DIR/../../interfaces")"
 UDEV_RULES_SRC_DIR="$(realpath "$BASE_DIR/../../udev-rules")"
 PLUGINS_SRC_DIR="$SRC_DIR/plugins"
 
@@ -62,7 +66,7 @@ fi
 
 missing=0
 
-for d in bin lib; do
+for d in lib; do
     if [ ! -d "$SRC_DIR/$d" ]; then
         echo "ERROR: Missing source directory: $SRC_DIR/$d" >&2
         missing=1
@@ -71,6 +75,16 @@ for d in bin lib; do
         missing=1
     fi
 done
+
+if [ "$NO_GUI" -ne 1 ]; then
+    if [ ! -d "$SRC_DIR/bin" ]; then
+        echo "ERROR: Missing source directory: $SRC_DIR/bin" >&2
+        missing=1
+    elif [ -z "$(ls -A "$SRC_DIR/bin")" ]; then
+        echo "ERROR: Source directory empty: $SRC_DIR/bin" >&2
+        missing=1
+    fi
+fi
 
 if [ ! -d "$CONFIG_SRC_DIR" ]; then
     echo "ERROR: Missing configurations directory: $CONFIG_SRC_DIR" >&2
@@ -92,12 +106,17 @@ if [ ! -d "$PYTHON_SRC_DIR" ]; then
     missing=1
 fi
 
+if [ ! -d "$INTERFACES_SRC_DIR" ]; then
+    echo "ERROR: Missing interfaces directory: $INTERFACES_SRC_DIR" >&2
+    missing=1
+fi
+
 if [ ! -d "$UDEV_RULES_SRC_DIR" ]; then
     echo "ERROR: Missing udev-rules directory: $UDEV_RULES_SRC_DIR" >&2
     missing=1
 fi
 
-if [ ! -d "$PLUGINS_SRC_DIR" ]; then
+if [ "$NO_GUI" -ne 1 ] && [ ! -d "$PLUGINS_SRC_DIR" ]; then
     echo "ERROR: Missing plugins directory: $PLUGINS_SRC_DIR" >&2
     missing=1
 fi
@@ -112,20 +131,25 @@ BUILDROOT="$WORKDIR/${PKG_NAME}_${VERSION}"
 trap 'if [ "${NO_CLEANUP:-0}" -ne 1 ]; then rm -rf "$WORKDIR"; fi' EXIT
 
 mkdir -p "$BUILDROOT/DEBIAN"
-mkdir -p "$BUILDROOT$INSTALL_PREFIX/bin"
+if [ "$NO_GUI" -ne 1 ]; then
+    mkdir -p "$BUILDROOT$INSTALL_PREFIX/bin"
+    mkdir -p "$BUILDROOT$INSTALL_PREFIX/plugins"
+fi
 mkdir -p "$BUILDROOT$INSTALL_PREFIX/lib"
-mkdir -p "$BUILDROOT$INSTALL_PREFIX/docs"
+mkdir -p "$BUILDROOT$INSTALL_PREFIX/docs/QTAC"
 mkdir -p "$BUILDROOT$INSTALL_PREFIX/examples"
 mkdir -p "$BUILDROOT$INSTALL_PREFIX/python"
-mkdir -p "$BUILDROOT$INSTALL_PREFIX/plugins"
 mkdir -p "$BUILDROOT$INSTALL_PREFIX/utils"
 mkdir -p "$BUILDROOT$CONFIG_INSTALL_DIR/configurations"
+mkdir -p "$BUILDROOT$CONFIG_INSTALL_DIR/interfaces"
 mkdir -p "$OUTPUT_DIR"
 
 chmod 0755 "$BUILDROOT/DEBIAN"
 
-echo "Copying bin..."
-cp -a "$SRC_DIR/bin/." "$BUILDROOT$INSTALL_PREFIX/bin/"
+if [ "$NO_GUI" -ne 1 ]; then
+    echo "Copying bin..."
+    cp -a "$SRC_DIR/bin/." "$BUILDROOT$INSTALL_PREFIX/bin/"
+fi
 
 echo "Copying lib..."
 cp -a "$SRC_DIR/lib/." "$BUILDROOT$INSTALL_PREFIX/lib/"
@@ -136,7 +160,7 @@ cp -a "$CONFIG_SRC_DIR/." \
 
 echo "Copying docs..."
 cp -a "$DOCS_SRC_DIR/." \
-      "$BUILDROOT$INSTALL_PREFIX/docs/"
+      "$BUILDROOT$INSTALL_PREFIX/docs/QTAC/"
 	  
 echo "Copying examples..."
 cp -a "$EXAMPLES_SRC_DIR/." \
@@ -146,30 +170,136 @@ echo "Copying Python..."
 cp -a "$PYTHON_SRC_DIR/." \
       "$BUILDROOT$INSTALL_PREFIX/python/"
 
-echo "Copying plugins..."
-cp -a "$PLUGINS_SRC_DIR/." \
-      "$BUILDROOT$INSTALL_PREFIX/plugins/"
-	  
+echo "Copying interfaces..."
+
+if [ -d "$INTERFACES_SRC_DIR/C++/TACDev" ]; then
+    mkdir -p "$BUILDROOT$CONFIG_INSTALL_DIR/interfaces/C++/TACDev"
+    if ls "$INTERFACES_SRC_DIR/C++/TACDev/"*.h >/dev/null 2>&1; then
+        cp -a "$INTERFACES_SRC_DIR/C++/TACDev/"*.h \
+              "$BUILDROOT$CONFIG_INSTALL_DIR/interfaces/C++/TACDev/"
+    else
+        echo "WARNING: No C++ headers found in $INTERFACES_SRC_DIR/C++/TACDev" >&2
+    fi
+else
+    echo "WARNING: Missing interfaces/C++/TACDev; C++ headers will be absent." >&2
+fi
+
+for lang in Python Java; do
+    if [ -d "$INTERFACES_SRC_DIR/$lang" ]; then
+        mkdir -p "$BUILDROOT$CONFIG_INSTALL_DIR/interfaces/$lang"
+        cp -a "$INTERFACES_SRC_DIR/$lang/." \
+              "$BUILDROOT$CONFIG_INSTALL_DIR/interfaces/$lang/"
+    else
+        echo "WARNING: Missing interfaces/$lang; $lang interface will be absent." >&2
+    fi
+done
+
+if [ "$NO_GUI" -ne 1 ]; then
+    echo "Copying plugins..."
+    cp -a "$PLUGINS_SRC_DIR/." \
+          "$BUILDROOT$INSTALL_PREFIX/plugins/"
+fi
+
+
 echo "Copying udev rules..."
 cp -a "$UDEV_RULES_SRC_DIR/." \
       "$BUILDROOT$INSTALL_PREFIX/utils/"
 
-find "$BUILDROOT$INSTALL_PREFIX/bin" -type f -exec chmod 755 {} \;
+if [ "$NO_GUI" -ne 1 ]; then
+    find "$BUILDROOT$INSTALL_PREFIX/bin" -type f -exec chmod 755 {} \;
+fi
 find "$BUILDROOT$INSTALL_PREFIX/lib" -type f -exec chmod 755 {} \;
 
-find "$BUILDROOT$INSTALL_PREFIX/docs" -type f -exec chmod 644 {} \; || true
+find "$BUILDROOT$INSTALL_PREFIX/docs/QTAC" -type f -exec chmod 644 {} \; || true
 find "$BUILDROOT$INSTALL_PREFIX/examples" -type f -exec chmod 644 {} \; || true
-find "$BUILDROOT$INSTALL_PREFIX/plugins" -type f -exec chmod 644 {} \; || true
+if [ "$NO_GUI" -ne 1 ]; then
+    find "$BUILDROOT$INSTALL_PREFIX/plugins" -type f -exec chmod 644 {} \; || true
+fi
 find "$BUILDROOT$INSTALL_PREFIX/python" -type f -exec chmod 644 {} \; || true
 
 find "$BUILDROOT$CONFIG_INSTALL_DIR/configurations" -type f -exec chmod 644 {} \; || true
 
+find "$BUILDROOT$CONFIG_INSTALL_DIR/interfaces" -type f -exec chmod 644 {} \; || true
+find "$BUILDROOT$CONFIG_INSTALL_DIR/interfaces" -type f -name "*.sh" -exec chmod 755 {} \; || true
+
 ###############################################################################
-# Validate Qt Plugin Dependencies
+# Validate Interfaces Payload
 ###############################################################################
 
 echo ""
-echo "Validating Qt plugin dependencies..."
+echo "Validating interfaces payload..."
+
+INTERFACES_STAGE_DIR="$BUILDROOT$CONFIG_INSTALL_DIR/interfaces"
+interfaces_invalid=0
+
+for rel in "C++/TACDev" "Python" "Java"; do
+
+    staged="$INTERFACES_STAGE_DIR/$rel"
+
+    if [ ! -d "$INTERFACES_SRC_DIR/$rel" ]; then
+        echo "  SKIP  interfaces/$rel (not present in source tree)"
+        continue
+    fi
+
+    if [ ! -d "$staged" ]; then
+        echo "  ERROR interfaces/$rel was not staged at $staged" >&2
+        interfaces_invalid=1
+        continue
+    fi
+
+    count="$(find "$staged" -type f | wc -l | tr -d '[:space:]')"
+
+    if [ "$count" -eq 0 ]; then
+        echo "  ERROR interfaces/$rel staged but contains no files" >&2
+        interfaces_invalid=1
+        continue
+    fi
+
+    echo "  OK    interfaces/$rel ($count file(s))"
+
+done
+
+if [ "$interfaces_invalid" -ne 0 ]; then
+    echo ""
+    echo "ERROR: Interfaces payload validation failed." >&2
+    echo "Expected interfaces under: $CONFIG_INSTALL_DIR/interfaces" >&2
+    exit 1
+fi
+
+# C++ side must ship headers only (no sources / build files), matching the
+# Windows installer which copies interfaces\C++\TACDev\*.h exclusively.
+if [ -d "$INTERFACES_STAGE_DIR/C++/TACDev" ]; then
+
+    unexpected="$(
+        find "$INTERFACES_STAGE_DIR/C++/TACDev" \
+            -type f \
+            ! -name "*.h" \
+            ! -name "*.hpp" \
+            -printf '%p\n' 2>/dev/null || true
+    )"
+
+    if [ -n "$unexpected" ]; then
+        echo ""
+        echo "ERROR: Unexpected non-header files staged under interfaces/C++/TACDev:" >&2
+        echo "$unexpected" >&2
+        exit 1
+    fi
+
+    if ! find "$INTERFACES_STAGE_DIR/C++/TACDev" -name "*.h" | grep -q .; then
+        echo ""
+        echo "ERROR: No C++ headers staged under interfaces/C++/TACDev." >&2
+        exit 1
+    fi
+
+fi
+
+echo "Interfaces payload validation passed."
+
+###############################################################################
+# Validate Qt Plugin Dependencies  (GUI only)
+###############################################################################
+
+if [ "$NO_GUI" -ne 1 ]; then
 
 find "$BUILDROOT$INSTALL_PREFIX/plugins" \
     -type f \
@@ -250,6 +380,8 @@ else
 
 fi
 
+fi # NO_GUI
+
 chown -R root:root "$BUILDROOT" 2>/dev/null || true
 
 cat > "$BUILDROOT/DEBIAN/control" <<EOF
@@ -259,7 +391,7 @@ Section: utils
 Priority: optional
 Architecture: $DEB_ARCH
 Maintainer: $MAINTAINER
-Depends: bash, coreutils, libxcb-cursor0, libxcb-icccm4, libxcb-util1, libxcb-image0, libxcb-keysyms1, libxcb-render-util0
+Depends: bash, coreutils$([ "$NO_GUI" -ne 1 ] && echo ", libxcb-cursor0, libxcb-icccm4, libxcb-util1, libxcb-image0, libxcb-keysyms1, libxcb-render-util0")
 Description: $DESCRIPTION
 EOF
 
@@ -290,31 +422,35 @@ chmod -R 0755 "$CONFIG_INSTALL_DIR" || true
 
 chown -R root:root "\$INSTALL_PREFIX" || true
 chown -R root:root "$CONFIG_INSTALL_DIR" || true
+EOF
 
-echo "[QTAC] Executing UpdateDeviceList..." >> "\$LOG_FILE"
-echo "[QTAC] Command: \$INSTALL_PREFIX/bin/UpdateDeviceList dir=\$CONFIG_DIR" >> "\$LOG_FILE"
+if [ "$NO_GUI" -ne 1 ]; then
+cat >> "$BUILDROOT/DEBIAN/postinst" <<'POSTINST_GUI'
 
-if [ -x "\$INSTALL_PREFIX/bin/UpdateDeviceList" ]; then
+echo "[QTAC] Executing UpdateDeviceList..." >> "$LOG_FILE"
+echo "[QTAC] Command: $INSTALL_PREFIX/bin/UpdateDeviceList dir=$CONFIG_DIR" >> "$LOG_FILE"
 
-    if "\$INSTALL_PREFIX/bin/UpdateDeviceList" \
-        dir="\$CONFIG_DIR" \
-        >> "\$LOG_FILE" 2>&1
+if [ -x "$INSTALL_PREFIX/bin/UpdateDeviceList" ]; then
+
+    if "$INSTALL_PREFIX/bin/UpdateDeviceList" \
+        dir="$CONFIG_DIR" \
+        >> "$LOG_FILE" 2>&1
     then
 
-        echo "[QTAC] UpdateDeviceList completed successfully." >> "\$LOG_FILE"
+        echo "[QTAC] UpdateDeviceList completed successfully." >> "$LOG_FILE"
 
     else
 
-        RET=\$?
+        RET=$?
 
-        echo "[QTAC] WARNING: UpdateDeviceList failed with return code \$RET" \
-            >> "\$LOG_FILE"
+        echo "[QTAC] WARNING: UpdateDeviceList failed with return code $RET" \
+            >> "$LOG_FILE"
 
     fi
 
 else
 
-    echo "[QTAC] ERROR: UpdateDeviceList not found or not executable." >> "\$LOG_FILE"
+    echo "[QTAC] ERROR: UpdateDeviceList not found or not executable." >> "$LOG_FILE"
 
 fi
 
@@ -325,10 +461,10 @@ fi
 if ! ldconfig -p 2>/dev/null | grep -q "libxcb-cursor.so.0"; then
 
     echo "[QTAC] libxcb-cursor0 not found. Installing..." \
-        >> "\$LOG_FILE"
+        >> "$LOG_FILE"
 
     apt-get update \
-        >> "\$LOG_FILE" 2>&1 || true
+        >> "$LOG_FILE" 2>&1 || true
 
     DEBIAN_FRONTEND=noninteractive \
 	apt-get install -y \
@@ -338,23 +474,27 @@ if ! ldconfig -p 2>/dev/null | grep -q "libxcb-cursor.so.0"; then
 		libxcb-image0 \
 		libxcb-keysyms1 \
 		libxcb-render-util0 \
-    >> "\$LOG_FILE" 2>&1 || true
+    >> "$LOG_FILE" 2>&1 || true
 
     ldconfig >/dev/null 2>&1 || true
 
     if ldconfig -p 2>/dev/null | grep -q "libxcb-cursor.so.0"; then
 
         echo "[QTAC] Successfully installed libxcb-cursor0." \
-            >> "\$LOG_FILE"
+            >> "$LOG_FILE"
 
     else
 
         echo "[QTAC] WARNING: Failed to install libxcb-cursor0." \
-            >> "\$LOG_FILE"
+            >> "$LOG_FILE"
 
     fi
 
 fi
+POSTINST_GUI
+fi
+
+cat >> "$BUILDROOT/DEBIAN/postinst" <<EOF
 
 echo "[QTAC] Installing udev rules..." >> "\$LOG_FILE"
 
@@ -438,6 +578,57 @@ else
 fi
 
 echo "Successfully built: $OUTPUT_DEB"
+
+###############################################################################
+# Verify Generated Package Contents
+###############################################################################
+
+echo ""
+echo "Verifying generated package contents..."
+
+DEB_CONTENTS="$WORKDIR/deb-contents.txt"
+dpkg-deb -c "$OUTPUT_DEB" > "$DEB_CONTENTS"
+
+pkg_invalid=0
+
+# Strip the leading '.' dpkg-deb prints for absolute paths.
+expected_paths=(
+    "$INSTALL_PREFIX/lib/"
+    "$CONFIG_INSTALL_DIR/configurations/"
+    "$CONFIG_INSTALL_DIR/interfaces/"
+)
+
+if [ "$NO_GUI" -ne 1 ]; then
+    expected_paths+=("$INSTALL_PREFIX/bin/")
+fi
+
+for lang_rel in "C++/TACDev" "Python" "Java"; do
+    if [ -d "$INTERFACES_SRC_DIR/$lang_rel" ]; then
+        expected_paths+=("$CONFIG_INSTALL_DIR/interfaces/$lang_rel/")
+    fi
+done
+
+for p in "${expected_paths[@]}"; do
+
+    if grep -q -F " .$p" "$DEB_CONTENTS"; then
+        echo "  OK    $p"
+    else
+        echo "  ERROR $p missing from $OUTPUT_DEB" >&2
+        pkg_invalid=1
+    fi
+
+done
+
+if [ "$pkg_invalid" -ne 0 ]; then
+    echo ""
+    echo "ERROR: Generated package is missing expected content." >&2
+    echo "Full package listing:" >&2
+    cat "$DEB_CONTENTS" >&2
+    exit 1
+fi
+
+interfaces_in_deb="$(grep -c -F " .$CONFIG_INSTALL_DIR/interfaces/" "$DEB_CONTENTS" || true)"
+echo "Package content verification passed ($interfaces_in_deb interfaces entries)."
 
 ZIP_FOLDER="${PKG_NAME}_${VERSION}_${ARCH}"
 

@@ -163,6 +163,7 @@ void _STM32PlatformConfiguration::initialize()
 					"def powerOn()\n"
 					"logComment ====== powerOn sequence start ======\n"
 					"powerOff\n"
+					"delay $pon\n"
 					"battery 0\n"
 					"edl 0\n"
 					"voldn 0\n"
@@ -172,6 +173,7 @@ void _STM32PlatformConfiguration::initialize()
 					"edl 0\n"
 					"voldn 0\n"
 					"powerOff\n"
+					"delay $pon\n"
 					"powerOn\n"
 					"logComment ====== reset sequence finish ======\n\n"
 					"def bootToEDL()\n"
@@ -201,6 +203,16 @@ void _STM32PlatformConfiguration::initialize()
 	variable._cellLocation = QPoint(0,0);
 
 	_scriptVariables.insert(variable._name, variable);
+
+	variable._name = "pon";
+	variable._label = "Power on delay (ms)";
+	variable._tooltip = "Configurable power on delay in milliseconds";
+	variable._type = eIntegerType;
+	variable._defaultValue = 500;
+	variable._cellLocation = QPoint(1,0);
+
+	_scriptVariables.insert(variable._name, variable);
+
 }
 
 _STM32PlatformConfiguration::~_STM32PlatformConfiguration()

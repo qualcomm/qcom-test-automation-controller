@@ -28,17 +28,7 @@ QByteArray AlpacaScript::defaultScript(DebugBoardType boardType)
 
 	Q_UNUSED(boardType);
 
-// TODO: Handle everything on tacConfigRoot()
-#ifdef DEBUG
-#ifdef Q_OS_WINDOWS
-	scriptPath = "C:\\github\\open-source\\qcom-test-automation-controller\\configurations\\DefaultScript.txt";
-#endif
-#ifdef Q_OS_LINUX
-	scriptPath = "/local/mnt/workspace/github/qcom-test-automation-controller/configurations/DefaultScript.txt";
-#endif
-#else
 	scriptPath = tacConfigRoot() + "DefaultScript.txt";
-#endif
 
 	QFile file(scriptPath);
 	if (file.open(QIODevice::ReadOnly) == true)

@@ -26,8 +26,7 @@ void QCOMMONCONSOLE_EXPORT renewInstallRegistry(QSettings& settings, const QStri
 QString QCOMMONCONSOLE_EXPORT getModuleFilePath(const QString& moduleFileName);
 QString QCOMMONCONSOLE_EXPORT expandPath(const QString& filePath);
 
-QString QCOMMONCONSOLE_EXPORT tacConfigRoot(bool expandPath = true);
-QString QCOMMONCONSOLE_EXPORT epmConfigRoot();
+QString QCOMMONCONSOLE_EXPORT tacConfigRoot();
 
 void cleanIt(const QString& pathToClean);
 
