@@ -122,18 +122,9 @@ TAC_RESULT _quickCommand
 	{
 		try
 		{
-			// Arm the completion flag before issuing, the same way SendCommand()
-			// does. quickCommand() waits on this flag, and waitForCompletion()
-			// loops only while it is set - so if it is already clear on entry the
-			// wait returns success immediately and the command is reported as
-			// having worked without the board ever acknowledging it.
-			//
-			// This was missing here, which is why powerOff and bootToEDL could
-			// return NO_TAC_ERROR in about a millisecond while the device never
-			// moved. SendCommand() set the flag and therefore detected the
-			// timeout correctly; these entry points did not.
-			alpacaDevice->setWaitForCompletion();
-
+			// The completion flag is armed inside quickCommand() itself, so
+			// both this entry point and the exported SendCommand() get the
+			// timeout detection without each caller having to remember.
 			alpacaDevice->quickCommand(command);
 		}
 		catch (const TACException& e)

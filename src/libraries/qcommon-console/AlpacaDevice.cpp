@@ -411,26 +411,29 @@ bool _AlpacaDevice::quickCommand
 				CommandEntries commandEntries = _alpacaScript.getCommandEntries(command);
 				CommandEntries substitutedCommandEntries = _alpacaScript.replaceTokens(scriptVariables, commandEntries);
 
-				// Record whether the completion flag is armed before we queue.
+				// Arm the completion flag here rather than in the callers.
 				// waitForCompletion() loops only while the flag is set, so an
-				// unarmed flag makes it return success without the board having
-				// acknowledged anything. Callers are expected to arm it; log the
-				// state so a silent success is identifiable from the log alone
-				// rather than inferred from suspiciously fast timing.
-				bool armed = _driveThread->waitForCompletionStatus();
+				// unarmed flag makes it return success immediately and the
+				// command is reported as having worked without the board
+				// acknowledging anything.
+				//
+				// Both routes into this function converge here: the exported
+				// SendCommand() reaches it via sendCommand() when the name is
+				// not a pin command, and PowerOffButton/BootToEDLButton reach
+				// it via _quickCommand(). Neither armed the flag, so every
+				// quick command was unverifiable - confirmed on the bench by
+				// nine consecutive "completionArmed=NO" entries on 10/08.
+				//
+				// setPinState() is unaffected: it goes through
+				// _setCommandState(), which already arms the flag and is why
+				// its timeouts were detected and recovered correctly.
+				_driveThread->setWaitForCompletion();
 
 				AppCore::writeToApplicationLogLine(
 					QString("_AlpacaDevice::quickCommand(%1): queueing %2 entries, completionArmed=%3")
 						.arg(command)
 						.arg(substitutedCommandEntries.count())
-						.arg(armed ? "yes" : "NO"));
-
-				if (armed == false)
-				{
-					AppCore::writeToApplicationLogLine(
-						QString("_AlpacaDevice::quickCommand(%1): completion flag not armed, the wait"
-								" will return immediately and the command cannot be verified").arg(command));
-				}
+						.arg(_driveThread->waitForCompletionStatus() ? "yes" : "NO"));
 
 				_driveThread->sendCommandSequence(substitutedCommandEntries);
 				result = _driveThread->waitForCompletion();
