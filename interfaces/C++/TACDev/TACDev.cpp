@@ -9,6 +9,7 @@
 #include "TACException.h"
 
 // QCommon
+#include "AppCore.h"
 #include "mymemcpy.h"
 #include "version.h"
 
@@ -121,12 +122,21 @@ TAC_RESULT _quickCommand
 	{
 		try
 		{
+			// The completion flag is armed inside quickCommand() itself, so
+			// both this entry point and the exported SendCommand() get the
+			// timeout detection without each caller having to remember.
 			alpacaDevice->quickCommand(command);
 		}
 		catch (const TACException& e)
 		{
 			result = e.errorCode();
 			gDevTACCore.setLastError(e.getMessage());
+
+			AppCore::writeToApplicationLogLine(
+				QString("_quickCommand(%1): failed with result %2, %3")
+					.arg(command)
+					.arg(result)
+					.arg(e.getMessage()));
 		}
 	}
 	else
@@ -443,7 +453,15 @@ TAC_ERROR SetExternalPowerControl
 	AlpacaDevice alpacaDevice = gDevTACCore.getAlpacaDevice(tacHandle);
 	if (alpacaDevice.isNull() == false)
 	{
-		alpacaDevice->externalPowerControl(state);
+		try
+		{
+			alpacaDevice->externalPowerControl(state);
+		}
+		catch (const TACException& e)
+		{
+			result = e.errorCode();
+			gDevTACCore.setLastError(e.getMessage());
+		}
 	}
 	else
 	{
@@ -845,8 +863,16 @@ TAC_ERROR SetPinState
 	AlpacaDevice alpacaDevice = gDevTACCore.getAlpacaDevice(tacHandle);
 	if (alpacaDevice.isNull() == false)
 	{
-		alpacaDevice->setWaitForCompletion();
-		alpacaDevice->setPinState(pin, state);
+		try
+		{
+			alpacaDevice->setWaitForCompletion();
+			alpacaDevice->setPinState(pin, state);
+		}
+		catch (TACException& e)
+		{
+			result = e.errorCode();
+			gDevTACCore.setLastError(e.getMessage());
+		}
 	}
 	else
 	{

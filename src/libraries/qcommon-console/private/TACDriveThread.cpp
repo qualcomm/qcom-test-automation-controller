@@ -71,20 +71,149 @@ HashType TACDriveThread::hash()
 	return _hash;
 }
 
-void TACDriveThread::waitForCompletion()
+bool TACDriveThread::waitForCompletion()
 {
+	const int kMaxPolls{50};
+	const int kPollIntervalMs{100};
+
 	int count{0};
 
 	while (_waitForCompletion)
 	{
-		QThread::msleep(100);				// Give our high priority time to process
+		QThread::msleep(kPollIntervalMs);	// Give our high priority time to process
 		QCoreApplication::processEvents();  // Give the UI a timeslice to update
 
-		if (count++ > 50)
+		if (count++ > kMaxPolls)
 		{
-			AppCore::writeToApplicationLogLine("Wait for completion timed out.");
+			// The leading text must stay exactly "Wait for completion timed out"
+			// because downstream consumers (TacService) match on that substring
+			// to decide whether to reinitialize. Context is appended, not
+			// substituted, so those matches keep working.
+			AppCore::writeToApplicationLogLine(
+				QString("Wait for completion timed out. Board stopped acknowledging after %1 ms"
+						" (port=%2, driveTrain=%3, lastCommand=%4)")
+					.arg(count * kPollIntervalMs)
+					.arg(_portName.isEmpty() ? QByteArray("unknown") : _portName)
+					.arg(_driveTrainName)
+					.arg(_lastCommandDescription.isEmpty() ? QString("unknown") : _lastCommandDescription));
 
 			_waitForCompletion = false;
+			return false;
+		}
+	}
+
+	// A command that completes but takes an unusually long time is an early
+	// warning of the same fault. Without this the duration is only visible
+	// buried in a frame dump, which is easy to miss.
+	const int kSlowCommandPolls{10};
+	if (count > kSlowCommandPolls)
+	{
+		AppCore::writeToApplicationLogLine(
+			QString("Slow command completion: %1 ms (port=%2, lastCommand=%3)")
+				.arg(count * kPollIntervalMs)
+				.arg(_portName.isEmpty() ? QByteArray("unknown") : _portName)
+				.arg(_lastCommandDescription.isEmpty() ? QString("unknown") : _lastCommandDescription));
+	}
+
+	return true;
+}
+
+// ----------------------------------------------------------------------------
+// setLastCommandDescription
+//
+/// Records what the transport is currently doing so a timeout can name it.
+///
+/// Without this, "Wait for completion timed out" gives no indication of which
+/// command stalled, and the command has to be inferred from surrounding log
+/// lines after the fact.
+// ----------------------------------------------------------------------------
+void TACDriveThread::setLastCommandDescription(const QString& description)
+{
+	_lastCommandDescription = description;
+}
+
+// ----------------------------------------------------------------------------
+// resetTransport
+//
+/// Posts a reset request to the drive thread and waits for it to complete.
+///
+/// Called from the thread issuing the command. The transport object is owned
+/// and continuously used by run() on this QThread, so it must not be torn down
+/// here - doing so would race with, and free memory under, the drive thread.
+// ----------------------------------------------------------------------------
+bool TACDriveThread::resetTransport()
+{
+	// A reset is pointless if the drive thread is not running to service it,
+	// and waiting would block until the timeout for no reason.
+	if (weAreRunning() == false)
+	{
+		AppCore::writeToApplicationLogLine("TACDriveThread::resetTransport: drive thread not running, cannot reset");
+		return false;
+	}
+
+	QMutexLocker lock(&_resetMutex);
+
+	_resetRequested = true;
+	_resetDone = false;
+	_resetResult = false;
+
+	// Release the stale wait flag so run() is not stuck in a command that will
+	// never complete; otherwise it may not reach the reset service point.
+	_waitForCompletion = false;
+
+	// Bounded wait: if the drive thread is itself wedged, report failure rather
+	// than hanging the caller. The caller then surfaces the original timeout.
+	const unsigned long kResetTimeoutMs{15000};
+
+	while (_resetDone == false)
+	{
+		if (_resetCondition.wait(&_resetMutex, kResetTimeoutMs) == false)
+		{
+			AppCore::writeToApplicationLogLine("TACDriveThread::resetTransport: timed out waiting for drive thread to reset transport");
+
+			// Withdraw the request so a later reset is not serviced by a stale
+			// flag after this caller has already given up.
+			_resetRequested = false;
+			return false;
+		}
+	}
+
+	return _resetResult;
+}
+
+// ----------------------------------------------------------------------------
+// processPendingTransportReset
+//
+/// Services a reset posted by resetTransport(). Runs on the drive thread, so
+/// performTransportReset() can safely touch the transport.
+// ----------------------------------------------------------------------------
+void TACDriveThread::processPendingTransportReset()
+{
+	bool shouldReset{false};
+
+	{
+		QMutexLocker lock(&_resetMutex);
+		shouldReset = _resetRequested;
+	}
+
+	if (shouldReset == false)
+		return;
+
+	// Performed outside the lock: the reset reopens hardware and can take
+	// seconds, and holding _resetMutex would serialise unrelated callers.
+	bool result = performTransportReset();
+
+	{
+		QMutexLocker lock(&_resetMutex);
+
+		// If the caller already timed out it cleared _resetRequested; the reset
+		// still happened, so just drop the result rather than signalling.
+		if (_resetRequested == true)
+		{
+			_resetRequested = false;
+			_resetResult = result;
+			_resetDone = true;
+			_resetCondition.wakeAll();
 		}
 	}
 }

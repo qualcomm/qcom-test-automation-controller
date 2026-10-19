@@ -101,11 +101,61 @@ bool TACLiteDriveThread::openFTDIDevice()
 	return result;
 }
 
+// ----------------------------------------------------------------------------
+// performTransportReset
+//
+/// Recovers a wedged FTDI connection to the Alpaca Lite board.
+///
+/// When the board stops acknowledging, every command fails in
+/// waitForCompletion(). Reopening the TACDev handle does not help because the
+/// FTDI handles are still the same stuck ones, so close and reopen the chipset
+/// to force fresh FT_OpenEx handles.
+///
+/// Threading: runs on the drive thread only, called from
+/// processPendingTransportReset(). run() writes through _ftdiChipset
+/// continuously, so closing it from the caller's thread would be a race.
+///
+/// @returns true when the chipset was successfully reopened.
+// ----------------------------------------------------------------------------
+bool TACLiteDriveThread::performTransportReset()
+{
+	AppCore::writeToApplicationLogLine("TACLiteDriveThread::performTransportReset: resetting FTDI transport");
+
+	// Abandon any in-flight command, otherwise the stale flag would let the
+	// next waitForCompletion() return immediately on a dead connection.
+	clearWaitForCompletion();
+
+	bool result{false};
+
+	if (_ftdiChipset.isNull() == false)
+	{
+		// openFTDIDevice() only opens when isOpen() is false, so the close must
+		// happen first or the reopen below becomes a no-op.
+		_ftdiChipset->close();
+
+		_connected = false;
+		_readyRead = false;
+
+		result = openFTDIDevice();
+	}
+	else
+	{
+		AppCore::writeToApplicationLogLine("TACLiteDriveThread::performTransportReset: _ftdiChipset is NULL");
+	}
+
+	AppCore::writeToApplicationLogLine(
+		QString("TACLiteDriveThread::performTransportReset: %1").arg(result ? "succeeded" : "failed"));
+
+	return result;
+}
+
 void TACLiteDriveThread::externalPowerControl
 (
 	bool state
 )
 {
+	setLastCommandDescription(QString("externalPowerControl(state=%1)").arg(state ? "on" : "off"));
+
 	{
 		TACLiteCommand tacCommand(this, this);
 
@@ -115,19 +165,21 @@ void TACLiteDriveThread::externalPowerControl
 	waitForCompletion();
 }
 
-void TACLiteDriveThread::setPinState
+bool TACLiteDriveThread::setPinState
 (
 	quint16 pin,
 	bool state
 )
 {
+	setLastCommandDescription(QString("setPinState(pin=%1, state=%2)").arg(pin).arg(state ? "on" : "off"));
+
 	{
 		TACLiteCommand tacCommand(this, this);
 
 		tacCommand.setPinState(pin, state);
 	}
 
-	waitForCompletion();
+	return waitForCompletion();
 }
 
 void TACLiteDriveThread::sendCommandSequence
@@ -135,6 +187,8 @@ void TACLiteDriveThread::sendCommandSequence
 	CommandEntries& commandEntries
 )
 {
+	setLastCommandDescription(QString("sendCommandSequence(%1 entries)").arg(commandEntries.count()));
+
 	{
 		TACLiteCommand tacCommand(this, this);
 
@@ -315,6 +369,11 @@ void TACLiteDriveThread::run()
 
 		while (!loopFinished)
 		{
+			// Serviced here, before picking up the next frame, so the transport
+			// is never torn down mid-operation. resetTransport() blocks the
+			// requesting thread until this completes.
+			processPendingTransportReset();
+
 			FramePackage framePackage = _protocolInterface->getNextFramePackage();
 			if (framePackage.isNull() == false)
 			{
@@ -389,6 +448,19 @@ void TACLiteDriveThread::run()
 		_ftdiChipset->close();
 
 	_connected = false;
+
+	// Release anyone blocked in resetTransport() now that this thread is gone,
+	// otherwise the caller would wait out the full reset timeout for nothing.
+	{
+		QMutexLocker lock(&_resetMutex);
+		if (_resetRequested == true)
+		{
+			_resetRequested = false;
+			_resetResult = false;
+			_resetDone = true;
+			_resetCondition.wakeAll();
+		}
+	}
 
 	emit deviceDisconnected();
 
