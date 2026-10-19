@@ -385,9 +385,38 @@ PlatformID TACDriveThread::platformID()
 	return _platformID;
 }
 
+void TACDriveThread::setPlatformID(PlatformID platformID)
+{
+	_platformID = platformID;
+}
+
 QString TACDriveThread::hardwareVersionString()
 {
 	return PlatformContainer::toString(_platformID);
+}
+
+PlatformID TACDriveThread::platformIDFromHardwareVersion()
+{
+	static const QByteArray kHardwareVersionTag("HW version:");
+
+	const int tagIndex = _versionString.indexOf(kHardwareVersionTag);
+	if (tagIndex == -1)
+		return MICRO_EPM_BOARD_ID_UNKNOWN;
+
+	// "ALPACA_V3.1" -> "alpaca v3.1", matching the platform description "Alpaca V3.1".
+	QString hardwareName = QString::fromLatin1(_versionString.mid(tagIndex + kHardwareVersionTag.size()));
+	hardwareName = hardwareName.trimmed().section(' ', 0, 0).replace('_', ' ').toLower();
+	if (hardwareName.isEmpty())
+		return MICRO_EPM_BOARD_ID_UNKNOWN;
+
+	const PlatformIDList psocPlatforms = PlatformContainer::getDebugBoardsOfType(ePSOC);
+	for (const auto& platformEntry: psocPlatforms)
+	{
+		if (platformEntry->_description.trimmed().toLower() == hardwareName)
+			return platformEntry->_platformID;
+	}
+
+	return MICRO_EPM_BOARD_ID_UNKNOWN;
 }
 
 QString TACDriveThread::firmwareVersion()
