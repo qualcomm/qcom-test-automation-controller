@@ -56,19 +56,19 @@ AppCore::~AppCore()
 {
 	ThreadedLog nullLog(Q_NULLPTR);
 
-    if (_runThreadedLog.isNull() == false)
-    {
-        _runThreadedLog->close();
-        _appThreadedLog->deleteLater();
-        _runThreadedLog = nullLog;
-    }
+	if (_runThreadedLog.isNull() == false)
+	{
+		_runThreadedLog->close();
+		_runThreadedLog->deleteLater();
+		_runThreadedLog = nullLog;
+	}
 
-    if (_appThreadedLog.isNull() == false)
-    {
-        _appThreadedLog->close();
-        _appThreadedLog->deleteLater();
-        _appThreadedLog = nullLog;
-    }
+	if (_appThreadedLog.isNull() == false)
+	{
+		_appThreadedLog->close();
+		_appThreadedLog->deleteLater();
+		_appThreadedLog = nullLog;
+	}
 }
 
 AppCore *AppCore::getAppCore()
@@ -161,6 +161,11 @@ void AppCore::setAppLogging
 		logPath = QDir::cleanPath(logDirectory + QDir::separator() + _ThreadedLog::createLogName(_appName + "_"));
 
 		_appThreadedLog = _ThreadedLog::createThreadedLog();
+		if (_appThreadedLog.isNull())
+		{
+			return;
+		}
+
 		_appThreadedLog->open(logPath);
 
 		writeToAppLog(_appName + " Application log started\n");
@@ -206,6 +211,11 @@ void AppCore::setRunLogging(bool loggingState)
 		logPath = QDir::cleanPath(logDirectory + QDir::separator() + _ThreadedLog::createLogName(_appName + "_"));
 
 		_runThreadedLog = _ThreadedLog::createThreadedLog();
+		if (_runThreadedLog.isNull())
+		{
+			return;
+		}
+
 		_runThreadedLog->open(logPath);
 		_runThreadedLog->addLogEntry("Starting Log: " + QDateTime::currentDateTime().toString() + "\n");
 	}
