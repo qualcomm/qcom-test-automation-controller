@@ -1081,62 +1081,86 @@ bool _PlatformConfiguration::load(const QString& filePath)
 	return result;
 }
 
-void _PlatformConfiguration::save()
+QString _PlatformConfiguration::defaultPlatformPath()
+{
+	if (_platform == ePSOC)
+		return _platformId < 255 ? documentsDataPath("TAC Configurations") : tacConfigRoot();
+
+	return _platformId < 90000 ? documentsDataPath("TAC Configurations") : tacConfigRoot();
+}
+
+QString _PlatformConfiguration::targetFilePath()
+{
+	const QString path = _platformPath.isEmpty() ? defaultPlatformPath() : _platformPath;
+	const QString file = _platformFile.isEmpty() ? makeConfigName(getPlatformString(), _platformId) : _platformFile;
+
+	return QDir::cleanPath(path + QDir::separator() + file);
+}
+
+bool _PlatformConfiguration::writeToFile(const QString& filePath)
 {
 	_modifyDate = QDateTime::currentDateTime().toString();
 
-	if (_platformPath.isEmpty())
+	QJsonObject rootLevel;
+	write(rootLevel);
+
+	const QByteArray jsonDocument = QJsonDocument(rootLevel).toJson(QJsonDocument::Indented);
+	if (jsonDocument.isEmpty())
 	{
-		if (_platform == ePSOC)
-		{
-			if (_platformId < 255)
-				_platformPath = documentsDataPath("TAC Configurations");
-			else
-				_platformPath = tacConfigRoot();
-		}
-		else
-		{
-			if (_platformId < 90000)
-				_platformPath = documentsDataPath("TAC Configurations");
-			else
-				_platformPath = tacConfigRoot();
-		}
+		_lastError = QObject::tr("Unable to serialize the configuration");
+		return false;
 	}
 
-	if (_platformFile.isEmpty())
-		_platformFile = makeConfigName(getPlatformString(), _platformId);
-
-	QString targetFilePath = QDir::cleanPath(_platformPath + QDir::separator() + _platformFile);
-
-	QFile targetFile(targetFilePath);
-	if (targetFile.open(QIODevice::WriteOnly) == true)
+	const QFileInfo fileInfo(filePath);
+	if (QDir().mkpath(fileInfo.absolutePath()) == false)
 	{
-		QJsonObject rootLevel;
-		QJsonDocument document;
-
-		write(rootLevel);
-
-		document = QJsonDocument(rootLevel);
-
-		if (document.isNull() == false)
-		{
-			QByteArray jsonDocument = document.toJson(QJsonDocument::Indented);
-			if (jsonDocument.isEmpty() == false)
-			{
-				QFile jsonFile(targetFilePath);
-
-				if (jsonFile.open(QIODevice::WriteOnly) == true)
-				{
-					jsonFile.write(jsonDocument);
-					jsonFile.close();
-
-					_dirty = false;
-
-					setFilePath(targetFilePath);
-				}
-			}
-		}
+		_lastError = QObject::tr("Unable to create folder ") + QDir::toNativeSeparators(fileInfo.absolutePath());
+		return false;
 	}
+
+	QFile jsonFile(filePath);
+	if (jsonFile.open(QIODevice::WriteOnly) == false)
+	{
+		_lastError = QObject::tr("Unable to write ") + QDir::toNativeSeparators(filePath) + ": " + jsonFile.errorString();
+		return false;
+	}
+
+	const qint64 written = jsonFile.write(jsonDocument);
+	jsonFile.close();
+
+	if (written != jsonDocument.size() || jsonFile.error() != QFileDevice::NoError)
+	{
+		_lastError = QObject::tr("Unable to write ") + QDir::toNativeSeparators(filePath) + ": " + jsonFile.errorString();
+		return false;
+	}
+
+	_dirty = false;
+	return true;
+}
+
+bool _PlatformConfiguration::save()
+{
+	const QString filePath = targetFilePath();
+
+	if (writeToFile(filePath) == false)
+		return false;
+
+	setFilePath(filePath);
+	return true;
+}
+
+bool _PlatformConfiguration::saveAs(const QString& filePath)
+{
+	const QString cleanFilePath = QDir::cleanPath(QFileInfo(filePath).absoluteFilePath());
+
+	if (writeToFile(cleanFilePath) == false)
+		return false;
+
+	// The user picked this exact location, so later saves go back to it.
+	const QFileInfo fileInfo(cleanFilePath);
+	_platformPath = fileInfo.absolutePath();
+	_platformFile = fileInfo.fileName();
+	return true;
 }
 
 bool _PlatformConfiguration::read(QJsonObject& parentLevel)
