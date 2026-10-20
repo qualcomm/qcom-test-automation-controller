@@ -56,17 +56,18 @@ AppCore::~AppCore()
 {
 	ThreadedLog nullLog(Q_NULLPTR);
 
+	// The logs are owned by QSharedPointer, so resetting them releases the
+	// object. Calling deleteLater() as well would delete it a second time.
+	// close() waits for the log thread to finish before the reset.
 	if (_runThreadedLog.isNull() == false)
 	{
 		_runThreadedLog->close();
-		_runThreadedLog->deleteLater();
 		_runThreadedLog = nullLog;
 	}
 
 	if (_appThreadedLog.isNull() == false)
 	{
 		_appThreadedLog->close();
-		_appThreadedLog->deleteLater();
 		_appThreadedLog = nullLog;
 	}
 }
