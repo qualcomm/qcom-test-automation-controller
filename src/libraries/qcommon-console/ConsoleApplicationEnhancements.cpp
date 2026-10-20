@@ -42,7 +42,9 @@ bool directoryIsWritable(const QString& path)
 	QDir dir(path);
 
 	if (path.isEmpty() || dir.exists() == false)
+	{
 		return false;
+	}
 
 	// The unique name template keeps concurrent processes from colliding, and
 	// the probe removes itself when it goes out of scope.
@@ -111,7 +113,7 @@ QString documentsDataPath
 	if (base.isEmpty())
 	{
 		qWarning() << "Alpaca: no documents location is available for the current user."
-				   << "Configuration cannot be read or written.";
+			<< "Configuration cannot be read or written.";
 		return QString();
 	}
 
@@ -122,7 +124,7 @@ QString documentsDataPath
 	if (QDir::cleanPath(QDir::homePath()) == QDir::rootPath())
 	{
 		qWarning() << "Alpaca: the home directory resolves to the root directory."
-				   << "HOME is probably not set for this process.";
+			<< "HOME is probably not set for this process.";
 	}
 
 	QString result = QDir::cleanPath(base + QDir::separator() + appName);
@@ -136,7 +138,7 @@ QString documentsDataPath
 		if (QDir().mkpath(result) == false)
 		{
 			qWarning() << "Alpaca: unable to create the configuration directory" << result
-					   << "- the location may be missing, read only, or out of space.";
+				<< "- the location may be missing, read only, or out of space.";
 			return QString();
 		}
 	}
@@ -146,7 +148,7 @@ QString documentsDataPath
 	if (directoryIsWritable(result) == false)
 	{
 		qWarning() << "Alpaca: the configuration directory" << result
-				   << "is not writable - the location may be read only, full, or over quota.";
+			<< "is not writable - the location may be read only, full, or over quota.";
 		return QString();
 	}
 
@@ -176,13 +178,17 @@ QString defaultGlobalLoggingPath()
 	// caller from building a path rooted at the filesystem root.
 	QString result = documentsDataPath("global");
 	if (result.isEmpty())
+	{
 		return QString();
+	}
 
 	result = QDir::cleanPath(result);
 	if (QDir(result).exists() == false)
 	{
 		if (QDir().mkpath(result) == false)
+		{
 			return QString();
+		}
 	}
 
 	return result;
@@ -195,13 +201,17 @@ QString defaultLoggingPath
 {
 	QString base = documentsDataPath(appName);
 	if (base.isEmpty())
+	{
 		return QString();
+	}
 
 	QString result = QDir::cleanPath(base + QDir::separator() + "logs");
 	if (QDir(result).exists() == false)
 	{
 		if (QDir().mkpath(result) == false)
+		{
 			return QString();
+		}
 	}
 
 	return result;

@@ -78,9 +78,9 @@ int main(int argc, char *argv[])
 	if (documentsDataPathAvailable() == false)
 	{
 		cerr << "Error: the Alpaca configuration directory is not available or not writable."
-			 << endl
-			 << "Device information cannot be reported reliably. Check that the home"
-			 << " directory exists, is writable, and is not out of space." << endl;
+			<< endl
+			<< "Device information cannot be reported reliably. Check that the home"
+			<< " directory exists, is writable, and is not out of space." << endl;
 
 		return kConfigurationUnavailable;
 	}
