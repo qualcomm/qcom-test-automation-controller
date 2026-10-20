@@ -123,14 +123,19 @@ void PSOCLegacyCommands::configure
 		}
 	}
 
+	// The version reply ends with a sentence dot ("1.4.11.0."); drop it for display.
+	QString version = firmwareVersion.trimmed();
+	while (version.endsWith('.'))
+		version.chop(1);
+
 	if (mode() == eForceOn)
 	{
 		activate("forced by TAC_PSOC_LEGACY_COMMANDS");
 	}
-	else if (firmwareVersion.trimmed().isEmpty() == false && firmwareMinor < kFirstFirmwareMinorWithPin)
+	else if (version.isEmpty() == false && firmwareMinor < kFirstFirmwareMinorWithPin)
 	{
 		activate(QString("firmware %1 predates the 'pin' command (minor %2 < %3)")
-			.arg(firmwareVersion.trimmed()).arg(firmwareMinor).arg(kFirstFirmwareMinorWithPin));
+			.arg(version).arg(firmwareMinor).arg(kFirstFirmwareMinorWithPin));
 	}
 }
 
