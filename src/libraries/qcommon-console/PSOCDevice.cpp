@@ -147,6 +147,14 @@ bool PSOCDevice::open()
 
 	if (result == true)
 	{
+		// Legacy firmware support (see private/TACPSOCLegacyCommands.h). Must run before any pin is sent.
+		TACPSOCDriveThread* psocDriveThread = dynamic_cast<TACPSOCDriveThread*>(_driveThread);
+		if (psocDriveThread != Q_NULLPTR)
+		{
+			psocDriveThread->legacyCommands()->configure(_psocPlatformConfiguration,
+				psocDriveThread->firmwareVersion(), psocDriveThread->minorVersion(), _portName);
+		}
+
 		buildMapping();
 
 		connect(_driveThread, &TACPSOCDriveThread::pinStateChanged, this, &PSOCDevice::on_pinStateChanged, Qt::DirectConnection);

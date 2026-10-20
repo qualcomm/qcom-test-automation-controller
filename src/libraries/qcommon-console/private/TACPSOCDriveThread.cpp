@@ -32,6 +32,7 @@ TACPSOCDriveThread::TACPSOCDriveThread
 	_driveTrainName = kTACSerialDriveTrainName;
 	setProtocolInterface(&_tacProtocol);
 	_tacProtocol.setTACDriveTrain(this);
+	_tacProtocol.setLegacyCommands(&_legacyCommands);
 
 	AlpacaDevices alpacaDevices;
 
