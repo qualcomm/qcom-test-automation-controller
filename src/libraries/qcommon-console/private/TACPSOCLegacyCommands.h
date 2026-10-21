@@ -21,7 +21,7 @@
 class _PSOCPlatformConfiguration;
 
 // Compatibility layer for PSoC firmware that predates the generic "pin <state> <n>" command
-// (firmware minor version below 15, for example 1.4.9.0 on ALPACA_V3.1 boards). That firmware
+// (firmware older than 1.x.15, for example 1.4.9.0 on ALPACA_V3.1 boards). That firmware
 // answers "pin" with "Command not recognized" and only understands the named commands used by
 // Alpaca 3.2.x: devicePower, usbDevicePower, gpio <name>, ttl outputBit <n>.
 //
@@ -34,7 +34,7 @@ class _PSOCPlatformConfiguration;
 //   run time:   environment variable TAC_PSOC_LEGACY_COMMANDS = auto (default) | on | off
 //
 // Activation in auto mode:
-//   1. when the device opens, if the parsed firmware minor version is below kFirstFirmwareMinorWithPin;
+//   1. when the device opens, if firmwarePredatesPin() is true for the parsed major and minor version;
 //   2. as a safety net, the first time the firmware rejects a "pin" command (covers firmware whose
 //      version string cannot be parsed). The rejected command itself is not resent; it is logged.
 //
@@ -49,13 +49,20 @@ public:
 		eOff
 	};
 
+	// First firmware with the "pin" command is 1.x.15. The version reads major.chip.minor.revision;
+	// the chip field identifies the part, not the release, so it is not part of the comparison.
+	static constexpr uint kFirstFirmwareMajorWithPin{1};
 	static constexpr uint kFirstFirmwareMinorWithPin{15};
+
+	// True when major.minor is older than the first firmware with "pin". The major version is
+	// compared first, so a later major release such as 2.0.1 is never treated as legacy.
+	static bool firmwarePredatesPin(uint firmwareMajor, uint firmwareMinor);
 
 	PSOCLegacyCommands() = default;
 
 	// Called once the platform configuration is known, before any pin command is sent.
 	void configure(_PSOCPlatformConfiguration* platformConfiguration, const QString& firmwareVersion,
-		uint firmwareMinor, const QByteArray& portName);
+		uint firmwareMajor, uint firmwareMinor, const QByteArray& portName);
 
 	bool active() const
 	{

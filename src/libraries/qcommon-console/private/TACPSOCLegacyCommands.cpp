@@ -70,6 +70,20 @@ void logLine(const QString& message)
 
 } // namespace
 
+bool PSOCLegacyCommands::firmwarePredatesPin
+(
+	uint firmwareMajor,
+	uint firmwareMinor
+)
+{
+	if (firmwareMajor != kFirstFirmwareMajorWithPin)
+	{
+		return firmwareMajor < kFirstFirmwareMajorWithPin;
+	}
+
+	return firmwareMinor < kFirstFirmwareMinorWithPin;
+}
+
 bool PSOCLegacyCommands::compiledIn()
 {
 #ifdef QTAC_NO_PSOC_LEGACY_COMMANDS
@@ -102,6 +116,7 @@ void PSOCLegacyCommands::configure
 (
 	_PSOCPlatformConfiguration* platformConfiguration,
 	const QString& firmwareVersion,
+	uint firmwareMajor,
 	uint firmwareMinor,
 	const QByteArray& portName
 )
@@ -132,10 +147,10 @@ void PSOCLegacyCommands::configure
 	{
 		activate("forced by TAC_PSOC_LEGACY_COMMANDS");
 	}
-	else if (version.isEmpty() == false && firmwareMinor < kFirstFirmwareMinorWithPin)
+	else if (version.isEmpty() == false && firmwarePredatesPin(firmwareMajor, firmwareMinor))
 	{
-		activate(QString("firmware %1 predates the 'pin' command (minor %2 < %3)")
-			.arg(version).arg(firmwareMinor).arg(kFirstFirmwareMinorWithPin));
+		activate(QString("firmware %1 predates the 'pin' command (first supported: %2.x.%3)")
+			.arg(version).arg(kFirstFirmwareMajorWithPin).arg(kFirstFirmwareMinorWithPin));
 	}
 }
 

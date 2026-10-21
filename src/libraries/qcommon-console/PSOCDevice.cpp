@@ -152,7 +152,8 @@ bool PSOCDevice::open()
 		if (psocDriveThread != Q_NULLPTR)
 		{
 			psocDriveThread->legacyCommands()->configure(_psocPlatformConfiguration,
-				psocDriveThread->firmwareVersion(), psocDriveThread->minorVersion(), _portName);
+				psocDriveThread->firmwareVersion(), psocDriveThread->majorVersion(),
+				psocDriveThread->minorVersion(), _portName);
 		}
 
 		buildMapping();
