@@ -93,6 +93,7 @@ qt_add_library(${LIBRARY_NAME} STATIC
 	private/TACPSOCCoder.h private/TACPSOCCoder.cpp
 	private/TACPSOCCommand.h private/TACPSOCCommand.cpp
 	private/TACPSOCDriveThread.h private/TACPSOCDriveThread.cpp
+	private/TACPSOCLegacyCommands.h private/TACPSOCLegacyCommands.cpp
 	private/TACPSOCProtocol.h private/TACPSOCProtocol.cpp
 	private/TACSTM32Coder.h private/TACSTM32Coder.cpp
 	private/TACSTM32Command.h private/TACSTM32Command.cpp
@@ -106,6 +107,12 @@ set_target_properties(${LIBRARY_NAME} PROPERTIES
 )
 
 QCommonConsoleSettings(${LIBRARY_NAME})
+
+# Translate "pin" commands for PSoC firmware older than minor version 15 (see private/TACPSOCLegacyCommands.h).
+option(QTAC_PSOC_LEGACY_COMMANDS "Support PSoC firmware without the 'pin' command" ON)
+if (NOT QTAC_PSOC_LEGACY_COMMANDS)
+    target_compile_definitions(${LIBRARY_NAME} PRIVATE QTAC_NO_PSOC_LEGACY_COMMANDS)
+endif()
 
 target_compile_definitions(${LIBRARY_NAME} PUBLIC
     QCOMMONCONSOLE_LIBRARY

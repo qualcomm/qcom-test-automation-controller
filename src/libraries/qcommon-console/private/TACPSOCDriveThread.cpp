@@ -32,6 +32,7 @@ TACPSOCDriveThread::TACPSOCDriveThread
 	_driveTrainName = kTACSerialDriveTrainName;
 	setProtocolInterface(&_tacProtocol);
 	_tacProtocol.setTACDriveTrain(this);
+	_tacProtocol.setLegacyCommands(&_legacyCommands);
 
 	AlpacaDevices alpacaDevices;
 
@@ -775,8 +776,11 @@ void TACPSOCDriveThread::handleVersionResponse
 						_firmwareMinor = firmwareVersionParts.at(2).toUInt();
 						_firmwareRevision = firmwareVersionParts.at(3).toUInt();
 
-						if (_firmwareMinor < 15)
+						// Compare major before minor so a later major release (2.0.1) is not "old".
+						if (PSOCLegacyCommands::firmwarePredatesPin(_firmwareMajor, _firmwareMinor))
+						{
 							_oldFirmware = true;
+						}
 					}
 
 					emit firmwareVersionUpdate(firmwareString);

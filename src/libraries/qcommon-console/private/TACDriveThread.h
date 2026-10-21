@@ -89,7 +89,13 @@ public:
 	QString debugBoardTypeString();
 
 	PlatformID platformID();
+	void setPlatformID(PlatformID platformID);
 	virtual QString hardwareVersionString();
+
+	// Firmware too old to answer the board ID query still reports its hardware
+	// name in the version reply ("HW version: ALPACA_V3.1"). Returns the PSoC
+	// platform whose description matches that name, or MICRO_EPM_BOARD_ID_UNKNOWN.
+	PlatformID platformIDFromHardwareVersion();
 
 	// firmware properties
 	bool oldFirmware();
