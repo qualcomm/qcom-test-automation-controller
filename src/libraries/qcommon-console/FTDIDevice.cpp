@@ -74,7 +74,7 @@ bool FTDIDevice::programDevice
 			if (tacPlatformEntry._platformEntry->_boardtype == eFTDI)
 				usbDescriptor = "ALPACA-LITE MTP DEBUG BOARD";
 			else
-				usbDescriptor = "BugHopper";
+				usbDescriptor = kBugHopperUSBDescriptor;
 		}
 
 		ftStatus = FT_OpenEx(serialNumber.data(), FT_OPEN_BY_SERIAL_NUMBER, &ftHandle);

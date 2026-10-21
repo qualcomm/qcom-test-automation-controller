@@ -641,7 +641,7 @@ void _FTDIChipset::linuxTraversal()
 
 						QString description(Description);
 						QByteArray usbDescriptor;
-						if (description.endsWith("BugHopper", Qt::CaseInsensitive))
+						if (description.endsWith(kBugHopperUSBDescriptor, Qt::CaseInsensitive))
 							usbDescriptor = description.toLatin1();
 						else
 							usbDescriptor = description.left(description.length() - 2).toLatin1();
@@ -653,7 +653,7 @@ void _FTDIChipset::linuxTraversal()
 							// No configuration loaded for this platform: infer the
 							// board type from the descriptor rather than crashing.
 							DebugBoardType boardType = platformEntry._platformEntry.isNull()
-								? (description.endsWith("BugHopper", Qt::CaseInsensitive) ? eFT232H : eFTDI)
+								? (description.endsWith(kBugHopperUSBDescriptor, Qt::CaseInsensitive) ? eFT232H : eFTDI)
 								: platformEntry._platformEntry->_boardtype;
 							QByteArray serialNumber = _FTDIChipset::normalizeSerialNumber(boardType, deviceSerialNumber);
 
@@ -751,7 +751,7 @@ void _FTDIChipset::windowsTraversal()
 				{
 					QString description = devInfoList[i].Description;
 					QByteArray usbDescriptor;
-					if (description.endsWith("BugHopper", Qt::CaseInsensitive))
+					if (description.endsWith(kBugHopperUSBDescriptor, Qt::CaseInsensitive))
 						usbDescriptor = description.toLatin1();
 					else
 						usbDescriptor = description.left(description.length() - 2).toLatin1();
@@ -763,7 +763,7 @@ void _FTDIChipset::windowsTraversal()
 						// No configuration loaded for this platform: infer the
 						// board type from the descriptor rather than crashing.
 						DebugBoardType boardType = platformEntry._platformEntry.isNull()
-							? (description.endsWith("BugHopper", Qt::CaseInsensitive) ? eFT232H : eFTDI)
+							? (description.endsWith(kBugHopperUSBDescriptor, Qt::CaseInsensitive) ? eFT232H : eFTDI)
 							: platformEntry._platformEntry->_boardtype;
 						QByteArray serialNumber = _FTDIChipset::normalizeSerialNumber(boardType, deviceSerialNumber);
 
