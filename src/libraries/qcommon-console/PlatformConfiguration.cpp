@@ -1106,6 +1106,17 @@ void _PlatformConfiguration::save()
 	if (_platformFile.isEmpty())
 		_platformFile = makeConfigName(getPlatformString(), _platformId);
 
+	// documentsDataPath() returns an empty string when no writable location is
+	// available. Carrying on would build a path at the filesystem root, so stop
+	// and report instead of writing the configuration somewhere unintended.
+	if (_platformPath.isEmpty())
+	{
+		AppCore::writeToApplicationLogLine(
+			"_PlatformConfiguration::save(): no writable configuration location is available, "
+			"the configuration was not saved.");
+		return;
+	}
+
 	QString targetFilePath = QDir::cleanPath(_platformPath + QDir::separator() + _platformFile);
 
 	QFile targetFile(targetFilePath);
