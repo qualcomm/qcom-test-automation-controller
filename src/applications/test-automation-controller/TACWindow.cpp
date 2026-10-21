@@ -49,6 +49,9 @@ TACWindow::TACWindow
 	restoreSettings();
 
 	QObject::connect(&_autoShutdownTimer, &QTimer::timeout, this, &TACWindow::onAutoShutdownTimerTimeout);
+
+	_titleRefreshTimer.setInterval(500);
+	QObject::connect(&_titleRefreshTimer, &QTimer::timeout, this, &TACWindow::onTitleRefreshTimeout);
 	QObject::connect(this, &TACWindow::progress, _nwgt, &NotificationWidget::progress, Qt::DirectConnection);
 }
 
@@ -82,8 +85,71 @@ void TACWindow::restoreSettings()
 	settings.endGroup();
 }
 
+namespace
+{
+
+const int kTitleRefreshMaxAttempts{20};		// 20 x 500 ms = 10 seconds
+const int kSerialFullLength{12};
+const int kSerialTailLength{8};
+
+// Long serial numbers often share a common prefix across boards of the same
+// type, so the end is the part that tells them apart.
+QString shortSerial(const QString& serialNumber)
+{
+	if (serialNumber.size() <= kSerialFullLength)
+		return serialNumber;
+
+	return QString(QChar(0x2026)) + serialNumber.right(kSerialTailLength);
+}
+
+// The hardware description reads "Unknown Board ID: n" until the board has
+// reported its identity, which is not useful in a title.
+bool isKnownHardware(const QString& hardware)
+{
+	return hardware.isEmpty() == false &&
+		   hardware.startsWith(QStringLiteral("Unknown Board ID"), Qt::CaseInsensitive) == false;
+}
+
+} // namespace
+
+void TACWindow::updateTitle()
+{
+	if (_alpacaDevice.isNull())
+		return;
+
+	const QString separator = QStringLiteral(" ") + QChar(0x00B7) + QStringLiteral(" ");
+
+	QStringList parts;
+	parts << QString::fromLatin1(_alpacaDevice->portName());
+
+	const QString serialNumber = QString::fromLatin1(_alpacaDevice->serialNumber()).trimmed();
+	if (serialNumber.isEmpty() == false)
+		parts << QStringLiteral("SN ") + shortSerial(serialNumber);
+
+	const QString hardware = _alpacaDevice->hardwareVersionString().trimmed();
+	if (isKnownHardware(hardware))
+		parts << QStringLiteral("HW ") + hardware;
+
+	setWindowTitle(parts.join(separator));
+}
+
+void TACWindow::onTitleRefreshTimeout()
+{
+	updateTitle();
+
+	_titleRefreshAttempts++;
+
+	const bool hardwareKnown = _alpacaDevice.isNull() == false &&
+							   isKnownHardware(_alpacaDevice->hardwareVersionString().trimmed());
+
+	if (hardwareKnown || _alpacaDevice.isNull() || _titleRefreshAttempts >= kTitleRefreshMaxAttempts)
+		_titleRefreshTimer.stop();
+}
+
 void TACWindow::shutDown()
 {
+	_titleRefreshTimer.stop();
+
 	if (_alpacaDevice.isNull() == false)
 	{
 		TACApplication::disconnectTACWindow(this);
@@ -169,7 +235,12 @@ void TACWindow::openPort
 			_tacFrame->setDevice(_alpacaDevice);
 
 			QString portName = " " + _alpacaDevice->portName();
-			setWindowTitle(QString(kWindowTitle).arg(portName));
+
+			// The hardware identity arrives shortly after the port opens, so
+			// show what is known now and refresh for a few seconds.
+			updateTitle();
+			_titleRefreshAttempts = 0;
+			_titleRefreshTimer.start();
 
 			_disconnectButton->setEnabled(true);
 
@@ -305,4 +376,3 @@ void TACWindow::on_actionSubmit_Bug_Report_triggered()
 	process->setArguments(arguments);
 	process->startDetached();
 }
-

@@ -88,12 +88,21 @@ TAC_HANDLE DevTACCore::OpenHandleByDescription(const char *portName)
 
 	if (licenseIsValid() == true)
 	{
+		// Reuse an already open handle only on an exact identifier match. A
+		// substring test here would hand back the handle of a different device
+		// whenever one identifier is a prefix of another, for example "VTP1"
+		// and "VTP12".
+		const QByteArray requestedName{QByteArray(portName).trimmed()};
+
 		for (auto [tacHandle, openDevice]: RangedContainer(_openDevices))
 		{
-			if (openDevice->portName() == portName)
+			if (openDevice.isNull() || requestedName.isEmpty())
+				continue;
+
+			if (openDevice->portName().trimmed().compare(requestedName, Qt::CaseInsensitive) == 0)
 				return tacHandle;
 
-			if (openDevice->serialNumber().contains(portName))
+			if (openDevice->serialNumber().trimmed().compare(requestedName, Qt::CaseInsensitive) == 0)
 				return tacHandle;
 		}
 

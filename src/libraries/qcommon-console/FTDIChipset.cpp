@@ -13,7 +13,16 @@
 #include <QSettings>
 
 // FTDI
+// ftd2xx.h is the vendor FTDI header; its copyright line is Latin-1, which MSVC
+// reports as C4828 under /utf-8. Keep the vendor file unchanged and silence it here.
+#ifdef _MSC_VER
+#pragma warning(push)
+#pragma warning(disable: 4828)
+#endif
 #include "ftd2xx.h"
+#ifdef _MSC_VER
+#pragma warning(pop)
+#endif
 
 FTDIChipsetList _FTDIChipset::_ftdiChipsetList;
 
@@ -641,7 +650,7 @@ void _FTDIChipset::linuxTraversal()
 
 						QString description(Description);
 						QByteArray usbDescriptor;
-						if (description.endsWith("BugHopper", Qt::CaseInsensitive))
+						if (description.endsWith(kBugHopperUSBDescriptor, Qt::CaseInsensitive))
 							usbDescriptor = description.toLatin1();
 						else
 							usbDescriptor = description.left(description.length() - 2).toLatin1();
@@ -650,7 +659,11 @@ void _FTDIChipset::linuxTraversal()
 							PlatformID platformID = _PlatformConfiguration::getUSBDescriptor(usbDescriptor);
 							QByteArray deviceSerialNumber(SerialNumber);
 							TACPlatformEntry platformEntry = _PlatformConfiguration::getEntry(platformID);
-							DebugBoardType boardType = platformEntry._platformEntry->_boardtype;
+							// No configuration loaded for this platform: infer the
+							// board type from the descriptor rather than crashing.
+							DebugBoardType boardType = platformEntry._platformEntry.isNull()
+								? (description.endsWith(kBugHopperUSBDescriptor, Qt::CaseInsensitive) ? eFT232H : eFTDI)
+								: platformEntry._platformEntry->_boardtype;
 							QByteArray serialNumber = _FTDIChipset::normalizeSerialNumber(boardType, deviceSerialNumber);
 
 							if (serialNumber.isEmpty() == false)
@@ -747,7 +760,7 @@ void _FTDIChipset::windowsTraversal()
 				{
 					QString description = devInfoList[i].Description;
 					QByteArray usbDescriptor;
-					if (description.endsWith("BugHopper", Qt::CaseInsensitive))
+					if (description.endsWith(kBugHopperUSBDescriptor, Qt::CaseInsensitive))
 						usbDescriptor = description.toLatin1();
 					else
 						usbDescriptor = description.left(description.length() - 2).toLatin1();
@@ -756,7 +769,11 @@ void _FTDIChipset::windowsTraversal()
 						PlatformID platformId = _PlatformConfiguration::getUSBDescriptor(usbDescriptor);
 						QByteArray deviceSerialNumber = devInfoList[i].SerialNumber;
 						TACPlatformEntry platformEntry = _PlatformConfiguration::getEntry(platformId);
-						DebugBoardType boardType = platformEntry._platformEntry->_boardtype;
+						// No configuration loaded for this platform: infer the
+						// board type from the descriptor rather than crashing.
+						DebugBoardType boardType = platformEntry._platformEntry.isNull()
+							? (description.endsWith(kBugHopperUSBDescriptor, Qt::CaseInsensitive) ? eFT232H : eFTDI)
+							: platformEntry._platformEntry->_boardtype;
 						QByteArray serialNumber = _FTDIChipset::normalizeSerialNumber(boardType, deviceSerialNumber);
 
 

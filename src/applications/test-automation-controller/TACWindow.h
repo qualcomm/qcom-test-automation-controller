@@ -65,6 +65,15 @@ private:
 	void saveSettings();
 	void restoreSettings();
 
+	// Shows the connected board in the window title so several TAC windows
+	// can be told apart. The board reports its hardware identity shortly
+	// after connecting, so the title is refreshed until that arrives.
+	void updateTitle();
+	void onTitleRefreshTimeout();
+
+	QTimer						_titleRefreshTimer;
+	int							_titleRefreshAttempts{0};
+
     void setupLinuxFonts();
 };
 

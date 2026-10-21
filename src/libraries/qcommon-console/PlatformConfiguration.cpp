@@ -1140,6 +1140,18 @@ bool _PlatformConfiguration::writeToFile(const QString& filePath)
 
 bool _PlatformConfiguration::save()
 {
+	// documentsDataPath() returns an empty string when no writable location is
+	// available. Carrying on would build a path at the filesystem root, so stop
+	// and report instead of writing the configuration somewhere unintended.
+	if (_platformPath.isEmpty() && defaultPlatformPath().isEmpty())
+	{
+		_lastError = QObject::tr("No writable configuration location is available, the configuration was not saved.");
+		AppCore::writeToApplicationLogLine(
+			"_PlatformConfiguration::save(): no writable configuration location is available, "
+			"the configuration was not saved.");
+		return false;
+	}
+
 	const QString filePath = targetFilePath();
 
 	if (writeToFile(filePath) == false)

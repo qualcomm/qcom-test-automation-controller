@@ -51,7 +51,7 @@ QTAC is a software suite that enables users to control Qualcomm devices remotely
 | :-- | :-- | :-- |
 | **OS** | Windows / Debian | Windows 10+ / Ubuntu 22.04+ |
 | **Compiler** | [MSVC 2022](https://aka.ms/vs/17/release/vs_community.exe) / GCC | MSVC 2022 / GCC-11, G++-11, GLIBC-2.35 |
-| **Build System** | [CMake](https://cmake.org/download/) | 3.22+ |
+| **Build System** | [CMake](https://cmake.org/download/) | 3.24+ |
 | **Build Tool** | [Ninja](https://ninja-build.org/) (via Qt installer, system package manager, or direct download) | 1.10+ |
 | **UI Framework** | [Qt Open-source](https://www.qt.io/download-qt-installer-oss) | 6.9.0+ |
 
@@ -147,9 +147,14 @@ __Builds\ARM64\Release\QTAC.exe
    ```
 2. **Build Dependencies**:
    ```bash
-   sudo apt install libudev-dev
+   sudo apt install build-essential ninja-build libudev-dev uuid-dev libgl1-mesa-dev libfontconfig1 libfreetype6
    ```
-   Required by `hidapi` (used for Arduino BugHopper V2 HID support) when configuring with CMake.
+   `libudev-dev` is required by `hidapi` (used for Arduino BugHopper V2 HID support); `uuid-dev` is required to link QTAC and the configuration editor; `libfontconfig1` and `libfreetype6` are required by Qt GUI (preinstalled on Ubuntu desktop).
+
+   CMake 3.24 or later is required. Ubuntu 22.04's `apt` package is CMake 3.22, which is too old; install a newer one, for example:
+   ```bash
+   pip install --user "cmake>=3.24,<4"
+   ```
 3. **Runtime Dependencies**:
    ```bash
    sudo cp udev-rules/99-QTAC-USB.rules /etc/udev/rules.d/

@@ -10,6 +10,9 @@
 #include "Range.h"
 #include "PSOCSerialTableModel.h"
 
+// Qt
+#include <QDebug>
+
 PSOCSerialTableModel* gPSOCTACSerialTableModel{Q_NULLPTR};
 
 PSOCDevice::~PSOCDevice()
@@ -90,15 +93,36 @@ bool PSOCDevice::open()
 		for (int i{0}; i < 10; i++)
 		{
 			PlatformID platformID = _driveThread->platformID();
-			if (platformID == MICRO_EPM_BOARD_ID_UNKNOWN)
+			if (platformID == MICRO_EPM_BOARD_ID_UNKNOWN && _driveThread->oldFirmware())
 			{
-				if (_driveThread->oldFirmware() == false)
-					QThread::msleep(100);
-				else
+				// Old firmware does not implement the board ID query, but earlier
+				// releases still drove these boards. Identify the board from the
+				// hardware name in its version reply and keep working, with a warning.
+				platformID = _driveThread->platformIDFromHardwareVersion();
+				if (platformID == MICRO_EPM_BOARD_ID_UNKNOWN)
 				{
-					_lastError = "Firmware version is too old";
+					_lastError = "Firmware version is too old and the board could not be identified";
+					AppCore::writeToApplicationLogLine(QString("%1: %2").arg(QString::fromLatin1(_portName), QString::fromLatin1(_lastError)));
 					break;
 				}
+
+				_driveThread->setPlatformID(platformID);
+
+				// The firmware reply may already end with '.', avoid printing "1.4.9.0."
+				QString firmwareVersion = _driveThread->firmwareVersion().trimmed();
+				while (firmwareVersion.endsWith('.'))
+					firmwareVersion.chop(1);
+
+				const QString warning = QString("Warning: %1 firmware %2 is out of date and does not report its board ID; "
+					"identified as '%3' from its hardware version. Please update the board firmware.")
+					.arg(QString::fromLatin1(_portName), firmwareVersion, PlatformContainer::toString(platformID));
+				AppCore::writeToApplicationLogLine(warning);
+				qWarning().noquote() << warning;
+			}
+
+			if (platformID == MICRO_EPM_BOARD_ID_UNKNOWN)
+			{
+				QThread::msleep(100);
 			}
 			else
 			{
@@ -106,6 +130,21 @@ bool PSOCDevice::open()
 				if (platformID != MICRO_EPM_BOARD_ID_UNKNOWN)
 				{
 					TACPlatformEntry platformEntry = _PlatformConfiguration::getEntry(_platformID);
+
+					// The board identified itself, but no configuration for its
+					// platform was loaded, typically because the configuration
+					// folder could not be found. Fail the open with a reason
+					// rather than dereferencing the missing entry.
+					if (platformEntry._platformEntry.isNull())
+					{
+						_lastError = QString("No configuration found for platform %1. "
+											 "Check that the board configuration files are installed.")
+										 .arg(_platformID).toLatin1();
+						AppCore::writeToApplicationLogLine("PSOCDevice::open(): " + _lastError);
+						result = false;
+						break;
+					}
+
 					_description = platformEntry._platformEntry->_description.toLatin1();
 					_platformConfiguration = platformEntry.getConfiguration();
 					_psocPlatformConfiguration = static_cast<_PSOCPlatformConfiguration*>(_platformConfiguration.data());
@@ -123,6 +162,15 @@ bool PSOCDevice::open()
 
 	if (result == true)
 	{
+		// Legacy firmware support (see private/TACPSOCLegacyCommands.h). Must run before any pin is sent.
+		TACPSOCDriveThread* psocDriveThread = dynamic_cast<TACPSOCDriveThread*>(_driveThread);
+		if (psocDriveThread != Q_NULLPTR)
+		{
+			psocDriveThread->legacyCommands()->configure(_psocPlatformConfiguration,
+				psocDriveThread->firmwareVersion(), psocDriveThread->majorVersion(),
+				psocDriveThread->minorVersion(), _portName);
+		}
+
 		buildMapping();
 
 		connect(_driveThread, &TACPSOCDriveThread::pinStateChanged, this, &PSOCDevice::on_pinStateChanged, Qt::DirectConnection);

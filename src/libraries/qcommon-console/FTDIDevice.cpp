@@ -16,7 +16,16 @@
 #include <QThread>
 
 // FTDI
+// ftd2xx.h is the vendor FTDI header; its copyright line is Latin-1, which MSVC
+// reports as C4828 under /utf-8. Keep the vendor file unchanged and silence it here.
+#ifdef _MSC_VER
+#pragma warning(push)
+#pragma warning(disable: 4828)
+#endif
 #include "ftd2xx.h"
+#ifdef _MSC_VER
+#pragma warning(pop)
+#endif
 
 class FTDIInitializer
 {
@@ -51,6 +60,12 @@ bool FTDIDevice::programDevice
 	bool result{false};
 
 	TACPlatformEntry tacPlatformEntry = _PlatformConfiguration::getEntry(platformID);
+	if (tacPlatformEntry._platformEntry.isNull())
+	{
+		errorMessage = QString("No configuration found for platform %1").arg(platformID).toLatin1();
+		return false;
+	}
+
 	if (tacPlatformEntry._platformEntry->_platformID == platformID)
 	{
 		FT_STATUS ftStatus;
@@ -68,7 +83,7 @@ bool FTDIDevice::programDevice
 			if (tacPlatformEntry._platformEntry->_boardtype == eFTDI)
 				usbDescriptor = "ALPACA-LITE MTP DEBUG BOARD";
 			else
-				usbDescriptor = "BugHopper";
+				usbDescriptor = kBugHopperUSBDescriptor;
 		}
 
 		ftStatus = FT_OpenEx(serialNumber.data(), FT_OPEN_BY_SERIAL_NUMBER, &ftHandle);
@@ -161,9 +176,19 @@ quint32 FTDIDevice::updateAlpacaDevices()
 			ftdiDevice->_platformID = ftdiChipset->platformID();
 
 			TACPlatformEntry platformEntry = _PlatformConfiguration::getEntry(ftdiDevice->_platformID);
-			ftdiDevice->_description = platformEntry._platformEntry->_description.toLatin1();
-			ftdiDevice->_platformConfiguration = platformEntry.getConfiguration();
-			ftdiDevice->_boardType = platformEntry._platformEntry->_boardtype;
+
+			// Without a loaded configuration the entry is empty. List the device
+			// but leave its configuration unset; open() then fails cleanly.
+			if (platformEntry._platformEntry.isNull() == false)
+			{
+				ftdiDevice->_description = platformEntry._platformEntry->_description.toLatin1();
+				ftdiDevice->_platformConfiguration = platformEntry.getConfiguration();
+				ftdiDevice->_boardType = platformEntry._platformEntry->_boardtype;
+			}
+			else
+			{
+				AppCore::writeToApplicationLogLine(QString("FTDIDevice: no configuration found for platform %1").arg(ftdiDevice->_platformID));
+			}
 
 			alpacaDevice = AlpacaDevice(ftdiDevice);
 			_AlpacaDevice::_alpacaDevices.push_back(alpacaDevice);
