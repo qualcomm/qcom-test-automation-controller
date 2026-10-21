@@ -701,7 +701,11 @@ void ConfigWindow::onNotificationStarted(const QString &message, NotificationLev
 bool ConfigWindow::save()
 {
 	if (_platformConfiguration == Q_NULLPTR)
+	{
+		QMessageBox::warning(this, tr("Save Configuration"),
+			tr("There is no configuration to save.\n\nOpen or create a configuration first."));
 		return false;
+	}
 
 	_platformConfiguration->setSupportedFirmwareVer(firmwareSelection());
 
@@ -733,7 +737,11 @@ bool ConfigWindow::save()
 bool ConfigWindow::saveAs()
 {
 	if (_platformConfiguration == Q_NULLPTR)
+	{
+		QMessageBox::warning(this, tr("Save Configuration As"),
+			tr("There is no configuration to save.\n\nOpen or create a configuration first."));
 		return false;
+	}
 
 	_platformConfiguration->setSupportedFirmwareVer(firmwareSelection());
 
