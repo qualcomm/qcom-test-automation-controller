@@ -16,7 +16,16 @@
 #include <QThread>
 
 // FTDI
+// ftd2xx.h is the vendor FTDI header; its copyright line is Latin-1, which MSVC
+// reports as C4828 under /utf-8. Keep the vendor file unchanged and silence it here.
+#ifdef _MSC_VER
+#pragma warning(push)
+#pragma warning(disable: 4828)
+#endif
 #include "ftd2xx.h"
+#ifdef _MSC_VER
+#pragma warning(pop)
+#endif
 
 class FTDIInitializer
 {
