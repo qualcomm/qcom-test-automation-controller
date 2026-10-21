@@ -106,6 +106,21 @@ bool PSOCDevice::open()
 				if (platformID != MICRO_EPM_BOARD_ID_UNKNOWN)
 				{
 					TACPlatformEntry platformEntry = _PlatformConfiguration::getEntry(_platformID);
+
+					// The board identified itself, but no configuration for its
+					// platform was loaded, typically because the configuration
+					// folder could not be found. Fail the open with a reason
+					// rather than dereferencing the missing entry.
+					if (platformEntry._platformEntry.isNull())
+					{
+						_lastError = QString("No configuration found for platform %1. "
+											 "Check that the board configuration files are installed.")
+										 .arg(_platformID).toLatin1();
+						AppCore::writeToApplicationLogLine("PSOCDevice::open(): " + _lastError);
+						result = false;
+						break;
+					}
+
 					_description = platformEntry._platformEntry->_description.toLatin1();
 					_platformConfiguration = platformEntry.getConfiguration();
 					_psocPlatformConfiguration = static_cast<_PSOCPlatformConfiguration*>(_platformConfiguration.data());
