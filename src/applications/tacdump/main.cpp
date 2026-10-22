@@ -11,6 +11,8 @@
 #include "QCommonConsole.h"
 
 // Qt
+#include <QCommandLineOption>
+#include <QCommandLineParser>
 #include <QCoreApplication>
 
 // C++
@@ -61,11 +63,37 @@ namespace
 // would do; a distinct one lets callers tell this apart from "no devices".
 const int kConfigurationUnavailable{2};
 
+// Exit status used when the command line cannot be parsed.
+const int kBadCommandLine{1};
+
 } // namespace
 
 int main(int argc, char *argv[])
 {
 	QCoreApplication a(argc, argv);
+
+	// Parse the command line before touching configuration or devices, so
+	// --help never enumerates hardware.
+	QCommandLineParser parser;
+	parser.setApplicationDescription("Lists the connected TAC devices with their port and serial number.");
+	// Keep the historical single-dash "-quts" option working.
+	parser.setSingleDashWordOptionMode(QCommandLineParser::ParseAsLongOptions);
+	const QCommandLineOption helpOption = parser.addHelpOption();
+	const QCommandLineOption qutsOption(QStringList() << "quts", "Print one \"port;serial;\" line per device, without headers.");
+	parser.addOption(qutsOption);
+
+	if (parser.parse(a.arguments()) == false)
+	{
+		cerr << parser.errorText().toLatin1().data() << endl << endl;
+		cerr << parser.helpText().toLatin1().data();
+		return kBadCommandLine;
+	}
+
+	if (parser.isSet(helpOption))
+	{
+		cout << parser.helpText().toLatin1().data();
+		return 0;
+	}
 
 	DevTACCore tacCore;
 
@@ -86,13 +114,7 @@ int main(int argc, char *argv[])
 	}
 
 	QString errorString;
-	bool forQuts{false};
-
-	if (argc > 1)
-	{
-		if (a.arguments().at(1) == "-quts")
-			forQuts = true;
-	}
+	const bool forQuts = parser.isSet(qutsOption);
 
 	AlpacaDevices alpacaDevices;
 
