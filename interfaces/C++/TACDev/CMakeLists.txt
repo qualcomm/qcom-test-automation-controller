@@ -62,6 +62,16 @@ if(UNIX AND QCOMMONCONSOLE_LINK_FLAGS)
 endif()
 
 if(UNIX)
+    # Record only relative library search paths. Without this, CMake also writes
+    # the absolute build-machine paths (build tree and Qt install folder) into the
+    # RUNPATH, and the packaged library carries them to every installed system.
+    set_target_properties(${LIBRARY_NAME} PROPERTIES
+        BUILD_WITH_INSTALL_RPATH ON
+        INSTALL_RPATH "$ORIGIN;$ORIGIN/../lib"
+    )
+endif()
+
+if(UNIX)
     target_compile_options(${LIBRARY_NAME} PRIVATE
         -Wno-comment
         -Wno-conversion-null
