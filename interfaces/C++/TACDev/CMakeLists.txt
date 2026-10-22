@@ -70,3 +70,6 @@ install(TARGETS ${LIBRARY_NAME}
     FRAMEWORK DESTINATION ${CMAKE_INSTALL_LIBDIR}
     RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
 )
+
+# Windows file version resource
+qtac_add_version_info(${LIBRARY_NAME} "TAC device interface library" "${QTAC_VERSION}")
