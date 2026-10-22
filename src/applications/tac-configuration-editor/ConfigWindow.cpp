@@ -64,6 +64,11 @@ ConfigWindow::ConfigWindow(QWidget* parent) :
 	_nwgt = new NotificationWidget(statusbar);
 	statusbar->addPermanentWidget(_nwgt);
 
+	// Always show where Save will write, so the location is never a surprise.
+	_saveLocationLabel = new QLabel(statusbar);
+	_saveLocationLabel->setTextInteractionFlags(Qt::TextSelectableByMouse);
+	statusbar->addPermanentWidget(_saveLocationLabel);
+
 	_usbDescriptorLabel->setEnabled(false);
 	_usbDescriptorLabel->hide();
 
@@ -126,26 +131,43 @@ void ConfigWindow::setTACConfigFile(PlatformConfiguration tacConfigFile)
 
 	_platformConfiguration = tacConfigFile;
 
-	QString windowTitle(this->windowTitle());
-	if (tacConfigFile->filePath().isEmpty() == false)
-	{
-		QFileInfo tacFileInfo(tacConfigFile->filePath());
-
-		if (!tacFileInfo.fileName().isEmpty())
-			windowTitle += " - " +  tacFileInfo.fileName();
-		else
-			windowTitle += " - New Configuration";
-	}
-
-	setWindowTitle(windowTitle);
-
 	_buttonEditor->setPlatformConfiguration(_platformConfiguration);
 	_actionManage_Tabs->setEnabled(true);
 	_actionOpen_Script_Editor->setEnabled(true);
 	_actionSave->setEnabled(true);
+	_actionSave_As->setEnabled(true);
 	_menuRestoreDefaults->setToolTipsVisible(true);
 
 	populateFields();
+
+	updateSaveLocation();
+}
+
+void ConfigWindow::updateSaveLocation()
+{
+	QString title = QString::fromLatin1(kWindowTitle);
+
+	if (_platformConfiguration.isNull())
+	{
+		_saveLocationLabel->clear();
+		_actionSave->setToolTip(tr("Save"));
+		setWindowTitle(title);
+		return;
+	}
+
+	const QString target = QDir::toNativeSeparators(_platformConfiguration->targetFilePath());
+
+	_saveLocationLabel->setText(tr("Save location: %1").arg(target));
+	_saveLocationLabel->setToolTip(target);
+	_actionSave->setToolTip(tr("Save to %1").arg(target));
+
+	const QString current = _platformConfiguration->filePath();
+	if (QFileInfo(current).isFile())
+		title += " - " + QDir::toNativeSeparators(current);
+	else
+		title += " - " + tr("New Configuration");
+
+	setWindowTitle(title);
 }
 
 bool ConfigWindow::event(QEvent *ev)
@@ -301,8 +323,18 @@ void ConfigWindow::closeEvent(QCloseEvent* event)
 
 void ConfigWindow::on__actionSave_triggered()
 {
-	save();
+	if (save())
+		runPostSaveActions();
+}
 
+void ConfigWindow::on__actionSave_As_triggered()
+{
+	if (saveAs())
+		runPostSaveActions();
+}
+
+void ConfigWindow::runPostSaveActions()
+{
 	if (_platformConfiguration != Q_NULLPTR)
 	{
 		if (_platformConfiguration->getPlatform() == eFTDI && _platformConfiguration->getPlatformId() <= 90000) // FTDI IDs greater or equal to 90000 will not be uploaded
@@ -555,6 +587,8 @@ bool ConfigWindow::openFile(const QString& filePath)
 	_platformConfiguration = _PlatformConfiguration::openPlatformConfiguration(filePath);
 	if (_platformConfiguration != Q_NULLPTR)
 	{
+		_loadedFilePath = QDir::cleanPath(QFileInfo(filePath).absoluteFilePath());
+
 		setTACConfigFile(_platformConfiguration);
 
 		_recentConfigFiles.addFile(filePath);
@@ -607,6 +641,7 @@ void ConfigWindow::on__platformId_textChanged(const QString& newText)
 		if (platformID != _platformConfiguration->getPlatformId())
 		{
 			_platformConfiguration->setPlatformID(platformID);
+			updateSaveLocation();
 		}
 
 		if (_platformConfiguration->getPlatform() == DebugBoardType::ePSOC)
@@ -665,33 +700,108 @@ void ConfigWindow::onNotificationStarted(const QString &message, NotificationLev
 
 bool ConfigWindow::save()
 {
-	bool result(false);
-
-	if (_platformConfiguration != Q_NULLPTR)
+	if (_platformConfiguration == Q_NULLPTR)
 	{
-		if (_platformConfiguration != NULL)
-		{
-			_platformConfiguration->setSupportedFirmwareVer(firmwareSelection());
-
-			_platformConfiguration->save();
-
-			QFileInfo fileInfo(_platformConfiguration->filePath());
-			statusbar->showMessage("TAC Configuration File: " + fileInfo.filePath() + " saved", 5000);
-
-			QString windowTitle = kWindowTitle + " - " +  fileInfo.fileName();
-			setWindowTitle(windowTitle);
-
-			_recentConfigFiles.addFile(_platformConfiguration->filePath());
-			rebuildRecents();
-
-			result = true;
-
-			if (_platformConfiguration->getPlatform() == eFTDI)
-				_nwgt->insertNotification("Add the USB Descriptor String to the BRF document of the platform. This will help the hardware get programmed in the factory");
-		}
+		QMessageBox::warning(this, tr("Save Configuration"),
+			tr("There is no configuration to save.\n\nOpen or create a configuration first."));
+		return false;
 	}
 
-	return result;
+	_platformConfiguration->setSupportedFirmwareVer(firmwareSelection());
+
+	const QString target = QDir::cleanPath(_platformConfiguration->targetFilePath());
+
+	if (_platformConfiguration->save() == false)
+	{
+		QMessageBox::critical(this, tr("Save Configuration"),
+			tr("The configuration could not be saved to:\n%1\n\n%2\n\nUse File > Save As... to choose another location.")
+				.arg(QDir::toNativeSeparators(target), _PlatformConfiguration::lastError()));
+		return false;
+	}
+
+	const QString savedPath = QDir::cleanPath(_platformConfiguration->filePath());
+
+	// Tell the user once when Save wrote somewhere other than the file they opened.
+	if (_loadedFilePath.isEmpty() == false && savedPath.compare(_loadedFilePath, Qt::CaseInsensitive) != 0)
+	{
+		QMessageBox::information(this, tr("Configuration Saved"),
+			tr("The configuration was saved to:\n%1\n\nThe file you opened was not changed:\n%2\n\n"
+			   "Use File > Save As... to save to a different location.")
+				.arg(QDir::toNativeSeparators(savedPath), QDir::toNativeSeparators(_loadedFilePath)));
+	}
+
+	onSaveSucceeded();
+	return true;
+}
+
+bool ConfigWindow::saveAs()
+{
+	if (_platformConfiguration == Q_NULLPTR)
+	{
+		QMessageBox::warning(this, tr("Save Configuration As"),
+			tr("There is no configuration to save.\n\nOpen or create a configuration first."));
+		return false;
+	}
+
+	_platformConfiguration->setSupportedFirmwareVer(firmwareSelection());
+
+	const QString suggested = QDir::toNativeSeparators(_platformConfiguration->targetFilePath());
+
+	QString fileName = QFileDialog::getSaveFileName(this, tr("Save TAC Configuration As"), suggested,
+		tr("TAC Configuration File (*.tcnf)"));
+	if (fileName.isEmpty())
+		return false;
+
+	if (fileName.endsWith(".tcnf", Qt::CaseInsensitive) == false)
+		fileName += ".tcnf";
+
+	// The board type is read back from the file name (TAC_<BOARD>_<ID>.tcnf), so other names cannot be reopened.
+	DebugBoardType namedBoard{eUnknownDebugBoard};
+	PlatformID namedId{0};
+	const QString expectedName = _PlatformConfiguration::makeConfigName(_platformConfiguration->getPlatformString(), _platformConfiguration->getPlatformId());
+	const bool nameMatches = _PlatformConfiguration::parseConfigName(QFileInfo(fileName).fileName(), namedBoard, namedId)
+		&& namedBoard == _platformConfiguration->getPlatform();
+	if (nameMatches == false)
+	{
+		const auto answer = QMessageBox::warning(this, tr("Save Configuration As"),
+			tr("The file name \"%1\" does not follow the TAC configuration naming convention.\n\n"
+			   "The editor and TAC identify the board type from the file name, so this file could not be opened again.\n"
+			   "The expected name is \"%2\".\n\nSave with the expected name in the selected folder?")
+				.arg(QFileInfo(fileName).fileName(), expectedName),
+			QMessageBox::Yes | QMessageBox::Cancel, QMessageBox::Yes);
+		if (answer != QMessageBox::Yes)
+			return false;
+
+		fileName = QFileInfo(fileName).absolutePath() + "/" + expectedName;
+	}
+
+	if (_platformConfiguration->saveAs(fileName) == false)
+	{
+		QMessageBox::critical(this, tr("Save Configuration As"),
+			tr("The configuration could not be saved to:\n%1\n\n%2")
+				.arg(QDir::toNativeSeparators(fileName), _PlatformConfiguration::lastError()));
+		return false;
+	}
+
+	onSaveSucceeded();
+	return true;
+}
+
+void ConfigWindow::onSaveSucceeded()
+{
+	const QString savedPath = QDir::cleanPath(_platformConfiguration->filePath());
+
+	_loadedFilePath = savedPath;
+
+	statusbar->showMessage(tr("TAC Configuration File saved: %1").arg(QDir::toNativeSeparators(savedPath)), 15000);
+
+	_recentConfigFiles.addFile(savedPath);
+	rebuildRecents();
+
+	updateSaveLocation();
+
+	if (_platformConfiguration->getPlatform() == eFTDI)
+		_nwgt->insertNotification("Add the USB Descriptor String to the BRF document of the platform. This will help the hardware get programmed in the factory");
 }
 
 void ConfigWindow::restoreSettings()

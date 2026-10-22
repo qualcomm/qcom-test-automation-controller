@@ -73,7 +73,13 @@ public:
 	bool dirty() { return _dirty; }
 
 	bool load(const QString& filePath);
-	void save();
+
+	// Writes to targetFilePath(). Returns false and sets lastError() if the file cannot be written.
+	bool save();
+	// Writes to exactly filePath and makes it the file's location. Returns false and sets lastError() on failure.
+	bool saveAs(const QString& filePath);
+	// The full path save() will write to, including the default location for a configuration not yet saved.
+	QString targetFilePath();
 
 	static QString lastError();
 
@@ -186,6 +192,9 @@ protected:
 
 	void defaultAlpacaScript();
 	void defaultScriptVariables();
+
+	QString defaultPlatformPath();
+	bool writeToFile(const QString& filePath);
 
 	bool						_dirty{false};
 	static QString				_lastError;
