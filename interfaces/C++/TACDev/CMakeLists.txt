@@ -53,6 +53,14 @@ if(WIN32)
     )
 endif()
 
+if(UNIX AND QCOMMONCONSOLE_LINK_FLAGS)
+    # Search the library's own folder ($ORIGIN) for the Qt and other shared libraries
+    # installed next to it. Without this, libTACDev.so only carries the build-machine
+    # paths, so loading it from Python or another program fails with
+    # "libQt6SerialPort.so.6: cannot open shared object file".
+    target_link_options(${LIBRARY_NAME} PRIVATE ${QCOMMONCONSOLE_LINK_FLAGS})
+endif()
+
 if(UNIX)
     target_compile_options(${LIBRARY_NAME} PRIVATE
         -Wno-comment
