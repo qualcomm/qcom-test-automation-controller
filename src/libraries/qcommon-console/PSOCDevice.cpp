@@ -72,9 +72,11 @@ quint32 PSOCDevice::updateAlpacaDevices()
 bool PSOCDevice::open()
 {
 	bool result{false};
+	bool startedDriveThread{false};
 
 	if (_driveThread == Q_NULLPTR)
 	{
+		startedDriveThread = true;
 		_driveThread = new TACPSOCDriveThread(_hash);
 		_driveThread->start();
 
@@ -158,6 +160,31 @@ bool PSOCDevice::open()
 				}
 			}
 		}
+
+		if (result == false && _lastError.isEmpty())
+		{
+			if (_driveThread->platformID() == MICRO_EPM_BOARD_ID_UNKNOWN)
+			{
+				// The board answered, but its stored board ID is 0 (not set). This happens,
+				// for example, when a firmware update does not keep the board ID.
+				_lastError = "The board did not report a board ID (board ID is not set). "
+							 "Reprogram the board ID with the Device Catalog, then reconnect the board.";
+			}
+			else
+			{
+				_lastError = "The board could not be opened";
+			}
+			AppCore::writeToApplicationLogLine(QString("%1: %2").arg(QString::fromLatin1(_portName), QString::fromLatin1(_lastError)));
+		}
+	}
+
+	if (result == false && startedDriveThread == true)
+	{
+		// Release the drive thread and serial port so a later open() can retry.
+		_chipVersion = _driveThread->chipVersion();
+		close();
+
+		return result;
 	}
 
 	if (result == true)
@@ -213,7 +240,10 @@ bool PSOCDevice::open()
 		}
 	}
 
-	_chipVersion = _driveThread->chipVersion();
+	if (_driveThread != Q_NULLPTR)
+	{
+		_chipVersion = _driveThread->chipVersion();
+	}
 
 	return result;
 }
