@@ -30,6 +30,8 @@ const int kPlatformID{2};
 
 const QByteArray kv16FirmwareNotice(QByteArrayLiteral("You've chosen to program the v16 firmware. This firmware may contain updates not applicable to all teams. Uncheck unless you know what you're doing"));
 const QByteArray kv17FirmwareNotice(QByteArrayLiteral("You've chosen to program the v17 firmware. This firmware may contain updates not applicable to all teams. Uncheck unless you know what you're doing"));
+const QByteArray kv18FirmwareNotice(QByteArrayLiteral("You've chosen to program the v18 firmware. This firmware may contain updates not applicable to all teams. Uncheck unless you know what you're doing"));
+const QByteArray kv19FirmwareNotice(QByteArrayLiteral("You've chosen to program the v19 firmware. This firmware may contain updates not applicable to all teams. Uncheck unless you know what you're doing"));
 const QByteArray kDefaultNotice(QByteArrayLiteral("This space is used to share notification to user"));
 const QStringList kVariants{"LP030", "LP038"};
 
@@ -428,13 +430,14 @@ void DeviceCatalog::on__firmwareSelect_currentTextChanged(const QString &firmwar
 			break;
 		case 18:
 			_firmwareDir = applicationDataPath().toLatin1() + QDir::separator().toLatin1() + "firmware/1.x.18.0";
-			_infoLabelText->setText(kv17FirmwareNotice);
+			_infoLabelText->setText(kv18FirmwareNotice);
 			_infoGroupBox->show();
 			break;
 		case 19:
 			_firmwareDir = applicationDataPath().toLatin1() + QDir::separator().toLatin1() + "firmware/1.x.19.0";
-			_infoLabelText->setText(kv17FirmwareNotice);
+			_infoLabelText->setText(kv19FirmwareNotice);
 			_infoGroupBox->show();
+			break;
 		}
 	}
 }
