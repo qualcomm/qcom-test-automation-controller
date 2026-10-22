@@ -9,6 +9,7 @@
 
 // Qt
 
+#include <QApplication>
 #include <QDir>
 #include <QFile>
 #include <QMenu>
@@ -213,19 +214,51 @@ void DeviceCatalog::invokeProgrammer(const DebugBoardType type)
 
 void DeviceCatalog::invokeLiteProgrammer(const QString& serialNumber, const PlatformID platformId)
 {
-	QString program = applicationBinPath() + "LiteProgrammer";
+	// Must match the target name in src/applications/programmers/lite-programmer/CMakeLists.txt;
+	// Linux file names are case sensitive.
+	QString program = applicationBinPath() + "LITEProgrammer";
 	QStringList arguments; //-p platformid=18 serial=FT6G3Z6Y
 	arguments << "-p";
 	arguments << "serial=" + serialNumber;
 	arguments << "platformid=" + QString::number(platformId);
 
-	QProcess* process = new QProcess(Q_NULLPTR);
+	QProcess process;
 
-	process->setProgram(program);
-	process->setArguments(arguments);
-	process->startDetached();
+	process.setProgram(program);
+	process.setArguments(arguments);
+	process.setProcessChannelMode(QProcess::MergedChannels);
+	process.start();
 
-	QThread::sleep(1);
+	if (process.waitForStarted(10000) == false)
+	{
+		QMessageBox::warning(this, "Lite Device Not Programmed", QString("Could not start the Lite programmer:\n%1\n\n"
+																		 "The device with serial number %2 was not changed.")
+																	 .arg(QDir::toNativeSeparators(program), serialNumber));
+		return;
+	}
+
+	QApplication::setOverrideCursor(Qt::WaitCursor);
+	bool finished = process.waitForFinished(60000);
+	QApplication::restoreOverrideCursor();
+
+	if (finished == false)
+	{
+		process.kill();
+		process.waitForFinished(5000);
+	}
+
+	if (finished == false || process.exitStatus() != QProcess::NormalExit || process.exitCode() != 0)
+	{
+		QString output = QString::fromLocal8Bit(process.readAll()).trimmed();
+		if (output.isEmpty())
+		{
+			output = finished ? QString("Exit code %1").arg(process.exitCode()) : QString("The programmer did not finish in time.");
+		}
+
+		QMessageBox::warning(this, "Lite Device Not Programmed", QString("Programming the device with serial number %1 failed:\n\n%2")
+																	 .arg(serialNumber, output));
+		return;
+	}
 
 	QMessageBox::information(this, "Lite Device Programmed", QString("The device with serial number %1 needs to be"
 																	 " unplugged and plugged back in.").arg(serialNumber));
@@ -239,11 +272,13 @@ void DeviceCatalog::invokePSOCProgrammer(const QString &serialNumber, const Plat
 	arguments << "serial=" + serialNumber;
 	arguments << "platformid=" + QString::number(platformId);
 
-	QProcess* process = new QProcess(Q_NULLPTR);
-
-	process->setProgram(program);
-	process->setArguments(arguments);
-	process->startDetached();
+	if (QProcess::startDetached(program, arguments) == false)
+	{
+		QMessageBox::warning(this, "PSOC Device Not Programmed", QString("The PSOC programmer is not installed or could not be started:\n%1\n\n"
+																		 "The device with serial number %2 was not changed.")
+																	 .arg(QDir::toNativeSeparators(program), serialNumber));
+		return;
+	}
 
 	QThread::sleep(1);
 
