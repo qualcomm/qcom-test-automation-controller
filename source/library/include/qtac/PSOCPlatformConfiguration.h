@@ -1,0 +1,276 @@
+// Copyright (c) Qualcomm Technologies, Inc. and/or its subsidiaries.
+//
+// Redistribution and use in source and binary forms, with or without
+// modification, are permitted (subject to the limitations in the
+// disclaimer below) provided that the following conditions are met:
+//
+//     * Redistributions of source code must retain the above copyright
+//         notice, this list of conditions and the following disclaimer.
+//
+//     * Redistributions in binary form must reproduce the above
+//         copyright notice, this list of conditions and the following
+//         disclaimer in the documentation and/or other materials provided
+//         with the distribution.
+//
+//     * Neither the name of Qualcomm Technologies, Inc. nor the names of its
+//         contributors may be used to endorse or promote products derived
+//         from this software without specific prior written permission.
+//
+// NO EXPRESS OR IMPLIED LICENSES TO ANY PARTY'S PATENT RIGHTS ARE
+// GRANTED BY THIS LICENSE. THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT
+// HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED
+// WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
+// MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED.
+// IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR
+// ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+// DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE
+// GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+// INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER
+// IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
+// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN
+// IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+#pragma once
+
+#include <qtac/CommandGroup.h>
+#include <qtac/DebugBoardType.h>
+#include <qtac/Map.h>
+#include <qtac/List.h>
+#include <qtac/PinEntry.h>
+#include <qtac/PinID.h>
+#include <qtac/Point.h>
+#include <qtac/String.h>
+#include <qtac/StringUtilities.h>
+#include <qtac/AlpacaScript.h>
+
+#include <qtac/json_util.h>
+
+#include <memory>
+#include <vector>
+
+const PinID kMaxPSOCPlatformId{255};
+
+struct PSOCPinData
+{
+    PSOCPinData() = default;
+    PSOCPinData(const PSOCPinData&) = default;
+    PSOCPinData(PinID pin)
+    {
+        _pin = pin;
+        _hash = strHash(qtac::String::number(static_cast<unsigned long long>(pin)));
+    }
+
+    void clear() { *this = PSOCPinData(); }
+
+    PinID           _pin{0};
+    HashType        _hash{0};
+    bool            _enabled{true};
+    qtac::String    _pinLabel;
+    qtac::String    _pinTooltip;
+    bool            _initialValue{false};
+    int             _initializationPriority{0};
+    bool            _inverted{false};
+    qtac::String    _pinCommand;
+    CommandGroups   _commandGroup{eUnknownCommandGroup};
+    qtac::String    _classicAction;
+    qtac::Point     _cellLocation{-1, -1};
+    qtac::String    _tabName;
+};
+
+using PSOCPinEntries = qtac::Map<PinID, PSOCPinData>;
+using PSOCPinList    = qtac::List<PSOCPinData>;
+
+// ---------------------------------------------------------------------------
+// I2C slave device and I2C pin data structures (PSoC GPIO+IIC variant)
+// ---------------------------------------------------------------------------
+
+struct PSOCI2CSlave
+{
+    PSOCI2CSlave() = default;
+    void clear() { *this = PSOCI2CSlave(); }
+
+    PSOCIICVariant  _variant{ePSOCIICUnknown};
+    PinID           _slaveAddress{0};
+    PinID           _configAddress{0};
+    int             _portCount{0};
+};
+
+struct PSOCI2CData
+{
+    PSOCI2CData() = default;
+    PSOCI2CData(const PSOCI2CData&) = default;
+    PSOCI2CData(PinID slaveAddress, PinID writeAddress, PinID pin)
+    {
+        _slaveAddress = slaveAddress;
+        _writeAddress = writeAddress;
+        _pin          = pin;
+        _hash         = makeHash();
+    }
+
+    void clear() { *this = PSOCI2CData(); }
+
+    HashType makeHash() const
+    {
+        return (static_cast<HashType>(_slaveAddress) << 40) ^
+               (static_cast<HashType>(_writeAddress) << 20) ^
+                static_cast<HashType>(_pin);
+    }
+
+    PinID           _pin{0};
+    PinID           _slaveAddress{0};
+    PinID           _writeAddress{0};
+    HashType        _hash{0};
+    bool            _enabled{false};
+    qtac::String    _pinLabel;
+    qtac::String    _pinTooltip;
+    bool            _inverted{false};
+    qtac::String    _pinCommand;
+    CommandGroups   _commandGroup{eUnknownCommandGroup};
+    qtac::String    _classicAction;
+    qtac::Point     _cellLocation{-1, -1};
+    qtac::String    _tabName;
+};
+
+using PSOCI2CEntries = qtac::Map<HashType, PSOCI2CData>;
+using PSOCI2CSlaves  = qtac::List<PSOCI2CSlave>;
+
+// ---------------------------------------------------------------------------
+
+class _PSOCPlatformConfiguration
+{
+public:
+    _PSOCPlatformConfiguration(PSOCVariant psocVariant = ePSOCGPIO);
+    _PSOCPlatformConfiguration(const _PSOCPlatformConfiguration&) = delete;
+    _PSOCPlatformConfiguration& operator=(const _PSOCPlatformConfiguration&) = delete;
+    ~_PSOCPlatformConfiguration() = default;
+
+    Pins getPins();
+
+    PSOCPinList getAllPins();
+    PSOCPinList getActivePins();
+
+    PSOCVariant variant() const { return _variant; }
+    void setVariant(PSOCVariant psocVariant);
+
+    // --- GPIO pin accessors (unchanged) ---
+    bool getPinEnableState(PinID pinId) const;
+    void setPinEnableState(PinID pinId, bool newState);
+
+    bool getInitialPinValue(PinID pinId) const;
+    void setInitialPinValue(PinID pinId, bool newState);
+
+    uint64_t getPinInitializationPriority(PinID pinId) const;
+    void setPinInitializationPriority(PinID pinId, int priority);
+
+    bool getPinInvertedState(PinID pinId) const;
+    void setPinInvertedState(PinID pinId, bool newState);
+
+    qtac::String getPinLabel(PinID pinId) const;
+    void setPinLabel(PinID pinId, const qtac::String& pinLabel);
+
+    qtac::String getPinTooltip(PinID pinId) const;
+    void setPinTooltip(PinID pinId, const qtac::String& pinTooltip);
+
+    qtac::String getPinCommand(PinID pinId) const;
+    void setPinCommand(PinID pinId, const qtac::String& pinCommand);
+
+    CommandGroups getPinGroup(PinID pinId) const;
+    void setPinGroup(PinID pinId, CommandGroups commandGroup);
+
+    qtac::String getClassicAction(PinID pinId) const;
+    void setClassicAction(PinID pinId, const qtac::String& classicAction);
+
+    qtac::String getTabName(PinID pinId) const;
+    void setTabName(PinID pinId, const qtac::String& tabName);
+
+    qtac::Point getPinCellLocation(PinID pinId) const;
+    void setPinCellLocation(PinID pinId, const qtac::Point& cellLocation);
+
+    void cascadeTabDelete(const qtac::String& tabName);
+    void cascadeTabRename(const qtac::String& oldName, const qtac::String& newName);
+
+    const qtac::ButtonEntries&   getButtons()   const { return _buttons;   }
+    const qtac::VariableEntries& getVariables() const { return _variables; }
+    const qtac::AlpacaScript&    getScript()    const { return _script;    }
+
+    qtac::String modificationDate() const { return _modificationDate; }
+    int          fileVersion()      const { return _fileVersion;      }
+    qtac::String name()             const { return _name;             }
+    qtac::String author()           const { return _author;           }
+    qtac::String description()      const { return _description;      }
+
+    void setVariableValue(const qtac::String& name, const qtac::Variant& value)
+    {
+        auto it = _variables.find(name);
+        if (it != _variables.end()) it->second._defaultValue = value;
+    }
+
+    void loadDefaultScript(const qtac::String& scriptText);
+
+    bool read(json_t& parentLevel);
+    void write(json_t& parentLevel);
+
+    // --- I2C slave management (PSoC GPIO+IIC variant) ---
+    Pins getI2CPinEntries();
+
+    PSOCI2CSlaves getSlaveConfigs() const;
+    void addSlaveConfig(const PSOCI2CSlave& slave);
+    void removeSlaveConfig(PinID slaveAddress);
+
+    static qtac::String i2cSlaveTabName(const PSOCI2CSlave& slave);
+
+    PSOCI2CEntries getI2CEntries() const;
+    PSOCI2CEntries getActiveI2CEntries() const;
+    qtac::List<PSOCI2CData> getI2CEntriesForSlave(const PSOCI2CSlave& slave) const;
+    bool addI2CSlave(const PSOCI2CData& i2cData);
+    void removeI2CSlave(HashType hash);
+    PSOCI2CData getI2CSlave(HashType hash) const;
+
+    bool getI2CPinEnableState(HashType hash) const;
+    void setI2CPinEnableState(HashType hash, bool newState);
+
+    bool getI2CPinInvertedState(HashType hash) const;
+    void setI2CPinInvertedState(HashType hash, bool newState);
+
+    qtac::String getI2CPinLabel(HashType hash) const;
+    void setI2CPinLabel(HashType hash, const qtac::String& pinLabel);
+
+    qtac::String getI2CPinTooltip(HashType hash) const;
+    void setI2CPinTooltip(HashType hash, const qtac::String& pinTooltip);
+
+    qtac::String getI2CPinCommand(HashType hash) const;
+    void setI2CPinCommand(HashType hash, const qtac::String& pinCommand);
+
+    CommandGroups getI2CPinGroup(HashType hash) const;
+    void setI2CPinGroup(HashType hash, CommandGroups commandGroup);
+
+    qtac::String getI2CTabName(HashType hash) const;
+    void setI2CTabName(HashType hash, const qtac::String& tabName);
+
+    qtac::Point getI2CPinCellLocation(HashType hash) const;
+    void setI2CPinCellLocation(HashType hash, const qtac::Point& cellLocation);
+
+private:
+    static void initialize(PSOCVariant psocVariant);
+    void refreshSlaveConfig();
+    void rebuildI2CTabs();
+
+    PSOCPinEntries        _pinEntries;
+    PSOCI2CEntries        _i2cEntries;
+    PSOCI2CSlaves         _slaveConfigs;
+    PSOCVariant           _variant{ePSOCGPIO};
+    qtac::ButtonEntries   _buttons;
+    qtac::VariableEntries _variables;
+    qtac::AlpacaScript    _script;
+    qtac::String          _modificationDate;
+    int                   _fileVersion{0};
+    qtac::String          _name;
+    qtac::String          _author;
+    qtac::String          _description;
+
+    static PSOCPinEntries  _classicActions;
+    static PSOCI2CEntries  _classicI2CActions;
+    static PSOCI2CSlaves   _classicSlaveConfigs;
+};
+
+using PSOCPlatformConfiguration = std::shared_ptr<_PSOCPlatformConfiguration>;
