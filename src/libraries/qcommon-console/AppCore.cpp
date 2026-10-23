@@ -8,8 +8,10 @@
 #include "ConsoleApplicationEnhancements.h"
 
 // Qt
+#include <QCoreApplication>
 #include <QDate>
 #include <QDir>
+#include <QFile>
 #include <QJsonDocument>
 #include <QJsonObject>
 
@@ -50,6 +52,15 @@ AppCore::AppCore()
 #ifdef Q_OS_LINUX
 	_internalBuild = QFile::exists(kLinuxInternalBuildPath);
 #endif
+
+	// The fixed locations above only match one product layout. Also accept
+	// ib.conf next to the executable, which is correct for every layout.
+	// applicationDirPath() needs a QCoreApplication, and AppCore can be
+	// created by library hosts that have none.
+	if (_internalBuild == false && QCoreApplication::instance() != Q_NULLPTR)
+	{
+		_internalBuild = QFile::exists(applicationBinPath() + "ib.conf");
+	}
 }
 
 AppCore::~AppCore()

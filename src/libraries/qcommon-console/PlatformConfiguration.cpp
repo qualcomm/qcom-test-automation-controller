@@ -1007,7 +1007,18 @@ void _PlatformConfiguration::setFilePath(const QString &filePath)
 {
 	QFileInfo fileInfo(filePath);
 
-	if (fileInfo.absoluteFilePath().startsWith("C:/ProgramData/Qualcomm/QTAC", Qt::CaseInsensitive))
+	// Stock configurations live in the shared data folder, which is read only
+	// for users. Saving one must be redirected to the user's documents. The
+	// data folder differs per OS, so ask for it rather than hard coding the
+	// Windows location, which never matched on Linux.
+#ifdef Q_OS_WIN
+	const Qt::CaseSensitivity kPathCase{Qt::CaseInsensitive};
+#else
+	const Qt::CaseSensitivity kPathCase{Qt::CaseSensitive};
+#endif
+	const QString dataRoot = QDir::cleanPath(applicationDataPath()) + "/";
+
+	if (fileInfo.absoluteFilePath().startsWith(dataRoot, kPathCase))
 	{
 		if (_platform == ePSOC && _platformId < 255)
 		{

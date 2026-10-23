@@ -35,6 +35,10 @@ QString QCOMMONCONSOLE_EXPORT expandPath(const QString& filePath);
 
 QString QCOMMONCONSOLE_EXPORT tacConfigRoot();
 
+// Logs the executable, data, configuration and documents folders once, so
+// path problems in a given install layout can be diagnosed from the log.
+void QCOMMONCONSOLE_EXPORT logInstallLayout();
+
 void cleanIt(const QString& pathToClean);
 
 bool QCOMMONCONSOLE_EXPORT isUserPrivileged();

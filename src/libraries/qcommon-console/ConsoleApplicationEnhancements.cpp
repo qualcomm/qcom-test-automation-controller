@@ -24,6 +24,7 @@
 	#pragma comment(lib, "shell32")
 #endif
 #ifdef Q_OS_LINUX
+	#include <pwd.h>
 	#include <unistd.h>
 #endif
 
@@ -368,30 +369,93 @@ QString expandPath(const QString &filePath)
 	if (result.startsWith("~"))
 	{
 		QString homePath = QDir::homePath();
-		if (homePath.compare(QDir::separator()) != 0)
-			result.replace("~", homePath);
-		else
-			result.replace("~", "/root");
+		if (homePath.compare(QDir::separator()) == 0)
+		{
+			// HOME is not set. Ask the password database for the real home of
+			// the current user instead of assuming /root, which is wrong for
+			// every non-root user.
+			const struct passwd* pw = getpwuid(getuid());
+			if (pw != Q_NULLPTR && pw->pw_dir != Q_NULLPTR && pw->pw_dir[0] != '\0')
+			{
+				homePath = QString::fromLocal8Bit(pw->pw_dir);
+			}
+			qWarning() << "expandPath: HOME is not set, using" << homePath << "for ~";
+		}
+		result.replace(0, 1, homePath);
 	}
 #endif
 
 	return result;
 }
 
+// Returns the folder holding devicelist.json and the stock configurations,
+// always with a trailing separator because callers append a file name.
+//
+// The data folder is the same for every product layout, so it is checked
+// first. When it is missing (developer builds, or a damaged install) the
+// folders above the executable are searched. The result is always absolute;
+// the old fallback was relative to the working directory and silently
+// pointed at the wrong place whenever the application was started from
+// somewhere other than its build folder.
 QString tacConfigRoot()
 {
-	QString result = applicationDataPath();
-	
-	QString deviceListJsonPath = result + "/configurations/devicelist.json";
-	bool isdeviceListJsonPathPresent = QFile(deviceListJsonPath).exists();
-	if (isdeviceListJsonPathPresent == false)
+	static bool reportedFallback{false};
+	static bool reportedMissing{false};
+
+	const QString kDeviceList(QStringLiteral("devicelist.json"));
+	const QString dataRoot = QDir::cleanPath(applicationDataPath() + "/configurations");
+
+	if (QFile::exists(dataRoot + "/" + kDeviceList))
 	{
-		result = "../../../../configurations/";		
-	}
-	else
-	{
-		result += "/configurations/";
+		return dataRoot + "/";
 	}
 
-	return result;
+	// applicationDirPath() needs a QCoreApplication. TACDev can be loaded by
+	// hosts that have none, so only search next to the executable when one
+	// exists.
+	if (QCoreApplication::instance() != Q_NULLPTR)
+	{
+		QDir dir(QCoreApplication::applicationDirPath());
+
+		for (int i = 0; i < 5; ++i)
+		{
+			const QString candidate = QDir::cleanPath(dir.absolutePath() + "/configurations");
+			if (QFile::exists(candidate + "/" + kDeviceList))
+			{
+				if (reportedFallback == false)
+				{
+					reportedFallback = true;
+					qWarning() << "tacConfigRoot:" << dataRoot << "has no" << kDeviceList
+						<< "- using" << candidate;
+				}
+				return candidate + "/";
+			}
+
+			if (dir.cdUp() == false)
+				break;
+		}
+	}
+
+	if (reportedMissing == false)
+	{
+		reportedMissing = true;
+		qWarning() << "tacConfigRoot: no" << kDeviceList << "found in" << dataRoot
+			<< "or above the executable - configurations will not load";
+	}
+
+	return dataRoot + "/";
+}
+
+// Writes the resolved install and data locations to the debug output once at
+// startup, so a wrong path in the field can be diagnosed from the log alone.
+void logInstallLayout()
+{
+	const QString exeDir = QCoreApplication::instance() != Q_NULLPTR
+		? QDir::cleanPath(QCoreApplication::applicationDirPath())
+		: QStringLiteral("<no application>");
+
+	qInfo().noquote() << "Install layout: executable folder =" << exeDir;
+	qInfo().noquote() << "Install layout: data folder       =" << applicationDataPath();
+	qInfo().noquote() << "Install layout: configurations    =" << tacConfigRoot();
+	qInfo().noquote() << "Install layout: documents folder  =" << documentsDataPath(QString());
 }
