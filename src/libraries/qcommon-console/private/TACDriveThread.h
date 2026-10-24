@@ -119,6 +119,12 @@ public:
 
 	QString uuid();
 
+	// Value to store for a UUID query reply. Firmware without the UUID command
+	// answers with "Command not recognized." (with or without a "CMD: " prefix);
+	// that text is not a UUID and is reported as kUUIDNotSupported instead.
+	static QString uuidFromResponse(const QByteArray& response);
+	static const QString kUUIDNotSupported;
+
 	QByteArray macAddress();
 
 	// Send Interface
