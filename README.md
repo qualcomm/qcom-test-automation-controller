@@ -136,15 +136,11 @@ __Builds\ARM64\Release\QTAC.exe
 > - If you're frequently working with Qt on Linux, consider adding the environment variables to `.bashrc`.
 > - Using `sudo apt install <package>` will update setup packages. Review command usage to prevent issues with other applications.
 
-1. **Qt Installation** (choose one):
-   
-   **Option A**: Qt Online Installer
+1. **Qt Installation**:
    - Install Qt 6.9+ for **GCC 64-bit** and **Qt Serial Port** and **Qt Multimedia** components using [Qt Online Installer](https://www.qt.io/download-qt-installer-oss)
-   
-   **Option B**: Quick Installation via apt
-   ```bash
-   sudo apt install qt6-base-dev qt6-serialport-dev qt6-multimedia-dev
-   ```
+
+   > [!NOTE]
+   > Distribution Qt packages (for example `apt install qt6-base-dev`) are not supported. Ubuntu 24.04 ships Qt 6.4, which is below the 6.9 minimum. `build.sh` also requires `QTBIN` to point to a Qt Online Installer `gcc_64/bin` directory.
 2. **Build Dependencies**:
    ```bash
    sudo apt install build-essential ninja-build libudev-dev uuid-dev libgl1-mesa-dev libfontconfig1 libfreetype6
