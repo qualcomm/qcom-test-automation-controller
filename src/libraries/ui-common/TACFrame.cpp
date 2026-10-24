@@ -46,6 +46,10 @@ TACFrame::TACFrame
 {
 	_ui->setupUi(this);
 
+	// Reset count is only meaningful once a device that supports it is
+	// connected; setPlatformConfiguration() decides whether to show it.
+	_ui->_resetFrame->setVisible(false);
+
 	QGridLayout* gridLayout;
 
 	gridLayout = new QGridLayout(_ui->_connectionsGroupBox);
@@ -86,8 +90,10 @@ void TACFrame::setDevice
 
 		_ui->_infoGroupBox->hide();
 	}
+	else
 	{
-		// error message????
+		// Disconnected: nothing to query, so hide the reset count controls.
+		_ui->_resetFrame->setVisible(false);
 	}
 }
 
@@ -120,7 +126,10 @@ void TACFrame::setPlatformConfiguration
 
 	_platformConfiguration = platformConfiguration;
 
-	_ui->_resetFrame->setVisible(_platformConfiguration->getResetEnabledState());
+	// Show only when the platform supports reset count and the
+	// configuration enables it.
+	_ui->_resetFrame->setVisible(_platformConfiguration->resetActive() &&
+								 _platformConfiguration->getResetEnabledState());
 
 	setupUITabs();
 	setupUIPins();
@@ -148,6 +157,7 @@ void TACFrame::reset()
 
 	_ui = new Ui::TACFrameClass;
 	_ui->setupUi(this);
+	_ui->_resetFrame->setVisible(false);
 	this->repaint();
 }
 
