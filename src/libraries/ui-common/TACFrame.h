@@ -60,8 +60,10 @@ public slots:
 
 private slots:
 	void on__tabs_tabBarClicked(int index);
+	void on__renameButton_clicked();
 
 private:
+	void updateRenameButton();
 	void setupUITabs();
 	void setupUIPins();
 	void setupUII2CPins();
