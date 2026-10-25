@@ -470,6 +470,12 @@ void TACPIC32CXDriveThread::setName(const QByteArray& newName)
 		{
 			if (isAlphaNumeric(newName) == true)
 			{
+				{
+					TACPIC32CXCommand tacCommand(this, this);
+
+					tacCommand.setName(newName);
+				}
+
 				waitForCompletion();
 			}
 		}

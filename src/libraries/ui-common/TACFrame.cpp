@@ -636,8 +636,9 @@ void TACFrame::on__tabs_tabBarClicked(int index)
 
 void TACFrame::updateRenameButton()
 {
-	// Only PSOC firmware implements the set-name command; the other drive
-	// threads ignore setName(), so offering Rename there would silently fail.
+	// Only PSOC is offered Rename. PIC32CX sends the set-name command but has
+	// no reply handling to refresh the cached name, and the other drive
+	// threads do not implement it, so Rename would look like it did nothing.
 	bool canRename{false};
 
 	if (_alpacaDevice.isNull() == false)
