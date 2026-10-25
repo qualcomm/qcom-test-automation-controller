@@ -71,12 +71,23 @@ bool FTDIDevice::programDevice
 		FT_STATUS ftStatus;
 		FT_HANDLE ftHandle{Q_NULLPTR};
 
-		QByteArray serialNumber = alpacaDevice->serialNumber() + "A";
 		QByteArray usbDescriptor = tacPlatformEntry._platformEntry->_usbDescriptor;
 
-		// For FT232H devices, no need to append bus info in serial number
+		// The EEPROM belongs to the whole chip, so any channel's handle can
+		// program it. Try the channels in order and use the first one that
+		// opens. On Linux the ftdi_sio driver may hold channels A and B, while
+		// the udev rules leave C and D free for D2XX.
+		// FT232H has a single interface and no channel suffix.
+		QList<QByteArray> serialNumbers;
 		if (tacPlatformEntry._platformEntry->_boardtype == eFT232H)
-			serialNumber = alpacaDevice->serialNumber();
+		{
+			serialNumbers.append(alpacaDevice->serialNumber());
+		}
+		else
+		{
+			for (const char channel : {'A', 'B', 'C', 'D'})
+				serialNumbers.append(alpacaDevice->serialNumber() + channel);
+		}
 
 		if (usbDescriptor.isEmpty())
 		{
@@ -86,7 +97,14 @@ bool FTDIDevice::programDevice
 				usbDescriptor = kBugHopperUSBDescriptor;
 		}
 
-		ftStatus = FT_OpenEx(serialNumber.data(), FT_OPEN_BY_SERIAL_NUMBER, &ftHandle);
+		ftStatus = FT_DEVICE_NOT_FOUND;
+		for (const auto& serialNumber : std::as_const(serialNumbers))
+		{
+			ftStatus = FT_OpenEx(const_cast<char*>(serialNumber.constData()), FT_OPEN_BY_SERIAL_NUMBER, &ftHandle);
+			if (ftStatus == FT_OK)
+				break;
+		}
+
 		if (ftStatus == FT_OK)
 		{
 			FT_PROGRAM_DATA ftData;
