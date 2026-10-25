@@ -631,3 +631,37 @@ void TACFrame::on__tabs_tabBarClicked(int index)
 		}
 	}
 }
+
+// Slots below are connected by name in setupUi(), so they survive reset().
+void TACFrame::on__getResetCountButton_clicked()
+{
+	if (_alpacaDevice.isNull())
+	{
+		emit startNotification("Reset count: no device is connected", eWarnNotification);
+		return;
+	}
+
+	const int resetCount{_alpacaDevice->getResetCount()};
+
+	_ui->_resetCount->setText(QString::number(resetCount));
+}
+
+void TACFrame::on__clearResetCountButton_clicked()
+{
+	if (_alpacaDevice.isNull())
+	{
+		emit startNotification("Reset count: no device is connected", eWarnNotification);
+		return;
+	}
+
+	// clearResetCount() reports no status, so read the counter back to
+	// confirm the device actually cleared it.
+	_alpacaDevice->clearResetCount();
+
+	const int resetCount{_alpacaDevice->getResetCount()};
+
+	_ui->_resetCount->setText(QString::number(resetCount));
+
+	if (resetCount != 0)
+		emit startNotification(QString("Reset count was not cleared (device reports %1)").arg(resetCount), eErrorNotification);
+}
