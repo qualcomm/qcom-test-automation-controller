@@ -714,7 +714,7 @@ void TACPSOCDriveThread::handleUUIDResponse
 	if (framePackage->_responses.count() > 1)
 	{
 		QByteArray response = framePackage->_responses.at(1);
-		_uuid = response;
+		_uuid = uuidFromResponse(response);
 
 		emit uuidUpdate(_uuid);
 	}

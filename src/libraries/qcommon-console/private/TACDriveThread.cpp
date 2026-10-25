@@ -489,6 +489,21 @@ QString TACDriveThread::uuid()
 	return _uuid;
 }
 
+const QString TACDriveThread::kUUIDNotSupported(QStringLiteral("Not supported"));
+
+QString TACDriveThread::uuidFromResponse
+(
+	const QByteArray& response
+)
+{
+	// Matches both "CMD: Command not recognized." and "Command not recognized."
+	if (QString::fromLatin1(response).contains(QLatin1String("Command not recognized"), Qt::CaseInsensitive))
+		return kUUIDNotSupported;
+
+	// Same conversion as the implicit QByteArray -> QString assignment used before.
+	return QString::fromUtf8(response);
+}
+
 QByteArray TACDriveThread::macAddress()
 {
 	return _macAddress;
