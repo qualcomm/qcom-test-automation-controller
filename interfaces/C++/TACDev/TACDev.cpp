@@ -1098,13 +1098,13 @@ TAC_ERROR GetHelpText
 	AlpacaDevice alpacaDevice = gDevTACCore.getAlpacaDevice(tacHandle);
 	if (alpacaDevice.isNull() == false)
 	{
-		// todo
 		QByteArray helpText = alpacaDevice->getHelp();
 		if (helpText.size() >= bufferSize)
 		{
 			result = TACDEV_BUFFER_TOO_SMALL;
 			gDevTACCore.setLastError(kTACDevBufferTooSmall);
-			*actualSize = helpText.size();
+			if (actualSize != nullptr)
+				*actualSize = helpText.size();
 		}
 		else
 		{
@@ -1116,7 +1116,8 @@ TAC_ERROR GetHelpText
 	else
 	{
 		my_memcpy(helpBuffer, bufferSize, "\0", 1);
-		*actualSize = 0;
+		if (actualSize != nullptr)
+			*actualSize = 0;
 
 		result = TACDEV_BAD_TAC_HANDLE;
 		gDevTACCore.setLastError(kTACDevHandleNotOpen);
