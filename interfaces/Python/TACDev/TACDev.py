@@ -10,9 +10,19 @@ from ctypes import *
 from pathlib import Path
 from sys import exit
 
-# Configure logging
+# Configure logging.
+# Do not call logging.basicConfig() here: it configures the root logger of the
+# host application at import time. Give this module's logger its own handler
+# instead, so messages are still shown when the host has not set up logging.
+# Hosts can adjust or replace it via logging.getLogger(<this module name>).
 logger = logging.getLogger(__name__)
-logging.basicConfig(format=logging.BASIC_FORMAT, level=logging.INFO)
+if logger.level == logging.NOTSET:
+    logger.setLevel(logging.INFO)
+if not logger.handlers:
+    _log_handler = logging.StreamHandler()
+    _log_handler.setFormatter(logging.Formatter(logging.BASIC_FORMAT))
+    logger.addHandler(_log_handler)
+    logger.propagate = False
 
 # Installed product locations searched before the local development build.
 _INSTALL_DIRS = {
