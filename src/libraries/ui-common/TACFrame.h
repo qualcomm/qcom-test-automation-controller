@@ -60,6 +60,8 @@ public slots:
 
 private slots:
 	void on__tabs_tabBarClicked(int index);
+	void on__getResetCountButton_clicked();
+	void on__clearResetCountButton_clicked();
 
 private:
 	void setupUITabs();
