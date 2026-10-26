@@ -247,7 +247,7 @@ unsigned long GetPortData
 	int result{0};
 
 	const AlpacaDevices& alpacaDevices = gDevTACCore.GetAlpacaDevices();
-	if (deviceIndex < alpacaDevices.count())
+	if (deviceIndex >= 0 && deviceIndex < alpacaDevices.count())
 	{
 		AlpacaDevice alpacaDevice =  alpacaDevices.at(deviceIndex);
 		QByteArray portData2;
@@ -919,8 +919,13 @@ TAC_ERROR GetCommand
 	AlpacaDevice alpacaDevice = gDevTACCore.getAlpacaDevice(tacHandle);
 	if (alpacaDevice.isNull() == false)
 	{
-		TACCommand commandEntry = alpacaDevice->commandEntry(commandIndex);
-		if (commandEntry._pin != 0)
+		// commandEntry() returns a default entry (pin == -1) for an out-of-range index,
+		// so check the range explicitly instead of relying on the pin value.
+		TACCommand commandEntry;
+		const bool inRange = commandIndex < alpacaDevice->commandCount();
+		if (inRange)
+			commandEntry = alpacaDevice->commandEntry(commandIndex);
+		if (inRange && commandEntry._pin != 0)
 		{
 			QByteArray commandData;
 
@@ -1102,7 +1107,11 @@ TAC_ERROR GetHelpText
 			*actualSize = helpText.size();
 		}
 		else
+		{
 			my_memcpy(helpBuffer, bufferSize, helpText, helpText.size());
+			if (actualSize != nullptr)
+				*actualSize = helpText.size();
+		}
 	}
 	else
 	{
@@ -1140,14 +1149,23 @@ TAC_ERROR GetScriptVariable(TAC_HANDLE tacHandle, unsigned long scriptVariableIn
 
 	if (alpacaDevice.isNull() == false)
 	{
-		QByteArray variableData = alpacaDevice->getScriptVariable(scriptVariableIndex);
-		if (variableData.size() >= bufferSize)
+		if (scriptVariableIndex >= alpacaDevice->scriptVariableCount())
 		{
-			result = TACDEV_BUFFER_TOO_SMALL;
-			gDevTACCore.setLastError(kTACDevBufferTooSmall);
+			my_memcpy(scriptVariableBuffer, bufferSize, "\0", 1);
+			result = TAC_BAD_INDEX;
+			gDevTACCore.setLastError(kTACBadIndex);
 		}
 		else
-			my_memcpy(scriptVariableBuffer, bufferSize, variableData, variableData.size());
+		{
+			QByteArray variableData = alpacaDevice->getScriptVariable(scriptVariableIndex);
+			if (variableData.size() >= bufferSize)
+			{
+				result = TACDEV_BUFFER_TOO_SMALL;
+				gDevTACCore.setLastError(kTACDevBufferTooSmall);
+			}
+			else
+				my_memcpy(scriptVariableBuffer, bufferSize, variableData, variableData.size());
+		}
 	}
 	else
 	{
