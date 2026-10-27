@@ -60,8 +60,12 @@ public slots:
 
 private slots:
 	void on__tabs_tabBarClicked(int index);
+	void on__getResetCountButton_clicked();
+	void on__clearResetCountButton_clicked();
+	void on__renameButton_clicked();
 
 private:
+	void updateRenameButton();
 	void setupUITabs();
 	void setupUIPins();
 	void setupUII2CPins();

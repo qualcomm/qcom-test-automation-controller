@@ -46,6 +46,10 @@ TACFrame::TACFrame
 {
 	_ui->setupUi(this);
 
+	// Reset count is only meaningful once a device that supports it is
+	// connected; setPlatformConfiguration() decides whether to show it.
+	_ui->_resetFrame->setVisible(false);
+
 	QGridLayout* gridLayout;
 
 	gridLayout = new QGridLayout(_ui->_connectionsGroupBox);
@@ -86,8 +90,10 @@ void TACFrame::setDevice
 
 		_ui->_infoGroupBox->hide();
 	}
+	else
 	{
-		// error message????
+		// Disconnected: nothing to query, so hide the reset count controls.
+		_ui->_resetFrame->setVisible(false);
 	}
 }
 
@@ -120,7 +126,10 @@ void TACFrame::setPlatformConfiguration
 
 	_platformConfiguration = platformConfiguration;
 
-	_ui->_resetFrame->setVisible(_platformConfiguration->getResetEnabledState());
+	// Show only when the platform supports reset count and the
+	// configuration enables it.
+	_ui->_resetFrame->setVisible(_platformConfiguration->resetActive() &&
+								 _platformConfiguration->getResetEnabledState());
 
 	setupUITabs();
 	setupUIPins();
@@ -148,6 +157,7 @@ void TACFrame::reset()
 
 	_ui = new Ui::TACFrameClass;
 	_ui->setupUi(this);
+	_ui->_resetFrame->setVisible(false);
 	this->repaint();
 }
 
@@ -620,4 +630,82 @@ void TACFrame::on__tabs_tabBarClicked(int index)
 			_ui->_configurationFileVersion->setText(_platformConfiguration->getFileVersion());
 		}
 	}
+
+	updateRenameButton();
+}
+
+void TACFrame::updateRenameButton()
+{
+	// Only PSOC is offered Rename. PIC32CX sends the set-name command but has
+	// no reply handling to refresh the cached name, and the other drive
+	// threads do not implement it, so Rename would look like it did nothing.
+	bool canRename{false};
+
+	if (_alpacaDevice.isNull() == false)
+		canRename = (_alpacaDevice->debugBoardType() == ePSOC);
+
+	_ui->_renameButton->setEnabled(canRename);
+	_ui->_renameButton->setToolTip(canRename ? QString() :
+		QStringLiteral("Renaming is not supported for this device"));
+}
+
+void TACFrame::on__renameButton_clicked()
+{
+	if (_alpacaDevice.isNull() || _alpacaDevice->debugBoardType() != ePSOC)
+		return;
+
+	const QString currentName = QString::fromLatin1(_alpacaDevice->name());
+
+	bool ok{false};
+	QString newName = QInputDialog::getText(this, QStringLiteral("Rename Device"),
+		QStringLiteral("New name (1-32 letters or digits):"), QLineEdit::Normal, currentName, &ok).trimmed();
+
+	if (ok == false || newName.isEmpty() || newName == currentName)
+		return;
+
+	const QByteArray latin1Name = newName.toLatin1();
+	if (latin1Name.length() > 32 || isAlphaNumeric(latin1Name) == false)
+	{
+		QMessageBox::warning(this, QStringLiteral("Rename Device"),
+			QStringLiteral("The name must be 1 to 32 characters long and contain only letters and digits."));
+		return;
+	}
+
+	_alpacaDevice->setName(latin1Name);
+
+	_ui->_deviceName->setText(_alpacaDevice->name());
+}
+
+// Slots below are connected by name in setupUi(), so they survive reset().
+void TACFrame::on__getResetCountButton_clicked()
+{
+	if (_alpacaDevice.isNull())
+	{
+		emit startNotification("Reset count: no device is connected", eWarnNotification);
+		return;
+	}
+
+	const int resetCount{_alpacaDevice->getResetCount()};
+
+	_ui->_resetCount->setText(QString::number(resetCount));
+}
+
+void TACFrame::on__clearResetCountButton_clicked()
+{
+	if (_alpacaDevice.isNull())
+	{
+		emit startNotification("Reset count: no device is connected", eWarnNotification);
+		return;
+	}
+
+	// clearResetCount() reports no status, so read the counter back to
+	// confirm the device actually cleared it.
+	_alpacaDevice->clearResetCount();
+
+	const int resetCount{_alpacaDevice->getResetCount()};
+
+	_ui->_resetCount->setText(QString::number(resetCount));
+
+	if (resetCount != 0)
+		emit startNotification(QString("Reset count was not cleared (device reports %1)").arg(resetCount), eErrorNotification);
 }

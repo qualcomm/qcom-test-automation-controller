@@ -21,6 +21,9 @@ const PlatformID ALPACA_PIC32CX_ID{50};
 const PlatformID ALPACA_BUGHOPPER_ID{80};
 const PlatformID ALPACA_STM32_ID{95};
 
+// USB descriptor reported by Arduino BugHopper V1 (FT232H) boards.
+constexpr char kBugHopperUSBDescriptor[] = "BugHopper";
+
 
 struct _PlatformEntry
 {

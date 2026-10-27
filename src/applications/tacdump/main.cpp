@@ -7,9 +7,12 @@
 
 // QCommon
 #include "AppCore.h"
+#include "ConsoleApplicationEnhancements.h"
 #include "QCommonConsole.h"
 
 // Qt
+#include <QCommandLineOption>
+#include <QCommandLineParser>
 #include <QCoreApplication>
 
 // C++
@@ -53,22 +56,65 @@ private:
 	AppCore*					_appCore{Q_NULLPTR};
 };
 
+namespace
+{
+
+// Exit status used when configuration storage is unusable. Any nonzero value
+// would do; a distinct one lets callers tell this apart from "no devices".
+const int kConfigurationUnavailable{2};
+
+// Exit status used when the command line cannot be parsed.
+const int kBadCommandLine{1};
+
+} // namespace
+
 int main(int argc, char *argv[])
 {
 	QCoreApplication a(argc, argv);
+
+	// Parse the command line before touching configuration or devices, so
+	// --help never enumerates hardware.
+	QCommandLineParser parser;
+	parser.setApplicationDescription("Lists the connected TAC devices with their port and serial number.");
+	// Keep the historical single-dash "-quts" option working.
+	parser.setSingleDashWordOptionMode(QCommandLineParser::ParseAsLongOptions);
+	const QCommandLineOption helpOption = parser.addHelpOption();
+	const QCommandLineOption qutsOption(QStringList() << "quts", "Print one \"port;serial;\" line per device, without headers.");
+	parser.addOption(qutsOption);
+
+	if (parser.parse(a.arguments()) == false)
+	{
+		cerr << parser.errorText().toLatin1().data() << endl << endl;
+		cerr << parser.helpText().toLatin1().data();
+		return kBadCommandLine;
+	}
+
+	if (parser.isSet(helpOption))
+	{
+		cout << parser.helpText().toLatin1().data();
+		return 0;
+	}
 
 	DevTACCore tacCore;
 
 	InitializeQCommonConsole();
 
-	QString errorString;
-	bool forQuts{false};
-
-	if (argc > 1)
+	// Device to port mappings live in the per user configuration directory.
+	// Without it, enumeration cannot report which port belongs to which
+	// device, so callers could act on the wrong one. Fail here instead of
+	// printing a list that may be wrong.
+	if (documentsDataPathAvailable() == false)
 	{
-		if (a.arguments().at(1) == "-quts")
-			forQuts = true;
+		cerr << "Error: the Alpaca configuration directory is not available or not writable."
+			<< endl
+			<< "Device information cannot be reported reliably. Check that the home"
+			<< " directory exists, is writable, and is not out of space." << endl;
+
+		return kConfigurationUnavailable;
 	}
+
+	QString errorString;
+	const bool forQuts = parser.isSet(qutsOption);
 
 	AlpacaDevices alpacaDevices;
 
@@ -103,4 +149,6 @@ int main(int argc, char *argv[])
 			cout << errorString.toLatin1().data() << endl;
 		}
 	}
+
+	return 0;
 }

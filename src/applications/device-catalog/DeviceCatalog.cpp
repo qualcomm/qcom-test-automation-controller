@@ -9,12 +9,14 @@
 
 // Qt
 
+#include <QApplication>
 #include <QDir>
 #include <QFile>
 #include <QMenu>
 #include <QMessageBox>
 #include <QMediaPlayer>
 #include <QProcess>
+#include <QStandardPaths>
 #include <QThread>
 
 #ifdef Q_OS_WINDOWS
@@ -30,8 +32,31 @@ const int kPlatformID{2};
 
 const QByteArray kv16FirmwareNotice(QByteArrayLiteral("You've chosen to program the v16 firmware. This firmware may contain updates not applicable to all teams. Uncheck unless you know what you're doing"));
 const QByteArray kv17FirmwareNotice(QByteArrayLiteral("You've chosen to program the v17 firmware. This firmware may contain updates not applicable to all teams. Uncheck unless you know what you're doing"));
+const QByteArray kv18FirmwareNotice(QByteArrayLiteral("You've chosen to program the v18 firmware. This firmware may contain updates not applicable to all teams. Uncheck unless you know what you're doing"));
+const QByteArray kv19FirmwareNotice(QByteArrayLiteral("You've chosen to program the v19 firmware. This firmware may contain updates not applicable to all teams. Uncheck unless you know what you're doing"));
 const QByteArray kDefaultNotice(QByteArrayLiteral("This space is used to share notification to user"));
 const QStringList kVariants{"LP030", "LP038"};
+
+// FWUpdate can take a while to flash a board. Killing it mid-flash can leave
+// the board unprogrammed, so allow generous time before giving up.
+const int kFwUpdateStartTimeoutMs{10000};
+const int kFwUpdateFinishTimeoutMs{120000};
+
+const QString kFwUpdateToolTip(QStringLiteral("Update the debug board firmware for connected PSOC debug board(s)"));
+const QString kFwUpdateMissingToolTip(QStringLiteral("Firmware update is not available: the FWUpdate utility is not included in this installation"));
+
+namespace
+{
+
+// FWUpdate is a separate utility that is not built from this repository and
+// is not part of every installation. Returns its full path, or an empty
+// string when it is not installed next to this application.
+QString fwUpdateProgram()
+{
+	return QStandardPaths::findExecutable(QStringLiteral("FWUpdate"), {applicationBinPath()});
+}
+
+} // namespace
 
 
 DeviceCatalog::DeviceCatalog(QWidget* parent) :QDialog(parent)
@@ -213,19 +238,51 @@ void DeviceCatalog::invokeProgrammer(const DebugBoardType type)
 
 void DeviceCatalog::invokeLiteProgrammer(const QString& serialNumber, const PlatformID platformId)
 {
-	QString program = applicationBinPath() + "LiteProgrammer";
+	// Must match the target name in src/applications/programmers/lite-programmer/CMakeLists.txt;
+	// Linux file names are case sensitive.
+	QString program = applicationBinPath() + "LITEProgrammer";
 	QStringList arguments; //-p platformid=18 serial=FT6G3Z6Y
 	arguments << "-p";
 	arguments << "serial=" + serialNumber;
 	arguments << "platformid=" + QString::number(platformId);
 
-	QProcess* process = new QProcess(Q_NULLPTR);
+	QProcess process;
 
-	process->setProgram(program);
-	process->setArguments(arguments);
-	process->startDetached();
+	process.setProgram(program);
+	process.setArguments(arguments);
+	process.setProcessChannelMode(QProcess::MergedChannels);
+	process.start();
 
-	QThread::sleep(1);
+	if (process.waitForStarted(10000) == false)
+	{
+		QMessageBox::warning(this, "Lite Device Not Programmed", QString("Could not start the Lite programmer:\n%1\n\n"
+																		 "The device with serial number %2 was not changed.")
+																	 .arg(QDir::toNativeSeparators(program), serialNumber));
+		return;
+	}
+
+	QApplication::setOverrideCursor(Qt::WaitCursor);
+	bool finished = process.waitForFinished(60000);
+	QApplication::restoreOverrideCursor();
+
+	if (finished == false)
+	{
+		process.kill();
+		process.waitForFinished(5000);
+	}
+
+	if (finished == false || process.exitStatus() != QProcess::NormalExit || process.exitCode() != 0)
+	{
+		QString output = QString::fromLocal8Bit(process.readAll()).trimmed();
+		if (output.isEmpty())
+		{
+			output = finished ? QString("Exit code %1").arg(process.exitCode()) : QString("The programmer did not finish in time.");
+		}
+
+		QMessageBox::warning(this, "Lite Device Not Programmed", QString("Programming the device with serial number %1 failed:\n\n%2")
+																	 .arg(serialNumber, output));
+		return;
+	}
 
 	QMessageBox::information(this, "Lite Device Programmed", QString("The device with serial number %1 needs to be"
 																	 " unplugged and plugged back in.").arg(serialNumber));
@@ -239,11 +296,13 @@ void DeviceCatalog::invokePSOCProgrammer(const QString &serialNumber, const Plat
 	arguments << "serial=" + serialNumber;
 	arguments << "platformid=" + QString::number(platformId);
 
-	QProcess* process = new QProcess(Q_NULLPTR);
-
-	process->setProgram(program);
-	process->setArguments(arguments);
-	process->startDetached();
+	if (QProcess::startDetached(program, arguments) == false)
+	{
+		QMessageBox::warning(this, "PSOC Device Not Programmed", QString("The PSOC programmer is not installed or could not be started:\n%1\n\n"
+																		 "The device with serial number %2 was not changed.")
+																	 .arg(QDir::toNativeSeparators(program), serialNumber));
+		return;
+	}
 
 	QThread::sleep(1);
 
@@ -300,13 +359,17 @@ void DeviceCatalog::on__deviceTable_itemClicked(QTableWidgetItem *item)
 		{
 			if (twi->text() == "PSOC")
 			{
-				_firmwareUpdateBtn->setEnabled(true);
-				_firmwareLabel->setEnabled(true);
-				_firmwareSelect->setEnabled(true);
+				const bool fwUpdateAvailable = (fwUpdateProgram().isEmpty() == false);
+
+				_firmwareUpdateBtn->setEnabled(fwUpdateAvailable);
+				_firmwareUpdateBtn->setToolTip(fwUpdateAvailable ? kFwUpdateToolTip : kFwUpdateMissingToolTip);
+				_firmwareLabel->setEnabled(fwUpdateAvailable);
+				_firmwareSelect->setEnabled(fwUpdateAvailable);
 			}
 			else
 			{
 				_firmwareUpdateBtn->setEnabled(false);
+				_firmwareUpdateBtn->setToolTip(kFwUpdateToolTip);
 				_firmwareLabel->setEnabled(false);
 				_firmwareSelect->setEnabled(false);
 			}
@@ -347,38 +410,96 @@ void DeviceCatalog::on__programBtn_clicked()
 
 void DeviceCatalog::on__firmwareUpdateBtn_clicked()
 {
+	const QString program = fwUpdateProgram();
+
+	if (program.isEmpty())
+	{
+		QMessageBox::warning(this, "Firmware Update Not Available",
+			QString("The FWUpdate utility was not found in:\n%1\n\n"
+					"Firmware update is not included in this installation.")
+				.arg(QDir::toNativeSeparators(applicationBinPath())));
+		return;
+	}
+
+	const QDir firmwareDir(QString::fromLatin1(_firmwareDir));
+	QStringList failures;
+	bool firmwareFound{false};
+
+	// The board chipset is not known here, so try each variant in turn. FWUpdate
+	// rejects firmware built for a different chipset.
 	for (const auto& variant : kVariants)
 	{
-		QString firmwarePath = QString(_firmwareDir) + QDir::separator() + variant + QDir::separator() + "MicroEpm.cyacd";
+		const QString firmwarePath = firmwareDir.filePath(variant + "/MicroEpm.cyacd");
 
 		if (QFile::exists(firmwarePath) == false)
 			continue;
 
-		QString program = applicationBinPath() + "FWUpdate";
-		QStringList arguments;
-		arguments << "path=" + firmwarePath;
+		firmwareFound = true;
 
-		QProcess* process = new QProcess(Q_NULLPTR);
+		QProcess process;
 
-		process->setProgram(program);
-		process->setArguments(arguments);
-		process->start();
-		process->waitForFinished(30000);
+		process.setProgram(program);
+		process.setArguments({"path=" + QDir::toNativeSeparators(firmwarePath)});
+		process.setProcessChannelMode(QProcess::MergedChannels);
+		process.start();
 
-		if (process->exitCode() == 0)
+		if (process.waitForStarted(kFwUpdateStartTimeoutMs) == false)
+		{
+			// Retrying with another variant cannot help when the utility does not start.
+			failures << QString("Could not start %1: %2")
+							.arg(QDir::toNativeSeparators(program), process.errorString());
+			break;
+		}
+
+		QApplication::setOverrideCursor(Qt::WaitCursor);
+		const bool finished = process.waitForFinished(kFwUpdateFinishTimeoutMs);
+		QApplication::restoreOverrideCursor();
+
+		if (finished == false)
+		{
+			process.kill();
+			process.waitForFinished(5000);
+		}
+
+		const QString output = QString::fromLocal8Bit(process.readAll()).trimmed();
+
+		if (finished && process.exitStatus() == QProcess::NormalExit && process.exitCode() == 0)
 		{
 			QMessageBox::information(this, "Firmware Update Complete",
-				QString("The device has been programmed with firmware from %1.").arg(firmwarePath));
-			process->deleteLater();
+				QString("The device has been programmed with firmware from %1.")
+					.arg(QDir::toNativeSeparators(firmwarePath)));
 			return;
 		}
 
-		process->deleteLater();
+		QString reason;
+
+		if (finished == false)
+			reason = QString("did not finish within %1 seconds").arg(kFwUpdateFinishTimeoutMs / 1000);
+		else if (process.exitStatus() != QProcess::NormalExit)
+			reason = "FWUpdate stopped unexpectedly";
+		else
+			reason = QString("exit code %1").arg(process.exitCode());
+
+		failures << QString("%1 (%2)%3").arg(variant, reason, output.isEmpty() ? QString() : ":\n" + output);
+
+		// The board state is unknown after a timeout, so do not flash it again.
+		if (finished == false)
+			break;
+	}
+
+	if (firmwareFound == false && failures.isEmpty())
+	{
+		QMessageBox::warning(this, "Firmware Update Failed",
+			QString("The selected firmware is not installed. No MicroEpm.cyacd file was found under:\n%1")
+				.arg(QDir::toNativeSeparators(firmwareDir.absolutePath())));
+		return;
 	}
 
 	QMessageBox::warning(this, "Firmware Update Failed",
-		"Unable to program the connected device with the selected firmware version. "
-		"Confirm whether a PSOC debug board is connected and try again.");
+		QString("Unable to program the connected device with the selected firmware version.\n\n%1\n\n"
+				"Confirm that a PSOC debug board is connected and that no other application "
+				"(such as TAC) has it open, then try again.")
+			.arg(failures.join("\n\n")));
 }
 
 void DeviceCatalog::on__docsBtn_clicked()
@@ -428,13 +549,14 @@ void DeviceCatalog::on__firmwareSelect_currentTextChanged(const QString &firmwar
 			break;
 		case 18:
 			_firmwareDir = applicationDataPath().toLatin1() + QDir::separator().toLatin1() + "firmware/1.x.18.0";
-			_infoLabelText->setText(kv17FirmwareNotice);
+			_infoLabelText->setText(kv18FirmwareNotice);
 			_infoGroupBox->show();
 			break;
 		case 19:
 			_firmwareDir = applicationDataPath().toLatin1() + QDir::separator().toLatin1() + "firmware/1.x.19.0";
-			_infoLabelText->setText(kv17FirmwareNotice);
+			_infoLabelText->setText(kv19FirmwareNotice);
 			_infoGroupBox->show();
+			break;
 		}
 	}
 }

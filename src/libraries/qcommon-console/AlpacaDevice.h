@@ -76,7 +76,11 @@ public:
 
 	QByteArray getHelp();
 
-	virtual void setPinState(PinID pin, bool state);
+	virtual bool setPinState(PinID pin, bool state);
+
+	// Attempts to recover a wedged host-side transport in place. Returns false
+	// when the active drive thread does not support being reset.
+	bool resetTransport();
 	virtual void setAddressPinState(const QString& i2cAddress, quint16 pin, bool state);
 
 	void setWaitForCompletion();

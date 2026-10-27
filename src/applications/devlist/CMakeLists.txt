@@ -57,3 +57,6 @@ qt_generate_deploy_app_script(
     NO_UNSUPPORTED_PLATFORM_ERROR
 )
 install(SCRIPT ${deploy_script})
+
+# Windows file version resource
+qtac_add_version_info(${APP_NAME} "TAC device descriptor list utility" "${QTAC_VERSION}")

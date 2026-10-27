@@ -110,3 +110,6 @@ qt_generate_deploy_app_script(TARGET ${APP_NAME}
     NO_UNSUPPORTED_PLATFORM_ERROR
 )
 install(SCRIPT ${deploy_script})
+
+# Windows file version resource
+qtac_add_version_info(${APP_NAME} "TAC Configuration Editor" "${QTAC_VERSION}")

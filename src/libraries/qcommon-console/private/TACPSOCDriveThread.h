@@ -7,6 +7,7 @@
 #include "QCommonConsoleGlobal.h"
 
 #include "TACDriveThread.h"
+#include "TACPSOCLegacyCommands.h"
 #include "TACPSOCProtocol.h"
 
 #include "SerialPort.h"
@@ -35,7 +36,7 @@ public:
 		ReceiveInterface* receiveInterface = Q_NULLPTR, bool shouldStore = true);
 	void endTransaction(ReceiveInterface* receiveInterface);
 
-	virtual void setPinState(quint16 pin, bool state);
+	virtual bool setPinState(quint16 pin, bool state);
 	virtual void setAddressPinState(const QString& i2cAddress, quint16 pin, bool state);
 	virtual void sendCommandSequence(CommandEntries& commandEntries);
 
@@ -55,6 +56,12 @@ public:
 	// Receive Interface
 	virtual void receive(FramePackage& framePackage);
 
+	// Legacy firmware command translation (see TACPSOCLegacyCommands.h).
+	PSOCLegacyCommands* legacyCommands()
+	{
+		return &_legacyCommands;
+	}
+
 protected:
 	bool openSerialDevice();
 
@@ -69,6 +76,7 @@ private:
 
 	static bool					_initialized;
 	bool						_connected{false};
+	PSOCLegacyCommands			_legacyCommands;
 	TACPSOCProtocol				_tacProtocol;
 	SerialPortInfo				_tacPortInfo;
 	SerialPort*					_serialPort{Q_NULLPTR};

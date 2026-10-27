@@ -72,7 +72,7 @@ bool TACSTM32DriveThread::openSTM32Device()
 	return result;
 }
 
-void TACSTM32DriveThread::setPinState(quint16 pin, bool state)
+bool TACSTM32DriveThread::setPinState(quint16 pin, bool state)
 {
 	{
 		TACSTM32Command tacCommand(this, this);
@@ -80,7 +80,7 @@ void TACSTM32DriveThread::setPinState(quint16 pin, bool state)
 		tacCommand.setPinState(pin, state);
 	}
 
-	waitForCompletion();
+	return waitForCompletion();
 }
 
 void TACSTM32DriveThread::sendCommandSequence
