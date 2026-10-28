@@ -1,6 +1,7 @@
 // Copyright (c) Qualcomm Technologies, Inc. and/or its subsidiaries.
 // SPDX-License-Identifier: BSD-3-Clause
 
+#include "AppCore.h"
 #include "ApplicationEnhancements.h"
 #include "ConsoleApplicationEnhancements.h"
 #include "DeviceCatalog.h"
@@ -54,6 +55,19 @@ namespace
 QString fwUpdateProgram()
 {
 	return QStandardPaths::findExecutable(QStringLiteral("FWUpdate"), {applicationBinPath()});
+}
+
+// Firmware update trace: always to the debug output, and to the application
+// log when application logging is enabled.
+void fwLog(const QString& message)
+{
+	const QString line = QStringLiteral("DeviceCatalog FWUpdate: ") + message;
+
+	qInfo().noquote() << line;
+
+	AppCore* appCore = AppCore::getAppCore();
+	if (appCore != Q_NULLPTR && appCore->appLoggingActive())
+		AppCore::writeToApplicationLogLine(line);
 }
 
 } // namespace
@@ -422,19 +436,101 @@ void DeviceCatalog::on__firmwareUpdateBtn_clicked()
 	}
 
 	const QDir firmwareDir(QString::fromLatin1(_firmwareDir));
+	fwLog(QString("Update firmware requested. Firmware dir: %1, FWUpdate: %2")
+		.arg(QDir::toNativeSeparators(firmwareDir.absolutePath()), QDir::toNativeSeparators(program)));
+
+	// Let the user pick the target board, as the legacy Device Catalog did.
+	AlpacaDevices psocDevices = enumerateDevices(ePSOC);
+	QStringList connectedSerials;
+	for (const auto& device : psocDevices)
+		connectedSerials << QString::fromLatin1(device->serialNumber());
+
+	fwLog(QString("Connected PSOC debug boards: %1 [%2]").arg(psocDevices.count()).arg(connectedSerials.join(", ")));
+
+	if (psocDevices.isEmpty())
+	{
+		QMessageBox::warning(this, "Firmware Update", "No PSOC debug board is connected.");
+		return;
+	}
+
+	DeviceSelectionDialog selectionDialog(this);
+	selectionDialog.setDevices(psocDevices);
+	if (selectionDialog.exec() != QDialog::Accepted)
+	{
+		fwLog("Board selection cancelled by user");
+		return;
+	}
+
+	const QString selectedSerial = selectionDialog.currentSerialNumber();
+	fwLog(QString("Selected board: %1").arg(selectedSerial));
+
+	// Pick the firmware variant from the selected board's chipset.
+	QString chipset{"None"};
+	for (auto& device : psocDevices)
+	{
+		if (QString::fromLatin1(device->serialNumber()) != selectedSerial)
+			continue;
+
+		if (device->open())
+		{
+			chipset = device->chipVersion();
+			device->close();
+		}
+		else
+		{
+			fwLog(QString("Could not open board %1 to read chipset").arg(selectedSerial));
+		}
+		break;
+	}
+
+	QStringList variantsToTry;
+	if (kVariants.contains(chipset))
+	{
+		variantsToTry << chipset;
+		fwLog(QString("Board %1 chipset %2, using that firmware variant").arg(selectedSerial, chipset));
+	}
+	else
+	{
+		variantsToTry = kVariants;
+		fwLog(QString("Board %1 chipset unknown (%2), falling back to trying all variants: %3")
+			.arg(selectedSerial, chipset, kVariants.join(", ")));
+	}
+
+	// FWUpdate has no per-board argument and updates every connected PSOC board.
+	if (psocDevices.count() > 1)
+	{
+		fwLog("Multiple PSOC boards connected; asking user to confirm update of all boards");
+		const auto answer = QMessageBox::question(this, "Multiple Debug Boards Connected",
+			QString("%1 PSOC debug boards are connected:\n%2\n\n"
+					"FWUpdate programs ALL connected PSOC boards, not only the selected one (%3).\n"
+					"Disconnect the other boards to update only the selected one.\n\n"
+					"Continue and update all connected boards?")
+				.arg(psocDevices.count()).arg(connectedSerials.join("\n"), selectedSerial),
+			QMessageBox::Yes | QMessageBox::No, QMessageBox::No);
+
+		if (answer != QMessageBox::Yes)
+		{
+			fwLog("User declined multi-board update");
+			return;
+		}
+		fwLog("User confirmed multi-board update");
+	}
+
 	QStringList failures;
 	bool firmwareFound{false};
 
-	// The board chipset is not known here, so try each variant in turn. FWUpdate
-	// rejects firmware built for a different chipset.
-	for (const auto& variant : kVariants)
+	for (const auto& variant : variantsToTry)
 	{
 		const QString firmwarePath = firmwareDir.filePath(variant + "/MicroEpm.cyacd");
 
 		if (QFile::exists(firmwarePath) == false)
+		{
+			fwLog(QString("Firmware not found: %1").arg(QDir::toNativeSeparators(firmwarePath)));
 			continue;
+		}
 
 		firmwareFound = true;
+		fwLog(QString("Running FWUpdate path=%1").arg(QDir::toNativeSeparators(firmwarePath)));
 
 		QProcess process;
 
@@ -463,8 +559,12 @@ void DeviceCatalog::on__firmwareUpdateBtn_clicked()
 
 		const QString output = QString::fromLocal8Bit(process.readAll()).trimmed();
 
+		fwLog(QString("FWUpdate %1: finished=%2 exitStatus=%3 exitCode=%4 output:\n%5")
+			.arg(variant).arg(finished).arg(int(process.exitStatus())).arg(process.exitCode()).arg(output));
+
 		if (finished && process.exitStatus() == QProcess::NormalExit && process.exitCode() == 0)
 		{
+			fwLog(QString("Firmware update succeeded with %1").arg(variant));
 			QMessageBox::information(this, "Firmware Update Complete",
 				QString("The device has been programmed with firmware from %1.")
 					.arg(QDir::toNativeSeparators(firmwarePath)));
@@ -486,6 +586,8 @@ void DeviceCatalog::on__firmwareUpdateBtn_clicked()
 		if (finished == false)
 			break;
 	}
+
+	fwLog(QString("Firmware update failed: %1").arg(failures.isEmpty() ? "no firmware file found" : failures.join(" | ")));
 
 	if (firmwareFound == false && failures.isEmpty())
 	{
