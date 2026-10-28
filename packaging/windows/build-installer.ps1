@@ -163,7 +163,7 @@ if (Test-Path $cppHeaderSrc) {
     Write-Warning "No interfaces\C++\TACDev directory found; C++ headers will be absent from the installer."
 }
 
-foreach ($lang in @('Python', 'Java')) {
+foreach ($lang in @('Python', 'Java', 'Rust')) {
     $srcLang = Join-Path $SourceRoot "interfaces\$lang"
     if (Test-Path $srcLang) {
         Copy-Item $srcLang (Join-Path $interfacesDest $lang) -Recurse -Force

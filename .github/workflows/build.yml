@@ -301,6 +301,27 @@ jobs:
         path: __Builds\installer\QTAC-windows-arm64.exe
         if-no-files-found: error
 
+  build-rust-interface:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-22.04, windows-2022]
+
+    steps:
+    - uses: actions/checkout@v6
+
+    - name: Install Rust toolchain
+      uses: dtolnay/rust-toolchain@stable
+
+    - name: Check Rust interface
+      working-directory: interfaces/Rust/TACDev
+      run: cargo check
+
+    - name: Build Rust interface
+      working-directory: interfaces/Rust/TACDev
+      run: cargo build
+
   build-source-linux:
     needs: [fetch-ftdi-linux, build-docs]
     runs-on: ${{ matrix.os }}

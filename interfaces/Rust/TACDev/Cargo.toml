@@ -1,0 +1,12 @@
+# Copyright (c) Qualcomm Technologies, Inc. and/or its subsidiaries.
+# SPDX-License-Identifier: BSD-3-Clause
+
+[package]
+name = "tacdev"
+version = "0.1.0"
+edition = "2021"
+description = "Rust interface to the QTAC TACDev library"
+license = "BSD-3-Clause"
+
+[dependencies]
+libloading = "0.8"
