@@ -175,7 +175,19 @@ $langs = if ($RustOnly) { @('Rust') } else { @('Python', 'Java', 'Rust') }
 foreach ($lang in $langs) {
     $srcLang = Join-Path $SourceRoot "interfaces\$lang"
     if (Test-Path $srcLang) {
-        Copy-Item $srcLang (Join-Path $interfacesDest $lang) -Recurse -Force
+        $destLang = Join-Path $interfacesDest $lang
+        New-Item -ItemType Directory -Force -Path $destLang | Out-Null
+        Get-ChildItem $srcLang -Recurse |
+            Where-Object { $_.FullName -notmatch '\\target\\' } |
+            ForEach-Object {
+                $rel  = $_.FullName.Substring($srcLang.Length + 1)
+                $dest = Join-Path $destLang $rel
+                if ($_.PSIsContainer) {
+                    New-Item -ItemType Directory -Force -Path $dest | Out-Null
+                } else {
+                    Copy-Item $_.FullName $dest -Force
+                }
+            }
     } else {
         Write-Warning "No interfaces\$lang directory found; $lang interface will be absent from the installer."
     }
