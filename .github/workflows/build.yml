@@ -11,8 +11,12 @@ jobs:
   # shipped reporting 6.9.0 because nothing compared them.
   check-version:
     runs-on: ubuntu-22.04
+    permissions:
+      contents: read
     steps:
     - uses: actions/checkout@v6
+      with:
+        persist-credentials: false
 
     - name: Check QTAC_VERSION consistency (and tag match on tag builds)
       env:
