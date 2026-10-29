@@ -52,6 +52,9 @@ ConfigWindow::ConfigWindow(QWidget* parent) :
 {
 	setupUi(this);
 
+	// Only distributions that ship BugWriter offer bug reporting.
+	_actionBugWriter->setVisible(bugWriterAvailable());
+
 	_recentFilesMenu = new QMenu(tr("Recent Configuration Files"));
 	_fileMenu->insertMenu(_actionPreview, _recentFilesMenu);
 
@@ -378,19 +381,14 @@ void ConfigWindow::on__actionQuit_triggered()
 
 void ConfigWindow::on__actionBugWriter_triggered()
 {
-	QString program = applicationBinPath() + "BugWriter";
-
 	QStringList arguments;
 	arguments << "product:TAC";
 	arguments << "prodversion:" + kProductVersion;
 	arguments << "application:TAC_Configuration_Editor";
 	arguments << "appversion:" + kAppVersion;
 	arguments << "listports:true";
-	QProcess* process = new QProcess(Q_NULLPTR);
 
-	process->setProgram(program);
-	process->setArguments(arguments);
-	process->startDetached();
+	startBugWriter(arguments, this);
 }
 
 void ConfigWindow::enableEditorActions()

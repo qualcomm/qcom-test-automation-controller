@@ -39,6 +39,9 @@ TACWindow::TACWindow
 {
 	setupUi(this);
 
+	// Only distributions that ship BugWriter offer bug reporting.
+	actionSubmit_Bug_Report->setVisible(bugWriterAvailable());
+
 	QString windowTitle{this->windowTitle()};
 	windowTitle = QString(windowTitle).arg("QTAC");
 	this->setWindowTitle(windowTitle);
@@ -361,8 +364,6 @@ void TACWindow::on_actionAbout_triggered()
 
 void TACWindow::on_actionSubmit_Bug_Report_triggered()
 {
-	QString program = applicationBinPath() + "BugWriter";
-
 	QStringList arguments;
 	arguments << "product:QTAC";
 	arguments << "prodversion:" + kProductVersion;
@@ -370,9 +371,5 @@ void TACWindow::on_actionSubmit_Bug_Report_triggered()
 	arguments << "appversion:" + kAppVersion;
 	arguments << "listports:";
 
-	QProcess* process = new QProcess(Q_NULLPTR);
-
-	process->setProgram(program);
-	process->setArguments(arguments);
-	process->startDetached();
+	startBugWriter(arguments, this);
 }
