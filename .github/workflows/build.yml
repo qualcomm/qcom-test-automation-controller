@@ -311,8 +311,8 @@ jobs:
     steps:
     - uses: actions/checkout@v6
 
-    - name: Install Rust toolchain
-      uses: dtolnay/rust-toolchain@stable
+    - name: Update Rust toolchain to stable
+      run: rustup update stable && rustup default stable
 
     - name: Check Rust interface
       working-directory: interfaces/Rust/TACDev
