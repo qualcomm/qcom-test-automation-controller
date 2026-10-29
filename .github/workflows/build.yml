@@ -518,6 +518,13 @@ jobs:
           -BinDir "source\__Builds\x64\Release\bin" `
           -NoGui
 
+    - name: Build installer (QTAC-source-windows-x64-rust.exe)
+      shell: pwsh
+      run: |
+        .\packaging\windows\build-installer.ps1 `
+          -BinDir "source\__Builds\x64\Release\bin" `
+          -RustOnly
+
     - name: Upload installer artifact
       uses: actions/upload-artifact@v4
       with:
