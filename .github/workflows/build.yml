@@ -6,6 +6,36 @@ name: CMake Build
 on: [push, pull_request]
 
 jobs:
+  # A release tag must match the version compiled into the binaries
+  # (src/libraries/qcommon-console/version.cmake / version.h). 6.9.1 and 6.9.2
+  # shipped reporting 6.9.0 because nothing compared them.
+  check-version:
+    runs-on: ubuntu-22.04
+    steps:
+    - uses: actions/checkout@v6
+
+    - name: Check QTAC_VERSION consistency (and tag match on tag builds)
+      env:
+        REF_TYPE: ${{ github.ref_type }}
+        REF_NAME: ${{ github.ref_name }}
+      run: |
+        set -euo pipefail
+        cmake_ver=$(sed -n 's/^set(QTAC_VERSION "\([^"]*\)").*/\1/p' src/libraries/qcommon-console/version.cmake)
+        header_ver=$(sed -n 's/^#define[[:space:]]*QTAC_VERSION[[:space:]]*"\([^"]*\)".*/\1/p' src/libraries/qcommon-console/version.h)
+        echo "version.cmake: $cmake_ver  version.h: $header_ver"
+        if [ -z "$cmake_ver" ] || [ "$cmake_ver" != "$header_ver" ]; then
+          echo "::error::QTAC_VERSION differs between version.cmake ($cmake_ver) and version.h ($header_ver)"
+          exit 1
+        fi
+        if [ "$REF_TYPE" = "tag" ] && [[ "$REF_NAME" =~ ^[0-9]+\.[0-9]+\.[0-9]+ ]]; then
+          tag_ver="${REF_NAME%%-*}"
+          if [ "$tag_ver" != "$cmake_ver" ]; then
+            echo "::error::Tag $REF_NAME does not match QTAC_VERSION $cmake_ver. Bump version.cmake and version.h before tagging."
+            exit 1
+          fi
+          echo "Tag $REF_NAME matches QTAC_VERSION $cmake_ver"
+        fi
+
   fetch-ftdi-linux:
     runs-on: ubuntu-22.04
     steps:
@@ -304,7 +334,7 @@ jobs:
   publish-release-linux:
     name: Publish release (Linux)
     if: github.ref_type == 'tag'
-    needs: build-linux
+    needs: [check-version, build-linux]
     runs-on: ubuntu-22.04
     permissions:
       contents: write
@@ -373,7 +403,7 @@ jobs:
   publish-release-windows:
     name: Publish release (Windows)
     if: github.ref_type == 'tag'
-    needs: [build-windows, build-windows-arm64]
+    needs: [check-version, build-windows, build-windows-arm64]
     runs-on: windows-2022
     permissions:
       contents: write
