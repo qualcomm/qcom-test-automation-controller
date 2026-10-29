@@ -466,21 +466,40 @@ void DeviceCatalog::on__firmwareUpdateBtn_clicked()
 
 	// Pick the firmware variant from the selected board's chipset.
 	QString chipset{"None"};
+	bool boardFound{false};
+	bool boardOpened{false};
 	for (auto& device : psocDevices)
 	{
 		if (QString::fromLatin1(device->serialNumber()) != selectedSerial)
 			continue;
 
+		boardFound = true;
 		if (device->open())
 		{
+			boardOpened = true;
 			chipset = device->chipVersion();
 			device->close();
 		}
-		else
-		{
-			fwLog(QString("Could not open board %1 to read chipset").arg(selectedSerial));
-		}
 		break;
+	}
+
+	// If the selected board is gone or cannot be opened, FWUpdate is very unlikely to
+	// succeed either, and guessing a variant would program every connected board blindly.
+	if (boardFound == false)
+	{
+		fwLog(QString("Selected board %1 is no longer connected; aborting").arg(selectedSerial));
+		QMessageBox::warning(this, "Board Not Found",
+			QString("Board %1 is no longer connected.\n\nReconnect it and try again.").arg(selectedSerial));
+		return;
+	}
+
+	if (boardOpened == false)
+	{
+		fwLog(QString("Could not open board %1 to read chipset; aborting").arg(selectedSerial));
+		QMessageBox::warning(this, "Cannot Open Board",
+			QString("Could not open board %1 to read its chipset.\n\n"
+					"Close any application that is using it (for example TAC) and try again.").arg(selectedSerial));
+		return;
 	}
 
 	QStringList variantsToTry;
@@ -491,9 +510,25 @@ void DeviceCatalog::on__firmwareUpdateBtn_clicked()
 	}
 	else
 	{
+		// The board opened but did not report a known chipset (e.g. old firmware).
+		// Trying every variant may be the only way to recover it, but only with consent.
+		fwLog(QString("Board %1 chipset unknown (%2); asking user whether to try all variants")
+			.arg(selectedSerial, chipset));
+		const auto answer = QMessageBox::question(this, "Unknown Chipset",
+			QString("Board %1 did not report a known chipset (reported: %2).\n\n"
+					"Device Catalog can try each firmware variant in turn (%3) until one succeeds.\n\n"
+					"Try all firmware variants?")
+				.arg(selectedSerial, chipset, kVariants.join(", ")),
+			QMessageBox::Yes | QMessageBox::No, QMessageBox::No);
+
+		if (answer != QMessageBox::Yes)
+		{
+			fwLog("User declined trying all firmware variants");
+			return;
+		}
+
 		variantsToTry = kVariants;
-		fwLog(QString("Board %1 chipset unknown (%2), falling back to trying all variants: %3")
-			.arg(selectedSerial, chipset, kVariants.join(", ")));
+		fwLog(QString("User confirmed trying all variants: %1").arg(kVariants.join(", ")));
 	}
 
 	// FWUpdate has no per-board argument and updates every connected PSOC board.
