@@ -35,6 +35,9 @@ public:
 signals:
 	void progress(const quint8 value=10, NotificationLevel level=eInfoNotification);
 
+protected:
+	void closeEvent(QCloseEvent* event) override;
+
 private slots:
 	void onAutoShutdownTimerTimeout();
 	void setupAutoShutdownTimer();
@@ -61,6 +64,14 @@ private:
 
 	void connect();
 	void disconnect();
+
+	// Stops the timers, detaches the frame and closes the device. Leaves the
+	// window itself alone; disconnect() also resets the UI.
+	void closeDevice();
+	void showDisconnectedState();
+	void updateConnectionControls();
+
+	QString						_defaultTitle;
 
 	void saveSettings();
 	void restoreSettings();

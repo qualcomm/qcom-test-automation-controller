@@ -80,21 +80,95 @@ void TACFrame::setDevice
 	AlpacaDevice alpacaDevice
 )
 {
-	if (alpacaDevice.isNull() == false)
+	if (alpacaDevice.isNull())
 	{
-		_alpacaDevice = alpacaDevice;
-
-		connect(_alpacaDevice.data(), &_AlpacaDevice::pinStateChanged, this, &TACFrame::onPinResponse);
-
-		setPlatformConfiguration(alpacaDevice->platformConfiguration());
-
-		_ui->_infoGroupBox->hide();
+		clearDevice();
+		return;
 	}
-	else
+
+	// Switching straight to another device: drop the previous one first so
+	// its pin updates no longer reach this frame.
+	if (_alpacaDevice.isNull() == false && _alpacaDevice != alpacaDevice)
+		clearDevice();
+
+	_alpacaDevice = alpacaDevice;
+
+	connect(_alpacaDevice.data(), &_AlpacaDevice::pinStateChanged, this, &TACFrame::onPinResponse);
+
+	setPlatformConfiguration(alpacaDevice->platformConfiguration());
+
+	_ui->_infoGroupBox->hide();
+}
+
+void TACFrame::clearDevice()
+{
+	if (_alpacaDevice.isNull() == false)
+		QObject::disconnect(_alpacaDevice.data(), Q_NULLPTR, this, Q_NULLPTR);
+
+	_alpacaDevice.reset();
+	_platformConfiguration.reset();
+
+	clearConfigurationWidgets();
+	clearDeviceInfo();
+
+	// Back to the not-connected look: Quick Tips visible, no reset controls.
+	_ui->_infoGroupBox->show();
+	_ui->_resetFrame->setVisible(false);
+	_ui->_tabs->setCurrentIndex(0);
+
+	updateRenameButton();
+}
+
+void TACFrame::clearConfigurationWidgets()
+{
+	// The pin maps point at PinLEDs that are about to be deleted.
+	_pinMap.clear();
+	_i2cPinMap.clear();
+
+	// Tabs added by setupUITabs() carry a "tabkey" property; the designer
+	// tabs (General, Device Info) do not.
+	for (int i = _ui->_tabs->count() - 1; i >= 0; --i)
 	{
-		// Disconnected: nothing to query, so hide the reset count controls.
-		_ui->_resetFrame->setVisible(false);
+		QWidget* tabWidget = _ui->_tabs->widget(i);
+		if (tabWidget != Q_NULLPTR && tabWidget->property("tabkey").toString().isEmpty() == false)
+		{
+			_ui->_tabs->removeTab(i);
+			delete tabWidget;
+		}
 	}
+
+	// The General tab group boxes keep their grid layouts (created in the
+	// constructor); only the widgets the configuration put in them go.
+	const QList<QGroupBox*> groupBoxes{_ui->_connectionsGroupBox, _ui->_buttonsGroupBox,
+		_ui->_switchesGroupBox, _ui->_quickSettingsGroupBox, _ui->_variablesGroupBox};
+
+	for (QGroupBox* groupBox: groupBoxes)
+	{
+		qDeleteAll(groupBox->findChildren<QWidget*>(QString(), Qt::FindDirectChildrenOnly));
+
+		// cleanupEmptyGroupBoxes() may have hidden it for the last configuration.
+		groupBox->setVisible(true);
+	}
+}
+
+void TACFrame::clearDeviceInfo()
+{
+	const QString kEmpty(QStringLiteral("-"));
+
+	_ui->_hardwareType->setText(kEmpty);
+	_ui->_hardwareVersion->setText(kEmpty);
+	_ui->_firmwareVersion->setText(kEmpty);
+	_ui->_chipset->setText(kEmpty);
+	_ui->_deviceName->setText(kEmpty);
+	_ui->_deviceUUID->setText(kEmpty);
+	_ui->_serialNumber->setText(kEmpty);
+	_ui->_platformID->setText(kEmpty);
+	_ui->_macAddress->setText(kEmpty);
+	_ui->_configurationFile->setText(kEmpty);
+	_ui->_configurationDate->setText(kEmpty);
+	_ui->_configurationFileVersion->setText(kEmpty);
+
+	_ui->_resetCount->clear();
 }
 
 QString TACFrame::portName()
@@ -124,6 +198,10 @@ void TACFrame::setPlatformConfiguration
 {
 	Q_ASSERT(platformConfiguration.isNull() == false);
 
+	// Building on top of a previous configuration would duplicate tabs and
+	// widgets, so start from an empty frame every time.
+	clearConfigurationWidgets();
+
 	_platformConfiguration = platformConfiguration;
 
 	// Show only when the platform supports reset count and the
@@ -142,23 +220,9 @@ void TACFrame::setPlatformConfiguration
 
 void TACFrame::reset()
 {
-	// todo!!!
-	if (_ui != Q_NULLPTR)
-	{
-		QObjectList children = this->children();
-		for (const auto& child: children)
-		{
-			child->deleteLater();
-		}
-
-		delete _ui;
-		_ui = Q_NULLPTR;
-	}
-
-	_ui = new Ui::TACFrameClass;
-	_ui->setupUi(this);
-	_ui->_resetFrame->setVisible(false);
-	this->repaint();
+	// Rebuilding the whole UI lost the group box layouts and the General
+	// tab's "usertab" property; clearing in place keeps them.
+	clearDevice();
 }
 
 void TACFrame::setupUITabs()
@@ -624,7 +688,9 @@ void TACFrame::on__tabs_tabBarClicked(int index)
 			_ui->_deviceUUID->setText(_alpacaDevice->uuid());
 			_ui->_serialNumber->setText(_alpacaDevice->serialNumber());
 			_ui->_platformID->setText(QString::number(_alpacaDevice->platformID()));
-			_ui->_macAddress->setText(_alpacaDevice->macAddress());
+			// Only some boards report a MAC address.
+			const QByteArray macAddress = _alpacaDevice->macAddress().trimmed();
+			_ui->_macAddress->setText(macAddress.isEmpty() ? QStringLiteral("N/A") : QString::fromLatin1(macAddress));
 			_ui->_configurationFile->setText(_platformConfiguration->name());
 			_ui->_configurationDate->setText(_platformConfiguration->modificationDate());
 			_ui->_configurationFileVersion->setText(_platformConfiguration->getFileVersion());
