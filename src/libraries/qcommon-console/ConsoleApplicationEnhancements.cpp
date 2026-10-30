@@ -36,18 +36,15 @@ QString applicationBinPath()
 
 QString applicationDataPath()
 {
-	QString result = "../../../../configurations/";
+	QString result;
 
-	if (QDir(result).exists() == false)
-		{
-			#ifdef Q_OS_WIN
-				result = "C:/ProgramData/Qualcomm/" + kAppName + "/configurations/";
-			#endif
+	#ifdef Q_OS_WIN
+		result = "C:/ProgramData/Qualcomm/" + kAppName;
+	#endif
 
-			#ifdef Q_OS_LINUX
-				result = "/var/lib/qcom/data/" + kAppName + "/configurations/";
-			#endif
-		}
+	#ifdef Q_OS_LINUX
+		result = "/var/lib/qcom/data/" + kAppName;
+	#endif
 
 	return result;
 }
@@ -279,11 +276,20 @@ QString expandPath(const QString &filePath)
 	return result;
 }
 
-QString tacConfigRoot(bool expandThePath)
+QString tacConfigRoot()
 {
-	Q_UNUSED(expandThePath);
-
 	QString result = applicationDataPath();
+	
+	QString deviceListJsonPath = result + "/configurations/devicelist.json";
+	bool isdeviceListJsonPathPresent = QFile(deviceListJsonPath).exists();
+	if (isdeviceListJsonPathPresent == false)
+	{
+		result = "../../../../configurations/";		
+	}
+	else
+	{
+		result += "/configurations/";
+	}
 
 	return result;
 }
