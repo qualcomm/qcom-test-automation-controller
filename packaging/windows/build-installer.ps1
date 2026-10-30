@@ -155,10 +155,10 @@ if (-not $RustOnly) {
     }
 }
 
-$interfacesDest = Join-Path $data 'interfaces'
-New-Item -ItemType Directory -Force -Path $interfacesDest | Out-Null
-
 if (-not $RustOnly) {
+    $interfacesDest = Join-Path $data 'interfaces'
+    New-Item -ItemType Directory -Force -Path $interfacesDest | Out-Null
+
     # C++ integrator headers (no compiled library -- consumers build against these
     # directly). Matches PROD parity: PROD ships interfaces\C++\TACDev\ headers.
     $cppHeaderSrc = Join-Path $SourceRoot 'interfaces\C++\TACDev'
@@ -171,25 +171,35 @@ if (-not $RustOnly) {
     }
 }
 
-$langs = if ($RustOnly) { @('Rust') } else { @('Python', 'Java', 'Rust') }
-foreach ($lang in $langs) {
-    $srcLang = Join-Path $SourceRoot "interfaces\$lang"
-    if (Test-Path $srcLang) {
-        $destLang = Join-Path $interfacesDest $lang
-        New-Item -ItemType Directory -Force -Path $destLang | Out-Null
-        Get-ChildItem $srcLang -Recurse |
-            Where-Object { $_.FullName -notmatch '\\target\\' } |
-            ForEach-Object {
-                $rel  = $_.FullName.Substring($srcLang.Length + 1)
-                $dest = Join-Path $destLang $rel
-                if ($_.PSIsContainer) {
-                    New-Item -ItemType Directory -Force -Path $dest | Out-Null
-                } else {
-                    Copy-Item $_.FullName $dest -Force
-                }
-            }
+if ($RustOnly) {
+    # Rust-only variant ships just TACDev.h alongside the DLL/lib already in app\.
+    # That is the complete C SDK needed to write Rust FFI bindings.
+    $hSrc = Join-Path $SourceRoot 'interfaces\C++\TACDev\TACDev.h'
+    if (Test-Path $hSrc) {
+        Copy-Item $hSrc (Join-Path $data 'app') -Force
     } else {
-        Write-Warning "No interfaces\$lang directory found; $lang interface will be absent from the installer."
+        Write-Warning "TACDev.h not found at $hSrc; header will be absent from the installer."
+    }
+} else {
+    foreach ($lang in @('Python', 'Java', 'Rust')) {
+        $srcLang = Join-Path $SourceRoot "interfaces\$lang"
+        if (Test-Path $srcLang) {
+            $destLang = Join-Path $interfacesDest $lang
+            New-Item -ItemType Directory -Force -Path $destLang | Out-Null
+            Get-ChildItem $srcLang -Recurse |
+                Where-Object { $_.FullName -notmatch '\\target\\' } |
+                ForEach-Object {
+                    $rel  = $_.FullName.Substring($srcLang.Length + 1)
+                    $dest = Join-Path $destLang $rel
+                    if ($_.PSIsContainer) {
+                        New-Item -ItemType Directory -Force -Path $dest | Out-Null
+                    } else {
+                        Copy-Item $_.FullName $dest -Force
+                    }
+                }
+        } else {
+            Write-Warning "No interfaces\$lang directory found; $lang interface will be absent from the installer."
+        }
     }
 }
 
