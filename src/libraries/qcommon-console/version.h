@@ -5,7 +5,8 @@
 
 // major.minor.patch
 
-#define QTAC_VERSION			"6.9.0"
+// Must match QTAC_VERSION in version.cmake; CMake configure fails otherwise.
+#define QTAC_VERSION			"6.9.3"
 #define TAC_CONFIG_VERSION		"4.0.0"
 
 #define QCOMMONCONSOLE_VERSION  "4.0.0"

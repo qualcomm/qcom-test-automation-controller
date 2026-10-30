@@ -1,8 +1,7 @@
 # Copyright (c) Qualcomm Technologies, Inc. and/or its subsidiaries.
 # SPDX-License-Identifier: BSD-3-Clause
 
-set(QTAC_VERSION "6.9.0")
-set(BUG_WRITER_VERSION "2.0.0")
+set(QTAC_VERSION "6.9.3")
 set(DEVICE_CATALOG_VERSION "2.0.0")
 
 set(UPDATE_DEVICE_LIST_VERSION 1.0.0)
@@ -11,6 +10,18 @@ set(FW_UPDATE_VERSION "3.0.0")
 
 set(QCOMMONCOMMAND_VERSION "2.0.0")
 set(EEPROM_COMMAND "2.0.0")
+
+# version.h carries the same QTAC_VERSION for the C++ code (About box, TACDev,
+# logs) and for docs/tools/generate-docs.py. The two copies drifted once (6.9.1
+# and 6.9.2 shipped reporting 6.9.0), so refuse to configure when they differ.
+file(STRINGS "${CMAKE_CURRENT_LIST_DIR}/version.h" _qtac_version_h_line
+	REGEX "^#define[ \t]+QTAC_VERSION[ \t]+\"[^\"]+\"")
+string(REGEX REPLACE ".*\"([^\"]+)\".*" "\\1" _qtac_version_h "${_qtac_version_h_line}")
+if(NOT _qtac_version_h STREQUAL QTAC_VERSION)
+	message(FATAL_ERROR
+		"QTAC_VERSION mismatch: version.cmake has \"${QTAC_VERSION}\" but version.h has "
+		"\"${_qtac_version_h}\". Update both files in src/libraries/qcommon-console/.")
+endif()
 
 # Directory of this file, captured at include time so functions below can find version_info.rc.in.
 set(QTAC_VERSION_INFO_TEMPLATE "${CMAKE_CURRENT_LIST_DIR}/version_info.rc.in")

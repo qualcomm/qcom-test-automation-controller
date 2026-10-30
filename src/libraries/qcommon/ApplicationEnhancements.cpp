@@ -14,6 +14,7 @@
 #include <QLibrary>
 #include <QMdiSubWindow>
 #include <QMenu>
+#include <QMessageBox>
 #include <QProcess>
 #include <QSettings>
 #include <QStandardPaths>
@@ -137,7 +138,59 @@ void launchFolder
 
 void startLocalBrowser(const QString &filePath)
 {
-	QDesktopServices::openUrl(QUrl::fromLocalFile(filePath));
+	const QString nativePath = QDir::toNativeSeparators(QDir::cleanPath(filePath));
+
+	if (QFileInfo::exists(filePath) == false)
+	{
+		qWarning().noquote() << "startLocalBrowser: help file not found:" << nativePath;
+		QMessageBox::warning(QApplication::activeWindow(), QStringLiteral("Help Not Found"),
+			QStringLiteral("The help file could not be found:\n\n%1\n\n"
+						   "The documentation may not be installed with this package.").arg(nativePath));
+		return;
+	}
+
+	if (QDesktopServices::openUrl(QUrl::fromLocalFile(filePath)) == false)
+	{
+		qWarning().noquote() << "startLocalBrowser: could not open" << nativePath;
+		QMessageBox::warning(QApplication::activeWindow(), QStringLiteral("Unable to Open Help"),
+			QStringLiteral("No application could open the help file:\n\n%1").arg(nativePath));
+	}
+}
+
+QString bugWriterProgram()
+{
+	const QString binDir = QCoreApplication::applicationDirPath();
+	return QStandardPaths::findExecutable(QStringLiteral("BugWriter"), {binDir});
+}
+
+bool bugWriterAvailable()
+{
+	return bugWriterProgram().isEmpty() == false;
+}
+
+bool startBugWriter(const QStringList& arguments, QWidget* parent)
+{
+	const QString program = bugWriterProgram();
+
+	if (program.isEmpty())
+	{
+		// The menu entry is hidden when BugWriter is absent, so this only
+		// happens if it was removed while the application was running.
+		qWarning().noquote() << "startBugWriter: BugWriter not found in"
+							 << QDir::toNativeSeparators(QCoreApplication::applicationDirPath());
+		return false;
+	}
+
+	if (QProcess::startDetached(program, arguments) == false)
+	{
+		const QString nativeProgram = QDir::toNativeSeparators(program);
+		qWarning().noquote() << "startBugWriter: failed to start" << nativeProgram;
+		QMessageBox::warning(parent, QStringLiteral("Submit Bug Report"),
+			QStringLiteral("BugWriter could not be started:\n\n%1").arg(nativeProgram));
+		return false;
+	}
+
+	return true;
 }
 
 // Returns the folder that holds this product's documentation (the folder that
