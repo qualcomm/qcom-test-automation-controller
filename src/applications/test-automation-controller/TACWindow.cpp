@@ -20,16 +20,14 @@
 #include "ConsoleApplicationEnhancements.h"
 
 // QT
+#include <QCloseEvent>
 #include <QDir>
 #include <QFileInfoList>
 #include <QInputDialog>
 #include <QMenu>
 #include <QMenuBar>
 #include <QMessageBox>
-#include <QProcess>
 #include <QScrollBar>
-
-const QString kWindowTitle(QStringLiteral("Test Automation Controller %1"));
 
 TACWindow::TACWindow
 (
@@ -39,9 +37,15 @@ TACWindow::TACWindow
 {
 	setupUi(this);
 
+	// Only distributions that ship BugWriter offer bug reporting.
+	actionSubmit_Bug_Report->setVisible(bugWriterAvailable());
+
 	QString windowTitle{this->windowTitle()};
 	windowTitle = QString(windowTitle).arg("QTAC");
 	this->setWindowTitle(windowTitle);
+
+	// Restored when the device is disconnected.
+	_defaultTitle = windowTitle;
 
 	_nwgt = new NotificationWidget(_statusbar);
 	_statusbar->addPermanentWidget(_nwgt);
@@ -53,13 +57,16 @@ TACWindow::TACWindow
 	_titleRefreshTimer.setInterval(500);
 	QObject::connect(&_titleRefreshTimer, &QTimer::timeout, this, &TACWindow::onTitleRefreshTimeout);
 	QObject::connect(this, &TACWindow::progress, _nwgt, &NotificationWidget::progress, Qt::DirectConnection);
+
+	updateConnectionControls();
 }
 
 TACWindow::~TACWindow()
 {
 	saveSettings();
 
-	disconnect();
+	closeDevice();
+	TACApplication::disconnectTACWindow(this);
 }
 
 void TACWindow::saveSettings()
@@ -146,18 +153,56 @@ void TACWindow::onTitleRefreshTimeout()
 		_titleRefreshTimer.stop();
 }
 
-void TACWindow::shutDown()
+void TACWindow::closeDevice()
 {
 	_titleRefreshTimer.stop();
+	_autoShutdownTimer.stop();
 
 	if (_alpacaDevice.isNull() == false)
 	{
-		TACApplication::disconnectTACWindow(this);
+		QObject::disconnect(_alpacaDevice.data(), Q_NULLPTR, _nwgt, Q_NULLPTR);
 
 		_tacFrame->setDevice(AlpacaDevice(Q_NULLPTR));
 		_alpacaDevice->close();
-		_alpacaDevice = AlpacaDevice(Q_NULLPTR);
+		_alpacaDevice.reset();
 	}
+}
+
+void TACWindow::showDisconnectedState()
+{
+	_deviceStatusLabel->setText("Disconnected");
+	setWindowTitle(_defaultTitle);
+	_statusbar->clearMessage();
+
+	updateConnectionControls();
+}
+
+void TACWindow::updateConnectionControls()
+{
+	const bool connected = inUse();
+
+	_disconnectButton->setEnabled(connected);
+	actionDisconnect->setEnabled(connected);
+}
+
+// Called by TACApplication when the application quits. The application owns
+// the window list at that point, so the window must not remove itself.
+void TACWindow::shutDown()
+{
+	closeDevice();
+}
+
+void TACWindow::closeEvent(QCloseEvent* event)
+{
+	closeDevice();
+	TACApplication::disconnectTACWindow(this);
+
+	event->accept();
+	deleteLater();
+
+	// Closing the last window still ends the application.
+	if (TACApplication::windowCount() == 0)
+		TACApplication::tacAppInstance()->quitTAC();
 }
 
 void TACWindow::onAutoShutdownTimerTimeout()
@@ -165,7 +210,11 @@ void TACWindow::onAutoShutdownTimerTimeout()
 	qint64 elapsed = _autoShutdownDeadline.elapsed();
 	if (elapsed > TACApplication::tacAppInstance()->preferences()->autoShutdownDelayInMSecs())
 	{
-		shutDown();
+		if (inUse())
+		{
+			disconnect();
+			_statusbar->showMessage("Disconnected by auto shutdown");
+		}
 	}
 }
 
@@ -222,45 +271,56 @@ void TACWindow::openPort
 	const QByteArray &portName
 )
 {
-	_alpacaDevice = _AlpacaDevice::findAlpacaDevice(portName);
-
 	emit progress();
 
-	if (_alpacaDevice.isNull() == false)
+	AlpacaDevice alpacaDevice = _AlpacaDevice::findAlpacaDevice(portName);
+	if (alpacaDevice.isNull())
 	{
-		if (_alpacaDevice->open() == true)
-		{
-			int minorVersion = _alpacaDevice->minorVersion();
-
-			_tacFrame->setDevice(_alpacaDevice);
-
-			QString portName = " " + _alpacaDevice->portName();
-
-			// The hardware identity arrives shortly after the port opens, so
-			// show what is known now and refresh for a few seconds.
-			updateTitle();
-			_titleRefreshAttempts = 0;
-			_titleRefreshTimer.start();
-
-			_disconnectButton->setEnabled(true);
-
-			_deviceStatusLabel->setText("Connected");
-
-			resize(_alpacaDevice->windowDimension());
-
-			if (_alpacaDevice->getLastError().isEmpty() == false)
-				_statusbar->showMessage("Error: " + _alpacaDevice->getLastError());
-
-			TACApplication::tacAppInstance()->preferences()->saveLastDevice(portName);
-
-			QObject::connect(_alpacaDevice.data(), &_AlpacaDevice::progress, _nwgt, &NotificationWidget::progress);
-			emit progress(80);
-		}
-		else
-		{
-			// do nothing
-		}
+		emit progress(90, eErrorNotification);
+		_statusbar->showMessage("Device " + QString::fromLatin1(portName.trimmed()) + " was not found");
+		return;
 	}
+
+	if (alpacaDevice->open() == false)
+	{
+		// Leave the window disconnected so it can be used for another device.
+		emit progress(90, eErrorNotification);
+		_statusbar->showMessage("Unable to open " + QString::fromLatin1(alpacaDevice->portName()));
+		return;
+	}
+
+	_alpacaDevice = alpacaDevice;
+
+	_tacFrame->setDevice(_alpacaDevice);
+
+	// The hardware identity arrives shortly after the port opens, so
+	// show what is known now and refresh for a few seconds.
+	updateTitle();
+	_titleRefreshAttempts = 0;
+	_titleRefreshTimer.start();
+
+	_deviceStatusLabel->setText("Connected");
+	updateConnectionControls();
+
+	resize(_alpacaDevice->windowDimension());
+
+	const QByteArray lastError = _alpacaDevice->getLastError();
+	if (lastError.isEmpty() == false)
+		_statusbar->showMessage("Error: " + lastError);
+
+	// Remember the board by serial number when it has one: COM port numbers
+	// change between sessions, the serial number does not. findAlpacaDevice()
+	// accepts either.
+	QByteArray lastDevice = _alpacaDevice->serialNumber().trimmed();
+	if (lastDevice.isEmpty())
+		lastDevice = _alpacaDevice->portName().trimmed();
+	TACApplication::tacAppInstance()->preferences()->saveLastDevice(QString::fromLatin1(lastDevice));
+
+	QObject::connect(_alpacaDevice.data(), &_AlpacaDevice::progress, _nwgt, &NotificationWidget::progress);
+
+	setupAutoShutdownTimer();
+
+	emit progress(80);
 }
 
 QByteArray TACWindow::portName() const
@@ -339,14 +399,13 @@ void TACWindow::on_actionDisconnect_triggered()
 	disconnect();
 }
 
+// Disconnecting only releases the device: the window stays open, in the
+// application's window list, and looks the way it did before connecting,
+// so Connect can be used again straight away.
 void TACWindow::disconnect()
 {
-	shutDown();
-
-	_autoShutdownTimer.stop();
-	TACApplication::disconnectTACWindow(this);
-
-	deleteLater();
+	closeDevice();
+	showDisconnectedState();
 }
 
 void TACWindow::on_actionContents_triggered()
@@ -361,8 +420,6 @@ void TACWindow::on_actionAbout_triggered()
 
 void TACWindow::on_actionSubmit_Bug_Report_triggered()
 {
-	QString program = applicationBinPath() + "BugWriter";
-
 	QStringList arguments;
 	arguments << "product:QTAC";
 	arguments << "prodversion:" + kProductVersion;
@@ -370,9 +427,5 @@ void TACWindow::on_actionSubmit_Bug_Report_triggered()
 	arguments << "appversion:" + kAppVersion;
 	arguments << "listports:";
 
-	QProcess* process = new QProcess(Q_NULLPTR);
-
-	process->setProgram(program);
-	process->setArguments(arguments);
-	process->startDetached();
+	startBugWriter(arguments, this);
 }
