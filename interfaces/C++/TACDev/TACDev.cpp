@@ -9,6 +9,7 @@
 #include "TACException.h"
 
 // QCommon
+#include "AppCore.h"
 #include "mymemcpy.h"
 #include "version.h"
 
@@ -121,12 +122,21 @@ TAC_RESULT _quickCommand
 	{
 		try
 		{
+			// The completion flag is armed inside quickCommand() itself, so
+			// both this entry point and the exported SendCommand() get the
+			// timeout detection without each caller having to remember.
 			alpacaDevice->quickCommand(command);
 		}
 		catch (const TACException& e)
 		{
 			result = e.errorCode();
 			gDevTACCore.setLastError(e.getMessage());
+
+			AppCore::writeToApplicationLogLine(
+				QString("_quickCommand(%1): failed with result %2, %3")
+					.arg(command)
+					.arg(result)
+					.arg(e.getMessage()));
 		}
 	}
 	else
@@ -237,7 +247,7 @@ unsigned long GetPortData
 	int result{0};
 
 	const AlpacaDevices& alpacaDevices = gDevTACCore.GetAlpacaDevices();
-	if (deviceIndex < alpacaDevices.count())
+	if (deviceIndex >= 0 && deviceIndex < alpacaDevices.count())
 	{
 		AlpacaDevice alpacaDevice =  alpacaDevices.at(deviceIndex);
 		QByteArray portData2;
@@ -443,7 +453,15 @@ TAC_ERROR SetExternalPowerControl
 	AlpacaDevice alpacaDevice = gDevTACCore.getAlpacaDevice(tacHandle);
 	if (alpacaDevice.isNull() == false)
 	{
-		alpacaDevice->externalPowerControl(state);
+		try
+		{
+			alpacaDevice->externalPowerControl(state);
+		}
+		catch (const TACException& e)
+		{
+			result = e.errorCode();
+			gDevTACCore.setLastError(e.getMessage());
+		}
 	}
 	else
 	{
@@ -845,8 +863,16 @@ TAC_ERROR SetPinState
 	AlpacaDevice alpacaDevice = gDevTACCore.getAlpacaDevice(tacHandle);
 	if (alpacaDevice.isNull() == false)
 	{
-		alpacaDevice->setWaitForCompletion();
-		alpacaDevice->setPinState(pin, state);
+		try
+		{
+			alpacaDevice->setWaitForCompletion();
+			alpacaDevice->setPinState(pin, state);
+		}
+		catch (TACException& e)
+		{
+			result = e.errorCode();
+			gDevTACCore.setLastError(e.getMessage());
+		}
 	}
 	else
 	{
@@ -893,8 +919,13 @@ TAC_ERROR GetCommand
 	AlpacaDevice alpacaDevice = gDevTACCore.getAlpacaDevice(tacHandle);
 	if (alpacaDevice.isNull() == false)
 	{
-		TACCommand commandEntry = alpacaDevice->commandEntry(commandIndex);
-		if (commandEntry._pin != 0)
+		// commandEntry() returns a default entry (pin == -1) for an out-of-range index,
+		// so check the range explicitly instead of relying on the pin value.
+		TACCommand commandEntry;
+		const bool inRange = commandIndex < alpacaDevice->commandCount();
+		if (inRange)
+			commandEntry = alpacaDevice->commandEntry(commandIndex);
+		if (inRange && commandEntry._pin != 0)
 		{
 			QByteArray commandData;
 
@@ -1067,21 +1098,26 @@ TAC_ERROR GetHelpText
 	AlpacaDevice alpacaDevice = gDevTACCore.getAlpacaDevice(tacHandle);
 	if (alpacaDevice.isNull() == false)
 	{
-		// todo
 		QByteArray helpText = alpacaDevice->getHelp();
 		if (helpText.size() >= bufferSize)
 		{
 			result = TACDEV_BUFFER_TOO_SMALL;
 			gDevTACCore.setLastError(kTACDevBufferTooSmall);
-			*actualSize = helpText.size();
+			if (actualSize != nullptr)
+				*actualSize = helpText.size();
 		}
 		else
+		{
 			my_memcpy(helpBuffer, bufferSize, helpText, helpText.size());
+			if (actualSize != nullptr)
+				*actualSize = helpText.size();
+		}
 	}
 	else
 	{
 		my_memcpy(helpBuffer, bufferSize, "\0", 1);
-		*actualSize = 0;
+		if (actualSize != nullptr)
+			*actualSize = 0;
 
 		result = TACDEV_BAD_TAC_HANDLE;
 		gDevTACCore.setLastError(kTACDevHandleNotOpen);
@@ -1114,14 +1150,23 @@ TAC_ERROR GetScriptVariable(TAC_HANDLE tacHandle, unsigned long scriptVariableIn
 
 	if (alpacaDevice.isNull() == false)
 	{
-		QByteArray variableData = alpacaDevice->getScriptVariable(scriptVariableIndex);
-		if (variableData.size() >= bufferSize)
+		if (scriptVariableIndex >= alpacaDevice->scriptVariableCount())
 		{
-			result = TACDEV_BUFFER_TOO_SMALL;
-			gDevTACCore.setLastError(kTACDevBufferTooSmall);
+			my_memcpy(scriptVariableBuffer, bufferSize, "\0", 1);
+			result = TAC_BAD_INDEX;
+			gDevTACCore.setLastError(kTACBadIndex);
 		}
 		else
-			my_memcpy(scriptVariableBuffer, bufferSize, variableData, variableData.size());
+		{
+			QByteArray variableData = alpacaDevice->getScriptVariable(scriptVariableIndex);
+			if (variableData.size() >= bufferSize)
+			{
+				result = TACDEV_BUFFER_TOO_SMALL;
+				gDevTACCore.setLastError(kTACDevBufferTooSmall);
+			}
+			else
+				my_memcpy(scriptVariableBuffer, bufferSize, variableData, variableData.size());
+		}
 	}
 	else
 	{

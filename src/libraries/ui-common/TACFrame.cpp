@@ -46,6 +46,10 @@ TACFrame::TACFrame
 {
 	_ui->setupUi(this);
 
+	// Reset count is only meaningful once a device that supports it is
+	// connected; setPlatformConfiguration() decides whether to show it.
+	_ui->_resetFrame->setVisible(false);
+
 	QGridLayout* gridLayout;
 
 	gridLayout = new QGridLayout(_ui->_connectionsGroupBox);
@@ -76,19 +80,95 @@ void TACFrame::setDevice
 	AlpacaDevice alpacaDevice
 )
 {
-	if (alpacaDevice.isNull() == false)
+	if (alpacaDevice.isNull())
 	{
-		_alpacaDevice = alpacaDevice;
-
-		connect(_alpacaDevice.data(), &_AlpacaDevice::pinStateChanged, this, &TACFrame::onPinResponse);
-
-		setPlatformConfiguration(alpacaDevice->platformConfiguration());
-
-		_ui->_infoGroupBox->hide();
+		clearDevice();
+		return;
 	}
+
+	// Switching straight to another device: drop the previous one first so
+	// its pin updates no longer reach this frame.
+	if (_alpacaDevice.isNull() == false && _alpacaDevice != alpacaDevice)
+		clearDevice();
+
+	_alpacaDevice = alpacaDevice;
+
+	connect(_alpacaDevice.data(), &_AlpacaDevice::pinStateChanged, this, &TACFrame::onPinResponse);
+
+	setPlatformConfiguration(alpacaDevice->platformConfiguration());
+
+	_ui->_infoGroupBox->hide();
+}
+
+void TACFrame::clearDevice()
+{
+	if (_alpacaDevice.isNull() == false)
+		QObject::disconnect(_alpacaDevice.data(), Q_NULLPTR, this, Q_NULLPTR);
+
+	_alpacaDevice.reset();
+	_platformConfiguration.reset();
+
+	clearConfigurationWidgets();
+	clearDeviceInfo();
+
+	// Back to the not-connected look: Quick Tips visible, no reset controls.
+	_ui->_infoGroupBox->show();
+	_ui->_resetFrame->setVisible(false);
+	_ui->_tabs->setCurrentIndex(0);
+
+	updateRenameButton();
+}
+
+void TACFrame::clearConfigurationWidgets()
+{
+	// The pin maps point at PinLEDs that are about to be deleted.
+	_pinMap.clear();
+	_i2cPinMap.clear();
+
+	// Tabs added by setupUITabs() carry a "tabkey" property; the designer
+	// tabs (General, Device Info) do not.
+	for (int i = _ui->_tabs->count() - 1; i >= 0; --i)
 	{
-		// error message????
+		QWidget* tabWidget = _ui->_tabs->widget(i);
+		if (tabWidget != Q_NULLPTR && tabWidget->property("tabkey").toString().isEmpty() == false)
+		{
+			_ui->_tabs->removeTab(i);
+			delete tabWidget;
+		}
 	}
+
+	// The General tab group boxes keep their grid layouts (created in the
+	// constructor); only the widgets the configuration put in them go.
+	const QList<QGroupBox*> groupBoxes{_ui->_connectionsGroupBox, _ui->_buttonsGroupBox,
+		_ui->_switchesGroupBox, _ui->_quickSettingsGroupBox, _ui->_variablesGroupBox};
+
+	for (QGroupBox* groupBox: groupBoxes)
+	{
+		qDeleteAll(groupBox->findChildren<QWidget*>(QString(), Qt::FindDirectChildrenOnly));
+
+		// cleanupEmptyGroupBoxes() may have hidden it for the last configuration.
+		groupBox->setVisible(true);
+	}
+}
+
+void TACFrame::clearDeviceInfo()
+{
+	const QString kEmpty(QStringLiteral("-"));
+
+	_ui->_hardwareType->setText(kEmpty);
+	_ui->_hardwareVersion->setText(kEmpty);
+	_ui->_firmwareVersion->setText(kEmpty);
+	_ui->_chipset->setText(kEmpty);
+	_ui->_deviceName->setText(kEmpty);
+	_ui->_deviceUUID->setText(kEmpty);
+	_ui->_serialNumber->setText(kEmpty);
+	_ui->_platformID->setText(kEmpty);
+	_ui->_macAddress->setText(kEmpty);
+	_ui->_configurationFile->setText(kEmpty);
+	_ui->_configurationDate->setText(kEmpty);
+	_ui->_configurationFileVersion->setText(kEmpty);
+
+	_ui->_resetCount->clear();
 }
 
 QString TACFrame::portName()
@@ -118,9 +198,16 @@ void TACFrame::setPlatformConfiguration
 {
 	Q_ASSERT(platformConfiguration.isNull() == false);
 
+	// Building on top of a previous configuration would duplicate tabs and
+	// widgets, so start from an empty frame every time.
+	clearConfigurationWidgets();
+
 	_platformConfiguration = platformConfiguration;
 
-	_ui->_resetFrame->setVisible(_platformConfiguration->getResetEnabledState());
+	// Show only when the platform supports reset count and the
+	// configuration enables it.
+	_ui->_resetFrame->setVisible(_platformConfiguration->resetActive() &&
+								 _platformConfiguration->getResetEnabledState());
 
 	setupUITabs();
 	setupUIPins();
@@ -133,22 +220,9 @@ void TACFrame::setPlatformConfiguration
 
 void TACFrame::reset()
 {
-	// todo!!!
-	if (_ui != Q_NULLPTR)
-	{
-		QObjectList children = this->children();
-		for (const auto& child: children)
-		{
-			child->deleteLater();
-		}
-
-		delete _ui;
-		_ui = Q_NULLPTR;
-	}
-
-	_ui = new Ui::TACFrameClass;
-	_ui->setupUi(this);
-	this->repaint();
+	// Rebuilding the whole UI lost the group box layouts and the General
+	// tab's "usertab" property; clearing in place keeps them.
+	clearDevice();
 }
 
 void TACFrame::setupUITabs()
@@ -614,10 +688,90 @@ void TACFrame::on__tabs_tabBarClicked(int index)
 			_ui->_deviceUUID->setText(_alpacaDevice->uuid());
 			_ui->_serialNumber->setText(_alpacaDevice->serialNumber());
 			_ui->_platformID->setText(QString::number(_alpacaDevice->platformID()));
-			_ui->_macAddress->setText(_alpacaDevice->macAddress());
+			// Only some boards report a MAC address.
+			const QByteArray macAddress = _alpacaDevice->macAddress().trimmed();
+			_ui->_macAddress->setText(macAddress.isEmpty() ? QStringLiteral("N/A") : QString::fromLatin1(macAddress));
 			_ui->_configurationFile->setText(_platformConfiguration->name());
 			_ui->_configurationDate->setText(_platformConfiguration->modificationDate());
 			_ui->_configurationFileVersion->setText(_platformConfiguration->getFileVersion());
 		}
 	}
+
+	updateRenameButton();
+}
+
+void TACFrame::updateRenameButton()
+{
+	// Only PSOC is offered Rename. PIC32CX sends the set-name command but has
+	// no reply handling to refresh the cached name, and the other drive
+	// threads do not implement it, so Rename would look like it did nothing.
+	bool canRename{false};
+
+	if (_alpacaDevice.isNull() == false)
+		canRename = (_alpacaDevice->debugBoardType() == ePSOC);
+
+	_ui->_renameButton->setEnabled(canRename);
+	_ui->_renameButton->setToolTip(canRename ? QString() :
+		QStringLiteral("Renaming is not supported for this device"));
+}
+
+void TACFrame::on__renameButton_clicked()
+{
+	if (_alpacaDevice.isNull() || _alpacaDevice->debugBoardType() != ePSOC)
+		return;
+
+	const QString currentName = QString::fromLatin1(_alpacaDevice->name());
+
+	bool ok{false};
+	QString newName = QInputDialog::getText(this, QStringLiteral("Rename Device"),
+		QStringLiteral("New name (1-32 letters or digits):"), QLineEdit::Normal, currentName, &ok).trimmed();
+
+	if (ok == false || newName.isEmpty() || newName == currentName)
+		return;
+
+	const QByteArray latin1Name = newName.toLatin1();
+	if (latin1Name.length() > 32 || isAlphaNumeric(latin1Name) == false)
+	{
+		QMessageBox::warning(this, QStringLiteral("Rename Device"),
+			QStringLiteral("The name must be 1 to 32 characters long and contain only letters and digits."));
+		return;
+	}
+
+	_alpacaDevice->setName(latin1Name);
+
+	_ui->_deviceName->setText(_alpacaDevice->name());
+}
+
+// Slots below are connected by name in setupUi(), so they survive reset().
+void TACFrame::on__getResetCountButton_clicked()
+{
+	if (_alpacaDevice.isNull())
+	{
+		emit startNotification("Reset count: no device is connected", eWarnNotification);
+		return;
+	}
+
+	const int resetCount{_alpacaDevice->getResetCount()};
+
+	_ui->_resetCount->setText(QString::number(resetCount));
+}
+
+void TACFrame::on__clearResetCountButton_clicked()
+{
+	if (_alpacaDevice.isNull())
+	{
+		emit startNotification("Reset count: no device is connected", eWarnNotification);
+		return;
+	}
+
+	// clearResetCount() reports no status, so read the counter back to
+	// confirm the device actually cleared it.
+	_alpacaDevice->clearResetCount();
+
+	const int resetCount{_alpacaDevice->getResetCount()};
+
+	_ui->_resetCount->setText(QString::number(resetCount));
+
+	if (resetCount != 0)
+		emit startNotification(QString("Reset count was not cleared (device reports %1)").arg(resetCount), eErrorNotification);
 }

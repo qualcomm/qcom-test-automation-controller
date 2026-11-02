@@ -1,7 +1,7 @@
 # Copyright (c) Qualcomm Technologies, Inc. and/or its subsidiaries.
 # SPDX-License-Identifier: BSD-3-Clause
 
-cmake_minimum_required(VERSION 3.22)
+cmake_minimum_required(VERSION 3.24)
 
 if(WIN32)
     if(CMAKE_SYSTEM_PROCESSOR MATCHES "ARM64|aarch64" OR CMAKE_GENERATOR_PLATFORM STREQUAL "ARM64")
@@ -164,3 +164,16 @@ FetchContent_Declare(
     GIT_SHALLOW    TRUE
 )
 FetchContent_MakeAvailable(hidapi)
+
+# In a static Windows build, hid.c #includes hidapi_descriptor_reconstruct.c
+# (it is guarded only by hidapi_winapi_EXPORTS, which a static build never
+# defines), and hidapi's CMake also compiles that file on its own. Linking both
+# objects defines the same function twice (LNK4006). Compile it only through
+# hid.c.
+if(WIN32 AND TARGET hidapi_winapi AND NOT BUILD_SHARED_LIBS)
+    set_source_files_properties(
+        "${hidapi_SOURCE_DIR}/windows/hidapi_descriptor_reconstruct.c"
+        TARGET_DIRECTORY hidapi_winapi
+        PROPERTIES HEADER_FILE_ONLY ON
+    )
+endif()

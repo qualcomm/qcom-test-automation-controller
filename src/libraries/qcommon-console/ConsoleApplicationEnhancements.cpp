@@ -8,12 +8,14 @@
 // Qt
 #include <QCoreApplication>
 #include <QDateTime>
+#include <QDebug>
 #include <QDir>
 #include <QFileInfo>
 #include <QLibrary>
 #include <QProcess>
 #include <QSettings>
 #include <QStandardPaths>
+#include <QTemporaryFile>
 
 #ifdef Q_OS_WINDOWS
 	#include <windows.h>
@@ -22,10 +24,38 @@
 	#pragma comment(lib, "shell32")
 #endif
 #ifdef Q_OS_LINUX
+	#include <pwd.h>
 	#include <unistd.h>
 #endif
 
 const QString kAppName("QTAC");
+
+namespace
+{
+
+// Confirms a directory exists and actually accepts writes.
+//
+// Existence alone is not enough. A home directory can be present but read
+// only, full, or over its storage quota, and in those cases every later write
+// fails. Probing with a real file is the only reliable test.
+bool directoryIsWritable(const QString& path)
+{
+	QDir dir(path);
+
+	if (path.isEmpty() || dir.exists() == false)
+	{
+		return false;
+	}
+
+	// The unique name template keeps concurrent processes from colliding, and
+	// the probe removes itself when it goes out of scope.
+	QTemporaryFile probe(dir.filePath(QStringLiteral("qtac-probe-XXXXXX.tmp")));
+	probe.setAutoRemove(true);
+
+	return probe.open();
+}
+
+} // namespace
 
 QString applicationBinPath()
 {
@@ -49,12 +79,22 @@ QString applicationDataPath()
 	return result;
 }
 
+// Returns the per user directory that holds configuration, or an empty string
+// when no such directory can be established.
+//
+// Callers must treat an empty return value as "configuration storage is not
+// available" and fail rather than carry on, because continuing without
+// configuration means device settings cannot be read or written.
+//
+// Diagnostics here deliberately use qWarning() rather than the application log.
+// The application log location is itself derived from this function, so logging
+// through it would recurse.
 QString documentsDataPath
 (
 	const QString& append
 )
 {
-	QString result;
+	QString base;
 	QString appName;
 
 	appName = QCoreApplication::applicationName();
@@ -63,21 +103,62 @@ QString documentsDataPath
 
 #ifdef Q_OS_WIN
 	// QStandardPaths would return the "One Drive" location. Excel documents don't like living here
-	result = QDir::homePath() + QDir::separator() + "Documents";
+	base = QDir::homePath() + QDir::separator() + "Documents";
 #else
-	result = QStandardPaths::writableLocation(QStandardPaths::DocumentsLocation);
+	base = QStandardPaths::writableLocation(QStandardPaths::DocumentsLocation);
 #endif
 
-	result = QDir::cleanPath(result + QDir::separator() + appName);
+	// QStandardPaths yields an empty string when it cannot resolve a location.
+	// Concatenating onto that would silently produce a relative path rooted at
+	// the working directory, so reject it instead.
+	if (base.isEmpty())
+	{
+		qWarning() << "Alpaca: no documents location is available for the current user."
+			<< "Configuration cannot be read or written.";
+		return QString();
+	}
+
+	// QDir::homePath() falls back to the root directory when HOME is not set.
+	// That is worth reporting, because configuration then lands somewhere the
+	// user almost certainly did not intend. Whether it is usable is decided by
+	// the writability check below rather than assumed here.
+	if (QDir::cleanPath(QDir::homePath()) == QDir::rootPath())
+	{
+		qWarning() << "Alpaca: the home directory resolves to the root directory."
+			<< "HOME is probably not set for this process.";
+	}
+
+	QString result = QDir::cleanPath(base + QDir::separator() + appName);
 	if (append.isEmpty() == false)
 	{
 		result = QDir::cleanPath(result + QDir::separator() + append);
 	}
 
 	if (QDir(result).exists() == false)
-		QDir().mkpath(result);
+	{
+		if (QDir().mkpath(result) == false)
+		{
+			qWarning() << "Alpaca: unable to create the configuration directory" << result
+				<< "- the location may be missing, read only, or out of space.";
+			return QString();
+		}
+	}
+
+	// The directory can exist and still refuse writes, for example when the
+	// volume is full or the user is over quota.
+	if (directoryIsWritable(result) == false)
+	{
+		qWarning() << "Alpaca: the configuration directory" << result
+			<< "is not writable - the location may be read only, full, or over quota.";
+		return QString();
+	}
 
 	return result;
+}
+
+bool documentsDataPathAvailable()
+{
+	return documentsDataPath(QString()).isEmpty() == false;
 }
 
 QString toCamelCase
@@ -94,10 +175,22 @@ QString toCamelCase
 
 QString defaultGlobalLoggingPath()
 {
+	// An empty base means there is nowhere to log. Returning empty keeps the
+	// caller from building a path rooted at the filesystem root.
 	QString result = documentsDataPath("global");
+	if (result.isEmpty())
+	{
+		return QString();
+	}
+
 	result = QDir::cleanPath(result);
 	if (QDir(result).exists() == false)
-		QDir().mkpath(result);
+	{
+		if (QDir().mkpath(result) == false)
+		{
+			return QString();
+		}
+	}
 
 	return result;
 }
@@ -107,10 +200,20 @@ QString defaultLoggingPath
 	const QString& appName
 )
 {
-	QString result = documentsDataPath(appName) + QDir::separator() + "logs";
-	result = QDir::cleanPath(result);
+	QString base = documentsDataPath(appName);
+	if (base.isEmpty())
+	{
+		return QString();
+	}
+
+	QString result = QDir::cleanPath(base + QDir::separator() + "logs");
 	if (QDir(result).exists() == false)
-		QDir().mkpath(result);
+	{
+		if (QDir().mkpath(result) == false)
+		{
+			return QString();
+		}
+	}
 
 	return result;
 }
@@ -266,30 +369,93 @@ QString expandPath(const QString &filePath)
 	if (result.startsWith("~"))
 	{
 		QString homePath = QDir::homePath();
-		if (homePath.compare(QDir::separator()) != 0)
-			result.replace("~", homePath);
-		else
-			result.replace("~", "/root");
+		if (homePath.compare(QDir::separator()) == 0)
+		{
+			// HOME is not set. Ask the password database for the real home of
+			// the current user instead of assuming /root, which is wrong for
+			// every non-root user.
+			const struct passwd* pw = getpwuid(getuid());
+			if (pw != Q_NULLPTR && pw->pw_dir != Q_NULLPTR && pw->pw_dir[0] != '\0')
+			{
+				homePath = QString::fromLocal8Bit(pw->pw_dir);
+			}
+			qWarning() << "expandPath: HOME is not set, using" << homePath << "for ~";
+		}
+		result.replace(0, 1, homePath);
 	}
 #endif
 
 	return result;
 }
 
+// Returns the folder holding devicelist.json and the stock configurations,
+// always with a trailing separator because callers append a file name.
+//
+// The data folder is the same for every product layout, so it is checked
+// first. When it is missing (developer builds, or a damaged install) the
+// folders above the executable are searched. The result is always absolute;
+// the old fallback was relative to the working directory and silently
+// pointed at the wrong place whenever the application was started from
+// somewhere other than its build folder.
 QString tacConfigRoot()
 {
-	QString result = applicationDataPath();
-	
-	QString deviceListJsonPath = result + "/configurations/devicelist.json";
-	bool isdeviceListJsonPathPresent = QFile(deviceListJsonPath).exists();
-	if (isdeviceListJsonPathPresent == false)
+	static bool reportedFallback{false};
+	static bool reportedMissing{false};
+
+	const QString kDeviceList(QStringLiteral("devicelist.json"));
+	const QString dataRoot = QDir::cleanPath(applicationDataPath() + "/configurations");
+
+	if (QFile::exists(dataRoot + "/" + kDeviceList))
 	{
-		result = "../../../../configurations/";		
-	}
-	else
-	{
-		result += "/configurations/";
+		return dataRoot + "/";
 	}
 
-	return result;
+	// applicationDirPath() needs a QCoreApplication. TACDev can be loaded by
+	// hosts that have none, so only search next to the executable when one
+	// exists.
+	if (QCoreApplication::instance() != Q_NULLPTR)
+	{
+		QDir dir(QCoreApplication::applicationDirPath());
+
+		for (int i = 0; i < 5; ++i)
+		{
+			const QString candidate = QDir::cleanPath(dir.absolutePath() + "/configurations");
+			if (QFile::exists(candidate + "/" + kDeviceList))
+			{
+				if (reportedFallback == false)
+				{
+					reportedFallback = true;
+					qWarning() << "tacConfigRoot:" << dataRoot << "has no" << kDeviceList
+						<< "- using" << candidate;
+				}
+				return candidate + "/";
+			}
+
+			if (dir.cdUp() == false)
+				break;
+		}
+	}
+
+	if (reportedMissing == false)
+	{
+		reportedMissing = true;
+		qWarning() << "tacConfigRoot: no" << kDeviceList << "found in" << dataRoot
+			<< "or above the executable - configurations will not load";
+	}
+
+	return dataRoot + "/";
+}
+
+// Writes the resolved install and data locations to the debug output once at
+// startup, so a wrong path in the field can be diagnosed from the log alone.
+void logInstallLayout()
+{
+	const QString exeDir = QCoreApplication::instance() != Q_NULLPTR
+		? QDir::cleanPath(QCoreApplication::applicationDirPath())
+		: QStringLiteral("<no application>");
+
+	qInfo().noquote() << "Install layout: executable folder =" << exeDir;
+	qInfo().noquote() << "Install layout: data folder       =" << applicationDataPath();
+	qInfo().noquote() << "Install layout: configurations    =" << tacConfigRoot();
+	qInfo().noquote() << "Install layout: documents folder  =" << documentsDataPath(QString());
 }

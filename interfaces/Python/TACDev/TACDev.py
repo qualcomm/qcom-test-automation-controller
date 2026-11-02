@@ -10,9 +10,19 @@ from ctypes import *
 from pathlib import Path
 from sys import exit
 
-# Configure logging
+# Configure logging.
+# Do not call logging.basicConfig() here: it configures the root logger of the
+# host application at import time. Give this module's logger its own handler
+# instead, so messages are still shown when the host has not set up logging.
+# Hosts can adjust or replace it via logging.getLogger(<this module name>).
 logger = logging.getLogger(__name__)
-logging.basicConfig(format=logging.BASIC_FORMAT, level=logging.INFO)
+if logger.level == logging.NOTSET:
+    logger.setLevel(logging.INFO)
+if not logger.handlers:
+    _log_handler = logging.StreamHandler()
+    _log_handler.setFormatter(logging.Formatter(logging.BASIC_FORMAT))
+    logger.addHandler(_log_handler)
+    logger.propagate = False
 
 # Installed product locations searched before the local development build.
 _INSTALL_DIRS = {
@@ -95,6 +105,7 @@ TAC_BAD_TAC_HANDLE = 2
 TACDEV_COMMAND_NOT_FOUND = 3
 TACDEV_BAD_INDEX = 4
 TACDEV_INIT_FAILED = 5
+TACDEV_COMMAND_TIMEOUT = 7
 
 
 def GetErrorString(errorCode: int) -> str:
@@ -106,6 +117,7 @@ def GetErrorString(errorCode: int) -> str:
         4: "Bad TAC index",
         5: "TAC initialization failed",
         6: "TAC Script variable was not found",
+        7: "TAC command timed out waiting for completion",
     }
     return errorDict.get(errorCode, f"Error string cannot be determined. Error code: {errorCode}")
 

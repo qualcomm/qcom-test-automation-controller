@@ -30,8 +30,13 @@ public:
 	TACFrame(QWidget* parent = Q_NULLPTR);
 	~TACFrame();
 
-	// use for open device setup
+	// use for open device setup; a null device clears the frame (see clearDevice())
 	void setDevice(AlpacaDevice alpacaDevice);
+
+	// Returns the frame to the state it has before any device is connected:
+	// device signals disconnected, configuration-built tabs and widgets removed,
+	// Device Info cleared and the Quick Tips shown again.
+	void clearDevice();
 
 	// use for static, non connected setup
 	void setPlatformConfiguration(PlatformConfiguration platformConfiguration);
@@ -60,8 +65,14 @@ public slots:
 
 private slots:
 	void on__tabs_tabBarClicked(int index);
+	void on__getResetCountButton_clicked();
+	void on__clearResetCountButton_clicked();
+	void on__renameButton_clicked();
 
 private:
+	void clearConfigurationWidgets();
+	void clearDeviceInfo();
+	void updateRenameButton();
 	void setupUITabs();
 	void setupUIPins();
 	void setupUII2CPins();
