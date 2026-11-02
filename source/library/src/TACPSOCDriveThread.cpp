@@ -38,7 +38,7 @@
 #include <qtac/TACCommandHashes.h>
 #include <qtac/PlatformID.h>
 #include <qtac/StringUtilities.h>
-#include "TACPSOCLegacyCommands.h"
+#include <qtac/TACPSOCLegacyCommands.h>
 
 #include <cassert>
 #include <sstream>

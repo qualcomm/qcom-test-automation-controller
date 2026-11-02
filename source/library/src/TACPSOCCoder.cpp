@@ -36,7 +36,7 @@
 #include <qtac/TACCommandHashes.h>
 #include <qtac/StringUtilities.h>
 #include <qtac/ProtocolInterface.h>
-#include "TACPSOCLegacyCommands.h"
+#include <qtac/TACPSOCLegacyCommands.h>
 
 
 // Prompt strings sent by the PSOC firmware.
