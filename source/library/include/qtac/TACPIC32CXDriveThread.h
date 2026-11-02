@@ -66,12 +66,15 @@ public:
 
     void endTransaction(ReceiveInterface* receiveInterface = nullptr);
 
-    void setPinState(uint64_t pin, bool state) override;
+    bool setPinState(uint64_t pin, bool state) override;
     void sendCommandSequence(CommandEntries& commandEntries) override;
 
     // PIC32CX does not use reset count.
     int  getResetCount()  override { return 0; }
     void clearResetCount() override {}
+
+    static const int kTransportResetSettleMs{500};
+    static const int kTransportResetHandshakeMs{5000};
 
     // PIC32CX does not use I2C.
     void i2CReadRegister(uint32_t /*addr*/, uint32_t /*reg*/)                   override {}
@@ -90,6 +93,8 @@ public:
 
 protected:
     bool openSerialDevice();
+    bool performTransportReset() override;
+    bool drainHandshake();
 
     void setupConnected() override;
     void setupDiscovery() override;

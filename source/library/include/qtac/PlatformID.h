@@ -53,6 +53,8 @@ const PlatformID ALPACA_PIC32CX_ID{50};
 const PlatformID ALPACA_BUGHOPPER_ID{80};
 const PlatformID ALPACA_STM32_ID{95};
 
+const qtac::ByteArray kBugHopperUSBDescriptor{"ALPACA-BugHopper"};
+
 struct _PlatformEntry
 {
 	_PlatformEntry()

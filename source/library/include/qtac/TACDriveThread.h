@@ -116,10 +116,18 @@ public:
     // Completion-wait helpers.  The caller sets the flag before queuing a
     // command, then calls waitForCompletion() which blocks (with a timeout)
     // until the drive thread calls clearWaitForCompletion().
-    void waitForCompletion();
+    // Returns true on success, false on timeout.
+    bool waitForCompletion();
     void setWaitForCompletion();
     void clearWaitForCompletion();
     bool waitForCompletionStatus() const;
+
+    // Store a description of the last command queued (used in timeout log messages).
+    void setLastCommandDescription(const qtac::String& description);
+
+    // Request a transport reset from outside the drive thread.
+    // Blocks until the reset is complete; returns true on success.
+    bool resetTransport();
 
     // Decode a freeform command string into a canonical command + argument list.
     qtac::ByteArray decodeCommand(const qtac::ByteArray& command, Arguments& args);
@@ -133,7 +141,7 @@ public:
     virtual void sendCommand(const qtac::ByteArray& command, bool console = false,
                              ReceiveInterface* receiveInterface = nullptr, bool shouldStore = true) = 0;
 
-    virtual void setPinState(uint64_t pin, bool state) = 0;
+    virtual bool setPinState(uint64_t pin, bool state) = 0;
     virtual void setAddressPinState(const qtac::ByteArray& i2cAddress, uint16_t pin, bool state) {}
     virtual void setPinSets(FTDIPinSets /*pinsets*/) {} // no-op for non-FTDI threads
     virtual void sendCommandSequence(CommandEntries& commandEntries)    = 0;
@@ -188,6 +196,11 @@ public:
 
     void setThreadDelay(unsigned int delay);
 
+    // Parse a UUID out of a raw response byte-array.
+    // Returns kUUIDNotSupported if the response doesn't look like a UUID.
+    static qtac::String uuidFromResponse(const qtac::ByteArray& response);
+    static const qtac::String kUUIDNotSupported;
+
     // -----------------------------------------------------------------------
     // Signals (replace Qt signals)
     //
@@ -225,9 +238,22 @@ public:
     qtac::Signal<const qtac::ByteArray&>                onLogLine;
 
 protected:
+    // --- completion wait ---
     bool            _waitForCompletion{false};
     std::mutex              _completionMutex;
     std::condition_variable _completionCv;
+
+    // --- transport reset ---
+    bool                    _pendingTransportReset{false};
+    std::mutex              _transportResetMutex;
+    std::condition_variable _transportResetCv;
+    bool                    _transportResetResult{false};
+
+    // Description of the last queued command (for timeout log messages).
+    qtac::String            _lastCommandDescription;
+
+    // Override in concrete subclasses that support transport reset.
+    virtual bool performTransportReset() { return false; }
 
     HashType        _hash{0};
     bool            _oldFirmware{false};

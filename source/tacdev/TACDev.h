@@ -58,7 +58,7 @@ typedef unsigned long TAC_RESULT;
 
 const TAC_HANDLE kBadHandle{0};
 
-// Keep in sync with TACException.h
+// Keep in sync with TACException.h (7 = command timeout)
 
 const unsigned long NO_TAC_ERROR{0};
 const unsigned long TACDEV_BUFFER_TOO_SMALL{1};
@@ -67,6 +67,7 @@ const unsigned long TACDEV_COMMAND_NOT_FOUND{3};
 const unsigned long TACDEV_BAD_INDEX{4};
 const unsigned long TACDEV_INIT_FAILED{5};
 const unsigned long TACDEV_SCRIPT_VARIABLE_NOT_FOUND{6};
+const unsigned long TACDEV_COMMAND_TIMEOUT{7};
 
 #ifdef __cplusplus
 extern "C" {

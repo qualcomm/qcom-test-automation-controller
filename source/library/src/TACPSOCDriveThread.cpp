@@ -38,6 +38,7 @@
 #include <qtac/TACCommandHashes.h>
 #include <qtac/PlatformID.h>
 #include <qtac/StringUtilities.h>
+#include "TACPSOCLegacyCommands.h"
 
 #include <cassert>
 #include <sstream>
@@ -58,6 +59,7 @@ TACPSOCDriveThread::TACPSOCDriveThread(HashType hash)
     _driveTrainName = kTACSerialDriveTrainName;
     setProtocolInterface(&_tacProtocol);
     _tacProtocol.setTACDriveTrain(this);
+    _tacProtocol.setLegacyCommands(&_legacyCommands);
 
     AlpacaDevice alpacaDevice = _AlpacaDevice::findAlpacaDevice(hash);
     if (!alpacaDevice || !alpacaDevice->active())
@@ -168,14 +170,14 @@ void TACPSOCDriveThread::endTransaction(ReceiveInterface* receiveInterface)
 // Public command methods
 // -----------------------------------------------------------------------
 
-void TACPSOCDriveThread::setPinState(uint64_t pin, bool state)
+bool TACPSOCDriveThread::setPinState(uint64_t pin, bool state)
 {
     setWaitForCompletion();
     {
         TACPSOCCommand cmd(this, this);
         cmd.setPinState(static_cast<uint16_t>(pin), state);
     }
-    waitForCompletion();
+    return waitForCompletion();
 }
 
 void TACPSOCDriveThread::setAddressPinState(const qtac::ByteArray& i2cAddress, uint16_t pin, bool state)
@@ -184,7 +186,7 @@ void TACPSOCDriveThread::setAddressPinState(const qtac::ByteArray& i2cAddress, u
         TACPSOCCommand cmd(this, this);
         cmd.setAddressPinState(i2cAddress, pin, state);
     }
-    waitForCompletion();
+    (void)waitForCompletion();
 }
 
 void TACPSOCDriveThread::sendCommandSequence(CommandEntries& commandEntries)
@@ -221,7 +223,7 @@ int TACPSOCDriveThread::getResetCount()
         TACPSOCCommand cmd(this, this);
         cmd.getResetCount();
     }
-    waitForCompletion();
+    (void)waitForCompletion();
     return _resetCount;
 }
 
@@ -231,7 +233,7 @@ void TACPSOCDriveThread::clearResetCount()
         TACPSOCCommand cmd(this, this);
         cmd.clearResetCount();
     }
-    waitForCompletion();
+    (void)waitForCompletion();
 }
 
 void TACPSOCDriveThread::i2CReadRegister(uint32_t addr, uint32_t reg)
@@ -241,7 +243,7 @@ void TACPSOCDriveThread::i2CReadRegister(uint32_t addr, uint32_t reg)
         try   { cmd.i2CReadRegister(addr, reg); }
         catch (...) {}
     }
-    waitForCompletion();
+    (void)waitForCompletion();
 }
 
 void TACPSOCDriveThread::i2CWriteRegister(uint32_t addr, uint32_t reg, uint32_t data)
@@ -251,7 +253,7 @@ void TACPSOCDriveThread::i2CWriteRegister(uint32_t addr, uint32_t reg, uint32_t 
         try   { cmd.i2CWriteRegister(addr, reg, data); }
         catch (...) {}
     }
-    waitForCompletion();
+    (void)waitForCompletion();
 }
 
 void TACPSOCDriveThread::setName(const qtac::ByteArray& newName)
@@ -263,7 +265,7 @@ void TACPSOCDriveThread::setName(const qtac::ByteArray& newName)
             TACPSOCCommand cmd(this, this);
             cmd.setName(newName);
         }
-        waitForCompletion();
+        (void)waitForCompletion();
     }
 }
 
@@ -622,6 +624,10 @@ void TACPSOCDriveThread::handleVersionResponse(FramePackage& framePackage)
 
                         if (_firmwareMinor < 15)
                             _oldFirmware = true;
+
+                    _legacyCommands.configure(
+                        _firmwareMajor, _firmwareChip, _firmwareMinor, _firmwareRevision,
+                        qtac::String(_portName.toStdString()));
                     }
 
                     if (onFirmwareVersionUpdate)
