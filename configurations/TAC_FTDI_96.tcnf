@@ -70,7 +70,6 @@
     "fileVersion": 38,
     "modification_date": "Tue Oct 27 10:50:27 2026",
     "name": "Bonsai XRV7205 - Twilight V2",
-    "pineVersion": 1,
     "pins": [
         {
             "bus": "A",
