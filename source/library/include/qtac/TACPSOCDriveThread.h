@@ -41,7 +41,7 @@
 #include <qtac/TACPSOCProtocol.h>
 #include <qtac/SerialPort.h>
 #include <qtac/SerialPortInfo.h>
-#include "TACPSOCLegacyCommands.h"
+#include <qtac/TACPSOCLegacyCommands.h>
 
 #include <memory>
 

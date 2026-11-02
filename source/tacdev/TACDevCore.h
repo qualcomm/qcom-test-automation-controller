@@ -37,6 +37,7 @@
 #include <qtac/AlpacaDevice.h>
 #include <qtac/ByteArray.h>
 #include <qtac/TACDriveThread.h>
+#include <qtac/ThreadedLog.h>
 
 #include <unordered_map>
 
@@ -64,13 +65,23 @@ public:
     // Returns the most-recently-enumerated device list.
     const AlpacaDevices& alpacaDevices() const { return _alpacaDevices; }
 
+    // Logging state — controls whether a ThreadedLog file is opened per device.
+    void setLoggingState(bool state) { _loggingEnabled = state; }
+    bool getLoggingState() const     { return _loggingEnabled; }
+
     // Last error string.
     qtac::ByteArray lastError() const { return _lastError; }
     void setLastError(const qtac::ByteArray& err) { _lastError = err; }
 
 private:
+    // Start a log file for a drive thread (called from openHandleByDescription
+    // when logging is enabled).
+    void attachLog(TAC_HANDLE handle, qtac::TACDriveThread* dt);
+
     AlpacaDevices  _alpacaDevices;
     std::unordered_map<TAC_HANDLE, AlpacaDevice>          _openDevices;
     std::unordered_map<TAC_HANDLE, qtac::TACDriveThread*> _driveThreads;
+    std::unordered_map<TAC_HANDLE, qtac::ThreadedLog>     _logs;
     qtac::ByteArray _lastError;
+    bool            _loggingEnabled{false};
 };

@@ -36,7 +36,7 @@
 #include <qtac/TACPSOCCoder.h>
 #include <qtac/TACDriveThread.h>
 #include <qtac/StringUtilities.h>
-#include "TACPSOCLegacyCommands.h"
+#include <qtac/TACPSOCLegacyCommands.h>
 
 #include <cassert>
 #include <chrono>

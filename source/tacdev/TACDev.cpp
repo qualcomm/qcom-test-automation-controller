@@ -111,12 +111,13 @@ TAC_RESULT GetLastTACError(char* lastError, int bufferSize)
 
 TAC_RESULT GetLoggingState(bool* loggingState)
 {
-    *loggingState = false;
+    *loggingState = gCore.getLoggingState();
     return NO_TAC_ERROR;
 }
 
-TAC_RESULT SetLoggingState(bool /*loggingState*/)
+TAC_RESULT SetLoggingState(bool loggingState)
 {
+    gCore.setLoggingState(loggingState);
     return NO_TAC_ERROR;
 }
 
