@@ -13,6 +13,7 @@ qt_add_executable(${APP_NAME} WIN32
     ButtonEditor.cpp ButtonEditor.h ButtonEditor.ui
     CodeEditor.cpp CodeEditor.h CodeEditor.ui
     ConfigEditorApplication.cpp ConfigEditorApplication.h
+    ConfigDialogPaths.h
     ConfigWindow.cpp ConfigWindow.h ConfigWindow.ui
     CreateConfigurationDialog.cpp CreateConfigurationDialog.h CreateConfigurationDialog.ui
     PSOCI2CDialog.h PSOCI2CDialog.cpp PSOCI2CDialog.ui

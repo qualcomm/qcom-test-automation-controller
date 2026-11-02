@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: BSD-3-Clause
 
 #include "ConfigWindow.h"
+#include "ConfigDialogPaths.h"
 
 // TACConfigEditor
 #include "PIC32CXEditorView.h"
@@ -522,7 +523,15 @@ bool ConfigWindow::open()
 	{
 		AlpacaSettings settings(kAppName);
 
-		QString initialDir = settings.value(kTACConfigPath, documentsDataPath(kAppName)).toString();
+		// Start in the last folder used. On first use, prefer the user configuration folder if it
+		// holds configurations, otherwise the installed configurations folder.
+		QStringList candidates;
+		ConfigEditorApplication* app = ConfigEditorApplication::appInstance();
+		if (app != Q_NULLPTR)
+			candidates << app->preferences()->tacEditorConfigLocation();
+		candidates << tacConfigRoot() << documentsDataPath(kAppName);
+
+		QString initialDir = pickDialogFolder(settings.value(kTACConfigPath).toString(), candidates, QStringLiteral("*.tcnf"));
 
 		QString filters = "TAC Configuration File (*.tcnf)";
 
