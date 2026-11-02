@@ -37,6 +37,7 @@
 #include <qtac/STM32Device.h>
 
 #include <algorithm>
+#include <functional>
 #include <mutex>
 
 // -----------------------------------------------------------------------
@@ -87,56 +88,132 @@ AlpacaDevice _AlpacaDevice::findAlpacaDevice(HashType hash)
 	return AlpacaDevice(nullptr);
 }
 
+// -----------------------------------------------------------------------
+// findDeviceByField — two-pass helper used by all findAlpacaDeviceBy* methods.
+//
+// Pass 1: exact case-insensitive match — returns immediately.
+// Pass 2: substring match — only honoured when exactly one device matches.
+//         Ambiguous (multiple) or empty search term → returns null device.
+// -----------------------------------------------------------------------
+using FieldExtractor = std::function<qtac::ByteArray(const AlpacaDevice&)>;
+
+static AlpacaDevice findDeviceByField(
+    const AlpacaDevices&   devices,
+    const qtac::ByteArray& searchTerm,
+    const FieldExtractor&  getField)
+{
+	if (searchTerm.isEmpty())
+		return AlpacaDevice(nullptr);
+
+	const qtac::ByteArray term = searchTerm.toLower();
+
+	// Pass 1: exact match.
+	for (const auto& dev : devices)
+	{
+		if (getField(dev).toLower() == term)
+			return dev;
+	}
+
+	// Pass 2: substring match — return only if exactly one match.
+	AlpacaDevice partialMatch(nullptr);
+	int matchCount = 0;
+	for (const auto& dev : devices)
+	{
+		if (getField(dev).toLower().contains(term))
+		{
+			partialMatch = dev;
+			++matchCount;
+		}
+	}
+	if (matchCount == 1)
+		return partialMatch;
+
+	return AlpacaDevice(nullptr);
+}
+
 AlpacaDevice _AlpacaDevice::findAlpacaDevice(const qtac::ByteArray& portName)
 {
 	std::lock_guard<std::recursive_mutex> lock(_mutex);
-	qtac::ByteArray searchTerm = portName.toLower();
+
+	if (portName.isEmpty())
+		return AlpacaDevice(nullptr);
+
+	const qtac::ByteArray term = portName.toLower();
+
+	// Pass 1: exact port name match.
 	for (const auto& dev : _alpacaDevices)
+		if (dev->_portName.toLower() == term)
+			return dev;
+
+	// Pass 1b: exact serial number match.
+	for (const auto& dev : _alpacaDevices)
+		if (dev->_serialNumber.toLower() == term)
+			return dev;
+
+	// Pass 2: partial port name (unique only).
 	{
-		if (dev->_portName.toLower().contains(searchTerm))
-			return dev;
-		if (dev->_serialNumber.toLower().contains(searchTerm))
-			return dev;
+		AlpacaDevice partial(nullptr);
+		int count = 0;
+		for (const auto& dev : _alpacaDevices)
+			if (dev->_portName.toLower().contains(term)) { partial = dev; ++count; }
+		if (count == 1) return partial;
 	}
+
+	// Pass 2b: partial serial number (unique only).
+	{
+		AlpacaDevice partial(nullptr);
+		int count = 0;
+		for (const auto& dev : _alpacaDevices)
+			if (dev->_serialNumber.toLower().contains(term)) { partial = dev; ++count; }
+		if (count == 1) return partial;
+	}
+
 	return AlpacaDevice(nullptr);
 }
 
 AlpacaDevice _AlpacaDevice::findAlpacaDeviceBySerialNumber(const qtac::ByteArray& serialNumber, bool usePartial)
 {
 	std::lock_guard<std::recursive_mutex> lock(_mutex);
-	qtac::ByteArray testSerial = serialNumber.toLower();
-	for (const auto& dev : _alpacaDevices)
+	if (usePartial)
 	{
-		qtac::ByteArray devSerial = dev->_serialNumber.toLower();
-		if (usePartial ? testSerial.contains(devSerial) : testSerial == devSerial)
-			return dev;
+		return findDeviceByField(_alpacaDevices, serialNumber,
+			[](const AlpacaDevice& d) { return d->_serialNumber; });
 	}
+	// Exact match only.
+	const qtac::ByteArray term = serialNumber.toLower();
+	for (const auto& dev : _alpacaDevices)
+		if (dev->_serialNumber.toLower() == term)
+			return dev;
 	return AlpacaDevice(nullptr);
 }
 
 AlpacaDevice _AlpacaDevice::findAlpacaDeviceByDescription(const qtac::ByteArray& description, bool usePartial)
 {
 	std::lock_guard<std::recursive_mutex> lock(_mutex);
-	qtac::ByteArray testDesc = description.toLower();
-	for (const auto& dev : _alpacaDevices)
+	if (usePartial)
 	{
-		qtac::ByteArray devDesc = dev->description().toLower();
-		if (usePartial ? testDesc.contains(devDesc) : testDesc == devDesc)
-			return dev;
+		return findDeviceByField(_alpacaDevices, description,
+			[](const AlpacaDevice& d) { return d->description(); });
 	}
+	const qtac::ByteArray term = description.toLower();
+	for (const auto& dev : _alpacaDevices)
+		if (dev->description().toLower() == term)
+			return dev;
 	return AlpacaDevice(nullptr);
 }
 
 AlpacaDevice _AlpacaDevice::findAlpacaDeviceByUSBDescriptor(const qtac::ByteArray& descriptor, bool usePartial)
 {
 	std::lock_guard<std::recursive_mutex> lock(_mutex);
-	qtac::ByteArray testDescriptor = descriptor.toLower();
-	for (const auto& dev : _alpacaDevices)
+	if (usePartial)
 	{
-		qtac::ByteArray devDescriptor = dev->_usbDescriptor.toLower();
-		if (usePartial ? testDescriptor.contains(devDescriptor) : testDescriptor == devDescriptor)
-			return dev;
+		return findDeviceByField(_alpacaDevices, descriptor,
+			[](const AlpacaDevice& d) { return d->_usbDescriptor; });
 	}
+	const qtac::ByteArray term = descriptor.toLower();
+	for (const auto& dev : _alpacaDevices)
+		if (dev->_usbDescriptor.toLower() == term)
+			return dev;
 	return AlpacaDevice(nullptr);
 }
 

@@ -36,6 +36,7 @@
 #include <qtac/TACPSOCCoder.h>
 #include <qtac/TACDriveThread.h>
 #include <qtac/StringUtilities.h>
+#include "TACPSOCLegacyCommands.h"
 
 #include <cassert>
 #include <chrono>
@@ -68,6 +69,12 @@ void TACPSOCProtocol::setTACDriveTrain(TACDriveThread* tacDriveTrain)
 {
     assert(tacDriveTrain != nullptr);
     _tacDriveTrain = tacDriveTrain;
+}
+
+void TACPSOCProtocol::setLegacyCommands(PSOCLegacyCommands* legacyCommands)
+{
+    if (_frameCoder)
+        static_cast<TACPSOCCoder*>(_frameCoder)->setLegacyCommands(legacyCommands);
 }
 
 uint32_t TACPSOCProtocol::sendCommand(const qtac::ByteArray& command,

@@ -110,13 +110,13 @@ bool TACSTM32DriveThread::openSTM32Device()
 // Public command methods
 // -----------------------------------------------------------------------
 
-void TACSTM32DriveThread::setPinState(uint64_t pin, bool state)
+bool TACSTM32DriveThread::setPinState(uint64_t pin, bool state)
 {
     {
         TACSTM32Command cmd(this, this);
         cmd.setPinState(static_cast<uint16_t>(pin), state);
     }
-    waitForCompletion();
+    return waitForCompletion();
 }
 
 void TACSTM32DriveThread::sendCommandSequence(CommandEntries& commandEntries)

@@ -42,6 +42,8 @@
 #include <cstdint>
 #include <string>
 
+class PSOCLegacyCommands;
+
 namespace qtac {
 
 class TACDriveThread;
@@ -58,6 +60,7 @@ public:
     TACPSOCProtocol& operator=(const TACPSOCProtocol&) = delete;
 
     void setTACDriveTrain(TACDriveThread* tacDriveTrain);
+    void setLegacyCommands(PSOCLegacyCommands* legacyCommands);
 
     uint32_t sendCommand(const qtac::ByteArray& command,
                          const Arguments&   arguments,

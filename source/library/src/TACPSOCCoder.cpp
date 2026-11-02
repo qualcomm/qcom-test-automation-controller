@@ -36,6 +36,7 @@
 #include <qtac/TACCommandHashes.h>
 #include <qtac/StringUtilities.h>
 #include <qtac/ProtocolInterface.h>
+#include "TACPSOCLegacyCommands.h"
 
 
 // Prompt strings sent by the PSOC firmware.
@@ -69,12 +70,25 @@ void TACPSOCCoder::decode(const qtac::ByteArray& decodeMe)
     _receiveBuffer += decodeMe;
 
     // Check whether the prompt or "not recognized" tag is present.
-    const bool hasPrompt =
-        _receiveBuffer.contains(kCommand) ||
-        _receiveBuffer.contains(kCommandNotRecognized);
+    const bool hasCommandNotRecognized = _receiveBuffer.contains(kCommandNotRecognized);
+    const bool hasPrompt = _receiveBuffer.contains(kCommand) || hasCommandNotRecognized;
 
     if (!hasPrompt)
         return;
+
+    // If the firmware rejected the last command, notify the legacy handler.
+    if (hasCommandNotRecognized && _legacyCommands)
+    {
+        // Extract the first non-empty line as the echoed command.
+        const std::string buf   = _receiveBuffer.toStdString();
+        const std::string delim = "\r\n";
+        const auto pos = buf.find(delim);
+        if (pos != std::string::npos && pos > 0)
+        {
+            const std::string echoed = buf.substr(0, pos);
+            _legacyCommands->onCommandRejected(qtac::ByteArray(echoed.c_str()));
+        }
+    }
 
     // Split on \r\n, dropping empty tokens.
     std::vector<qtac::ByteArray> frames;
@@ -183,8 +197,22 @@ qtac::ByteArray TACPSOCCoder::encode(const qtac::ByteArray& encodeMe, const Argu
     case kSetPinCommandHash:
         if (arguments.size() == 2)
         {
+            const bool    state  = arguments.at(0).asBool();
+            const uint64_t pin   = static_cast<uint64_t>(arguments.at(1).asUInt32());
+
+            // Check if legacy translation is needed.
+            if (_legacyCommands)
+            {
+                qtac::ByteArray legacy = _legacyCommands->translate(state, pin);
+                if (!legacy.isEmpty())
+                {
+                    result = legacy;
+                    break;
+                }
+            }
+
             const qtac::ByteArray stateStr = argumentToBoolString(arguments.at(0));
-            const qtac::ByteArray pinStr   = qtac::ByteArray(std::to_string(arguments.at(1).asUInt32()));
+            const qtac::ByteArray pinStr   = qtac::ByteArray(std::to_string(pin));
             result = qtac::ByteArray("pin ") + stateStr + " " + pinStr + "\r";
         }
         break;

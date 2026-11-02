@@ -138,6 +138,7 @@ add_library(qtac-core STATIC
     src/TACPSOCCoder.cpp
     src/TACPSOCProtocol.cpp
     src/TACPSOCDriveThread.cpp
+    src/TACPSOCLegacyCommands.cpp
     # TAC PIC32CX (serial) drive thread (W2)
     src/TACPIC32CXCommand.cpp
     src/TACPIC32CXCoder.cpp
@@ -194,6 +195,14 @@ target_link_libraries(qtac-core PUBLIC serialport hidapi::hidapi)
 # (source/CMakeLists.txt or third-party/CMakeLists.txt), which handles
 # downloading and staging the library before this file is processed.
 # -----------------------------------------------------------------------
+option(QTAC_PSOC_LEGACY_COMMANDS "Include PSoC legacy command translation support" ON)
+
+if(QTAC_PSOC_LEGACY_COMMANDS)
+    target_compile_definitions(qtac-core PRIVATE QTAC_PSOC_LEGACY_COMMANDS=1)
+else()
+    target_compile_definitions(qtac-core PRIVATE QTAC_PSOC_LEGACY_COMMANDS=0)
+endif()
+
 option(QTAC_BUILD_FTDI "Include FTDI hardware support in qtac-core" ON)
 
 if(QTAC_BUILD_FTDI)

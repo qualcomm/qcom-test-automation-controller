@@ -77,8 +77,18 @@ void _ThreadedLog::close()
 
 void _ThreadedLog::addLogEntry(const qtac::ByteArray& logEntry)
 {
+    using namespace std::chrono;
+    auto now = system_clock::to_time_t(system_clock::now());
+    std::tm tm{};
+#if defined(_WIN32)
+    localtime_s(&tm, &now);
+#else
+    localtime_r(&now, &tm);
+#endif
+    std::ostringstream ss;
+    ss << std::put_time(&tm, "%Y-%m-%d %H:%M:%S") << " " << logEntry.toStdString();
     std::lock_guard<std::recursive_mutex> lock(_mutex);
-    _logEntries.push_back(logEntry);
+    _logEntries.push_back(qtac::ByteArray(ss.str().c_str()));
 }
 
 void _ThreadedLog::run()
