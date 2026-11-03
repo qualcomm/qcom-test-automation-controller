@@ -27,12 +27,12 @@ if not logger.handlers:
 # Installed product locations searched before the local development build.
 _INSTALL_DIRS = {
     "win32": [
-        Path(r"C:\Program Files\Qualcomm\QTAC"),
         Path(r"C:\Program Files\Qualcomm\Alpaca"),
+        Path(r"C:\Program Files\Qualcomm\QTAC"),
     ],
     "linux": [
-        Path("/opt/qcom/QTAC/lib"),
         Path("/opt/qcom/Alpaca/lib"),
+        Path("/opt/qcom/QTAC/lib"),
     ],
 }
 
