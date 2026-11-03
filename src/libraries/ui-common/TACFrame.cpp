@@ -691,7 +691,10 @@ void TACFrame::on__tabs_tabBarClicked(int index)
 			// Only some boards report a MAC address.
 			const QByteArray macAddress = _alpacaDevice->macAddress().trimmed();
 			_ui->_macAddress->setText(macAddress.isEmpty() ? QStringLiteral("N/A") : QString::fromLatin1(macAddress));
-			_ui->_configurationFile->setText(_platformConfiguration->name());
+			// Like the MAC address, show "N/A" rather than a blank field when
+			// the configuration has no name.
+			const QString configurationName = _platformConfiguration->name().trimmed();
+			_ui->_configurationFile->setText(configurationName.isEmpty() ? QStringLiteral("N/A") : configurationName);
 			_ui->_configurationDate->setText(_platformConfiguration->modificationDate());
 			_ui->_configurationFileVersion->setText(_platformConfiguration->getFileVersion());
 		}
