@@ -38,7 +38,11 @@ public:
 
 	HashType hash();
 
-	bool waitForCompletion();
+	// expectedDurationMs is how long the queued work is known to take (for
+	// example the delays in a quick command script). The timeout is extended
+	// by that amount so a long but healthy sequence is not reported as a
+	// stalled board. Zero keeps the default timeout.
+	bool waitForCompletion(quint32 expectedDurationMs = 0);
 	void setWaitForCompletion();
 	void clearWaitForCompletion();
 	bool waitForCompletionStatus();
