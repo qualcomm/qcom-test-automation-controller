@@ -41,6 +41,7 @@
 #include <qtac/TACPSOCProtocol.h>
 #include <qtac/SerialPort.h>
 #include <qtac/SerialPortInfo.h>
+#include <qtac/TACPSOCLegacyCommands.h>
 
 #include <memory>
 
@@ -68,7 +69,7 @@ public:
 
     void endTransaction(ReceiveInterface* receiveInterface = nullptr);
 
-    void setPinState(uint64_t pin, bool state) override;
+    bool setPinState(uint64_t pin, bool state) override;
     void setAddressPinState(const qtac::ByteArray& i2cAddress, uint16_t pin, bool state) override;
     void sendCommandSequence(CommandEntries& commandEntries) override;
 
@@ -88,6 +89,8 @@ public:
 
     bool connected() const { return _connected; }
 
+    PSOCLegacyCommands* legacyCommands() { return &_legacyCommands; }
+
     // --- ReceiveInterface ---
     void receive(FramePackage& framePackage) override;
 
@@ -99,6 +102,7 @@ protected:
 
 private:
     TACPSOCProtocol              _tacProtocol;
+    PSOCLegacyCommands           _legacyCommands;
     bool                         _connected{false};
     SerialPortInfo               _tacPortInfo;
     std::unique_ptr<SerialPort>  _serialPort;

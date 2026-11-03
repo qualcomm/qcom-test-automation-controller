@@ -115,9 +115,25 @@ TAC_HANDLE DevTACCore::openHandleByDescription(const char* portName)
     }
 
     TAC_HANDLE handle = dev->hash();
+
+    // Attach a log file if logging is enabled.
+    if (_loggingEnabled)
+        attachLog(handle, dt);
+
     _openDevices[handle] = dev;
     _driveThreads[handle] = dt;
     return handle;
+}
+
+void DevTACCore::attachLog(TAC_HANDLE handle, qtac::TACDriveThread* dt)
+{
+    qtac::ThreadedLog log = qtac::_ThreadedLog::createThreadedLog();
+    const qtac::ByteArray logPath = qtac::_ThreadedLog::createLogName("TACDev");
+    log->open(logPath);
+    dt->onLogLine.connect([log](const qtac::ByteArray& line) {
+        log->addLogEntry(line);
+    });
+    _logs[handle] = log;
 }
 
 TAC_RESULT DevTACCore::closeHandle(TAC_HANDLE tacHandle)
@@ -140,6 +156,13 @@ TAC_RESULT DevTACCore::closeHandle(TAC_HANDLE tacHandle)
         }
         dev->setDriveThread(nullptr);
         _driveThreads.erase(dtIt);
+    }
+
+    auto logIt = _logs.find(tacHandle);
+    if (logIt != _logs.end())
+    {
+        logIt->second->close();
+        _logs.erase(logIt);
     }
 
     _openDevices.erase(it);

@@ -124,10 +124,9 @@ HashType TACDriveThread::hash()
 // Completion wait
 // -----------------------------------------------------------------------
 
-void TACDriveThread::waitForCompletion()
+bool TACDriveThread::waitForCompletion()
 {
-    constexpr int kTimeoutMs    = 5000; // 50 × 100 ms
-    constexpr int kPollIntervalMs = 100;
+    constexpr int kTimeoutMs = 5000;
 
     std::unique_lock<std::mutex> lock(_completionMutex);
     const bool timedOut = !_completionCv.wait_for(
@@ -137,9 +136,53 @@ void TACDriveThread::waitForCompletion()
 
     if (timedOut)
     {
-        writeLogLine("Wait for completion timed out.");
+        std::ostringstream oss;
+        oss << "Wait for completion timed out.";
+        if (!_lastCommandDescription.isEmpty())
+            oss << " Command: " << _lastCommandDescription.toStdString();
+        writeLogLine(oss.str());
         _waitForCompletion = false;
+        return false;
     }
+    return true;
+}
+
+void TACDriveThread::setLastCommandDescription(const qtac::String& description)
+{
+    _lastCommandDescription = description;
+}
+
+bool TACDriveThread::resetTransport()
+{
+    {
+        std::lock_guard<std::mutex> lock(_transportResetMutex);
+        _pendingTransportReset = true;
+        _transportResetResult  = false;
+    }
+
+    std::unique_lock<std::mutex> lock(_transportResetMutex);
+    _transportResetCv.wait(lock, [this] { return !_pendingTransportReset; });
+    return _transportResetResult;
+}
+
+// static
+const qtac::String TACDriveThread::kUUIDNotSupported{"Not supported"};
+
+// static
+qtac::String TACDriveThread::uuidFromResponse(const qtac::ByteArray& response)
+{
+    // A UUID has the form xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx (36 chars).
+    const std::string s = response.toStdString();
+    if (s.size() >= 36)
+    {
+        // Find the first candidate 36-char substring with dashes in the right places.
+        for (size_t i = 0; i + 36 <= s.size(); ++i)
+        {
+            if (s[i + 8] == '-' && s[i + 13] == '-' && s[i + 18] == '-' && s[i + 23] == '-')
+                return qtac::String(s.substr(i, 36));
+        }
+    }
+    return kUUIDNotSupported;
 }
 
 void TACDriveThread::setWaitForCompletion()

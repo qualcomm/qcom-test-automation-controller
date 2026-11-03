@@ -137,16 +137,16 @@ void TACLiteDriveThread::externalPowerControl(bool state)
         TACLiteCommand cmd(this, this);
         cmd.externalPowerControl(state);
     }
-    waitForCompletion();
+    (void)waitForCompletion();
 }
 
-void TACLiteDriveThread::setPinState(uint64_t pin, bool state)
+bool TACLiteDriveThread::setPinState(uint64_t pin, bool state)
 {
     {
         TACLiteCommand cmd(this, this);
         cmd.setPinState(static_cast<uint16_t>(pin), state);
     }
-    waitForCompletion();
+    return waitForCompletion();
 }
 
 void TACLiteDriveThread::sendCommandSequence(CommandEntries& commandEntries)
@@ -177,7 +177,7 @@ void TACLiteDriveThread::sendCommandSequence(CommandEntries& commandEntries)
             if (onProgress) onProgress(0 /*kProgressActive*/, NotificationLevel::Info);
         }
     }
-    waitForCompletion();
+    (void)waitForCompletion();
 }
 
 int  TACLiteDriveThread::getResetCount()  { return 0; }

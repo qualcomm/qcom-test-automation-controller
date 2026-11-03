@@ -70,7 +70,7 @@ public:
                      ReceiveInterface* receiveInterface = nullptr,
                      bool              shouldStore      = true) override;
 
-    void setPinState(uint64_t pin, bool state)               override;
+    bool setPinState(uint64_t pin, bool state)               override;
     void sendCommandSequence(CommandEntries& commandEntries)  override;
 
     int  getResetCount()   override;

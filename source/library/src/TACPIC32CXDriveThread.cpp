@@ -40,7 +40,9 @@
 #include <qtac/StringUtilities.h>
 
 #include <cassert>
+#include <chrono>
 #include <sstream>
+#include <thread>
 
 static const qtac::ByteArray kTACPIC32CXDriveTrainName{"TAC PIC32CX Drive Train"};
 
@@ -173,13 +175,13 @@ void TACPIC32CXDriveThread::endTransaction(ReceiveInterface* receiveInterface)
 // Public command methods
 // -----------------------------------------------------------------------
 
-void TACPIC32CXDriveThread::setPinState(uint64_t pin, bool state)
+bool TACPIC32CXDriveThread::setPinState(uint64_t pin, bool state)
 {
     {
         TACPIC32CXCommand cmd(this, this);
         cmd.setPinState(static_cast<uint16_t>(pin), state);
     }
-    waitForCompletion();
+    return waitForCompletion();
 }
 
 void TACPIC32CXDriveThread::sendCommandSequence(CommandEntries& commandEntries)
@@ -217,7 +219,7 @@ void TACPIC32CXDriveThread::setName(const qtac::ByteArray& newName)
 {
     const std::string s = newName.toStdString();
     if (s.size() <= 32 && s != _name.toStdString() && isAlphaNumeric(newName))
-        waitForCompletion();
+        (void)waitForCompletion();
 }
 
 // -----------------------------------------------------------------------
@@ -388,6 +390,17 @@ void TACPIC32CXDriveThread::run()
 
             if (readSerialData())
                 _protocolInterface->idle();
+
+            // Service a pending transport reset requested from outside the thread.
+            {
+                std::lock_guard<std::mutex> lock(_transportResetMutex);
+                if (_pendingTransportReset)
+                {
+                    _transportResetResult  = performTransportReset();
+                    _pendingTransportReset = false;
+                    _transportResetCv.notify_all();
+                }
+            }
         }
     }
 
@@ -481,6 +494,57 @@ void TACPIC32CXDriveThread::handleClearBuffer(FramePackage& framePackage)
         }
         writeLogLine("Buffer cleared. Board response: '" + joined + "'");
     }
+}
+
+// -----------------------------------------------------------------------
+// Transport reset
+// -----------------------------------------------------------------------
+
+bool TACPIC32CXDriveThread::performTransportReset()
+{
+    writeLogLine("TACPIC32CXDriveThread::performTransportReset()");
+
+    // Close and release the serial port.
+    if (_serialPort)
+    {
+        _serialPort->close();
+        _serialPort.reset();
+    }
+
+    // Allow the board time to reset.
+    std::this_thread::sleep_for(std::chrono::milliseconds(kTransportResetSettleMs));
+
+    // Reopen the port.
+    if (!openSerialDevice())
+    {
+        writeLogLine("performTransportReset: reopen failed");
+        return false;
+    }
+
+    // Wait for the board to send its identification string.
+    return drainHandshake();
+}
+
+bool TACPIC32CXDriveThread::drainHandshake()
+{
+    const auto deadline = std::chrono::steady_clock::now()
+                          + std::chrono::milliseconds(kTransportResetHandshakeMs);
+
+    while (std::chrono::steady_clock::now() < deadline)
+    {
+        // waitForReadyRead returns true when data arrives within the timeout
+        if (_serialPort->waitForReadyRead(50))
+        {
+            const qtac::ByteArray data = _serialPort->readAll();
+            if (!data.isEmpty())
+            {
+                writeLogLine("drainHandshake received: " + data.toStdString());
+                return true;
+            }
+        }
+    }
+    writeLogLine("drainHandshake timed out");
+    return false;
 }
 
 // -----------------------------------------------------------------------

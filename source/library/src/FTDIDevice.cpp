@@ -40,7 +40,10 @@
 #include <qtac/TcnfLoader.h>
 
 // FTDI D2XX
+#pragma warning(push)
+#pragma warning(disable: 4828 4706)
 #include "ftd2xx.h"
+#pragma warning(pop)
 
 #include <cstring>
 #include <thread>

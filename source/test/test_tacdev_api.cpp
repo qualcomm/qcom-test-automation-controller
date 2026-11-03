@@ -52,6 +52,14 @@
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
+#include <thread>
+#include <chrono>
+
+#if defined(_WIN32)
+#  include <windows.h>   // FindFirstFile
+#else
+#  include <glob.h>
+#endif
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -316,6 +324,68 @@ static void test_command_state(TAC_HANDLE h)
 }
 
 // ---------------------------------------------------------------------------
+// Logging helpers
+// ---------------------------------------------------------------------------
+
+// Return true if at least one file matching TACDev*.log exists in cwd.
+static bool logFileExists()
+{
+#if defined(_WIN32)
+    WIN32_FIND_DATAA fd;
+    HANDLE h = FindFirstFileA("TACDev*.log", &fd);
+    if (h == INVALID_HANDLE_VALUE)
+        return false;
+    FindClose(h);
+    return true;
+#else
+    glob_t g{};
+    bool found = (glob("TACDev*.log", 0, nullptr, &g) == 0 && g.gl_pathc > 0);
+    globfree(&g);
+    return found;
+#endif
+}
+
+// ---------------------------------------------------------------------------
+// Test: SetLoggingState / GetLoggingState
+// ---------------------------------------------------------------------------
+
+static void test_logging(const char* portName)
+{
+    printf("test_logging:\n");
+
+    // 1. Initial state must be false.
+    bool state = true;
+    requireOk("GetLoggingState (initial)", GetLoggingState(&state));
+    require("initial logging state is false", state == false);
+    printf("  initial state = false  PASS\n");
+
+    // 2. Enable logging.
+    requireOk("SetLoggingState(true)", SetLoggingState(true));
+    requireOk("GetLoggingState (after enable)", GetLoggingState(&state));
+    require("logging state is true after enable", state == true);
+    printf("  state after enable = true  PASS\n");
+
+    // 3. Open a device — this should create a TACDev*.log file.
+    TAC_HANDLE h = OpenHandleByDescription(portName);
+    require("open with logging enabled", h != kBadHandle);
+    // Give the log thread a moment to flush/create the file.
+    std::this_thread::sleep_for(std::chrono::milliseconds(200));
+    bool logCreated = logFileExists();
+    requireOk("CloseTACHandle (logging test)", CloseTACHandle(h));
+
+    require("TACDev*.log file created after open with logging enabled", logCreated);
+    printf("  log file created  PASS\n");
+
+    // 4. Disable logging.
+    requireOk("SetLoggingState(false)", SetLoggingState(false));
+    requireOk("GetLoggingState (after disable)", GetLoggingState(&state));
+    require("logging state is false after disable", state == false);
+    printf("  state after disable = false  PASS\n");
+
+    printf("  PASS\n");
+}
+
+// ---------------------------------------------------------------------------
 // Test 10: Double-close returns error
 // ---------------------------------------------------------------------------
 
@@ -351,6 +421,8 @@ int main()
 
     char portName[256] = {};
     test_enumeration(portName, sizeof(portName));
+
+    test_logging(portName);
 
     TAC_HANDLE h = test_open(portName);
     test_properties(h);

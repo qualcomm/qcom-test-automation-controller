@@ -30,7 +30,7 @@
 // OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN
 // IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-// Thin helpers over boost::json to replicate the nlohmann patterns used in this project.
+// Thin helpers over boost::json.
 
 #pragma once
 
@@ -42,7 +42,7 @@ using json_t = boost::json::value;
 namespace qtac {
 namespace json_util {
 
-// Replicates nlohmann's j.value(key, default) — returns default if key absent or wrong type.
+// Returns default if key absent or wrong type.
 inline std::string valueString(const boost::json::object& obj,
                                const std::string& key,
                                const std::string& def = "")

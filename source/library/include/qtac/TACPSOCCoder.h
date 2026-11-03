@@ -37,6 +37,8 @@
 
 #include <qtac/FrameCoder.h>
 
+class PSOCLegacyCommands;
+
 namespace qtac {
 
 class TACPSOCCoder : public FrameCoder
@@ -48,13 +50,16 @@ public:
     TACPSOCCoder(const TACPSOCCoder&)            = delete;
     TACPSOCCoder& operator=(const TACPSOCCoder&) = delete;
 
+    void setLegacyCommands(PSOCLegacyCommands* legacyCommands) { _legacyCommands = legacyCommands; }
+
     void            reset()                                                   override;
     void            decode(const qtac::ByteArray& decodeMe)                   override;
     qtac::ByteArray encode(const qtac::ByteArray& encodeMe,
                            const Arguments&       arguments)                  override;
 
 private:
-    qtac::ByteArray _receiveBuffer;
+    qtac::ByteArray    _receiveBuffer;
+    PSOCLegacyCommands* _legacyCommands{nullptr};
 };
 
 } // namespace qtac
