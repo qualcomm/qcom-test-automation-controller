@@ -1,7 +1,7 @@
 # Copyright (c) Qualcomm Technologies, Inc. and/or its subsidiaries.
 # SPDX-License-Identifier: BSD-3-Clause
 
-set(QTAC_VERSION "6.9.3")
+set(QTAC_VERSION "6.9.4")
 set(DEVICE_CATALOG_VERSION "2.0.0")
 
 set(UPDATE_DEVICE_LIST_VERSION 1.0.0)
