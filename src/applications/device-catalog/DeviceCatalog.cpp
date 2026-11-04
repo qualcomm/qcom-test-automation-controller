@@ -6,8 +6,6 @@
 #include "ConsoleApplicationEnhancements.h"
 #include "DeviceCatalog.h"
 #include "DeviceSelectionDialog.h"
-#include "EPMDevice.h"
-#include "EPMDeviceDialog.h"
 #include "USBDescriptors.h"
 
 // Qt
@@ -26,6 +24,7 @@
 #endif
 #ifdef Q_OS_LINUX
 	#include <unistd.h>
+	#include <cstdlib>
 #endif
 
 const int kConfigNameCol{0};
@@ -387,66 +386,41 @@ void DeviceCatalog::on__firmwareUpdateBtn_clicked()
 {
 	QByteArray program;
 
-	EPMDevices epmDevices;
-
-	_EPMDevice::updateDeviceList();
-	_EPMDevice::getEPMDevices(epmDevices);
+	AlpacaDevices psocDevices = enumerateDevices(ePSOC);
 
 	program = applicationBinPath().toLatin1() + QDir::separator().toLatin1() + "FWUpdate";
 
 	if (QDir(_firmwareDir).exists())
 	{
-		EPMDeviceDialog deviceDialog(this);
+		DeviceSelectionDialog deviceDialog(this);
+		deviceDialog.setDevices(psocDevices);
 
 		if (deviceDialog.exec() == QDialog::Accepted)
 		{
-			EPMDevice epmDevice = deviceDialog.currentDevice();
-			if (epmDevice.isNull() == false)
+			AlpacaDevice alpacaDevice = deviceDialog.currentDevice();
+			if (alpacaDevice.isNull() == false)
 			{
-				try
+				QByteArray chipsetString{"Unknown"};
+
+				if (alpacaDevice->open())
 				{
-					epmDevice->open();
-
-					quint8 chipset = epmDevice->_version._firmwareVersion[1];
-
-					QByteArray chipsetString{"Unknown"};
-					switch (chipset)
-					{
-					case 3:
-						chipsetString = "LP038";
-						break;
-
-					case 4:
-						chipsetString = "LP030";
-						break;
-					}
-
-				    epmDevice->close();
-
-
-					QByteArray cmdArgs = "path=" + _firmwareDir + QDir::separator().toLatin1() + chipsetString + QDir::separator().toLatin1() + "MicroEpm.cyacd";
-
-					#ifdef Q_OS_WIN
-						ShellExecuteA(NULL, NULL, program, cmdArgs, _firmwareDir, 1);
-					#endif
-					#ifdef Q_OS_LINUX                        
-						int retcode = system(program + " " + cmdArgs);
-
-						if (retcode == 0)
-							QMessageBox::information(this, "FWUpdate status", "FWUpdate updated debug board firmware successfully");
-						else
-							QMessageBox::critical(this, "FWUpdate status", QString("FWUpdate could not update debug board firmware. Error code: %1").arg(retcode));
-					#endif
+					chipsetString = alpacaDevice->chipVersion().toLatin1();
+					alpacaDevice->close();
 				}
-				catch (EPMException& epmError)
-				{
-					if (epmError.epmError() == MICRO_EPM_NOT_PROGRAMMED)
-					{
-						QMessageBox::critical(this, "Unprogrammed Debug Board", "This debug board has not been programmed by the factory. "
-																				"The Alpaca group has no idea who that contact is for your group.  Ask the person who supplied the MTP or device.  You are going to have "
-																				"to find the board supplier for your group.");
-					}
-				}
+
+				QByteArray cmdArgs = "path=" + _firmwareDir + QDir::separator().toLatin1() + chipsetString + QDir::separator().toLatin1() + "MicroEpm.cyacd";
+
+#ifdef Q_OS_WIN
+				ShellExecuteA(NULL, NULL, program.constData(), cmdArgs.constData(), _firmwareDir.constData(), 1);
+#endif
+#ifdef Q_OS_LINUX
+				int retcode = system((program + " " + cmdArgs).constData());
+
+				if (retcode == 0)
+					QMessageBox::information(this, "FWUpdate status", "FWUpdate updated debug board firmware successfully");
+				else
+					QMessageBox::critical(this, "FWUpdate status", QString("FWUpdate could not update debug board firmware. Error code: %1").arg(retcode));
+#endif
 			}
 		}
 	}
@@ -454,7 +428,6 @@ void DeviceCatalog::on__firmwareUpdateBtn_clicked()
 	{
 		QMessageBox::critical(this, "Missing firmware directory", "The firmware directory is not available at the intended install location.");
 	}
-
 }
 
 void DeviceCatalog::on__docsBtn_clicked()

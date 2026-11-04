@@ -23,6 +23,8 @@ DeviceSelectionDialog::~DeviceSelectionDialog()
 
 void DeviceSelectionDialog::setDevices(AlpacaDevices alpacaDevices)
 {
+	_devices = alpacaDevices;
+
 	QStringList deviceList;
 	deviceList << kDefaultDevice;
 
@@ -44,6 +46,22 @@ QString DeviceSelectionDialog::currentSerialNumber()
 		currentSerialNumber = currentDevice.split(" : ", Qt::SkipEmptyParts).at(1);
 
 	return currentSerialNumber;
+}
+
+AlpacaDevice DeviceSelectionDialog::currentDevice()
+{
+	const QString serialNumber = currentSerialNumber();
+
+	if (serialNumber.isEmpty() == false)
+	{
+		for (const AlpacaDevice& device : std::as_const(_devices))
+		{
+			if (QString(device->serialNumber()) == serialNumber)
+				return device;
+		}
+	}
+
+	return AlpacaDevice(Q_NULLPTR);
 }
 
 void DeviceSelectionDialog::on__deviceSelectionBox_currentIndexChanged(int index)
