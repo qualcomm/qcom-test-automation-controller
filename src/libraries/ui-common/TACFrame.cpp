@@ -668,7 +668,30 @@ void TACFrame::onCommandTriggered(const QString &command)
 {
 	if (_alpacaDevice.isNull() == false)
 	{
-		_alpacaDevice->quickCommand(command.toLatin1());
+		// quickCommand() throws on a timeout or an inactive device. This is a
+		// Qt slot, so an exception escaping it terminates the application;
+		// report the failure instead and keep the window usable.
+		try
+		{
+			_alpacaDevice->quickCommand(command.toLatin1());
+		}
+		catch (TACException& e)
+		{
+			AppCore::writeToApplicationLogLine(
+				QString("TACFrame::onCommandTriggered(%1): %2").arg(command, e.what()));
+
+			if (e.errorCode() == TAC_DEVICE_INACTIVE)
+			{
+				QMessageBox::critical(this, "TAC Device disconnected", "TAC was unable to communicate with the TAC device. "
+																	   "The TAC device may have been disconnected from host. "
+																	   "Reconnect to the TAC device to fix the problem");
+			}
+			else
+			{
+				QMessageBox::warning(this, "Quick Settings",
+					QString("\"%1\" did not complete: the TAC device did not confirm the command in time.").arg(command));
+			}
+		}
 	}
 }
 

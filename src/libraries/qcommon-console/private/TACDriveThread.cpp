@@ -71,10 +71,21 @@ HashType TACDriveThread::hash()
 	return _hash;
 }
 
-bool TACDriveThread::waitForCompletion()
+bool TACDriveThread::waitForCompletion
+(
+	quint32 expectedDurationMs
+)
 {
 	const int kMaxPolls{50};
 	const int kPollIntervalMs{100};
+
+	// Work that is known to take a while, such as a quick command script with
+	// an 8 s button hold, gets that time on top of the normal allowance.
+	// Without this every such script hit the timeout part way through, and
+	// the recovery path then reset the transport and replayed the script.
+	const int expectedPolls = static_cast<int>(
+		(expectedDurationMs + kPollIntervalMs - 1) / kPollIntervalMs);
+	const int maxPolls{kMaxPolls + expectedPolls};
 
 	int count{0};
 
@@ -83,7 +94,7 @@ bool TACDriveThread::waitForCompletion()
 		QThread::msleep(kPollIntervalMs);	// Give our high priority time to process
 		QCoreApplication::processEvents();  // Give the UI a timeslice to update
 
-		if (count++ > kMaxPolls)
+		if (count++ > maxPolls)
 		{
 			// The leading text must stay exactly "Wait for completion timed out"
 			// because downstream consumers (TacService) match on that substring
@@ -106,7 +117,7 @@ bool TACDriveThread::waitForCompletion()
 	// warning of the same fault. Without this the duration is only visible
 	// buried in a frame dump, which is easy to miss.
 	const int kSlowCommandPolls{10};
-	if (count > kSlowCommandPolls)
+	if (count > kSlowCommandPolls + expectedPolls)
 	{
 		AppCore::writeToApplicationLogLine(
 			QString("Slow command completion: %1 ms (port=%2, lastCommand=%3)")
