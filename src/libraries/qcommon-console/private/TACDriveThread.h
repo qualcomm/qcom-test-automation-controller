@@ -106,7 +106,12 @@ public:
 	uint revisionVersion();
 
 	QByteArray name() const;
-	void setName(const QByteArray& newName);
+
+	// Virtual so a call through TACDriveThread* (as _AlpacaDevice holds it)
+	// reaches the board-specific override that sends the set-name command.
+	// Without this only the cached name changed and the board kept its old
+	// name, so a rename was lost on reconnect.
+	virtual void setName(const QByteArray& newName);
 
 	QByteArray portName() const;
 	void setPortName(const QByteArray& portName);

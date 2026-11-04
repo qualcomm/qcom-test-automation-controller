@@ -383,6 +383,11 @@ void TACPSOCDriveThread::setName
 		{
 			if (isAlphaNumeric(newName) == true)
 			{
+				// Arm the wait here: the GUI Rename path does not, and an
+				// unarmed wait returns at once, before the board's reply has
+				// updated the cached name.
+				setWaitForCompletion();
+
 				{
 					TACPSOCCommand tacCommand(this, this);
 
