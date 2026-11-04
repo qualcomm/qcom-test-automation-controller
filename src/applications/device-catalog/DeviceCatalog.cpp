@@ -6,6 +6,8 @@
 #include "ConsoleApplicationEnhancements.h"
 #include "DeviceCatalog.h"
 #include "DeviceSelectionDialog.h"
+#include "EPMDevice.h"
+#include "EPMDeviceDialog.h"
 #include "USBDescriptors.h"
 
 // Qt
