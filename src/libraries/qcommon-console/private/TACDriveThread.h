@@ -19,8 +19,6 @@
 
 // Qt
 #include <QCoreApplication>
-#include <QMutex>
-#include <QWaitCondition>
 
 class QCOMMONCONSOLE_EXPORT TACDriveThread :
 	public DriveThread,
@@ -38,18 +36,10 @@ public:
 
 	HashType hash();
 
-	// expectedDurationMs is how long the queued work is known to take (for
-	// example the delays in a quick command script). The timeout is extended
-	// by that amount so a long but healthy sequence is not reported as a
-	// stalled board. Zero keeps the default timeout.
-	bool waitForCompletion(quint32 expectedDurationMs = 0);
+	void waitForCompletion();
 	void setWaitForCompletion();
 	void clearWaitForCompletion();
 	bool waitForCompletionStatus();
-
-	// Names the operation in progress so a timeout can report which command
-	// stalled, rather than leaving it to be inferred from nearby log lines.
-	void setLastCommandDescription(const QString& description);
 
 	QByteArray decodeCommand(const QByteArray& command, Arguments& arg);
 	bool checkLocalStore(FramePackage& framePackage);
@@ -57,28 +47,7 @@ public:
 	virtual void sendCommand(const QByteArray& command, bool console = false,
 		ReceiveInterface* receiveInterface = Q_NULLPTR, bool shouldStore = true) = 0;
 
-	virtual bool setPinState(quint16 pin, bool state) = 0;
-
-	// ----------------------------------------------------------------------------
-	// resetTransport
-	//
-	/// Attempts to recover a wedged host-side transport without requiring the
-	/// board to physically re-enumerate on USB.
-	///
-	/// Background: when the debug board stops acknowledging commands,
-	/// waitForCompletion() times out on every subsequent command. Reopening the
-	/// TACDev handle is not sufficient, because the underlying transport object
-	/// is still in its stuck state.
-	///
-	/// Threading: this is called from the thread issuing the command, but the
-	/// transport object belongs to run() on this QThread and is not thread
-	/// safe. Tearing it down from the caller would race with, and free memory
-	/// under, the drive thread. So this only posts a request and waits; the
-	/// reset itself runs on the drive thread in performTransportReset().
-	///
-	/// @returns true when the transport was reset and is usable again.
-	// ----------------------------------------------------------------------------
-	bool resetTransport();
+	virtual void setPinState(quint16 pin, bool state) = 0;
 	virtual void setAddressPinState(const QString& i2cAddress, quint16 pin, bool state) {}
 	virtual void sendCommandSequence(CommandEntries& commandEntries) = 0;
 
@@ -111,10 +80,6 @@ public:
 
 	QByteArray name() const;
 
-	// Virtual so a call through TACDriveThread* (as _AlpacaDevice holds it)
-	// reaches the board-specific override that sends the set-name command.
-	// Without this only the cached name changed and the board kept its old
-	// name, so a rename was lost on reconnect.
 	virtual void setName(const QByteArray& newName);
 
 	QByteArray portName() const;
@@ -196,34 +161,6 @@ protected:
 
 	int							_resetCount{0};
 	uint						_delay{0};
-
-	QString						_lastCommandDescription;
-
-	// Transport reset hand-off from the caller thread to the drive thread.
-	QMutex						_resetMutex;
-	QWaitCondition				_resetCondition;
-	bool						_resetRequested{false};
-	bool						_resetDone{false};
-	bool						_resetResult{false};
-
-	// ----------------------------------------------------------------------------
-	// performTransportReset
-	//
-	/// Performs the actual transport teardown and reopen. Only ever invoked on
-	/// the drive thread, via processPendingTransportReset().
-	///
-	/// The base implementation reports failure, so transports that cannot be
-	/// reset keep their existing behaviour.
-	// ----------------------------------------------------------------------------
-	virtual bool performTransportReset() { return false; }
-
-	// ----------------------------------------------------------------------------
-	// processPendingTransportReset
-	//
-	/// Services a reset posted by resetTransport(). Must be called from run(),
-	/// at a point where the transport is not mid-operation.
-	// ----------------------------------------------------------------------------
-	void processPendingTransportReset();
 
 	virtual void setupConnected() = 0;
 	virtual void setupDiscovery() = 0;

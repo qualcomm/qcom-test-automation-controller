@@ -458,90 +458,9 @@ bool _AlpacaDevice::quickCommand
 				CommandEntries commandEntries = _alpacaScript.getCommandEntries(command);
 				CommandEntries substitutedCommandEntries = _alpacaScript.replaceTokens(scriptVariables, commandEntries);
 
-				// Arm the completion flag here rather than in the callers.
-				// waitForCompletion() loops only while the flag is set, so an
-				// unarmed flag makes it return success immediately and the
-				// command is reported as having worked without the board
-				// acknowledging anything.
-				//
-				// Both routes into this function converge here: the exported
-				// SendCommand() reaches it via sendCommand() when the name is
-				// not a pin command, and PowerOffButton/BootToEDLButton reach
-				// it via _quickCommand(). Neither armed the flag, so every
-				// quick command was unverifiable - confirmed on the bench by
-				// nine consecutive "completionArmed=NO" entries on 10/08.
-				//
-				// setPinState() is unaffected: it goes through
-				// _setCommandState(), which already arms the flag and is why
-				// its timeouts were detected and recovered correctly.
-				_driveThread->setWaitForCompletion();
-
-				AppCore::writeToApplicationLogLine(
-					QString("_AlpacaDevice::quickCommand(%1): queueing %2 entries, completionArmed=%3")
-						.arg(command)
-						.arg(substitutedCommandEntries.count())
-						.arg(_driveThread->waitForCompletionStatus() ? "yes" : "NO"));
-
-				// The script's own delays (for example an 8 s power key hold
-				// for UEFI) are part of a healthy run, so the wait has to
-				// allow for them. Without this the default ~5 s timeout fired
-				// part way through every long script and the recovery below
-				// reset the transport and replayed the whole power sequence.
-				quint32 scriptDurationMs{0};
-				for (const auto& entry: std::as_const(substitutedCommandEntries))
-				{
-					if (entry->_commandAction == _CommandEntry::eDelay)
-					{
-						bool isNumber{false};
-						const quint32 delayMs = entry->_arguement.toUInt(&isNumber);
-						if (isNumber)
-							scriptDurationMs += delayMs;
-					}
-				}
-
 				_driveThread->sendCommandSequence(substitutedCommandEntries);
-				result = _driveThread->waitForCompletion(scriptDurationMs);
 
-				AppCore::writeToApplicationLogLine(
-					QString("_AlpacaDevice::quickCommand(%1): completion %2")
-						.arg(command)
-						.arg(result ? "confirmed" : "timed out"));
-
-				if (result == false)
-				{
-					// Same rationale as setPinState(): reset the wedged
-					// transport and replay the sequence once. bootToEDL and the
-					// other button commands arrive through here, so without
-					// this they would report a timeout with no attempt to
-					// recover.
-					AppCore::writeToApplicationLogLine(
-						QString("_AlpacaDevice::quickCommand(%1): command timed out, attempting transport reset").arg(command));
-
-					bool resetOk = resetTransport();
-
-					if (resetOk == true)
-					{
-						setWaitForCompletion();
-
-						CommandEntries retryEntries = _alpacaScript.replaceTokens(scriptVariables, commandEntries);
-						_driveThread->sendCommandSequence(retryEntries);
-						result = _driveThread->waitForCompletion(scriptDurationMs);
-					}
-
-					// One line carrying the whole outcome, so support does not
-					// have to stitch the story together from separate entries.
-					AppCore::writeToApplicationLogLine(
-						QString("TIMEOUT RECOVERY: command=quickCommand(%1) reset=%2 retry=%3 port=%4")
-							.arg(command)
-							.arg(resetOk ? "succeeded" : "failed")
-							.arg(resetOk ? (result ? "succeeded" : "failed") : "skipped")
-							.arg(_portName.isEmpty() ? QByteArray("unknown") : _portName));
-				}
-
-				if (result == false)
-				{
-					throw TACException(TAC_COMMAND_TIMEOUT, "quickCommand error: Command timed out waiting for completion");
-				}
+				result = true;
 			}
 			else
 			{
@@ -641,45 +560,14 @@ bool _AlpacaDevice::setPinState
 	{
 		if (active() == true)
 		{
-			bool result = _driveThread->setPinState(pin, state);
+			_driveThread->setPinState(pin, state);
 			if (AppCore::getAppCore()->appLoggingActive())
 			{
 				TACCommand tacCommand = TACCommand::find(pin, _commandList);
 
 				AppCore::writeToApplicationLogLine("_AlpacaDevice::setPinState(" + QString::number(pin) +")  Command:" + tacCommand._command);
 			}
-			if (result == false)
-			{
-				// The board stopped acknowledging. Reopening the TACDev handle
-				// does not clear this, so reset the transport in place and make
-				// one more attempt before reporting the timeout.
-				AppCore::writeToApplicationLogLine(
-					QString("_AlpacaDevice::setPinState(%1): command timed out, attempting transport reset").arg(QString::number(pin)));
-
-				bool resetOk = resetTransport();
-
-				if (resetOk == true)
-				{
-					setWaitForCompletion();
-					result = _driveThread->setPinState(pin, state);
-				}
-
-				// One line carrying the whole outcome, so support does not have
-				// to stitch the story together from separate entries.
-				AppCore::writeToApplicationLogLine(
-					QString("TIMEOUT RECOVERY: command=setPinState(pin=%1, state=%2) reset=%3 retry=%4 port=%5")
-						.arg(QString::number(pin))
-						.arg(state ? "on" : "off")
-						.arg(resetOk ? "succeeded" : "failed")
-						.arg(resetOk ? (result ? "succeeded" : "failed") : "skipped")
-						.arg(_portName.isEmpty() ? QByteArray("unknown") : _portName));
-			}
-
-			if (result == false)
-			{
-				throw TACException(TAC_COMMAND_TIMEOUT, "setPinState error: Command timed out waiting for completion");
-			}
-			return result;
+			return true;
 		}
 		else
 		{
@@ -692,22 +580,6 @@ bool _AlpacaDevice::setPinState
 		AppCore::writeToApplicationLogLine("_AlpacaDevice::setPinState _driveThread is NULL");
 		throw TACException(TAC_DEVICE_INACTIVE, kSetPinError);
 	}
-}
-
-bool _AlpacaDevice::resetTransport()
-{
-	bool result{false};
-
-	if (_driveThread != Q_NULLPTR)
-	{
-		result = _driveThread->resetTransport();
-	}
-	else
-	{
-		AppCore::writeToApplicationLogLine("_AlpacaDevice::resetTransport _driveThread is NULL");
-	}
-
-	return result;
 }
 
 void _AlpacaDevice::setAddressPinState

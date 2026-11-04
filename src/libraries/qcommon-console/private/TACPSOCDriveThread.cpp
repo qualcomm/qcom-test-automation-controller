@@ -131,7 +131,7 @@ void TACPSOCDriveThread::endTransaction
 	_tacProtocol.endTransaction(receiveInterface);
 }
 
-bool TACPSOCDriveThread::setPinState
+void TACPSOCDriveThread::setPinState
 (
 	quint16 pin,
 	bool state
@@ -143,7 +143,7 @@ bool TACPSOCDriveThread::setPinState
 		tacCommand.setPinState(pin, state);
 	}
 
-	return waitForCompletion();
+	waitForCompletion();
 }
 
 void TACPSOCDriveThread::setAddressPinState

@@ -43,7 +43,7 @@ public:
 
 	virtual void externalPowerControl(bool state);
 
-	virtual bool setPinState(quint16 pin, bool state);
+	virtual void setPinState(quint16 pin, bool state);
 	virtual void sendCommandSequence(CommandEntries& commandEntries);
 
 	virtual int getResetCount();
@@ -66,7 +66,6 @@ public:
 
 protected:
 	bool openFTDIDevice();
-	bool performTransportReset() override;
 
 private:
 	static bool					_initialized;
