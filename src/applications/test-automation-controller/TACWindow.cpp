@@ -285,7 +285,25 @@ void TACWindow::openPort
 	{
 		// Leave the window disconnected so it can be used for another device.
 		emit progress(90, eErrorNotification);
-		_statusbar->showMessage("Unable to open " + QString::fromLatin1(alpacaDevice->portName()));
+
+		// open() records why it failed (for example a board whose board ID
+		// is not set after a firmware update). Show that reason instead of a
+		// bare "Unable to open", which left users with no way forward
+		// unless they read the application log.
+		const QString port = QString::fromLatin1(alpacaDevice->portName());
+		const QString reason = QString::fromLatin1(alpacaDevice->getLastError()).trimmed();
+
+		if (reason.isEmpty())
+		{
+			_statusbar->showMessage("Unable to open " + port);
+		}
+		else
+		{
+			_statusbar->showMessage("Unable to open " + port + ": " + reason);
+			QMessageBox::warning(this, "Unable to Open Device",
+				QString("TAC could not open the device on %1.\n\n%2\n\n"
+						"Other devices can still be opened from Connect.").arg(port, reason));
+		}
 		return;
 	}
 

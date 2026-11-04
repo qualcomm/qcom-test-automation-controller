@@ -668,7 +668,30 @@ void TACFrame::onCommandTriggered(const QString &command)
 {
 	if (_alpacaDevice.isNull() == false)
 	{
-		_alpacaDevice->quickCommand(command.toLatin1());
+		// quickCommand() throws on a timeout or an inactive device. This is a
+		// Qt slot, so an exception escaping it terminates the application;
+		// report the failure instead and keep the window usable.
+		try
+		{
+			_alpacaDevice->quickCommand(command.toLatin1());
+		}
+		catch (TACException& e)
+		{
+			AppCore::writeToApplicationLogLine(
+				QString("TACFrame::onCommandTriggered(%1): %2").arg(command, e.what()));
+
+			if (e.errorCode() == TAC_DEVICE_INACTIVE)
+			{
+				QMessageBox::critical(this, "TAC Device disconnected", "TAC was unable to communicate with the TAC device. "
+																	   "The TAC device may have been disconnected from host. "
+																	   "Reconnect to the TAC device to fix the problem");
+			}
+			else
+			{
+				QMessageBox::warning(this, "Quick Settings",
+					QString("\"%1\" did not complete: the TAC device did not confirm the command in time.").arg(command));
+			}
+		}
 	}
 }
 
@@ -691,7 +714,10 @@ void TACFrame::on__tabs_tabBarClicked(int index)
 			// Only some boards report a MAC address.
 			const QByteArray macAddress = _alpacaDevice->macAddress().trimmed();
 			_ui->_macAddress->setText(macAddress.isEmpty() ? QStringLiteral("N/A") : QString::fromLatin1(macAddress));
-			_ui->_configurationFile->setText(_platformConfiguration->name());
+			// Like the MAC address, show "N/A" rather than a blank field when
+			// the configuration has no name.
+			const QString configurationName = _platformConfiguration->name().trimmed();
+			_ui->_configurationFile->setText(configurationName.isEmpty() ? QStringLiteral("N/A") : configurationName);
 			_ui->_configurationDate->setText(_platformConfiguration->modificationDate());
 			_ui->_configurationFileVersion->setText(_platformConfiguration->getFileVersion());
 		}

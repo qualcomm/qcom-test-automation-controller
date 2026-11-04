@@ -482,8 +482,25 @@ bool _AlpacaDevice::quickCommand
 						.arg(substitutedCommandEntries.count())
 						.arg(_driveThread->waitForCompletionStatus() ? "yes" : "NO"));
 
+				// The script's own delays (for example an 8 s power key hold
+				// for UEFI) are part of a healthy run, so the wait has to
+				// allow for them. Without this the default ~5 s timeout fired
+				// part way through every long script and the recovery below
+				// reset the transport and replayed the whole power sequence.
+				quint32 scriptDurationMs{0};
+				for (const auto& entry: std::as_const(substitutedCommandEntries))
+				{
+					if (entry->_commandAction == _CommandEntry::eDelay)
+					{
+						bool isNumber{false};
+						const quint32 delayMs = entry->_arguement.toUInt(&isNumber);
+						if (isNumber)
+							scriptDurationMs += delayMs;
+					}
+				}
+
 				_driveThread->sendCommandSequence(substitutedCommandEntries);
-				result = _driveThread->waitForCompletion();
+				result = _driveThread->waitForCompletion(scriptDurationMs);
 
 				AppCore::writeToApplicationLogLine(
 					QString("_AlpacaDevice::quickCommand(%1): completion %2")
@@ -508,7 +525,7 @@ bool _AlpacaDevice::quickCommand
 
 						CommandEntries retryEntries = _alpacaScript.replaceTokens(scriptVariables, commandEntries);
 						_driveThread->sendCommandSequence(retryEntries);
-						result = _driveThread->waitForCompletion();
+						result = _driveThread->waitForCompletion(scriptDurationMs);
 					}
 
 					// One line carrying the whole outcome, so support does not

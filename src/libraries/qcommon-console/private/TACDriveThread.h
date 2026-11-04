@@ -38,7 +38,11 @@ public:
 
 	HashType hash();
 
-	bool waitForCompletion();
+	// expectedDurationMs is how long the queued work is known to take (for
+	// example the delays in a quick command script). The timeout is extended
+	// by that amount so a long but healthy sequence is not reported as a
+	// stalled board. Zero keeps the default timeout.
+	bool waitForCompletion(quint32 expectedDurationMs = 0);
 	void setWaitForCompletion();
 	void clearWaitForCompletion();
 	bool waitForCompletionStatus();
@@ -106,7 +110,12 @@ public:
 	uint revisionVersion();
 
 	QByteArray name() const;
-	void setName(const QByteArray& newName);
+
+	// Virtual so a call through TACDriveThread* (as _AlpacaDevice holds it)
+	// reaches the board-specific override that sends the set-name command.
+	// Without this only the cached name changed and the board kept its old
+	// name, so a rename was lost on reconnect.
+	virtual void setName(const QByteArray& newName);
 
 	QByteArray portName() const;
 	void setPortName(const QByteArray& portName);

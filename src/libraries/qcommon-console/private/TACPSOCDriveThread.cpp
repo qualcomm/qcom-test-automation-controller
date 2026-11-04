@@ -89,6 +89,11 @@ bool TACPSOCDriveThread::openSerialDevice()
 		{
 			_lastErrorMessage = "Unable to open TAC Port. " + serialPortError().toLatin1();
 
+			{
+				QMutexLocker lock(&_portOpenErrorMutex);
+				_portOpenError = _lastErrorMessage;
+			}
+
 			AppCore::writeToApplicationLogLine(_lastErrorMessage);
 
 			emit errorOnOpen("PSOC Device Open Failed, Check the Application Log");
@@ -378,6 +383,11 @@ void TACPSOCDriveThread::setName
 		{
 			if (isAlphaNumeric(newName) == true)
 			{
+				// Arm the wait here: the GUI Rename path does not, and an
+				// unarmed wait returns at once, before the board's reply has
+				// updated the cached name.
+				setWaitForCompletion();
+
 				{
 					TACPSOCCommand tacCommand(this, this);
 

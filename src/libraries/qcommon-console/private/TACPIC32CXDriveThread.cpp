@@ -470,6 +470,9 @@ void TACPIC32CXDriveThread::setName(const QByteArray& newName)
 		{
 			if (isAlphaNumeric(newName) == true)
 			{
+				// Arm the wait so it lasts until the board replies.
+				setWaitForCompletion();
+
 				{
 					TACPIC32CXCommand tacCommand(this, this);
 
