@@ -163,7 +163,16 @@ bool PSOCDevice::open()
 
 		if (result == false && _lastError.isEmpty())
 		{
-			if (_driveThread->platformID() == MICRO_EPM_BOARD_ID_UNKNOWN)
+			// When the serial port itself could not be opened, nothing was
+			// asked of the board, so do not blame its board ID.
+			TACPSOCDriveThread* psocDriveThread = dynamic_cast<TACPSOCDriveThread*>(_driveThread);
+			const QByteArray portOpenError = psocDriveThread != Q_NULLPTR ? psocDriveThread->portOpenError() : QByteArray();
+
+			if (portOpenError.isEmpty() == false)
+			{
+				_lastError = portOpenError;
+			}
+			else if (_driveThread->platformID() == MICRO_EPM_BOARD_ID_UNKNOWN)
 			{
 				// The board answered, but its stored board ID is 0 (not set). This happens,
 				// for example, when a firmware update does not keep the board ID.

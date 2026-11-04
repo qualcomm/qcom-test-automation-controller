@@ -89,6 +89,11 @@ bool TACPSOCDriveThread::openSerialDevice()
 		{
 			_lastErrorMessage = "Unable to open TAC Port. " + serialPortError().toLatin1();
 
+			{
+				QMutexLocker lock(&_portOpenErrorMutex);
+				_portOpenError = _lastErrorMessage;
+			}
+
 			AppCore::writeToApplicationLogLine(_lastErrorMessage);
 
 			emit errorOnOpen("PSOC Device Open Failed, Check the Application Log");
