@@ -6,6 +6,7 @@
 #include "ConsoleApplicationEnhancements.h"
 #include "DeviceCatalog.h"
 #include "DeviceSelectionDialog.h"
+#include "TACException.h"
 #include "USBDescriptors.h"
 
 // Qt
@@ -400,27 +401,44 @@ void DeviceCatalog::on__firmwareUpdateBtn_clicked()
 			AlpacaDevice alpacaDevice = deviceDialog.currentDevice();
 			if (alpacaDevice.isNull() == false)
 			{
-				QByteArray chipsetString{"Unknown"};
-
-				if (alpacaDevice->open())
+				try
 				{
-					chipsetString = alpacaDevice->chipVersion().toLatin1();
-					alpacaDevice->close();
-				}
+					alpacaDevice->open();
 
-				QByteArray cmdArgs = "path=" + _firmwareDir + QDir::separator().toLatin1() + chipsetString + QDir::separator().toLatin1() + "MicroEpm.cyacd";
+					QByteArray chipsetString{"Unknown"};
+					const QString chipset = alpacaDevice->chipVersion();
+					if (chipset == "LP038" || chipset == "LP030")
+						chipsetString = chipset.toLatin1();
+
+					alpacaDevice->close();
+
+					if (chipsetString == "Unknown")
+					{
+						QMessageBox::critical(this, "FWUpdate status",
+							"Could not read the chipset of the selected debug board. "
+							"Close any application using it (for example TAC), reconnect the board and try again.");
+						return;
+					}
+
+					QByteArray cmdArgs = "path=" + _firmwareDir + QDir::separator().toLatin1() + chipsetString + QDir::separator().toLatin1() + "MicroEpm.cyacd";
 
 #ifdef Q_OS_WIN
-				ShellExecuteA(NULL, NULL, program.constData(), cmdArgs.constData(), _firmwareDir.constData(), 1);
+					ShellExecuteA(NULL, NULL, program.constData(), cmdArgs.constData(), _firmwareDir.constData(), 1);
 #endif
 #ifdef Q_OS_LINUX
-				int retcode = system((program + " " + cmdArgs).constData());
+					int retcode = system((program + " " + cmdArgs).constData());
 
-				if (retcode == 0)
-					QMessageBox::information(this, "FWUpdate status", "FWUpdate updated debug board firmware successfully");
-				else
-					QMessageBox::critical(this, "FWUpdate status", QString("FWUpdate could not update debug board firmware. Error code: %1").arg(retcode));
+					if (retcode == 0)
+						QMessageBox::information(this, "FWUpdate status", "FWUpdate updated debug board firmware successfully");
+					else
+						QMessageBox::critical(this, "FWUpdate status", QString("FWUpdate could not update debug board firmware. Error code: %1").arg(retcode));
 #endif
+				}
+				catch (TACException& tacError)
+				{
+					QMessageBox::critical(this, "FWUpdate status",
+						QString("Could not access the selected debug board: %1").arg(QString::fromLatin1(tacError.getMessage())));
+				}
 			}
 		}
 	}
