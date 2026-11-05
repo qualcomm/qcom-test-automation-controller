@@ -597,15 +597,8 @@ echo "Package content verification passed ($interfaces_in_deb interfaces entries
 ZIP_FOLDER="${PKG_NAME}_${VERSION}_${ARCH}"
 
 if [ "${OPTION_ZIP:-}" = "zip" ]; then
-    mkdir -p "$ZIP_FOLDER"
-
-    cp "$OUTPUT_DEB" "$ZIP_FOLDER/"
-
-    [ -f "./README.md" ] && \
-        cp "./README.md" "$ZIP_FOLDER/"
-
-    [ -f "./ReleaseNotes.txt" ] && \
-        cp "./ReleaseNotes.txt" "$ZIP_FOLDER/"
+    OUTPUT_ZIP="$OUTPUT_DIR/${PKG_NAME}_${VERSION}_${ARCH}.zip"
+    (cd "$BUILDROOT" && zip -r "$OUTPUT_ZIP" opt var)
 
     zip -r "${ZIP_FOLDER}.zip" "$ZIP_FOLDER"
 
