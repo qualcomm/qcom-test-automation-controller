@@ -1,3 +1,6 @@
+// Copyright (c) Qualcomm Technologies, Inc. and/or its subsidiaries.
+// SPDX-License-Identifier: BSD-3-Clause
+
 // Load the native module produced by `npm run build:native` directly.
 // This keeps the examples runnable before the TypeScript wrapper is compiled.
 const path = require('path');
