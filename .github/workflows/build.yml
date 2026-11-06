@@ -453,6 +453,106 @@ jobs:
         path: packaging/linux/build/*.deb
         if-no-files-found: error
 
+  build-source-linux-arm64:
+    needs: build-docs
+    runs-on: ubuntu-22.04-arm
+    strategy:
+      fail-fast: false
+      matrix:
+        qt_version: ['6.9.2', '6.10.0']
+
+    steps:
+    - uses: actions/checkout@v6
+
+    - name: Install dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y python3-pip wget libxkbcommon-x11-0 x11-common libxcb-xinerama0-dev build-essential libgl1-mesa-dev mesa-common-dev uuid-dev libpulse-dev ninja-build libudev-dev
+
+    - name: Cache Qt installation on Linux ARM64
+      uses: actions/cache@v5
+      with:
+        path: ${{ matrix.qt_version }}/gcc_arm64
+        key: ubuntu-22.04-arm-qt-${{ matrix.qt_version }}
+
+    - name: Install aqtinstall
+      run: pip install aqtinstall
+
+    - name: Install Qt ${{ matrix.qt_version }} on Linux ARM64
+      run: |
+        aqt install-qt linux_arm64 desktop ${{ matrix.qt_version }} linux_gcc_arm64 -m qtmultimedia qtserialport
+        echo "QTBIN=$HOME/work/qcom-test-automation-controller/qcom-test-automation-controller/${{ matrix.qt_version }}/gcc_arm64/bin" >> $GITHUB_ENV
+
+    - name: Configure
+      run: |
+        export PATH="$QTBIN:$PATH"
+        cmake -S source -B build/source/Release \
+          -DCMAKE_PREFIX_PATH="$(dirname $QTBIN)" \
+          -DCMAKE_COLOR_DIAGNOSTICS=ON \
+          -DCMAKE_GENERATOR=Ninja \
+          -DCMAKE_BUILD_TYPE=Release \
+          -DQTAC_BUILD_FTDI=OFF
+
+    - name: Build
+      run: cmake --build build/source/Release
+
+    - name: Run tests
+      run: |
+        cd build/source/Release
+        ctest --output-on-failure
+
+    - name: Install patchelf
+      run: sudo apt-get install -y patchelf
+
+    - name: Deploy Qt runtime
+      run: |
+        export PATH="$QTBIN:$PATH"
+        QT_ROOT="$(dirname $QTBIN)"
+        DEPLOY_BIN_DIR="source/__Builds/Linux/Release/bin"
+        DEPLOY_LIB_DIR="source/__Builds/Linux/Release/lib"
+        DEPLOY_PLUGIN_DIR="source/__Builds/Linux/Release/plugins"
+        mkdir -p "$DEPLOY_LIB_DIR" "$DEPLOY_PLUGIN_DIR"
+        find "$DEPLOY_BIN_DIR" -type f -executable -exec ldd {} \; 2>/dev/null \
+          | awk '/=>/ {print $3}' | sort -u \
+          | grep "$QT_ROOT" \
+          | xargs -I{} cp -an {} "$DEPLOY_LIB_DIR/" || true
+        find "$QT_ROOT/lib" -maxdepth 1 -name "libQt6*.so*" -exec cp -an {} "$DEPLOY_LIB_DIR/" \; || true
+        find "$QT_ROOT/lib" -maxdepth 1 -name "libicu*.so*" -exec cp -an {} "$DEPLOY_LIB_DIR/" \; || true
+        for plugin_dir in iconengines imageformats platforminputcontexts platforms platformthemes xcbglintegrations; do
+          if [ -d "$QT_ROOT/plugins/$plugin_dir" ]; then
+            mkdir -p "$DEPLOY_PLUGIN_DIR/$plugin_dir"
+            cp -a "$QT_ROOT/plugins/$plugin_dir/." "$DEPLOY_PLUGIN_DIR/$plugin_dir/"
+          fi
+        done
+        find "$DEPLOY_BIN_DIR" -type f -executable | while read exe; do
+          patchelf --set-rpath '$ORIGIN/../lib' "$exe" || true
+        done
+
+    - name: Download built docs artifact
+      uses: actions/download-artifact@v4
+      with:
+        name: qtac-docs-html
+        path: docs-html
+
+    - name: Replace docs source with built HTML
+      run: |
+        rm -rf docs
+        mv docs-html docs
+
+    - name: Package QTAC (source, Rust-only)
+      run: |
+        PKG_NAME=qualcomm-qtac-source-rust \
+          SRC_DIR="$(pwd)/source/__Builds/Linux/Release" \
+          RUST_ONLY=1 \
+          ./packaging/linux/package_QTAC.sh
+
+    - name: Upload installer artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: QTAC-source-ubuntu-22.04-arm-qt${{ matrix.qt_version }}
+        path: packaging/linux/build/*.deb
+        if-no-files-found: error
+
   build-source-windows:
     needs: [fetch-ftdi-windows, build-docs]
     runs-on: windows-2022
