@@ -484,6 +484,7 @@ jobs:
 
     - name: Package QTAC (source, Rust-only)
       run: |
+        chmod +x packaging/linux/package_QTAC.sh
         PKG_NAME=qualcomm-qtac-source-rust \
           SRC_DIR="$(pwd)/source/__Builds/Linux/Release" \
           RUST_ONLY=1 \
