@@ -456,10 +456,6 @@ jobs:
   build-source-linux-arm64:
     needs: build-docs
     runs-on: ubuntu-22.04-arm
-    strategy:
-      fail-fast: false
-      matrix:
-        qt_version: ['6.9.2', '6.10.0']
 
     steps:
     - uses: actions/checkout@v6
@@ -467,30 +463,15 @@ jobs:
     - name: Install dependencies
       run: |
         sudo apt-get update
-        sudo apt-get install -y python3-pip wget build-essential uuid-dev ninja-build libudev-dev
-
-    - name: Cache Qt installation on Linux ARM64
-      uses: actions/cache@v5
-      with:
-        path: ${{ matrix.qt_version }}/gcc_arm64
-        key: ubuntu-22.04-arm-qt-${{ matrix.qt_version }}
-
-    - name: Install aqtinstall
-      run: pip install aqtinstall
-
-    - name: Install Qt ${{ matrix.qt_version }} on Linux ARM64
-      run: |
-        aqt install-qt linux_arm64 desktop ${{ matrix.qt_version }} linux_gcc_arm64 -m qtmultimedia qtserialport
-        echo "QTBIN=$HOME/work/qcom-test-automation-controller/qcom-test-automation-controller/${{ matrix.qt_version }}/gcc_arm64/bin" >> $GITHUB_ENV
+        sudo apt-get install -y build-essential uuid-dev ninja-build libudev-dev
 
     - name: Configure
       run: |
-        export PATH="$QTBIN:$PATH"
         cmake -S source -B build/source/Release \
-          -DCMAKE_PREFIX_PATH="$(dirname $QTBIN)" \
           -DCMAKE_COLOR_DIAGNOSTICS=ON \
           -DCMAKE_GENERATOR=Ninja \
           -DCMAKE_BUILD_TYPE=Release \
+          -DQTAC_BUILD_QT_TARGETS=OFF \
           -DQTAC_BUILD_FTDI=OFF
 
     - name: Build TACDev
@@ -511,7 +492,7 @@ jobs:
     - name: Upload installer artifact
       uses: actions/upload-artifact@v4
       with:
-        name: QTAC-source-ubuntu-22.04-arm-qt${{ matrix.qt_version }}
+        name: QTAC-source-ubuntu-22.04-arm
         path: packaging/linux/build/*.deb
         if-no-files-found: error
 
