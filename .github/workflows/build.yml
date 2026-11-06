@@ -306,7 +306,15 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-22.04, windows-2022]
+        include:
+          - os: windows-2022
+            target: x86_64-pc-windows-msvc
+          - os: windows-2022
+            target: aarch64-pc-windows-msvc
+          - os: ubuntu-22.04
+            target: x86_64-unknown-linux-gnu
+          - os: ubuntu-22.04-arm
+            target: aarch64-unknown-linux-gnu
 
     steps:
     - uses: actions/checkout@v6
@@ -314,13 +322,16 @@ jobs:
     - name: Update Rust toolchain to stable
       run: rustup update stable && rustup default stable
 
+    - name: Add Rust target
+      run: rustup target add ${{ matrix.target }}
+
     - name: Check Rust interface
       working-directory: interfaces/Rust/TACDev
-      run: cargo check
+      run: cargo check --target ${{ matrix.target }}
 
     - name: Build Rust interface
       working-directory: interfaces/Rust/TACDev
-      run: cargo build
+      run: cargo build --target ${{ matrix.target }}
 
   build-source-linux:
     needs: [fetch-ftdi-linux, build-docs]
