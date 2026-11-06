@@ -177,7 +177,7 @@ bool PSOCDevice::open()
 				// The board answered, but its stored board ID is 0 (not set). This happens,
 				// for example, when a firmware update does not keep the board ID.
 				_lastError = "The board did not report a board ID (board ID is not set). "
-							 "Reprogram the board ID with the Device Catalog, then reconnect the board.";
+							 "In Device Catalog, right-click the board's platform and choose Program Device, then reconnect the board.";
 			}
 			else
 			{
