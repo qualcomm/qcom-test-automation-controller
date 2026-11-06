@@ -467,7 +467,7 @@ jobs:
     - name: Install dependencies
       run: |
         sudo apt-get update
-        sudo apt-get install -y python3-pip wget libxkbcommon-x11-0 x11-common libxcb-xinerama0-dev build-essential libgl1-mesa-dev mesa-common-dev uuid-dev libpulse-dev ninja-build libudev-dev
+        sudo apt-get install -y python3-pip wget build-essential uuid-dev ninja-build libudev-dev
 
     - name: Cache Qt installation on Linux ARM64
       uses: actions/cache@v5
@@ -493,51 +493,13 @@ jobs:
           -DCMAKE_BUILD_TYPE=Release \
           -DQTAC_BUILD_FTDI=OFF
 
-    - name: Build
-      run: cmake --build build/source/Release
+    - name: Build TACDev
+      run: cmake --build build/source/Release --target TACDev
 
     - name: Run tests
       run: |
         cd build/source/Release
         ctest --output-on-failure
-
-    - name: Install patchelf
-      run: sudo apt-get install -y patchelf
-
-    - name: Deploy Qt runtime
-      run: |
-        export PATH="$QTBIN:$PATH"
-        QT_ROOT="$(dirname $QTBIN)"
-        DEPLOY_BIN_DIR="source/__Builds/Linux/Release/bin"
-        DEPLOY_LIB_DIR="source/__Builds/Linux/Release/lib"
-        DEPLOY_PLUGIN_DIR="source/__Builds/Linux/Release/plugins"
-        mkdir -p "$DEPLOY_LIB_DIR" "$DEPLOY_PLUGIN_DIR"
-        find "$DEPLOY_BIN_DIR" -type f -executable -exec ldd {} \; 2>/dev/null \
-          | awk '/=>/ {print $3}' | sort -u \
-          | grep "$QT_ROOT" \
-          | xargs -I{} cp -an {} "$DEPLOY_LIB_DIR/" || true
-        find "$QT_ROOT/lib" -maxdepth 1 -name "libQt6*.so*" -exec cp -an {} "$DEPLOY_LIB_DIR/" \; || true
-        find "$QT_ROOT/lib" -maxdepth 1 -name "libicu*.so*" -exec cp -an {} "$DEPLOY_LIB_DIR/" \; || true
-        for plugin_dir in iconengines imageformats platforminputcontexts platforms platformthemes xcbglintegrations; do
-          if [ -d "$QT_ROOT/plugins/$plugin_dir" ]; then
-            mkdir -p "$DEPLOY_PLUGIN_DIR/$plugin_dir"
-            cp -a "$QT_ROOT/plugins/$plugin_dir/." "$DEPLOY_PLUGIN_DIR/$plugin_dir/"
-          fi
-        done
-        find "$DEPLOY_BIN_DIR" -type f -executable | while read exe; do
-          patchelf --set-rpath '$ORIGIN/../lib' "$exe" || true
-        done
-
-    - name: Download built docs artifact
-      uses: actions/download-artifact@v4
-      with:
-        name: qtac-docs-html
-        path: docs-html
-
-    - name: Replace docs source with built HTML
-      run: |
-        rm -rf docs
-        mv docs-html docs
 
     - name: Package QTAC (source, Rust-only)
       run: |
