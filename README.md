@@ -8,6 +8,7 @@
 - [Hardware Requirements](#hardware-requirements)
 - [Common Prerequisites](#common-prerequisites)
 - [Windows Guide](#windows-guide)
+- [macOS Guide](#macos-guide)
 - [Linux Guide](#linux-guide)
 - [Repository Structure](#repository-structure)
 - [Application Dependency Architecture](#application-dependency-architecture)
@@ -49,8 +50,8 @@ QTAC is a software suite that enables users to control Qualcomm devices remotely
 
 | Category | Software | Minimum Version |
 | :-- | :-- | :-- |
-| **OS** | Windows / Debian | Windows 10+ / Ubuntu 22.04+ |
-| **Compiler** | [MSVC 2022](https://aka.ms/vs/17/release/vs_community.exe) / GCC | MSVC 2022 / GCC-11, G++-11, GLIBC-2.35 |
+| **OS** | Windows / Debian / macOS | Windows 10+ / Ubuntu 22.04+ / macOS 13+ |
+| **Compiler** | [MSVC 2022](https://aka.ms/vs/17/release/vs_community.exe) / GCC / AppleClang | MSVC 2022 / GCC-11, G++-11, GLIBC-2.35 / Xcode Command Line Tools |
 | **Build System** | [CMake](https://cmake.org/download/) | 3.24+ |
 | **Build Tool** | [Ninja](https://ninja-build.org/) (via Qt installer, system package manager, or direct download) | 1.10+ |
 | **UI Framework** | [Qt Open-source](https://www.qt.io/download-qt-installer-oss) | 6.9.0+ |
@@ -64,14 +65,14 @@ QTAC is a software suite that enables users to control Qualcomm devices remotely
 - **[Qualcomm USB Drivers](https://softwarecenter.qualcomm.com/catalog/item/Qualcomm_Userspace_Driver)**: To view device status.
 
 > [!NOTE]
-> FTDI libraries are downloaded _automatically_ during the cmake configuration step when building from source.
-> If the automatic download fails (e.g. due to network restrictions), download the archive manually and place it in the `third-party/` directory before re-running cmake:
+> Windows and Linux FTDI libraries are downloaded automatically during CMake configuration. The macOS build script downloads the FTDI D2XX DMG, extracts `libftd2xx.dylib`, and stages it with the build output. If a download is blocked, supply the vendor library directly with `FTD2XX_LIBRARY=/path/to/libftd2xx.dylib`.
 >
-> | Platform | Archive |
+> | Platform | Vendor package |
 > | :-- | :-- |
 > | **Windows x64** | [`CDM-v2.12.36.4-WHQL-Certified.zip`](https://web.archive.org/web/20250820134143/https://ftdichip.com/wp-content/uploads/2023/09/CDM-v2.12.36.4-WHQL-Certified.zip) |
 > | **Windows ARM64** | [`CDM-v2.12.36.20-for-ARM64-WHQL-Certified.zip`](https://web.archive.org/web/20250821211500/https://ftdichip.com/wp-content/uploads/2025/03/CDM-v2.12.36.20-for-ARM64-WHQL-Certified.zip) |
 > | **Linux x86_64** | [`libftd2xx-linux-x86_64-1.4.33.tgz`](https://web.archive.org/web/20250822044524/https://ftdichip.com/wp-content/uploads/2025/03/libftd2xx-linux-x86_64-1.4.33.tgz) |
+> | **macOS** | [`D2XX1.4.36.dmg`](https://ftdichip.com/wp-content/uploads/2026/09/D2XX1.4.36.dmg) |
 
 ### Optional Software
 
@@ -126,6 +127,36 @@ build.bat
 __Builds\x64\Release\QTAC.exe
 __Builds\ARM64\Release\QTAC.exe
 ```
+
+## macOS Guide
+
+### Configuration
+
+1. Install Xcode Command Line Tools:
+   ```bash
+   xcode-select --install
+   ```
+2. Install Qt 6.9+ for macOS with the Qt Multimedia and Qt Serial Port components. Install CMake 3.24+ and Ninja if they are not already available.
+3. Set `QTBIN` to the `bin` directory of the Qt macOS kit:
+   ```bash
+   export QTBIN=/Users/<user>/Qt/<version>/macos/bin
+   ```
+
+### Build & Usage
+
+Run the macOS-specific build script. It builds the host architecture by default (Apple Silicon `arm64` or Intel `x86_64`):
+
+```bash
+./build-macos.sh Release
+```
+
+Use `Debug` to build a debug configuration or `all` to build both. The script preserves other platform outputs, caches the FTDI DMG outside the repository, verifies that the D2XX library contains the target architecture, and stages it beside the binaries with an executable-relative runtime search path. If FTDI's download is unavailable, point `FTD2XX_LIBRARY` at an extracted `libftd2xx.dylib`.
+
+**Build output**:
+- Apple Silicon: `__Builds/MacOS/ARM64/Release`
+- Intel: `__Builds/MacOS/x64/Release`
+
+The script builds QTAC against the selected Qt installation; it does not install a system-wide FTDI driver or kernel extension. Follow FTDI's installation guidance if the host requires additional USB-driver setup.
 
 ## Linux Guide
 

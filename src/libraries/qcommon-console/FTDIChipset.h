@@ -107,6 +107,7 @@ private:
 	static PlatformID nameToPlatform(const QByteArray& deviceName);
 
 	static void linuxTraversal();
+	static void macOSTraversal();
 	static void windowsTraversal();
 
 	HashType			_hash{0};

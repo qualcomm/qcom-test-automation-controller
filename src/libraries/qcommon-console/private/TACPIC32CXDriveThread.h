@@ -30,29 +30,29 @@ public:
 		return QString();
 	}
 
-	void run();
+	void run() override;
 
 	void sendCommand(const QByteArray& command, bool console = false,
-							 ReceiveInterface* receiveInterface = Q_NULLPTR, bool shouldStore = true);
+							 ReceiveInterface* receiveInterface = Q_NULLPTR, bool shouldStore = true) override;
 
-	bool setPinState(quint16 pin, bool state);
-	void sendCommandSequence(CommandEntries& commandEntries);
+	bool setPinState(quint16 pin, bool state) override;
+	void sendCommandSequence(CommandEntries& commandEntries) override;
 
-	int getResetCount();
-	void clearResetCount();
+	int getResetCount() override;
+	void clearResetCount() override;
 
 	// properties
-	void setName(const QByteArray& newName);
+	void setName(const QByteArray& newName) override;
 
 	// Send Interface
-	quint32 send(const QByteArray& sendMe, const Arguments& arguments, bool console, ReceiveInterface* recieveInterface, bool store = true);
-	bool ready();
+	quint32 send(const QByteArray& sendMe, const Arguments& arguments, bool console, ReceiveInterface* recieveInterface, bool store = true) override;
+	bool ready() override;
 
 	// Receive Interface
-	void receive(FramePackage& framePackage);
+	void receive(FramePackage& framePackage) override;
 
-	void i2CReadRegister(quint32 addr, quint32 reg);
-	void i2CWriteRegister(quint32 addr, quint32 reg, quint32 data);
+	void i2CReadRegister(quint32 addr, quint32 reg) override;
+	void i2CWriteRegister(quint32 addr, quint32 reg, quint32 data) override;
 
 	void endTransaction(ReceiveInterface *receiveInterface);
 protected:
@@ -94,8 +94,8 @@ private:
 	void handleVersionResponse(FramePackage& framePackage);
 	void handleClearBuffer(FramePackage& framePackage);
 
-	void setupConnected();
-	void setupDiscovery();
+	void setupConnected() override;
+	void setupDiscovery() override;
 
 	void log(FramePackage& framePackage);
 };
