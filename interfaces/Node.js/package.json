@@ -1,0 +1,55 @@
+{
+  "name": "@qualcomm/qtac",
+  "version": "1.0.0",
+  "description": "Node.js NAPI bindings for Qualcomm Test Automation Controller",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "preinstall": "node -e \"console.log('\\n⚠️  IMPORTANT: The TACDev C++ library must be built first!\\n   Run build.bat (Windows) or build.sh (Linux) from the repository root.\\n')\"",
+    "install": "cmake-js compile",
+    "build": "tsc",
+    "build:native": "cmake-js compile",
+    "prebuild": "npm run build:native",
+    "test": "jest",
+    "test:unit": "jest test/unit",
+    "test:integration": "jest test/integration",
+    "test:native-smoke": "node examples/napi-smoke-test.js",
+    "clean": "cmake-js clean && rm -rf dist"
+  },
+  "keywords": [
+    "qtac",
+    "qualcomm",
+    "test",
+    "automation",
+    "device",
+    "control",
+    "napi"
+  ],
+  "author": "Qualcomm Technologies, Inc.",
+  "license": "BSD-3-Clause",
+  "dependencies": {
+    "bindings": "^1.5.0",
+    "node-addon-api": "^8.0.0"
+  },
+  "devDependencies": {
+    "@types/bindings": "^1.5.5",
+    "@types/jest": "^29.5.0",
+    "@types/node": "^20.11.0",
+    "cmake-js": "^7.3.0",
+    "jest": "^29.7.0",
+    "ts-jest": "^29.1.0",
+    "ts-node": "^10.9.0",
+    "typescript": "^5.3.0"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "binary": {
+    "module_name": "qtac",
+    "module_path": "./build/Release/",
+    "napi_versions": [
+      8
+    ],
+    "host": "https://github.com/qualcomm/qcom-test-automation-controller"
+  }
+}
