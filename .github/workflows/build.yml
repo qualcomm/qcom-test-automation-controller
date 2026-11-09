@@ -430,12 +430,14 @@ jobs:
         chmod +x packaging/linux/package_QTAC.sh
         PKG_NAME=qualcomm-qtac-source \
           SRC_DIR="$(pwd)/source/__Builds/Linux/Release" \
+          ARCH=amd64 \
           ./packaging/linux/package_QTAC.sh
 
     - name: Package QTAC (source, no-GUI)
       run: |
         PKG_NAME=qualcomm-qtac-source-nogui \
           SRC_DIR="$(pwd)/source/__Builds/Linux/Release" \
+          ARCH=amd64 \
           NO_GUI=1 \
           ./packaging/linux/package_QTAC.sh
 
@@ -443,6 +445,7 @@ jobs:
       run: |
         PKG_NAME=qualcomm-qtac-source-rust \
           SRC_DIR="$(pwd)/source/__Builds/Linux/Release" \
+          ARCH=amd64 \
           RUST_ONLY=1 \
           ./packaging/linux/package_QTAC.sh
 
@@ -487,6 +490,7 @@ jobs:
         chmod +x packaging/linux/package_QTAC.sh
         PKG_NAME=qualcomm-qtac-source-rust \
           SRC_DIR="$(pwd)/source/__Builds/Linux/Release" \
+          ARCH=arm64 \
           RUST_ONLY=1 \
           ./packaging/linux/package_QTAC.sh
 
