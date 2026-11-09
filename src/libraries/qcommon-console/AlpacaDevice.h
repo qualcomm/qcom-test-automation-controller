@@ -51,7 +51,26 @@ public:
 
 	virtual bool open() = 0;
 	bool isOpen();
+
+	// Closes the device. If a command is in progress (its wait loop runs
+	// processEvents(), so Disconnect, window close or auto shutdown can land
+	// here re-entrantly) the drive thread is told to stop and skip its script
+	// delays, and the close itself is completed when the outermost command
+	// returns. Tearing the drive thread down under the running command was the
+	// "crash with large timeout values" QA saw.
 	void close();
+
+	// True while quickCommand/setPinState/sendCommand is running.
+	bool commandInProgress() const
+	{
+		return _commandDepth > 0;
+	}
+
+	// True after close() was deferred and before it has been completed.
+	bool closePending() const
+	{
+		return _closePending;
+	}
 
 	virtual void buildMapping() = 0;
 	void buildQuickSettings();
@@ -141,6 +160,15 @@ signals:
 	void progress(const quint8 value=10, NotificationLevel level=eInfoNotification);
 	void errorEvent(const QByteArray& message);
 
+	// Emitted when a command starts (true) and when the outermost one ends
+	// (false), so the UI can lock the controls that would re-enter it.
+	void commandBusyChanged(bool busy);
+
+	// Emitted once a close() that was deferred by a running command has been
+	// completed. Connect queued: it fires while the command's caller is still
+	// on the stack.
+	void deferredCloseDone();
+
 public slots:
 	void on_pinStateChanged(/*PinID*/ quint64 pin, bool state);
 	void onDeviceDisconnect();
@@ -168,6 +196,15 @@ protected:
 	QList<QByteArray>			_quickCommandList;
 	AlpacaScript				_alpacaScript;
 	QByteArray                  _lastError;
+
+private:
+	friend class AlpacaCommandScope;
+
+	void beginCommand();
+	void endCommand();
+
+	int							_commandDepth{0};
+	bool						_closePending{false};
 };
 
 #endif // TACDEVICE_H

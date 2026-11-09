@@ -153,18 +153,55 @@ void TACWindow::onTitleRefreshTimeout()
 		_titleRefreshTimer.stop();
 }
 
-void TACWindow::closeDevice()
+bool TACWindow::closeDevice()
 {
 	_titleRefreshTimer.stop();
 	_autoShutdownTimer.stop();
 
 	if (_alpacaDevice.isNull() == false)
 	{
+		if (_alpacaDevice->commandInProgress())
+		{
+			// We are inside the running command's wait loop. Ask the device to
+			// stop (it ends the wait and skips the remaining script delays)
+			// and finish here once the command has returned; the frame, its
+			// buttons and the device must stay alive until then.
+			if (_closeDeferred == false)
+			{
+				_closeDeferred = true;
+				QObject::connect(_alpacaDevice.data(), &_AlpacaDevice::deferredCloseDone,
+					this, &TACWindow::onDeferredCloseDone, Qt::QueuedConnection);
+				_statusbar->showMessage("Disconnecting: stopping the running quick command");
+			}
+
+			_alpacaDevice->close();
+			return false;
+		}
+
 		QObject::disconnect(_alpacaDevice.data(), Q_NULLPTR, _nwgt, Q_NULLPTR);
+		QObject::disconnect(_alpacaDevice.data(), &_AlpacaDevice::deferredCloseDone,
+			this, &TACWindow::onDeferredCloseDone);
 
 		_tacFrame->setDevice(AlpacaDevice(Q_NULLPTR));
 		_alpacaDevice->close();
 		_alpacaDevice.reset();
+	}
+
+	_closeDeferred = false;
+	return true;
+}
+
+void TACWindow::onDeferredCloseDone()
+{
+	// Queued, so the quick command and the button slot that issued it have
+	// returned: tearing the frame and the device down is safe now.
+	closeDevice();
+	showDisconnectedState();
+
+	if (_closeWindowWhenDone)
+	{
+		_closeWindowWhenDone = false;
+		close();
 	}
 }
 
@@ -194,7 +231,15 @@ void TACWindow::shutDown()
 
 void TACWindow::closeEvent(QCloseEvent* event)
 {
-	closeDevice();
+	if (closeDevice() == false)
+	{
+		// Deleting the window now would free the frame under the running
+		// command. Close again once the deferred disconnect has finished.
+		_closeWindowWhenDone = true;
+		event->ignore();
+		return;
+	}
+
 	TACApplication::disconnectTACWindow(this);
 
 	event->accept();
@@ -422,8 +467,9 @@ void TACWindow::on_actionDisconnect_triggered()
 // so Connect can be used again straight away.
 void TACWindow::disconnect()
 {
-	closeDevice();
-	showDisconnectedState();
+	// When deferred, onDeferredCloseDone() shows the disconnected state.
+	if (closeDevice())
+		showDisconnectedState();
 }
 
 void TACWindow::on_actionContents_triggered()

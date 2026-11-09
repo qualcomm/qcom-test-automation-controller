@@ -56,6 +56,10 @@ private slots:
 	void on_actionAbout_triggered();
 	void on_actionSubmit_Bug_Report_triggered();
 
+	// Finishes a disconnect (and a window close) that was requested while a
+	// quick command was still running; see closeDevice().
+	void onDeferredCloseDone();
+
 private:
 	AlpacaDevice				_alpacaDevice;
 	QTimer						_autoShutdownTimer;
@@ -67,7 +71,14 @@ private:
 
 	// Stops the timers, detaches the frame and closes the device. Leaves the
 	// window itself alone; disconnect() also resets the UI.
-	void closeDevice();
+	//
+	// Returns false when the close had to be deferred: Disconnect, window
+	// close and auto shutdown can arrive from inside a running quick
+	// command's wait loop, and tearing the frame (whose button emitted the
+	// command) and the device down under it crashed TAC. The device then
+	// finishes the close when the command returns and emits
+	// deferredCloseDone, handled by onDeferredCloseDone().
+	bool closeDevice();
 	void showDisconnectedState();
 	void updateConnectionControls();
 
@@ -84,6 +95,9 @@ private:
 
 	QTimer						_titleRefreshTimer;
 	int							_titleRefreshAttempts{0};
+
+	bool						_closeDeferred{false};
+	bool						_closeWindowWhenDone{false};
 
     void setupLinuxFonts();
 };
