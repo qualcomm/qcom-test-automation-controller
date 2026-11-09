@@ -60,11 +60,24 @@ private slots:
 	// quick command was still running; see closeDevice().
 	void onDeferredCloseDone();
 
+	// Show and hide the "up to ~N s" hint for long quick commands.
+	void onQuickCommandStarted(quint32 scriptDelayMs);
+	void onCommandBusyChanged(bool busy);
+
+	// Keeps the hint in place of NotificationWidget's generic
+	// "Operation in progress..." message, and after it clears the bar.
+	void onStatusMessageChanged(const QString& message);
+
 private:
 	AlpacaDevice				_alpacaDevice;
 	QTimer						_autoShutdownTimer;
 	QElapsedTimer				_autoShutdownDeadline;
 	NotificationWidget*			_nwgt{Q_NULLPTR};
+
+	// The "up to ~N s" status message for a long quick command; empty when
+	// none is running. Shown in the normal (left) message area.
+	QString						_quickCommandHint;
+	void endQuickCommandHint();
 
 	void connect();
 	void disconnect();

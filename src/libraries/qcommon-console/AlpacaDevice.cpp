@@ -588,6 +588,9 @@ bool _AlpacaDevice::quickCommand
 					}
 				}
 
+				// Lets the UI say how long the locked controls may stay locked.
+				emit quickCommandStarted(scriptDurationMs);
+
 				_driveThread->sendCommandSequence(substitutedCommandEntries);
 				result = _driveThread->waitForCompletion(scriptDurationMs);
 

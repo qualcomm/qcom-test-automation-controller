@@ -118,7 +118,10 @@ void TACSTM32DriveThread::sendCommandSequence
 		}
 	}
 
-	waitForCompletion();
+	// No wait here: _AlpacaDevice::quickCommand waits with an allowance for
+	// the script's delays. A default-length wait here ended first after ~5 s,
+	// cleared the shared completion flag and made a long script look done.
+	// receive() clears the flag at End Transaction.
 }
 
 int TACSTM32DriveThread::getResetCount()

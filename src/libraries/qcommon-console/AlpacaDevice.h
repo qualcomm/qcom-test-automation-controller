@@ -164,6 +164,11 @@ signals:
 	// (false), so the UI can lock the controls that would re-enter it.
 	void commandBusyChanged(bool busy);
 
+	// Emitted by quickCommand() before it starts waiting, with the total of
+	// the script's own delay steps. The wait allows that much on top of the
+	// normal completion timeout, so the UI can say how long it may take.
+	void quickCommandStarted(quint32 scriptDelayMs);
+
 	// Emitted once a close() that was deferred by a running command has been
 	// completed. Connect queued: it fires while the command's caller is still
 	// on the stack.

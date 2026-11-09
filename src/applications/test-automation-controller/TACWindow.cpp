@@ -50,6 +50,10 @@ TACWindow::TACWindow
 	_nwgt = new NotificationWidget(_statusbar);
 	_statusbar->addPermanentWidget(_nwgt);
 
+	// Keeps the long quick command hint in place of NotificationWidget's
+	// generic "Operation in progress..." text; see onStatusMessageChanged().
+	QObject::connect(_statusbar, &QStatusBar::messageChanged, this, &TACWindow::onStatusMessageChanged);
+
 	restoreSettings();
 
 	QObject::connect(&_autoShutdownTimer, &QTimer::timeout, this, &TACWindow::onAutoShutdownTimerTimeout);
@@ -166,6 +170,11 @@ bool TACWindow::closeDevice()
 			// stop (it ends the wait and skips the remaining script delays)
 			// and finish here once the command has returned; the frame, its
 			// buttons and the device must stay alive until then.
+			//
+			// End the hint before showing "Disconnecting", so it is not put
+			// back when NotificationWidget later clears the status bar.
+			endQuickCommandHint();
+
 			if (_closeDeferred == false)
 			{
 				_closeDeferred = true;
@@ -179,6 +188,10 @@ bool TACWindow::closeDevice()
 		}
 
 		QObject::disconnect(_alpacaDevice.data(), Q_NULLPTR, _nwgt, Q_NULLPTR);
+		QObject::disconnect(_alpacaDevice.data(), &_AlpacaDevice::commandBusyChanged,
+			this, &TACWindow::onCommandBusyChanged);
+		QObject::disconnect(_alpacaDevice.data(), &_AlpacaDevice::quickCommandStarted,
+			this, &TACWindow::onQuickCommandStarted);
 		QObject::disconnect(_alpacaDevice.data(), &_AlpacaDevice::deferredCloseDone,
 			this, &TACWindow::onDeferredCloseDone);
 
@@ -187,6 +200,7 @@ bool TACWindow::closeDevice()
 		_alpacaDevice.reset();
 	}
 
+	endQuickCommandHint();
 	_closeDeferred = false;
 	return true;
 }
@@ -205,10 +219,72 @@ void TACWindow::onDeferredCloseDone()
 	}
 }
 
+void TACWindow::onQuickCommandStarted(quint32 scriptDelayMs)
+{
+	// Short commands (Power On and the like) finish before a hint is useful.
+	const quint32 kHintThresholdMs{5000};
+
+	// waitForCompletion() allows the script's delays plus its normal ~5 s
+	// completion timeout, so that is the most the lock should last. A real
+	// timeout triggers one transport reset and replay, which can run past
+	// it; hence a fixed "up to" figure rather than a countdown.
+	const quint32 kCompletionAllowanceMs{5000};
+
+	if (_closeDeferred || scriptDelayMs < kHintThresholdMs)
+		return;
+
+	const quint32 upToSeconds = (scriptDelayMs + kCompletionAllowanceMs + 999) / 1000;
+
+	// Shown as the normal status message, in place of the generic
+	// "Operation in progress..." text, so it reads like every other message.
+	// Kept short: the message area left of NotificationWidget's progress bar
+	// holds only about 50 characters at the default window width.
+	_quickCommandHint = QString("Operation in progress (up to ~%1 s)").arg(upToSeconds);
+	_statusbar->showMessage(_quickCommandHint);
+}
+
+void TACWindow::onStatusMessageChanged(const QString& message)
+{
+	// NotificationWidget shows "Operation in progress..." when the command
+	// starts and clears the status bar when its progress timer runs out,
+	// both while a long command is still running. Put the hint back in
+	// either case. Any other message (an error, "Disconnecting: ...") is
+	// left alone.
+	//
+	// Restoring emits messageChanged(hint), which matches neither case, so
+	// this does not recurse.
+	if (_quickCommandHint.isEmpty())
+		return;
+
+	if (message.isEmpty() || message == QLatin1String("Operation in progress..."))
+		_statusbar->showMessage(_quickCommandHint);
+}
+
+void TACWindow::endQuickCommandHint()
+{
+	if (_quickCommandHint.isEmpty())
+		return;
+
+	// Clear the hint first, so the clearMessage() below is not undone by
+	// onStatusMessageChanged().
+	const bool hintShowing = _statusbar->currentMessage() == _quickCommandHint;
+	_quickCommandHint.clear();
+
+	if (hintShowing)
+		_statusbar->clearMessage();
+}
+
+void TACWindow::onCommandBusyChanged(bool busy)
+{
+	if (busy == false)
+		endQuickCommandHint();
+}
+
 void TACWindow::showDisconnectedState()
 {
 	_deviceStatusLabel->setText("Disconnected");
 	setWindowTitle(_defaultTitle);
+	endQuickCommandHint();
 	_statusbar->clearMessage();
 
 	updateConnectionControls();
@@ -380,6 +456,13 @@ void TACWindow::openPort
 	TACApplication::tacAppInstance()->preferences()->saveLastDevice(QString::fromLatin1(lastDevice));
 
 	QObject::connect(_alpacaDevice.data(), &_AlpacaDevice::progress, _nwgt, &NotificationWidget::progress);
+
+	// A long quick command (e.g. a 120 s UEFI hold) keeps the controls locked
+	// for its whole run; say how long, so the lock does not look like a hang.
+	QObject::connect(_alpacaDevice.data(), &_AlpacaDevice::quickCommandStarted,
+		this, &TACWindow::onQuickCommandStarted, Qt::UniqueConnection);
+	QObject::connect(_alpacaDevice.data(), &_AlpacaDevice::commandBusyChanged,
+		this, &TACWindow::onCommandBusyChanged, Qt::UniqueConnection);
 
 	setupAutoShutdownTimer();
 
