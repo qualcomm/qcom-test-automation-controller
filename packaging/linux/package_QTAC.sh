@@ -161,7 +161,12 @@ if [ "$NO_GUI" -ne 1 ]; then
 fi
 
 echo "Copying lib..."
-cp -a "$SRC_DIR/lib/." "$BUILDROOT$INSTALL_PREFIX/lib/"
+if [ "$RUST_ONLY" -eq 1 ]; then
+    find "$SRC_DIR/lib" -maxdepth 1 \( -name "libTACDev.so*" -o -name "TACDev.so*" \) \
+        -exec cp -a {} "$BUILDROOT$INSTALL_PREFIX/lib/" \;
+else
+    cp -a "$SRC_DIR/lib/." "$BUILDROOT$INSTALL_PREFIX/lib/"
+fi
 
 echo "Copying configurations..."
 cp -a "$CONFIG_SRC_DIR/." \
