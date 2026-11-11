@@ -2,7 +2,7 @@
 # SPDX-License-Identifier: BSD-3-Clause
 
 # All changes: triage team reviews by default
-*                                   @qualcomm/qcom-test-automation-controller-triage
+*                                   @biswajee @qualcomm/qcom-test-automation-controller-maint
 
 # Critical governance and project files: maint team required
 CODEOWNERS                          @qualcomm/qcom-test-automation-controller-maint
