@@ -622,5 +622,31 @@
             "user_tab": false,
             "visible": true
         }
+    ],
+    "variables": [
+        {
+            "cellLocation": "0,0",
+            "default_value": "1300",
+            "label": "EDL timing (ms)",
+            "name": "edl",
+            "tooltip": "Configurable Boot to EDL timin",
+            "type": 1
+        },
+        {
+            "cellLocation": "1,0",
+            "default_value": "8000",
+            "label": "Fastboot timing (ms)",
+            "name": "fastboot",
+            "tooltip": "Configurable Boot to fastboot ",
+            "type": 1
+        },
+        {
+            "cellLocation": "0,1",
+            "default_value": "8000",
+            "label": "UEFI timing (ms)",
+            "name": "uefi",
+            "tooltip": "Configurable Boot to UEFI timi",
+            "type": 1
+        }
     ]
 }

@@ -70,6 +70,10 @@ private slots:
 	void on__renameButton_clicked();
 
 private:
+	// Locks the controls that would issue another device command while one is
+	// running (its wait loop keeps the UI live). Disconnect stays available.
+	void onCommandBusyChanged(bool busy);
+
 	void clearConfigurationWidgets();
 	void clearDeviceInfo();
 	void updateRenameButton();

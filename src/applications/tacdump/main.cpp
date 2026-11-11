@@ -89,7 +89,10 @@ int main(int argc, char *argv[])
 		return kBadCommandLine;
 	}
 
-	if (parser.isSet(helpOption))
+	// addHelpOption() also registers --help-all, but the returned option only covers -h/--help/-?.
+	// Because parse() is used instead of process(), Qt does not act on --help-all itself, so without
+	// this check it fell through and listed (and opened) devices instead of printing help.
+	if (parser.isSet(helpOption) || parser.isSet(QStringLiteral("help-all")))
 	{
 		cout << parser.helpText().toLatin1().data();
 		return 0;

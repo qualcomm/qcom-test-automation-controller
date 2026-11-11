@@ -34,6 +34,13 @@ public:
 
 	void shutDown();
 
+	// Non-blocking half of shutDown(): marks the thread as stopping and skips
+	// any queued script delays, but does not wait for run() to exit. Lets a
+	// caller that is itself inside a wait loop on this thread (a quick command
+	// re-entered by Disconnect) end that wait promptly; shutDown() follows
+	// once the caller has unwound.
+	void requestStop();
+
 	QString name()
 	{
 		return _driveTrainName;

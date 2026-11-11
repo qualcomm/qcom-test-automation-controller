@@ -50,6 +50,7 @@ public:
 	// Names the operation in progress so a timeout can report which command
 	// stalled, rather than leaving it to be inferred from nearby log lines.
 	void setLastCommandDescription(const QString& description);
+	QString lastCommandDescription() const;
 
 	QByteArray decodeCommand(const QByteArray& command, Arguments& arg);
 	bool checkLocalStore(FramePackage& framePackage);
@@ -197,6 +198,10 @@ protected:
 	int							_resetCount{0};
 	uint						_delay{0};
 
+	// Written by the command-issuing thread and read when a wait times out;
+	// guarded so a concurrent update cannot leave a half-built string (QA's
+	// "lastCommand=???   @ dS" log line).
+	mutable QMutex				_lastCommandMutex;
 	QString						_lastCommandDescription;
 
 	// Transport reset hand-off from the caller thread to the drive thread.
