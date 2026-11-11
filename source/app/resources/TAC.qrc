@@ -1,6 +1,0 @@
-<RCC>
-    <qresource prefix="/">
-        <file>TAC.png</file>
-        <file>TAC.bmp</file>
-    </qresource>
-</RCC>
