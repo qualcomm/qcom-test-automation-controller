@@ -125,7 +125,31 @@ TAC_RESULT _quickCommand
 			// The completion flag is armed inside quickCommand() itself, so
 			// both this entry point and the exported SendCommand() get the
 			// timeout detection without each caller having to remember.
-			alpacaDevice->quickCommand(command);
+			bool completed = alpacaDevice->quickCommand(command);
+
+			// quickCommand() returns false without throwing in two cases:
+			//  - the device was closed while the command was waiting. The
+			//    deferred close has already run when the call unwinds, so the
+			//    device is no longer open (same check sendCommand() uses).
+			//    Reporting success here would tell the caller the board was
+			//    sequenced when it was not.
+			//  - the command is not in the board's script. That has always
+			//    returned success through this entry point; keep it that way.
+			if (completed == false)
+			{
+				if (alpacaDevice->isOpen() == false)
+				{
+					result = TAC_DEVICE_INACTIVE;
+					gDevTACCore.setLastError("_quickCommand(" + command + "): device was closed before the command completed");
+					AppCore::writeToApplicationLogLine(
+						QString("_quickCommand(%1): abandoned, device closed during the command").arg(command));
+				}
+				else
+				{
+					AppCore::writeToApplicationLogLine(
+						QString("_quickCommand(%1): command not run (not in script)").arg(command));
+				}
+			}
 		}
 		catch (const TACException& e)
 		{
