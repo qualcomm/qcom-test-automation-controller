@@ -48,6 +48,7 @@
 #include <qtac/PinEntry.h>
 #include <qtac/AlpacaScript.h>
 
+#include <atomic>
 #include <cstdint>
 #include <memory>
 #include <mutex>
@@ -109,6 +110,8 @@ public:
 	virtual qtac::ByteArray getHelp();
 
 	virtual void setPinState(PinID pin, bool state);
+	// Same as setPinState but returns false on timeout (drive thread returns false).
+	virtual bool setPinStateWithResult(PinID pin, bool state);
 	virtual void setAddressPinState(const qtac::ByteArray& i2cAddress, uint16_t pin, bool state);
 	void setWaitForCompletion();
 	bool active();
@@ -169,6 +172,10 @@ public:
 	// The caller retains ownership; the device does NOT delete it.
 	void setDriveThread(qtac::TACDriveThread* dt) { _driveThread = dt; }
 
+	// Command-scope helpers: track re-entrant command depth and defer close().
+	void beginCommand();
+	void endCommand();
+
 	// --- Signals (replaces Qt signals) ---
 	qtac::Signal<uint64_t, bool>               onPinStateChanged;
 	qtac::Signal<uint8_t, int>                 onProgress;
@@ -201,6 +208,10 @@ protected:
 	TACCommands     _commandList;
 	qtac::List<qtac::ByteArray> _quickCommandList;
 	qtac::ByteArray _lastError;
+
+	// Re-entrancy tracking for deferred close().
+	std::atomic<int> _commandDepth{0};
+	bool             _closePending{false};
 };
 
 #endif // QTAC_ALPACADEVICE_H

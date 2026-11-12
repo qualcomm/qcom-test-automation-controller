@@ -32,6 +32,11 @@ void DeviceSelectionDialog::setDevices(AlpacaDevices alpacaDevices)
 	}
 
 	ui->_deviceSelectionBox->addItems(deviceList);
+
+	// With only one board connected there is nothing to choose: preselect it so
+	// OK is enabled. With several boards the user must pick one explicitly.
+	if (alpacaDevices.count() == 1)
+		ui->_deviceSelectionBox->setCurrentIndex(1);
 }
 
 QString DeviceSelectionDialog::currentSerialNumber()

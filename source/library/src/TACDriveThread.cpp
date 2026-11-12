@@ -38,6 +38,7 @@
 #include <qtac/TACCommandHashes.h>
 #include <qtac/PlatformID.h>
 
+#include <cctype>
 #include <chrono>
 #include <sstream>
 #include <thread>
@@ -124,15 +125,27 @@ HashType TACDriveThread::hash()
 // Completion wait
 // -----------------------------------------------------------------------
 
-bool TACDriveThread::waitForCompletion()
+bool TACDriveThread::waitForCompletion(uint32_t expectedDurationMs)
 {
-    constexpr int kTimeoutMs = 5000;
+    constexpr int kBaseTimeoutMs = 5000;
+    const int kTimeoutMs = kBaseTimeoutMs + static_cast<int>(expectedDurationMs);
+
+    // Track whether the thread was already running so we can detect a stop.
+    const bool wasRunning = weAreRunning();
 
     std::unique_lock<std::mutex> lock(_completionMutex);
     const bool timedOut = !_completionCv.wait_for(
         lock,
         std::chrono::milliseconds(kTimeoutMs),
         [this] { return !_waitForCompletion; });
+
+    // If the drive thread stopped while we were waiting, treat as failure.
+    if (wasRunning && !weAreRunning())
+    {
+        writeLogLine("Wait for completion abandoned: drive thread stopped.");
+        _waitForCompletion = false;
+        return false;
+    }
 
     if (timedOut)
     {
@@ -145,6 +158,15 @@ bool TACDriveThread::waitForCompletion()
         return false;
     }
     return true;
+}
+
+void TACDriveThread::requestStop()
+{
+    // Delegate to base first (stops running + skips delays).
+    DriveThread::requestStop();
+    // Wake any waitForCompletion() blocked on the condvar so it can detect
+    // that the drive thread has stopped and return false.
+    clearWaitForCompletion();
 }
 
 void TACDriveThread::setLastCommandDescription(const qtac::String& description)
@@ -173,6 +195,16 @@ qtac::String TACDriveThread::uuidFromResponse(const qtac::ByteArray& response)
 {
     // A UUID has the form xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx (36 chars).
     const std::string s = response.toStdString();
+
+    // If the firmware says the command is not supported, propagate that.
+    {
+        std::string lower = s;
+        for (auto& c : lower) c = static_cast<char>(std::tolower(static_cast<unsigned char>(c)));
+        if (lower.find("not recognized") != std::string::npos ||
+            lower.find("not supported")  != std::string::npos)
+            return kUUIDNotSupported;
+    }
+
     if (s.size() >= 36)
     {
         // Find the first candidate 36-char substring with dashes in the right places.

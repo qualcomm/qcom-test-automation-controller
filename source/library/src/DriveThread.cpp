@@ -50,13 +50,27 @@ DriveThread::~DriveThread()
         _thread.join();
 }
 
+void DriveThread::requestStop()
+{
+    stopRunning();
+    // Skip queued delays so the drive-thread loop drains quickly after stop.
+    if (_protocolInterface != nullptr)
+        _protocolInterface->setSkipDelays(true);
+}
+
+
 void DriveThread::shutDown()
 {
-    if (stopRunning())
-    {
-        if (_thread.joinable())
-            _thread.join();
-    }
+    requestStop();
+
+    // If called from within the drive thread's own run() (e.g. via a direct
+    // signal connection), joining would deadlock. The thread will join in
+    // the destructor.
+    if (_thread.get_id() == std::this_thread::get_id())
+        return;
+
+    if (_thread.joinable())
+        _thread.join();
 }
 
 void DriveThread::addDelay(uint32_t delayInMilliSeconds, ReceiveInterface* receiveInterface)

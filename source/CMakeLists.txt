@@ -244,13 +244,20 @@ set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY "${_QTAC_OUTDIR}/lib")
 # ---------------------------------------------------------------------------
 # Subtargets
 # ---------------------------------------------------------------------------
-find_package(QT NAMES Qt6 REQUIRED COMPONENTS Core Multimedia)
-find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS
-    Concurrent Gui Multimedia MultimediaWidgets Network SerialPort Widgets Xml)
-qt_standard_project_setup(REQUIRES 6.9)
+option(QTAC_BUILD_QT_TARGETS "Build Qt-dependent targets (qt-adapter, qtac-app)" ON)
+
+if(QTAC_BUILD_QT_TARGETS)
+    find_package(QT NAMES Qt6 REQUIRED COMPONENTS Core Multimedia)
+    find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS
+        Concurrent Gui Multimedia MultimediaWidgets Network SerialPort Widgets Xml)
+    qt_standard_project_setup(REQUIRES 6.9)
+endif()
 
 add_subdirectory(library)
-add_subdirectory(libraries/qt-adapter)
 add_subdirectory(tacdev)
 add_subdirectory(test)
-add_subdirectory(app)
+
+if(QTAC_BUILD_QT_TARGETS)
+    add_subdirectory(libraries/qt-adapter)
+    add_subdirectory(app)
+endif()

@@ -70,6 +70,10 @@ public:
     // True if the underlying thread is joinable (i.e. started and not yet joined).
     bool isRunning() const { return _thread.joinable(); }
 
+    // Signal the thread to stop and skip any pending delays, without waiting
+    // for the thread to exit. Use shutDown() to also join the thread.
+    virtual void requestStop();
+
     // Signal stop and block until the thread exits.
     void shutDown();
 

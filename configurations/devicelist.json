@@ -829,6 +829,19 @@
             "platform_id": 95,
             "revision": 0,
             "usb_descriptor": ""
+        },
+        {
+            "chip1BusSet": 8,
+            "chip2BusSet": 0,
+            "chip3BusSet": 0,
+            "chip4BusSet": 0,
+            "configPath": "../../../../configurations/TAC_FTDI_96.tcnf",
+            "debugBoardType": 3,
+            "description": "AR TAC config for BONSAI-TWILIGHT  V2",
+            "name": "Bonsai XRV7205 - Twilight V2",
+            "platform_id": 96,
+            "revision": 38,
+            "usb_descriptor": "ALPACA-LITE FOR BONSAI-TWILIGHT V2"
         }
     ],
     "modification_date": "Wed Oct 7 01:49:31 2026"

@@ -16,6 +16,13 @@ CONFIG_INSTALL_DIR="/var/lib/qcom/data/QTAC"
 # Set NO_GUI=1 to produce the headless/automation variant (lib + support
 # files only; no GUI binary, no Qt plugins, no xcb dependencies).
 NO_GUI="${NO_GUI:-0}"
+# Set RUST_ONLY=1 to produce a minimal package containing only the C API
+# shared library (TACDev.so), its header, and the Rust interface — no GUI,
+# no Qt plugins, no docs, no examples, no Python.
+RUST_ONLY="${RUST_ONLY:-0}"
+if [ "$RUST_ONLY" -eq 1 ]; then
+    NO_GUI=1
+fi
 
 case "${1:-}" in
   -v|--version|version)
@@ -91,17 +98,17 @@ if [ ! -d "$CONFIG_SRC_DIR" ]; then
     missing=1
 fi
 
-if [ ! -d "$DOCS_SRC_DIR" ]; then
+if [ "$RUST_ONLY" -ne 1 ] && [ ! -d "$DOCS_SRC_DIR" ]; then
     echo "ERROR: Missing docs directory: $DOCS_SRC_DIR" >&2
     missing=1
 fi
 
-if [ ! -d "$EXAMPLES_SRC_DIR" ]; then
+if [ "$RUST_ONLY" -ne 1 ] && [ ! -d "$EXAMPLES_SRC_DIR" ]; then
     echo "ERROR: Missing example directory: $EXAMPLES_SRC_DIR" >&2
     missing=1
 fi
 
-if [ ! -d "$PYTHON_SRC_DIR" ]; then
+if [ "$RUST_ONLY" -ne 1 ] && [ ! -d "$PYTHON_SRC_DIR" ]; then
     echo "ERROR: Missing python directory: $PYTHON_SRC_DIR" >&2
     missing=1
 fi
@@ -136,9 +143,11 @@ if [ "$NO_GUI" -ne 1 ]; then
     mkdir -p "$BUILDROOT$INSTALL_PREFIX/plugins"
 fi
 mkdir -p "$BUILDROOT$INSTALL_PREFIX/lib"
-mkdir -p "$BUILDROOT$INSTALL_PREFIX/docs/QTAC"
-mkdir -p "$BUILDROOT$INSTALL_PREFIX/examples"
-mkdir -p "$BUILDROOT$INSTALL_PREFIX/python"
+if [ "$RUST_ONLY" -ne 1 ]; then
+    mkdir -p "$BUILDROOT$INSTALL_PREFIX/docs/QTAC"
+    mkdir -p "$BUILDROOT$INSTALL_PREFIX/examples"
+    mkdir -p "$BUILDROOT$INSTALL_PREFIX/python"
+fi
 mkdir -p "$BUILDROOT$INSTALL_PREFIX/utils"
 mkdir -p "$BUILDROOT$CONFIG_INSTALL_DIR/configurations"
 mkdir -p "$BUILDROOT$CONFIG_INSTALL_DIR/interfaces"
@@ -152,23 +161,30 @@ if [ "$NO_GUI" -ne 1 ]; then
 fi
 
 echo "Copying lib..."
-cp -a "$SRC_DIR/lib/." "$BUILDROOT$INSTALL_PREFIX/lib/"
+if [ "$RUST_ONLY" -eq 1 ]; then
+    find "$SRC_DIR/lib" -maxdepth 1 \( -name "libTACDev.so*" -o -name "TACDev.so*" \) \
+        -exec cp -a {} "$BUILDROOT$INSTALL_PREFIX/lib/" \;
+else
+    cp -a "$SRC_DIR/lib/." "$BUILDROOT$INSTALL_PREFIX/lib/"
+fi
 
 echo "Copying configurations..."
 cp -a "$CONFIG_SRC_DIR/." \
       "$BUILDROOT$CONFIG_INSTALL_DIR/configurations/"
 
-echo "Copying docs..."
-cp -a "$DOCS_SRC_DIR/." \
-      "$BUILDROOT$INSTALL_PREFIX/docs/QTAC/"
-	  
-echo "Copying examples..."
-cp -a "$EXAMPLES_SRC_DIR/." \
-      "$BUILDROOT$INSTALL_PREFIX/examples/"
-	  
-echo "Copying Python..."
-cp -a "$PYTHON_SRC_DIR/." \
-      "$BUILDROOT$INSTALL_PREFIX/python/"
+if [ "$RUST_ONLY" -ne 1 ]; then
+    echo "Copying docs..."
+    cp -a "$DOCS_SRC_DIR/." \
+          "$BUILDROOT$INSTALL_PREFIX/docs/QTAC/"
+
+    echo "Copying examples..."
+    cp -a "$EXAMPLES_SRC_DIR/." \
+          "$BUILDROOT$INSTALL_PREFIX/examples/"
+
+    echo "Copying Python..."
+    cp -a "$PYTHON_SRC_DIR/." \
+          "$BUILDROOT$INSTALL_PREFIX/python/"
+fi
 
 echo "Copying interfaces..."
 
@@ -210,12 +226,14 @@ if [ "$NO_GUI" -ne 1 ]; then
 fi
 find "$BUILDROOT$INSTALL_PREFIX/lib" -type f -exec chmod 755 {} \;
 
-find "$BUILDROOT$INSTALL_PREFIX/docs/QTAC" -type f -exec chmod 644 {} \; || true
-find "$BUILDROOT$INSTALL_PREFIX/examples" -type f -exec chmod 644 {} \; || true
+if [ "$RUST_ONLY" -ne 1 ]; then
+    find "$BUILDROOT$INSTALL_PREFIX/docs/QTAC" -type f -exec chmod 644 {} \; || true
+    find "$BUILDROOT$INSTALL_PREFIX/examples" -type f -exec chmod 644 {} \; || true
+    find "$BUILDROOT$INSTALL_PREFIX/python" -type f -exec chmod 644 {} \; || true
+fi
 if [ "$NO_GUI" -ne 1 ]; then
     find "$BUILDROOT$INSTALL_PREFIX/plugins" -type f -exec chmod 644 {} \; || true
 fi
-find "$BUILDROOT$INSTALL_PREFIX/python" -type f -exec chmod 644 {} \; || true
 
 find "$BUILDROOT$CONFIG_INSTALL_DIR/configurations" -type f -exec chmod 644 {} \; || true
 

@@ -33,6 +33,7 @@ const unsigned long TACDEV_COMMAND_NOT_FOUND{3};
 const unsigned long TACDEV_BAD_INDEX{4};
 const unsigned long TACDEV_INIT_FAILED{5};
 const unsigned long TACDEV_SCRIPT_VARIABLE_NOT_FOUND{6};
+const unsigned long TACDEV_COMMAND_TIMEOUT{7};
 
 #ifdef __cplusplus
 extern "C" {

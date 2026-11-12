@@ -6,6 +6,40 @@ name: CMake Build
 on: [push, pull_request]
 
 jobs:
+  # A release tag must match the version compiled into the binaries
+  # (src/libraries/qcommon-console/version.cmake / version.h). 6.9.1 and 6.9.2
+  # shipped reporting 6.9.0 because nothing compared them.
+  check-version:
+    runs-on: ubuntu-22.04
+    permissions:
+      contents: read
+    steps:
+    - uses: actions/checkout@v6
+      with:
+        persist-credentials: false
+
+    - name: Check QTAC_VERSION consistency (and tag match on tag builds)
+      env:
+        REF_TYPE: ${{ github.ref_type }}
+        REF_NAME: ${{ github.ref_name }}
+      run: |
+        set -euo pipefail
+        cmake_ver=$(sed -n 's/^set(QTAC_VERSION "\([^"]*\)").*/\1/p' src/libraries/qcommon-console/version.cmake)
+        header_ver=$(sed -n 's/^#define[[:space:]]*QTAC_VERSION[[:space:]]*"\([^"]*\)".*/\1/p' src/libraries/qcommon-console/version.h)
+        echo "version.cmake: $cmake_ver  version.h: $header_ver"
+        if [ -z "$cmake_ver" ] || [ "$cmake_ver" != "$header_ver" ]; then
+          echo "::error::QTAC_VERSION differs between version.cmake ($cmake_ver) and version.h ($header_ver)"
+          exit 1
+        fi
+        if [ "$REF_TYPE" = "tag" ] && [[ "$REF_NAME" =~ ^[0-9]+\.[0-9]+\.[0-9]+ ]]; then
+          tag_ver="${REF_NAME%%-*}"
+          if [ "$tag_ver" != "$cmake_ver" ]; then
+            echo "::error::Tag $REF_NAME does not match QTAC_VERSION $cmake_ver. Bump version.cmake and version.h before tagging."
+            exit 1
+          fi
+          echo "Tag $REF_NAME matches QTAC_VERSION $cmake_ver"
+        fi
+
   fetch-ftdi-linux:
     runs-on: ubuntu-22.04
     steps:
@@ -306,7 +340,15 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-22.04, windows-2022]
+        include:
+          - os: windows-2022
+            target: x86_64-pc-windows-msvc
+          - os: windows-2022
+            target: aarch64-pc-windows-msvc
+          - os: ubuntu-22.04
+            target: x86_64-unknown-linux-gnu
+          - os: ubuntu-22.04-arm
+            target: aarch64-unknown-linux-gnu
 
     steps:
     - uses: actions/checkout@v6
@@ -314,13 +356,16 @@ jobs:
     - name: Update Rust toolchain to stable
       run: rustup update stable && rustup default stable
 
+    - name: Add Rust target
+      run: rustup target add ${{ matrix.target }}
+
     - name: Check Rust interface
       working-directory: interfaces/Rust/TACDev
-      run: cargo check
+      run: cargo check --target ${{ matrix.target }}
 
     - name: Build Rust interface
       working-directory: interfaces/Rust/TACDev
-      run: cargo build
+      run: cargo build --target ${{ matrix.target }}
 
   build-source-linux:
     needs: [fetch-ftdi-linux, build-docs]
@@ -419,19 +464,74 @@ jobs:
         chmod +x packaging/linux/package_QTAC.sh
         PKG_NAME=qualcomm-qtac-source \
           SRC_DIR="$(pwd)/source/__Builds/Linux/Release" \
+          ARCH=amd64 \
           ./packaging/linux/package_QTAC.sh
 
     - name: Package QTAC (source, no-GUI)
       run: |
         PKG_NAME=qualcomm-qtac-source-nogui \
           SRC_DIR="$(pwd)/source/__Builds/Linux/Release" \
+          ARCH=amd64 \
           NO_GUI=1 \
+          ./packaging/linux/package_QTAC.sh
+
+    - name: Package QTAC (source, Rust-only)
+      run: |
+        PKG_NAME=qualcomm-qtac-source-rust \
+          SRC_DIR="$(pwd)/source/__Builds/Linux/Release" \
+          ARCH=amd64 \
+          RUST_ONLY=1 \
           ./packaging/linux/package_QTAC.sh
 
     - name: Upload installer artifact
       uses: actions/upload-artifact@v4
       with:
         name: QTAC-source-${{ matrix.os }}-qt${{ matrix.qt_version }}
+        path: packaging/linux/build/*.deb
+        if-no-files-found: error
+
+  build-source-linux-arm64:
+    needs: build-docs
+    runs-on: ubuntu-22.04-arm
+
+    steps:
+    - uses: actions/checkout@v6
+
+    - name: Install dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y build-essential uuid-dev ninja-build libudev-dev
+
+    - name: Configure
+      run: |
+        cmake -S source -B build/source/Release \
+          -DCMAKE_COLOR_DIAGNOSTICS=ON \
+          -DCMAKE_GENERATOR=Ninja \
+          -DCMAKE_BUILD_TYPE=Release \
+          -DQTAC_BUILD_QT_TARGETS=OFF \
+          -DQTAC_BUILD_FTDI=OFF
+
+    - name: Build TACDev
+      run: cmake --build build/source/Release --target TACDev
+
+    - name: Run tests
+      run: |
+        cd build/source/Release
+        ctest --output-on-failure
+
+    - name: Package QTAC (source, Rust-only)
+      run: |
+        chmod +x packaging/linux/package_QTAC.sh
+        PKG_NAME=qualcomm-qtac-source-rust \
+          SRC_DIR="$(pwd)/source/__Builds/Linux/Release" \
+          ARCH=arm64 \
+          RUST_ONLY=1 \
+          ./packaging/linux/package_QTAC.sh
+
+    - name: Upload installer artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: QTAC-source-ubuntu-22.04-arm
         path: packaging/linux/build/*.deb
         if-no-files-found: error
 
@@ -634,6 +734,13 @@ jobs:
           -BinDir "source\__Builds\ARM64\Release\bin" `
           -NoGui
 
+    - name: Build installer (QTAC-source-windows-arm64-rust.exe)
+      shell: pwsh
+      run: |
+        .\packaging\windows\build-installer.ps1 `
+          -BinDir "source\__Builds\ARM64\Release\bin" `
+          -RustOnly
+
     - name: Upload installer artifact
       uses: actions/upload-artifact@v4
       with:
@@ -644,7 +751,7 @@ jobs:
   publish-release-linux:
     name: Publish release (Linux)
     if: github.ref_type == 'tag'
-    needs: build-linux
+    needs: [check-version, build-linux]
     runs-on: ubuntu-22.04
     permissions:
       contents: write
@@ -713,7 +820,7 @@ jobs:
   publish-release-windows:
     name: Publish release (Windows)
     if: github.ref_type == 'tag'
-    needs: [build-windows, build-windows-arm64]
+    needs: [check-version, build-windows, build-windows-arm64]
     runs-on: windows-2022
     permissions:
       contents: write

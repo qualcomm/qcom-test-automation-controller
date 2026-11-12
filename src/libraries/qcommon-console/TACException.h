@@ -13,6 +13,10 @@ const quint32 TAC_COMMAND_NOT_FOUND{3};
 const quint32 TAC_BAD_INDEX{4};
 const quint32 TAC_DEVICE_INACTIVE{5};
 const quint32 TAC_SCRIPT_VARIABLE_NOT_FOUND{6};
+const quint32 TAC_COMMAND_TIMEOUT{7};
+// A quick command or pin command was issued while another one on the same
+// device was still waiting for completion (re-entered from its event loop).
+const quint32 TAC_DEVICE_BUSY{8};
 
 class QCOMMONCONSOLE_EXPORT TACException :
 	public QException

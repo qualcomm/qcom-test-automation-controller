@@ -113,8 +113,10 @@ bool TcnfLoader::loadPIC32CX(const std::string& path, _PIC32CXPlatformConfigurat
 
     if (cfg->getScript().isEmpty())
     {
-        std::string defaultScriptPath = dirOf(path) + "DefaultScript.txt";
-        std::string text = readTextFile(defaultScriptPath);
+        std::string dir = dirOf(path);
+        std::string text = readTextFile(dir + "DefaultPIC32CXScript.txt");
+        if (text.empty())
+            text = readTextFile(dir + "DefaultScript.txt");
         if (!text.empty())
             cfg->loadDefaultScript(qtac::String(text));
     }

@@ -71,20 +71,190 @@ HashType TACDriveThread::hash()
 	return _hash;
 }
 
-void TACDriveThread::waitForCompletion()
+bool TACDriveThread::waitForCompletion
+(
+	quint32 expectedDurationMs
+)
 {
+	const int kMaxPolls{50};
+	const int kPollIntervalMs{100};
+
+	// Work that is known to take a while, such as a quick command script with
+	// an 8 s button hold, gets that time on top of the normal allowance.
+	// Without this every such script hit the timeout part way through, and
+	// the recovery path then reset the transport and replayed the script.
+	const int expectedPolls = static_cast<int>(
+		(expectedDurationMs + kPollIntervalMs - 1) / kPollIntervalMs);
+	const int maxPolls{kMaxPolls + expectedPolls};
+
 	int count{0};
+
+	// Only a thread that was running when the wait began can be seen to stop;
+	// waits issued while the device is still opening keep the old behaviour.
+	const bool wasRunning = weAreRunning();
 
 	while (_waitForCompletion)
 	{
-		QThread::msleep(100);				// Give our high priority time to process
+		QThread::msleep(kPollIntervalMs);	// Give our high priority time to process
 		QCoreApplication::processEvents();  // Give the UI a timeslice to update
 
-		if (count++ > 50)
+		// The drive thread stops itself on a transport failure (for example
+		// "FTDI Write Failed" on a Hawi power off) or because the device is
+		// being closed. Nothing will clear the flag after that, so waiting on
+		// would only run out the timeout - which, with a script delay of up to
+		// 120 s added on, kept the UI re-entering processEvents() long after
+		// the device had gone, with the caller still using it.
+		if (wasRunning && weAreRunning() == false)
 		{
-			AppCore::writeToApplicationLogLine("Wait for completion timed out.");
+			AppCore::writeToApplicationLogLine(
+				QString("Wait for completion abandoned: drive thread stopped after %1 ms"
+						" (port=%2, lastCommand=%3)")
+					.arg(count * kPollIntervalMs)
+					.arg(_portName.isEmpty() ? QByteArray("unknown") : _portName)
+					.arg(lastCommandDescription()));
 
 			_waitForCompletion = false;
+			return false;
+		}
+
+		if (count++ > maxPolls)
+		{
+			// The leading text must stay exactly "Wait for completion timed out"
+			// because downstream consumers (TacService) match on that substring
+			// to decide whether to reinitialize. Context is appended, not
+			// substituted, so those matches keep working.
+			AppCore::writeToApplicationLogLine(
+				QString("Wait for completion timed out. Board stopped acknowledging after %1 ms"
+						" (port=%2, driveTrain=%3, lastCommand=%4)")
+					.arg(count * kPollIntervalMs)
+					.arg(_portName.isEmpty() ? QByteArray("unknown") : _portName)
+					.arg(_driveTrainName)
+					.arg(lastCommandDescription()));
+
+			_waitForCompletion = false;
+			return false;
+		}
+	}
+
+	// A command that completes but takes an unusually long time is an early
+	// warning of the same fault. Without this the duration is only visible
+	// buried in a frame dump, which is easy to miss.
+	const int kSlowCommandPolls{10};
+	if (count > kSlowCommandPolls + expectedPolls)
+	{
+		AppCore::writeToApplicationLogLine(
+			QString("Slow command completion: %1 ms (port=%2, lastCommand=%3)")
+				.arg(count * kPollIntervalMs)
+				.arg(_portName.isEmpty() ? QByteArray("unknown") : _portName)
+				.arg(lastCommandDescription()));
+	}
+
+	return true;
+}
+
+// ----------------------------------------------------------------------------
+// setLastCommandDescription
+//
+/// Records what the transport is currently doing so a timeout can name it.
+///
+/// Without this, "Wait for completion timed out" gives no indication of which
+/// command stalled, and the command has to be inferred from surrounding log
+/// lines after the fact.
+// ----------------------------------------------------------------------------
+void TACDriveThread::setLastCommandDescription(const QString& description)
+{
+	QMutexLocker lock(&_lastCommandMutex);
+	_lastCommandDescription = description;
+}
+
+QString TACDriveThread::lastCommandDescription() const
+{
+	QMutexLocker lock(&_lastCommandMutex);
+	return _lastCommandDescription.isEmpty() ? QString("unknown") : _lastCommandDescription;
+}
+
+// ----------------------------------------------------------------------------
+// resetTransport
+//
+/// Posts a reset request to the drive thread and waits for it to complete.
+///
+/// Called from the thread issuing the command. The transport object is owned
+/// and continuously used by run() on this QThread, so it must not be torn down
+/// here - doing so would race with, and free memory under, the drive thread.
+// ----------------------------------------------------------------------------
+bool TACDriveThread::resetTransport()
+{
+	// A reset is pointless if the drive thread is not running to service it,
+	// and waiting would block until the timeout for no reason.
+	if (weAreRunning() == false)
+	{
+		AppCore::writeToApplicationLogLine("TACDriveThread::resetTransport: drive thread not running, cannot reset");
+		return false;
+	}
+
+	QMutexLocker lock(&_resetMutex);
+
+	_resetRequested = true;
+	_resetDone = false;
+	_resetResult = false;
+
+	// Release the stale wait flag so run() is not stuck in a command that will
+	// never complete; otherwise it may not reach the reset service point.
+	_waitForCompletion = false;
+
+	// Bounded wait: if the drive thread is itself wedged, report failure rather
+	// than hanging the caller. The caller then surfaces the original timeout.
+	const unsigned long kResetTimeoutMs{15000};
+
+	while (_resetDone == false)
+	{
+		if (_resetCondition.wait(&_resetMutex, kResetTimeoutMs) == false)
+		{
+			AppCore::writeToApplicationLogLine("TACDriveThread::resetTransport: timed out waiting for drive thread to reset transport");
+
+			// Withdraw the request so a later reset is not serviced by a stale
+			// flag after this caller has already given up.
+			_resetRequested = false;
+			return false;
+		}
+	}
+
+	return _resetResult;
+}
+
+// ----------------------------------------------------------------------------
+// processPendingTransportReset
+//
+/// Services a reset posted by resetTransport(). Runs on the drive thread, so
+/// performTransportReset() can safely touch the transport.
+// ----------------------------------------------------------------------------
+void TACDriveThread::processPendingTransportReset()
+{
+	bool shouldReset{false};
+
+	{
+		QMutexLocker lock(&_resetMutex);
+		shouldReset = _resetRequested;
+	}
+
+	if (shouldReset == false)
+		return;
+
+	// Performed outside the lock: the reset reopens hardware and can take
+	// seconds, and holding _resetMutex would serialise unrelated callers.
+	bool result = performTransportReset();
+
+	{
+		QMutexLocker lock(&_resetMutex);
+
+		// If the caller already timed out it cleared _resetRequested; the reset
+		// still happened, so just drop the result rather than signalling.
+		if (_resetRequested == true)
+		{
+			_resetRequested = false;
+			_resetResult = result;
+			_resetDone = true;
+			_resetCondition.wakeAll();
 		}
 	}
 }
@@ -256,9 +426,38 @@ PlatformID TACDriveThread::platformID()
 	return _platformID;
 }
 
+void TACDriveThread::setPlatformID(PlatformID platformID)
+{
+	_platformID = platformID;
+}
+
 QString TACDriveThread::hardwareVersionString()
 {
 	return PlatformContainer::toString(_platformID);
+}
+
+PlatformID TACDriveThread::platformIDFromHardwareVersion()
+{
+	static const QByteArray kHardwareVersionTag("HW version:");
+
+	const int tagIndex = _versionString.indexOf(kHardwareVersionTag);
+	if (tagIndex == -1)
+		return MICRO_EPM_BOARD_ID_UNKNOWN;
+
+	// "ALPACA_V3.1" -> "alpaca v3.1", matching the platform description "Alpaca V3.1".
+	QString hardwareName = QString::fromLatin1(_versionString.mid(tagIndex + kHardwareVersionTag.size()));
+	hardwareName = hardwareName.trimmed().section(' ', 0, 0).replace('_', ' ').toLower();
+	if (hardwareName.isEmpty())
+		return MICRO_EPM_BOARD_ID_UNKNOWN;
+
+	const PlatformIDList psocPlatforms = PlatformContainer::getDebugBoardsOfType(ePSOC);
+	for (const auto& platformEntry: psocPlatforms)
+	{
+		if (platformEntry->_description.trimmed().toLower() == hardwareName)
+			return platformEntry->_platformID;
+	}
+
+	return MICRO_EPM_BOARD_ID_UNKNOWN;
 }
 
 QString TACDriveThread::firmwareVersion()
@@ -329,6 +528,21 @@ void TACDriveThread::setSerialNumber(QString serialNumber)
 QString TACDriveThread::uuid()
 {
 	return _uuid;
+}
+
+const QString TACDriveThread::kUUIDNotSupported(QStringLiteral("Not supported"));
+
+QString TACDriveThread::uuidFromResponse
+(
+	const QByteArray& response
+)
+{
+	// Matches both "CMD: Command not recognized." and "Command not recognized."
+	if (QString::fromLatin1(response).contains(QLatin1String("Command not recognized"), Qt::CaseInsensitive))
+		return kUUIDNotSupported;
+
+	// Same conversion as the implicit QByteArray -> QString assignment used before.
+	return QString::fromUtf8(response);
 }
 
 QByteArray TACDriveThread::macAddress()

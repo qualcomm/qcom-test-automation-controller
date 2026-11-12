@@ -174,6 +174,7 @@ echo "Deploying Qt plugins..."
 for plugin_dir in \
     iconengines \
     imageformats \
+    multimedia \
     platforminputcontexts \
     platforms \
     platformthemes \
@@ -237,6 +238,14 @@ find "$QT_ROOT/lib" \
     -exec cp -a {} "$DEPLOY_LIB_DIR/" \;
 
 echo "Qt runtime libraries copied."
+
+
+# FFmpeg libraries required by plugins/multimedia/libffmpegmediaplugin.so.
+# The ldd plugin scan above cannot resolve them (they show as "not found" relative
+# to the deploy dir), so copy them explicitly; mirrors the Windows av*/sw* DLLs.
+for ff_lib in libavcodec.so libavformat.so libavutil.so libswresample.so libswscale.so; do
+    find "$QT_ROOT/lib" -maxdepth 1 -name "${ff_lib}*" -exec cp -a {} "$DEPLOY_LIB_DIR/" \; 2>/dev/null || true
+done
 
 ###############################################################################
 # Deploy ICU Libraries (extra safety)

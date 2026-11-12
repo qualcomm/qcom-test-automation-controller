@@ -39,6 +39,7 @@
 
 #include <algorithm>
 #include <chrono>
+#include <sstream>
 #include <thread>
 
 using qtac::SerialPortInfo;
@@ -130,7 +131,12 @@ bool PSOCDevice::open()
 
         if (!result)
         {
-            _lastError = "PSoC device did not become ready after open";
+            qtac::ByteArray portErr = thread->portOpenError();
+            if (!portErr.isEmpty())
+                _lastError = portErr;
+            else
+                _lastError = "PSoC device did not become ready after open";
+            close();
             return false;
         }
 
@@ -143,6 +149,7 @@ bool PSOCDevice::open()
                 if (thread->oldFirmware())
                 {
                     _lastError = "Firmware version is too old";
+                    close();
                     return false;
                 }
                 std::this_thread::sleep_for(std::chrono::milliseconds(kOpenInitMs));
@@ -153,6 +160,15 @@ bool PSOCDevice::open()
                 result = true;
                 break;
             }
+        }
+
+        // If platform ID is still unknown and device is not connected at all,
+        // report the board ID unset error.
+        if (!result && !thread->connected() && _lastError.isEmpty())
+        {
+            _lastError = "Board ID is not set. In Device Catalog, right-click the board's platform and choose Program Device, then reconnect the board.";
+            close();
+            return result;
         }
 
         // Firmware that doesn't support 'Get Platform ID' leaves platformID UNKNOWN
@@ -201,13 +217,25 @@ bool PSOCDevice::open()
         {
             PlatformContainer::initialize();
             auto entries = PlatformContainer::getEntries();
+            bool entryFound = false;
             for (const auto& entry : entries)
             {
-                if (entry && entry->_platformID == _platformID && !entry->_path.isEmpty())
+                if (entry && entry->_platformID == _platformID)
                 {
-                    TcnfLoader::loadPSOC(entry->_path.toStdString(), _psocPlatformConfiguration);
+                    entryFound = true;
+                    if (!entry->_path.isEmpty())
+                        TcnfLoader::loadPSOC(entry->_path.toStdString(), _psocPlatformConfiguration);
                     break;
                 }
+            }
+            if (!entryFound)
+            {
+                std::ostringstream oss;
+                oss << "PSOCDevice::open(): no configuration found for platform "
+                    << static_cast<int>(_platformID)
+                    << ". Check that the board configuration files are installed.";
+                if (_serialDriveThread && _serialDriveThread->onLogLine)
+                    _serialDriveThread->onLogLine(qtac::ByteArray(oss.str().c_str()));
             }
         }
 
@@ -341,7 +369,15 @@ void PSOCDevice::quickCommand(const qtac::ByteArray& command)
         dt->onLogLine("quickCommand: executing '" + command + "'");
     qtac::CommandEntries entries = script.getCommandEntries(command);
     entries = qtac::AlpacaScript::replaceTokens(_psocPlatformConfiguration->getVariables(), entries);
+
+    uint32_t scriptDelayMs = 0;
+    for (const auto& entry : entries)
+        if (entry->_commandAction == qtac::_CommandEntry::eDelay)
+            scriptDelayMs += entry->_arguement.toUInt();
+
+    dt->setWaitForCompletion();
     dt->sendCommandSequence(entries);
+    (void)dt->waitForCompletion(scriptDelayMs);
 }
 
 void PSOCDevice::setVariableValue(const qtac::String& name, const qtac::Variant& value)

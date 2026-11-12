@@ -20,16 +20,14 @@
 #include "ConsoleApplicationEnhancements.h"
 
 // QT
+#include <QCloseEvent>
 #include <QDir>
 #include <QFileInfoList>
 #include <QInputDialog>
 #include <QMenu>
 #include <QMenuBar>
 #include <QMessageBox>
-#include <QProcess>
 #include <QScrollBar>
-
-const QString kWindowTitle(QStringLiteral("Test Automation Controller %1"));
 
 TACWindow::TACWindow
 (
@@ -39,24 +37,40 @@ TACWindow::TACWindow
 {
 	setupUi(this);
 
+	// Only distributions that ship BugWriter offer bug reporting.
+	actionSubmit_Bug_Report->setVisible(bugWriterAvailable());
+
 	QString windowTitle{this->windowTitle()};
 	windowTitle = QString(windowTitle).arg("QTAC");
 	this->setWindowTitle(windowTitle);
 
+	// Restored when the device is disconnected.
+	_defaultTitle = windowTitle;
+
 	_nwgt = new NotificationWidget(_statusbar);
 	_statusbar->addPermanentWidget(_nwgt);
+
+	// Keeps the long quick command hint in place of NotificationWidget's
+	// generic "Operation in progress..." text; see onStatusMessageChanged().
+	QObject::connect(_statusbar, &QStatusBar::messageChanged, this, &TACWindow::onStatusMessageChanged);
 
 	restoreSettings();
 
 	QObject::connect(&_autoShutdownTimer, &QTimer::timeout, this, &TACWindow::onAutoShutdownTimerTimeout);
+
+	_titleRefreshTimer.setInterval(500);
+	QObject::connect(&_titleRefreshTimer, &QTimer::timeout, this, &TACWindow::onTitleRefreshTimeout);
 	QObject::connect(this, &TACWindow::progress, _nwgt, &NotificationWidget::progress, Qt::DirectConnection);
+
+	updateConnectionControls();
 }
 
 TACWindow::~TACWindow()
 {
 	saveSettings();
 
-	disconnect();
+	closeDevice();
+	TACApplication::disconnectTACWindow(this);
 }
 
 void TACWindow::saveSettings()
@@ -82,16 +96,234 @@ void TACWindow::restoreSettings()
 	settings.endGroup();
 }
 
-void TACWindow::shutDown()
+namespace
 {
+
+const int kTitleRefreshMaxAttempts{20};		// 20 x 500 ms = 10 seconds
+const int kSerialFullLength{12};
+const int kSerialTailLength{8};
+
+// Long serial numbers often share a common prefix across boards of the same
+// type, so the end is the part that tells them apart.
+QString shortSerial(const QString& serialNumber)
+{
+	if (serialNumber.size() <= kSerialFullLength)
+		return serialNumber;
+
+	return QString(QChar(0x2026)) + serialNumber.right(kSerialTailLength);
+}
+
+// The hardware description reads "Unknown Board ID: n" until the board has
+// reported its identity, which is not useful in a title.
+bool isKnownHardware(const QString& hardware)
+{
+	return hardware.isEmpty() == false &&
+		   hardware.startsWith(QStringLiteral("Unknown Board ID"), Qt::CaseInsensitive) == false;
+}
+
+} // namespace
+
+void TACWindow::updateTitle()
+{
+	if (_alpacaDevice.isNull())
+		return;
+
+	const QString separator = QStringLiteral(" ") + QChar(0x00B7) + QStringLiteral(" ");
+
+	QStringList parts;
+	parts << QString::fromLatin1(_alpacaDevice->portName());
+
+	const QString serialNumber = QString::fromLatin1(_alpacaDevice->serialNumber()).trimmed();
+	if (serialNumber.isEmpty() == false)
+		parts << QStringLiteral("SN ") + shortSerial(serialNumber);
+
+	const QString hardware = _alpacaDevice->hardwareVersionString().trimmed();
+	if (isKnownHardware(hardware))
+		parts << QStringLiteral("HW ") + hardware;
+
+	setWindowTitle(parts.join(separator));
+}
+
+void TACWindow::onTitleRefreshTimeout()
+{
+	updateTitle();
+
+	_titleRefreshAttempts++;
+
+	const bool hardwareKnown = _alpacaDevice.isNull() == false &&
+							   isKnownHardware(_alpacaDevice->hardwareVersionString().trimmed());
+
+	if (hardwareKnown || _alpacaDevice.isNull() || _titleRefreshAttempts >= kTitleRefreshMaxAttempts)
+		_titleRefreshTimer.stop();
+}
+
+bool TACWindow::closeDevice()
+{
+	_titleRefreshTimer.stop();
+	_autoShutdownTimer.stop();
+
 	if (_alpacaDevice.isNull() == false)
 	{
-		TACApplication::disconnectTACWindow(this);
+		if (_alpacaDevice->commandInProgress())
+		{
+			// We are inside the running command's wait loop. Ask the device to
+			// stop (it ends the wait and skips the remaining script delays)
+			// and finish here once the command has returned; the frame, its
+			// buttons and the device must stay alive until then.
+			//
+			// End the hint before showing "Disconnecting", so it is not put
+			// back when NotificationWidget later clears the status bar.
+			endQuickCommandHint();
+
+			if (_closeDeferred == false)
+			{
+				_closeDeferred = true;
+				QObject::connect(_alpacaDevice.data(), &_AlpacaDevice::deferredCloseDone,
+					this, &TACWindow::onDeferredCloseDone, Qt::QueuedConnection);
+				_statusbar->showMessage("Disconnecting: stopping the running quick command");
+			}
+
+			_alpacaDevice->close();
+			return false;
+		}
+
+		QObject::disconnect(_alpacaDevice.data(), Q_NULLPTR, _nwgt, Q_NULLPTR);
+		QObject::disconnect(_alpacaDevice.data(), &_AlpacaDevice::commandBusyChanged,
+			this, &TACWindow::onCommandBusyChanged);
+		QObject::disconnect(_alpacaDevice.data(), &_AlpacaDevice::quickCommandStarted,
+			this, &TACWindow::onQuickCommandStarted);
+		QObject::disconnect(_alpacaDevice.data(), &_AlpacaDevice::deferredCloseDone,
+			this, &TACWindow::onDeferredCloseDone);
 
 		_tacFrame->setDevice(AlpacaDevice(Q_NULLPTR));
 		_alpacaDevice->close();
-		_alpacaDevice = AlpacaDevice(Q_NULLPTR);
+		_alpacaDevice.reset();
 	}
+
+	endQuickCommandHint();
+	_closeDeferred = false;
+	return true;
+}
+
+void TACWindow::onDeferredCloseDone()
+{
+	// Queued, so the quick command and the button slot that issued it have
+	// returned: tearing the frame and the device down is safe now.
+	closeDevice();
+	showDisconnectedState();
+
+	if (_closeWindowWhenDone)
+	{
+		_closeWindowWhenDone = false;
+		close();
+	}
+}
+
+void TACWindow::onQuickCommandStarted(quint32 scriptDelayMs)
+{
+	// Short commands (Power On and the like) finish before a hint is useful.
+	const quint32 kHintThresholdMs{5000};
+
+	// waitForCompletion() allows the script's delays plus its normal ~5 s
+	// completion timeout, so that is the most the lock should last. A real
+	// timeout triggers one transport reset and replay, which can run past
+	// it; hence a fixed "up to" figure rather than a countdown.
+	const quint32 kCompletionAllowanceMs{5000};
+
+	if (_closeDeferred || scriptDelayMs < kHintThresholdMs)
+		return;
+
+	const quint32 upToSeconds = (scriptDelayMs + kCompletionAllowanceMs + 999) / 1000;
+
+	// Shown as the normal status message, in place of the generic
+	// "Operation in progress..." text, so it reads like every other message.
+	// Kept short: the message area left of NotificationWidget's progress bar
+	// holds only about 50 characters at the default window width.
+	_quickCommandHint = QString("Operation in progress (up to ~%1 s)").arg(upToSeconds);
+	_statusbar->showMessage(_quickCommandHint);
+}
+
+void TACWindow::onStatusMessageChanged(const QString& message)
+{
+	// NotificationWidget shows "Operation in progress..." when the command
+	// starts and clears the status bar when its progress timer runs out,
+	// both while a long command is still running. Put the hint back in
+	// either case. Any other message (an error, "Disconnecting: ...") is
+	// left alone.
+	//
+	// Restoring emits messageChanged(hint), which matches neither case, so
+	// this does not recurse.
+	if (_quickCommandHint.isEmpty())
+		return;
+
+	if (message.isEmpty() || message == QLatin1String("Operation in progress..."))
+		_statusbar->showMessage(_quickCommandHint);
+}
+
+void TACWindow::endQuickCommandHint()
+{
+	if (_quickCommandHint.isEmpty())
+		return;
+
+	// Clear the hint first, so the clearMessage() below is not undone by
+	// onStatusMessageChanged().
+	const bool hintShowing = _statusbar->currentMessage() == _quickCommandHint;
+	_quickCommandHint.clear();
+
+	if (hintShowing)
+		_statusbar->clearMessage();
+}
+
+void TACWindow::onCommandBusyChanged(bool busy)
+{
+	if (busy == false)
+		endQuickCommandHint();
+}
+
+void TACWindow::showDisconnectedState()
+{
+	_deviceStatusLabel->setText("Disconnected");
+	setWindowTitle(_defaultTitle);
+	endQuickCommandHint();
+	_statusbar->clearMessage();
+
+	updateConnectionControls();
+}
+
+void TACWindow::updateConnectionControls()
+{
+	const bool connected = inUse();
+
+	_disconnectButton->setEnabled(connected);
+	actionDisconnect->setEnabled(connected);
+}
+
+// Called by TACApplication when the application quits. The application owns
+// the window list at that point, so the window must not remove itself.
+void TACWindow::shutDown()
+{
+	closeDevice();
+}
+
+void TACWindow::closeEvent(QCloseEvent* event)
+{
+	if (closeDevice() == false)
+	{
+		// Deleting the window now would free the frame under the running
+		// command. Close again once the deferred disconnect has finished.
+		_closeWindowWhenDone = true;
+		event->ignore();
+		return;
+	}
+
+	TACApplication::disconnectTACWindow(this);
+
+	event->accept();
+	deleteLater();
+
+	// Closing the last window still ends the application.
+	if (TACApplication::windowCount() == 0)
+		TACApplication::tacAppInstance()->quitTAC();
 }
 
 void TACWindow::onAutoShutdownTimerTimeout()
@@ -99,7 +331,11 @@ void TACWindow::onAutoShutdownTimerTimeout()
 	qint64 elapsed = _autoShutdownDeadline.elapsed();
 	if (elapsed > TACApplication::tacAppInstance()->preferences()->autoShutdownDelayInMSecs())
 	{
-		shutDown();
+		if (inUse())
+		{
+			disconnect();
+			_statusbar->showMessage("Disconnected by auto shutdown");
+		}
 	}
 }
 
@@ -156,40 +392,81 @@ void TACWindow::openPort
 	const QByteArray &portName
 )
 {
-	_alpacaDevice = _AlpacaDevice::findAlpacaDevice(portName);
-
 	emit progress();
 
-	if (_alpacaDevice.isNull() == false)
+	AlpacaDevice alpacaDevice = _AlpacaDevice::findAlpacaDevice(portName);
+	if (alpacaDevice.isNull())
 	{
-		if (_alpacaDevice->open() == true)
+		emit progress(90, eErrorNotification);
+		_statusbar->showMessage("Device " + QString::fromLatin1(portName.trimmed()) + " was not found");
+		return;
+	}
+
+	if (alpacaDevice->open() == false)
+	{
+		// Leave the window disconnected so it can be used for another device.
+		emit progress(90, eErrorNotification);
+
+		// open() records why it failed (for example a board whose board ID
+		// is not set after a firmware update). Show that reason instead of a
+		// bare "Unable to open", which left users with no way forward
+		// unless they read the application log.
+		const QString port = QString::fromLatin1(alpacaDevice->portName());
+		const QString reason = QString::fromLatin1(alpacaDevice->getLastError()).trimmed();
+
+		if (reason.isEmpty())
 		{
-			int minorVersion = _alpacaDevice->minorVersion();
-
-			_tacFrame->setDevice(_alpacaDevice);
-
-			QString portName = " " + _alpacaDevice->portName();
-			setWindowTitle(QString(kWindowTitle).arg(portName));
-
-			_disconnectButton->setEnabled(true);
-
-			_deviceStatusLabel->setText("Connected");
-
-			resize(_alpacaDevice->windowDimension());
-
-			if (_alpacaDevice->getLastError().isEmpty() == false)
-				_statusbar->showMessage("Error: " + _alpacaDevice->getLastError());
-
-			TACApplication::tacAppInstance()->preferences()->saveLastDevice(portName);
-
-			QObject::connect(_alpacaDevice.data(), &_AlpacaDevice::progress, _nwgt, &NotificationWidget::progress);
-			emit progress(80);
+			_statusbar->showMessage("Unable to open " + port);
 		}
 		else
 		{
-			// do nothing
+			_statusbar->showMessage("Unable to open " + port + ": " + reason);
+			QMessageBox::warning(this, "Unable to Open Device",
+				QString("TAC could not open the device on %1.\n\n%2\n\n"
+						"Other devices can still be opened from Connect.").arg(port, reason));
 		}
+		return;
 	}
+
+	_alpacaDevice = alpacaDevice;
+
+	_tacFrame->setDevice(_alpacaDevice);
+
+	// The hardware identity arrives shortly after the port opens, so
+	// show what is known now and refresh for a few seconds.
+	updateTitle();
+	_titleRefreshAttempts = 0;
+	_titleRefreshTimer.start();
+
+	_deviceStatusLabel->setText("Connected");
+	updateConnectionControls();
+
+	resize(_alpacaDevice->windowDimension());
+
+	const QByteArray lastError = _alpacaDevice->getLastError();
+	if (lastError.isEmpty() == false)
+		_statusbar->showMessage("Error: " + lastError);
+
+	// Remember the board by serial number when it has one: COM port numbers
+	// change between sessions, the serial number does not. findAlpacaDevice()
+	// accepts either.
+	QByteArray lastDevice = _alpacaDevice->serialNumber().trimmed();
+	if (lastDevice.isEmpty())
+		lastDevice = _alpacaDevice->portName().trimmed();
+	TACApplication::tacAppInstance()->preferences()->saveLastDevice(QString::fromLatin1(lastDevice));
+
+	QObject::connect(_alpacaDevice.data(), &_AlpacaDevice::progress, _nwgt, &NotificationWidget::progress);
+
+	// A long quick command (e.g. a 120 s UEFI hold) keeps the controls locked
+	// for its whole run; say how long, so the lock does not look like a hang.
+	QObject::connect(_alpacaDevice.data(), &_AlpacaDevice::quickCommandStarted,
+		this, &TACWindow::onQuickCommandStarted, Qt::UniqueConnection);
+	QObject::connect(_alpacaDevice.data(), &_AlpacaDevice::commandBusyChanged,
+		this, &TACWindow::onCommandBusyChanged, Qt::UniqueConnection);
+
+	setupAutoShutdownTimer();
+
+	emit progress(80);
 }
 
 QByteArray TACWindow::portName() const
@@ -268,14 +545,14 @@ void TACWindow::on_actionDisconnect_triggered()
 	disconnect();
 }
 
+// Disconnecting only releases the device: the window stays open, in the
+// application's window list, and looks the way it did before connecting,
+// so Connect can be used again straight away.
 void TACWindow::disconnect()
 {
-	shutDown();
-
-	_autoShutdownTimer.stop();
-	TACApplication::disconnectTACWindow(this);
-
-	deleteLater();
+	// When deferred, onDeferredCloseDone() shows the disconnected state.
+	if (closeDevice())
+		showDisconnectedState();
 }
 
 void TACWindow::on_actionContents_triggered()
@@ -290,8 +567,6 @@ void TACWindow::on_actionAbout_triggered()
 
 void TACWindow::on_actionSubmit_Bug_Report_triggered()
 {
-	QString program = applicationBinPath() + "BugWriter";
-
 	QStringList arguments;
 	arguments << "product:QTAC";
 	arguments << "prodversion:" + kProductVersion;
@@ -299,10 +574,5 @@ void TACWindow::on_actionSubmit_Bug_Report_triggered()
 	arguments << "appversion:" + kAppVersion;
 	arguments << "listports:";
 
-	QProcess* process = new QProcess(Q_NULLPTR);
-
-	process->setProgram(program);
-	process->setArguments(arguments);
-	process->startDetached();
+	startBugWriter(arguments, this);
 }
-

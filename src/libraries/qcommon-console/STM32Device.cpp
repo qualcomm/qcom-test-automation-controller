@@ -136,10 +136,20 @@ quint32 STM32Device::updateAlpacaDevices()
 			stm32Device->_devicePath = deviceInfo._devicePath;
 
 			TACPlatformEntry platformEntry = _PlatformConfiguration::getEntry(stm32Device->_platformID);
-			stm32Device->_description = platformEntry._platformEntry->_description.toLatin1();
-			stm32Device->_boardType = platformEntry._platformEntry->_boardtype;
 
-			stm32Device->_platformConfiguration = platformEntry.getConfiguration();
+			// Without a loaded configuration the entry is empty. List the device
+			// but leave its configuration unset; open() then fails cleanly.
+			if (platformEntry._platformEntry.isNull() == false)
+			{
+				stm32Device->_description = platformEntry._platformEntry->_description.toLatin1();
+				stm32Device->_boardType = platformEntry._platformEntry->_boardtype;
+
+				stm32Device->_platformConfiguration = platformEntry.getConfiguration();
+			}
+			else
+			{
+				AppCore::writeToApplicationLogLine(QString("STM32Device: no configuration found for platform %1").arg(stm32Device->_platformID));
+			}
 
 			alpacaDevice = AlpacaDevice(stm32Device);
 			_AlpacaDevice::_alpacaDevices.push_back(alpacaDevice);

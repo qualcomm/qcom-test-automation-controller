@@ -38,6 +38,7 @@
 #include <qtac/TcnfLoader.h>
 
 #include <chrono>
+#include <sstream>
 #include <thread>
 
 using qtac::SerialPortInfo;
@@ -135,13 +136,25 @@ bool PIC32CXDevice::open()
         {
             PlatformContainer::initialize();
             auto entries = PlatformContainer::getEntries();
+            bool entryFound = false;
             for (const auto& entry : entries)
             {
-                if (entry && entry->_platformID == _platformID && !entry->_path.isEmpty())
+                if (entry && entry->_platformID == _platformID)
                 {
-                    TcnfLoader::loadPIC32CX(entry->_path.toStdString(), _pic32cxPlatformConfiguration);
+                    entryFound = true;
+                    if (!entry->_path.isEmpty())
+                        TcnfLoader::loadPIC32CX(entry->_path.toStdString(), _pic32cxPlatformConfiguration);
                     break;
                 }
+            }
+            if (!entryFound)
+            {
+                std::ostringstream oss;
+                oss << "PIC32CXDevice::open(): no configuration found for platform "
+                    << static_cast<int>(_platformID)
+                    << ". Check that the board configuration files are installed.";
+                if (_serialDriveThread && _serialDriveThread->onLogLine)
+                    _serialDriveThread->onLogLine(qtac::ByteArray(oss.str().c_str()));
             }
         }
 
@@ -200,7 +213,15 @@ void PIC32CXDevice::quickCommand(const qtac::ByteArray& command)
     if (!script.hasCommand(command)) return;
     qtac::CommandEntries entries = script.getCommandEntries(command);
     entries = qtac::AlpacaScript::replaceTokens(_pic32cxPlatformConfiguration->getVariables(), entries);
+
+    uint32_t scriptDelayMs = 0;
+    for (const auto& entry : entries)
+        if (entry->_commandAction == qtac::_CommandEntry::eDelay)
+            scriptDelayMs += entry->_arguement.toUInt();
+
+    dt->setWaitForCompletion();
     dt->sendCommandSequence(entries);
+    (void)dt->waitForCompletion(scriptDelayMs);
 }
 
 void PIC32CXDevice::setVariableValue(const qtac::String& name, const qtac::Variant& value)

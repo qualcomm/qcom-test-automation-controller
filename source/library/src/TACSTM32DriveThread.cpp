@@ -147,7 +147,8 @@ void TACSTM32DriveThread::sendCommandSequence(CommandEntries& commandEntries)
             if (onProgress) onProgress(0 /*kProgressActive*/, NotificationLevel::Info);
         }
     }
-    waitForCompletion();
+    // No wait here: the caller (quickCommand) arms setWaitForCompletion() and
+    // calls waitForCompletion() with the script-delay allowance. See f776f9b8.
 }
 
 int  TACSTM32DriveThread::getResetCount()   { return 0; }
