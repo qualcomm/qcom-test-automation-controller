@@ -53,6 +53,24 @@ if(WIN32)
     )
 endif()
 
+if(UNIX AND QCOMMONCONSOLE_LINK_FLAGS)
+    # Search the library's own folder ($ORIGIN) for the Qt and other shared libraries
+    # installed next to it. Without this, libTACDev.so only carries the build-machine
+    # paths, so loading it from Python or another program fails with
+    # "libQt6SerialPort.so.6: cannot open shared object file".
+    target_link_options(${LIBRARY_NAME} PRIVATE ${QCOMMONCONSOLE_LINK_FLAGS})
+endif()
+
+if(UNIX)
+    # Record only relative library search paths. Without this, CMake also writes
+    # the absolute build-machine paths (build tree and Qt install folder) into the
+    # RUNPATH, and the packaged library carries them to every installed system.
+    set_target_properties(${LIBRARY_NAME} PROPERTIES
+        BUILD_WITH_INSTALL_RPATH ON
+        INSTALL_RPATH "$ORIGIN;$ORIGIN/../lib"
+    )
+endif()
+
 if(UNIX)
     target_compile_options(${LIBRARY_NAME} PRIVATE
         -Wno-comment
@@ -70,3 +88,6 @@ install(TARGETS ${LIBRARY_NAME}
     FRAMEWORK DESTINATION ${CMAKE_INSTALL_LIBDIR}
     RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
 )
+
+# Windows file version resource
+qtac_add_version_info(${LIBRARY_NAME} "TAC device interface library" "${QTAC_VERSION}")

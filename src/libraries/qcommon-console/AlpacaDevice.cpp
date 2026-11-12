@@ -12,6 +12,9 @@
 #include "AppCore.h"
 #include "StringUtilities.h"
 
+// std
+#include <functional>
+
 const QByteArray kSendCommandError("sendCommand error: Attempted operation on inactive device");
 const QByteArray kSetPinError("setPinState error: Attempted operation on inactive device");
 const QByteArray kQuickCommandError("quickCommand error: Attempted operation on inactive device");
@@ -19,6 +22,111 @@ const QByteArray kCommandStatusError("commandQueueStatus error: Attempted operat
 
 QMutex _AlpacaDevice::_mutex;
 AlpacaDevices _AlpacaDevice::_alpacaDevices;
+
+// ----------------------------------------------------------------------------
+// AlpacaCommandScope
+//
+/// Marks a device command (quick command, pin command) as running for its
+/// lifetime. The wait inside those commands runs processEvents(), so a close()
+/// can arrive re-entrantly; it is deferred until the outermost scope ends, so
+/// the drive thread is never deleted under a running command.
+// ----------------------------------------------------------------------------
+class AlpacaCommandScope
+{
+public:
+	explicit AlpacaCommandScope(_AlpacaDevice* device) :
+		_device(device)
+	{
+		_device->beginCommand();
+	}
+
+	~AlpacaCommandScope()
+	{
+		_device->endCommand();
+	}
+
+	AlpacaCommandScope(const AlpacaCommandScope&) = delete;
+	AlpacaCommandScope& operator=(const AlpacaCommandScope&) = delete;
+
+private:
+	_AlpacaDevice*	_device;
+};
+
+namespace
+{
+
+typedef std::function<QByteArray(const AlpacaDevice&)> DeviceFieldAccessor;
+
+// Resolves a caller supplied identifier against one field of every known device.
+//
+// One device's identifier can be a prefix of another's - "VTP1" and "VTP12"
+// being the reported case - so a plain substring scan that returns the first
+// hit resolves to whichever device happens to be enumerated first. Matching is
+// therefore done in two passes:
+//
+//   1. an exact, case insensitive comparison, which always wins; and
+//   2. a substring comparison, which is only honoured when it matches exactly
+//      one device.
+//
+// An ambiguous partial query is rejected rather than resolved arbitrarily,
+// because silently acting on the wrong device is worse than reporting that the
+// caller was not specific enough.
+AlpacaDevice findDeviceByField
+(
+	const AlpacaDevices& devices,
+	const QByteArray& query,
+	const DeviceFieldAccessor& field,
+	bool usePartial
+)
+{
+	const QByteArray searchTerm{query.trimmed().toLower()};
+
+	// An empty identifier cannot select a device. Rejecting it here also keeps
+	// the partial pass honest, because QByteArray::contains() is true for every
+	// candidate when the search term is empty.
+	if (searchTerm.isEmpty())
+		return AlpacaDevice(Q_NULLPTR);
+
+	AlpacaDevice partialMatch{Q_NULLPTR};
+	int partialMatchCount{0};
+
+	for (const auto& alpacaDevice: devices)
+	{
+		if (alpacaDevice.isNull())
+			continue;
+
+		const QByteArray candidate{field(alpacaDevice).trimmed().toLower()};
+
+		// A device that does not populate this field must never match.
+		if (candidate.isEmpty())
+			continue;
+
+		if (candidate == searchTerm)
+			return alpacaDevice;
+
+		if (usePartial && candidate.contains(searchTerm))
+		{
+			partialMatch = alpacaDevice;
+			partialMatchCount++;
+		}
+	}
+
+	if (partialMatchCount == 1)
+		return partialMatch;
+
+	if (partialMatchCount > 1)
+	{
+		AppCore::writeToApplicationLogLine(
+			QString("Device lookup for '%1' is ambiguous: %2 devices match. "
+					"Use the complete identifier to select one.")
+				.arg(QString::fromLatin1(query))
+				.arg(partialMatchCount));
+	}
+
+	return AlpacaDevice(Q_NULLPTR);
+}
+
+} // namespace
 
 _AlpacaDevice::~_AlpacaDevice()
 {
@@ -81,18 +189,25 @@ AlpacaDevice _AlpacaDevice::findAlpacaDevice
 	const QByteArray& portName
 )
 {
-	QByteArray searchTerm{portName.toLower()};
+	// A device is addressable by either its port name or its serial number.
+	// Port names are checked first and in full, so an exact port name is never
+	// shadowed by a serial number that merely contains the same text.
+	AlpacaDevice result = findDeviceByField(
+		_AlpacaDevice::_alpacaDevices,
+		portName,
+		[] (const AlpacaDevice& device) { return device->_portName; },
+		true);
 
-	for (const auto& alpacaDevice: _AlpacaDevice::_alpacaDevices)
+	if (result.isNull())
 	{
-		if (alpacaDevice->_portName.toLower().contains(searchTerm))
-			return alpacaDevice;
-
-		if (alpacaDevice->_serialNumber.toLower().contains(searchTerm))
-			return alpacaDevice;
+		result = findDeviceByField(
+			_AlpacaDevice::_alpacaDevices,
+			portName,
+			[] (const AlpacaDevice& device) { return device->_serialNumber; },
+			true);
 	}
 
-	return AlpacaDevice(Q_NULLPTR);
+	return result;
 }
 
 AlpacaDevice _AlpacaDevice::findAlpacaDeviceBySerialNumber
@@ -101,24 +216,11 @@ AlpacaDevice _AlpacaDevice::findAlpacaDeviceBySerialNumber
 	bool usePartial
 )
 {
-	for (const auto& alpacaDevice: _AlpacaDevice::_alpacaDevices)
-	{
-		QByteArray testSerial{serialNumber.toLower()};
-		QByteArray serialNumber{alpacaDevice->_serialNumber.toLower()};
-
-		if (usePartial)
-		{
-			if (testSerial.contains(serialNumber))
-				return alpacaDevice;
-		}
-		else
-		{
-			if (testSerial == serialNumber)
-				return alpacaDevice;
-		}
-	}
-
-	return AlpacaDevice(Q_NULLPTR);
+	return findDeviceByField(
+		_AlpacaDevice::_alpacaDevices,
+		serialNumber,
+		[] (const AlpacaDevice& device) { return device->_serialNumber; },
+		usePartial);
 }
 
 AlpacaDevice _AlpacaDevice::findAlpacaDeviceByDescription
@@ -127,24 +229,11 @@ AlpacaDevice _AlpacaDevice::findAlpacaDeviceByDescription
 	bool usePartial // = true
 )
 {
-	for (const auto& tacDevice: _AlpacaDevice::_alpacaDevices)
-	{
-		QByteArray testDescription{description.toLower()};
-		QByteArray deviceDescription{tacDevice->description().toLower()};
-
-		if (usePartial)
-		{
-			if (testDescription.contains(deviceDescription))
-				return tacDevice;
-		}
-		else
-		{
-			if (testDescription == deviceDescription)
-				return tacDevice;
-		}
-	}
-
-	return AlpacaDevice(Q_NULLPTR);
+	return findDeviceByField(
+		_AlpacaDevice::_alpacaDevices,
+		description,
+		[] (const AlpacaDevice& device) { return device->_description; },
+		usePartial);
 }
 
 AlpacaDevice _AlpacaDevice::findAlpacaDeviceByUSBDescriptor
@@ -153,24 +242,11 @@ AlpacaDevice _AlpacaDevice::findAlpacaDeviceByUSBDescriptor
 	bool usePartial
 )
 {
-	for (const auto& alpacaDevice: std::as_const(_AlpacaDevice::_alpacaDevices))
-	{
-		QByteArray testDescriptor{descriptor.toLower()};
-		QByteArray deviceDescriptor{alpacaDevice->_usbDescriptor.toLower()};
-
-		if (usePartial)
-		{
-			if (testDescriptor.contains(deviceDescriptor))
-				return alpacaDevice;
-		}
-		else
-		{
-			if (testDescriptor == deviceDescriptor)
-				return alpacaDevice;
-		}
-	}
-
-	return AlpacaDevice(Q_NULLPTR);
+	return findDeviceByField(
+		_AlpacaDevice::_alpacaDevices,
+		descriptor,
+		[] (const AlpacaDevice& device) { return device->_usbDescriptor; },
+		usePartial);
 }
 
 QByteArray _AlpacaDevice::getLastError()
@@ -187,15 +263,58 @@ bool _AlpacaDevice::isOpen()
 
 void _AlpacaDevice::close()
 {
-	if (_driveThread != Q_NULLPTR)
+	if (_driveThread == Q_NULLPTR)
 	{
-		_driveThread->shutDown();
-
-		if (_driveThread != Q_NULLPTR)
-			_driveThread->deleteLater();
-
-		_driveThread = Q_NULLPTR;
+		_closePending = false;
+		return;
 	}
+
+	if (_commandDepth > 0)
+	{
+		// Re-entered from a running command's wait loop (Disconnect, window
+		// close, auto shutdown). Stopping the thread without waiting ends that
+		// wait within one poll and skips the remaining script delays; the
+		// blocking shutdown and the delete happen in endCommand() once the
+		// command has unwound and nothing is using the drive thread.
+		if (_closePending == false)
+			AppCore::writeToApplicationLogLine("_AlpacaDevice::close: command in progress, close deferred until it returns");
+
+		_closePending = true;
+		_driveThread->requestStop();
+		return;
+	}
+
+	_closePending = false;
+
+	_driveThread->shutDown();
+	_driveThread->deleteLater();
+	_driveThread = Q_NULLPTR;
+}
+
+void _AlpacaDevice::beginCommand()
+{
+	if (_commandDepth++ == 0)
+		emit commandBusyChanged(true);
+}
+
+void _AlpacaDevice::endCommand()
+{
+	if (--_commandDepth > 0)
+		return;
+
+	_commandDepth = 0;
+
+	if (_closePending)
+	{
+		close();
+
+		// The controls stay locked: the device is gone, and the owner tears
+		// the UI down when it handles this (queued) signal.
+		emit deferredCloseDone();
+		return;
+	}
+
+	emit commandBusyChanged(false);
 }
 
 void _AlpacaDevice::buildQuickSettings()
@@ -362,8 +481,7 @@ bool _AlpacaDevice::sendCommand
 	{
 		if (_commands.find(command) != _commands.end())
 		{
-			setPinState(_commands[command]._pin, state);
-			result = true;
+			result = setPinState(_commands[command]._pin, state);
 		}
 		else if (result == false)
 		{
@@ -374,6 +492,12 @@ bool _AlpacaDevice::sendCommand
 		if (_driveThread != Q_NULLPTR)
 		{
 			_driveThread->clearWaitForCompletion();
+		}
+		else
+		{
+			// The device was closed while the command was running.
+			AppCore::writeToApplicationLogLine(QString("_AlpacaDevice::sendCommand(%1): device closed during the command").arg(command));
+			throw TACException(TAC_DEVICE_INACTIVE, kSendCommandError);
 		}
 
 		if (result == false)
@@ -404,6 +528,17 @@ bool _AlpacaDevice::quickCommand
 
 	if (_driveThread != Q_NULLPTR)
 	{
+		if (_commandDepth > 0 || _closePending)
+		{
+			// Issued from the event loop of a command that is still waiting.
+			// Queueing it would interleave two scripts on the board and nest a
+			// second wait inside the first.
+			AppCore::writeToApplicationLogLine(QString("_AlpacaDevice::quickCommand(%1) rejected: another command is in progress").arg(command));
+			throw TACException(TAC_DEVICE_BUSY, "quickCommand error: another command is still in progress");
+		}
+
+		AlpacaCommandScope commandScope(this);
+
 		if (active() == true)
 		{
 			if (_alpacaScript.hasCommand(command))
@@ -411,9 +546,116 @@ bool _AlpacaDevice::quickCommand
 				ScriptVariables scriptVariables = _platformConfiguration->getVariables();
 				CommandEntries commandEntries = _alpacaScript.getCommandEntries(command);
 				CommandEntries substitutedCommandEntries = _alpacaScript.replaceTokens(scriptVariables, commandEntries);
-				_driveThread->sendCommandSequence(substitutedCommandEntries);
 
-				result = true;
+				// Arm the completion flag here rather than in the callers.
+				// waitForCompletion() loops only while the flag is set, so an
+				// unarmed flag makes it return success immediately and the
+				// command is reported as having worked without the board
+				// acknowledging anything.
+				//
+				// Both routes into this function converge here: the exported
+				// SendCommand() reaches it via sendCommand() when the name is
+				// not a pin command, and PowerOffButton/BootToEDLButton reach
+				// it via _quickCommand(). Neither armed the flag, so every
+				// quick command was unverifiable - confirmed on the bench by
+				// nine consecutive "completionArmed=NO" entries on 10/08.
+				//
+				// setPinState() is unaffected: it goes through
+				// _setCommandState(), which already arms the flag and is why
+				// its timeouts were detected and recovered correctly.
+				_driveThread->setWaitForCompletion();
+
+				AppCore::writeToApplicationLogLine(
+					QString("_AlpacaDevice::quickCommand(%1): queueing %2 entries, completionArmed=%3")
+						.arg(command)
+						.arg(substitutedCommandEntries.count())
+						.arg(_driveThread->waitForCompletionStatus() ? "yes" : "NO"));
+
+				// The script's own delays (for example an 8 s power key hold
+				// for UEFI) are part of a healthy run, so the wait has to
+				// allow for them. Without this the default ~5 s timeout fired
+				// part way through every long script and the recovery below
+				// reset the transport and replayed the whole power sequence.
+				quint32 scriptDurationMs{0};
+				for (const auto& entry: std::as_const(substitutedCommandEntries))
+				{
+					if (entry->_commandAction == _CommandEntry::eDelay)
+					{
+						bool isNumber{false};
+						const quint32 delayMs = entry->_arguement.toUInt(&isNumber);
+						if (isNumber)
+							scriptDurationMs += delayMs;
+					}
+				}
+
+				// Lets the UI say how long the locked controls may stay locked.
+				emit quickCommandStarted(scriptDurationMs);
+
+				_driveThread->sendCommandSequence(substitutedCommandEntries);
+				result = _driveThread->waitForCompletion(scriptDurationMs);
+
+				AppCore::writeToApplicationLogLine(
+					QString("_AlpacaDevice::quickCommand(%1): completion %2")
+						.arg(command)
+						.arg(result ? "confirmed" : "timed out"));
+
+				// The wait ended because the device is being closed or the drive
+				// thread stopped itself (transport write failure). Resetting and
+				// replaying a power sequence on a device that is going away is
+				// what must not happen here.
+				if (result == false && _closePending)
+				{
+					AppCore::writeToApplicationLogLine(QString("_AlpacaDevice::quickCommand(%1): abandoned, device is being closed").arg(command));
+					return false;
+				}
+
+				if (result == false && _driveThread->weAreRunning() == false)
+				{
+					AppCore::writeToApplicationLogLine(QString("_AlpacaDevice::quickCommand(%1): drive thread stopped, device lost").arg(command));
+					throw TACException(TAC_DEVICE_INACTIVE, kQuickCommandError);
+				}
+
+				if (result == false)
+				{
+					// Same rationale as setPinState(): reset the wedged
+					// transport and replay the sequence once. bootToEDL and the
+					// other button commands arrive through here, so without
+					// this they would report a timeout with no attempt to
+					// recover.
+					AppCore::writeToApplicationLogLine(
+						QString("_AlpacaDevice::quickCommand(%1): command timed out, attempting transport reset").arg(command));
+
+					bool resetOk = resetTransport();
+
+					if (resetOk == true)
+					{
+						setWaitForCompletion();
+
+						CommandEntries retryEntries = _alpacaScript.replaceTokens(scriptVariables, commandEntries);
+						_driveThread->sendCommandSequence(retryEntries);
+						result = _driveThread->waitForCompletion(scriptDurationMs);
+					}
+
+					// One line carrying the whole outcome, so support does not
+					// have to stitch the story together from separate entries.
+					AppCore::writeToApplicationLogLine(
+						QString("TIMEOUT RECOVERY: command=quickCommand(%1) reset=%2 retry=%3 port=%4")
+							.arg(command)
+							.arg(resetOk ? "succeeded" : "failed")
+							.arg(resetOk ? (result ? "succeeded" : "failed") : "skipped")
+							.arg(_portName.isEmpty() ? QByteArray("unknown") : _portName));
+				}
+
+				if (result == false && _closePending)
+				{
+					AppCore::writeToApplicationLogLine(QString("_AlpacaDevice::quickCommand(%1): abandoned, device is being closed").arg(command));
+					return false;
+				}
+
+				if (result == false)
+				{
+					throw TACException(TAC_COMMAND_TIMEOUT, "quickCommand error: Command timed out waiting for completion");
+				}
 			}
 			else
 			{
@@ -503,7 +745,7 @@ QByteArray _AlpacaDevice::getHelp()
 	return _helpText;
 }
 
-void _AlpacaDevice::setPinState
+bool _AlpacaDevice::setPinState
 (
 	PinID pin,
 	bool state
@@ -511,15 +753,68 @@ void _AlpacaDevice::setPinState
 {
 	if (_driveThread != Q_NULLPTR)
 	{
+		if (_commandDepth > 0 || _closePending)
+		{
+			AppCore::writeToApplicationLogLine(QString("_AlpacaDevice::setPinState(%1) rejected: another command is in progress").arg(QString::number(pin)));
+			throw TACException(TAC_DEVICE_BUSY, "setPinState error: another command is still in progress");
+		}
+
+		AlpacaCommandScope commandScope(this);
+
 		if (active() == true)
 		{
-			_driveThread->setPinState(pin, state);
+			bool result = _driveThread->setPinState(pin, state);
 			if (AppCore::getAppCore()->appLoggingActive())
 			{
 				TACCommand tacCommand = TACCommand::find(pin, _commandList);
 
 				AppCore::writeToApplicationLogLine("_AlpacaDevice::setPinState(" + QString::number(pin) +")  Command:" + tacCommand._command);
 			}
+
+			if (result == false && _closePending)
+			{
+				AppCore::writeToApplicationLogLine(QString("_AlpacaDevice::setPinState(%1): abandoned, device is being closed").arg(QString::number(pin)));
+				return false;
+			}
+
+			if (result == false && _driveThread->weAreRunning() == false)
+			{
+				AppCore::writeToApplicationLogLine(QString("_AlpacaDevice::setPinState(%1): drive thread stopped, device lost").arg(QString::number(pin)));
+				throw TACException(TAC_DEVICE_INACTIVE, kSetPinError);
+			}
+
+			if (result == false)
+			{
+				// The board stopped acknowledging. Reopening the TACDev handle
+				// does not clear this, so reset the transport in place and make
+				// one more attempt before reporting the timeout.
+				AppCore::writeToApplicationLogLine(
+					QString("_AlpacaDevice::setPinState(%1): command timed out, attempting transport reset").arg(QString::number(pin)));
+
+				bool resetOk = resetTransport();
+
+				if (resetOk == true)
+				{
+					setWaitForCompletion();
+					result = _driveThread->setPinState(pin, state);
+				}
+
+				// One line carrying the whole outcome, so support does not have
+				// to stitch the story together from separate entries.
+				AppCore::writeToApplicationLogLine(
+					QString("TIMEOUT RECOVERY: command=setPinState(pin=%1, state=%2) reset=%3 retry=%4 port=%5")
+						.arg(QString::number(pin))
+						.arg(state ? "on" : "off")
+						.arg(resetOk ? "succeeded" : "failed")
+						.arg(resetOk ? (result ? "succeeded" : "failed") : "skipped")
+						.arg(_portName.isEmpty() ? QByteArray("unknown") : _portName));
+			}
+
+			if (result == false)
+			{
+				throw TACException(TAC_COMMAND_TIMEOUT, "setPinState error: Command timed out waiting for completion");
+			}
+			return result;
 		}
 		else
 		{
@@ -530,7 +825,24 @@ void _AlpacaDevice::setPinState
 	else
 	{
 		AppCore::writeToApplicationLogLine("_AlpacaDevice::setPinState _driveThread is NULL");
+		throw TACException(TAC_DEVICE_INACTIVE, kSetPinError);
 	}
+}
+
+bool _AlpacaDevice::resetTransport()
+{
+	bool result{false};
+
+	if (_driveThread != Q_NULLPTR)
+	{
+		result = _driveThread->resetTransport();
+	}
+	else
+	{
+		AppCore::writeToApplicationLogLine("_AlpacaDevice::resetTransport _driveThread is NULL");
+	}
+
+	return result;
 }
 
 void _AlpacaDevice::setAddressPinState
@@ -809,6 +1121,19 @@ void _AlpacaDevice::on_pinStateChanged
 
 void _AlpacaDevice::onDeviceDisconnect()
 {
+	// Connected with Qt::DirectConnection, so this runs on the drive thread at
+	// the end of its run(). Closing here would make the drive thread wait for
+	// itself in shutDown() (deadlock) or, as before, null and deleteLater()
+	// _driveThread while the owner thread may still be inside a wait on it.
+	// Hand the close to the thread that owns the device instead; run() is
+	// free to return, and close() there either shuts down normally or defers
+	// until a running command has unwound.
+	if (QThread::currentThread() != thread())
+	{
+		QMetaObject::invokeMethod(this, &_AlpacaDevice::close, Qt::QueuedConnection);
+		return;
+	}
+
 	close();
 }
 
@@ -839,4 +1164,3 @@ void _AlpacaDevice::i2CWriteRegister(quint32 addr, quint32 reg, quint32 data)
 	if (_driveThread != Q_NULLPTR)
 		_driveThread->i2CWriteRegister(addr, reg, data);
 }
-

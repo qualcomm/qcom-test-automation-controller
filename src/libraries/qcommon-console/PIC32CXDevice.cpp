@@ -61,8 +61,18 @@ quint32 PIC32CXDevice::updateAlpacaDevices()
 
 			TACPlatformEntry platformEntry = _PlatformConfiguration::getEntry(pic32cxDevice->_platformID);
 
-			pic32cxDevice->_description = platformEntry._platformEntry->_description.toLatin1();
-			pic32cxDevice->_platformConfiguration = platformEntry.getConfiguration();
+			// Without a loaded configuration for this platform the entry is
+			// empty. List the device anyway, but leave its configuration unset
+			// so a later open fails cleanly instead of crashing here.
+			if (platformEntry._platformEntry.isNull() == false)
+			{
+				pic32cxDevice->_description = platformEntry._platformEntry->_description.toLatin1();
+				pic32cxDevice->_platformConfiguration = platformEntry.getConfiguration();
+			}
+			else
+			{
+				AppCore::writeToApplicationLogLine(QString("PIC32CXDevice: no configuration found for platform %1").arg(pic32cxDevice->_platformID));
+			}
 
 			_AlpacaDevice::_alpacaDevices.push_back(AlpacaDevice(pic32cxDevice));
 
@@ -80,6 +90,18 @@ quint32 PIC32CXDevice::updateAlpacaDevices()
 bool PIC32CXDevice::open()
 {
 	bool result{false};
+
+	// No configuration was loaded for this board when it was enumerated, so
+	// its pins and commands are unknown. Report that instead of crashing in
+	// buildMapping().
+	if (_platformConfiguration.isNull())
+	{
+		_lastError = QString("No configuration found for platform %1. "
+							 "Check that the board configuration files are installed.")
+						 .arg(_platformID).toLatin1();
+		AppCore::writeToApplicationLogLine("PIC32CXDevice::open(): " + _lastError);
+		return false;
+	}
 
 	if (_driveThread == Q_NULLPTR)
 	{

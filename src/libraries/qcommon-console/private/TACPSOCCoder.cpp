@@ -5,6 +5,7 @@
 
 #include "TACCommands.h"
 #include "TACCommandHashes.h"
+#include "TACPSOCLegacyCommands.h"
 
 TACPSOCCoder::TACPSOCCoder() :
 	FrameCoder()
@@ -36,6 +37,9 @@ void TACPSOCCoder::decode
 
 	if (frames.contains(kCommand) || frames.contains(kCommandNotRecognized))
 	{
+		if (_legacyCommands != Q_NULLPTR && frames.contains(kCommandNotRecognized) && frames.isEmpty() == false)
+			_legacyCommands->onCommandRejected(frames.first().toLatin1());
+
 		int count(0);
 
 		QListIterator<QString> iter(frames);
@@ -110,7 +114,13 @@ QByteArray TACPSOCCoder::encode
 
 	case kSetPinCommandHash:
 		if (arguments.count() == 2)
-			result = "pin " + variantToBoolString(arguments.at(0)) + " " + arguments.at(1).toByteArray()   + "\r";
+		{
+			if (_legacyCommands != Q_NULLPTR)
+				result = _legacyCommands->translate(arguments.at(0).toBool(), arguments.at(1).toULongLong());
+
+			if (result.isEmpty() || result == encodeMe)
+				result = "pin " + variantToBoolString(arguments.at(0)) + " " + arguments.at(1).toByteArray()   + "\r";
+		}
 		break;
 
 	default:

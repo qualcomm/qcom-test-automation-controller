@@ -49,4 +49,4 @@ A. Use the standard QTAC APIs and the QTAC UI to execute TAC commands. If you ar
 
 **Q. The device info tab shows "Firmware too old" message. How can I update to a new one?**
 
-A. QTAC comes with a command line program called `FWUpdate` and the latest firmware at `C:\ProgramData\Qualcomm\QTAC\firmware`. Choose the relevant firmware according to the debug board chipset (eg. LP030). Execute the FWUpdate command with the firmware's `.cyacd` file while keeping your debug board connected to update the firmware of the debug board.
+A. The debug board firmware is installed at `C:\ProgramData\Qualcomm\QTAC\firmware`. Firmware is updated with the separate `FWUpdate` command line utility, which is not included in every installation. When `FWUpdate` is installed next to the QTAC applications, use the `Update firmware` button in Device Catalog, or run `FWUpdate path=<firmware .cyacd file>` with the firmware that matches the debug board chipset (eg. LP030). Keep the debug board connected and close TAC before updating the firmware.

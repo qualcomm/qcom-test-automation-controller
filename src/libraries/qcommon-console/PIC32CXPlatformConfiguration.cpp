@@ -34,7 +34,9 @@ _PIC32CXPlatformConfiguration::_PIC32CXPlatformConfiguration()
 {
 	_platform = ePIC32CXAuto;
 
-	_resetActive = true;
+	// The PIC32CX firmware has no reset-count command, so the reset count
+	// controls must not be offered for this platform.
+	_resetActive = false;
 
 	_PIC32CXPlatformConfiguration::initialize();
 

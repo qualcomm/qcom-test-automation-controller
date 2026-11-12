@@ -40,7 +40,7 @@ and the debug board.  If you [open a GitHub issue](https://github.com/qualcomm/q
 3. Try another device with your original debug board.  If the the new device works, the problem is with your device.  Try updating the software.
 4. Try another device with another debug board.  If the new setup works, there problem is with the old combination.
 5. If you reach this point, then turn on the logging
-6. Run your simplified test again and generate a report using the Bug Writer tool, or attach the log to a GitHub issue.
+6. Run your simplified test again and attach the log to a GitHub issue.
 
 ## Endpoint Exhaustion
 

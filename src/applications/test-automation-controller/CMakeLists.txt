@@ -117,3 +117,6 @@ if(WIN32 AND WINDEPLOYQT_EXECUTABLE)
         COMMENT "Running windeployqt..."
     )
 endif()
+
+# Windows file version resource
+qtac_add_version_info(${APP_NAME} "Test Automation Controller" "${QTAC_VERSION}")
