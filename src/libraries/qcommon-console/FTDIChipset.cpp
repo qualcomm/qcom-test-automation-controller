@@ -99,6 +99,10 @@ quint32 _FTDIChipset::getDeviceCount()
 	linuxTraversal();
 #endif
 
+#ifdef Q_OS_MACOS
+	macOSTraversal();
+#endif
+
 	return _ftdiChipsetList.count();
 }
 
@@ -613,6 +617,96 @@ PlatformID _FTDIChipset::nameToPlatform
 {
 	return PlatformContainer::fromUSBDescriptor(deviceName);
 }
+
+#ifdef Q_OS_MACOS
+void _FTDIChipset::macOSTraversal()
+{
+	DWORD deviceCount{};
+	FT_STATUS ftStatus{FT_CreateDeviceInfoList(&deviceCount)};
+	if (ftStatus != FT_OK || deviceCount == 0)
+		return;
+
+	QList<FT_DEVICE_LIST_INFO_NODE> devInfoList;
+	devInfoList.resize(static_cast<qsizetype>(deviceCount));
+	ftStatus = FT_GetDeviceInfoList(devInfoList.data(), &deviceCount);
+	if (ftStatus != FT_OK)
+		return;
+
+	for (auto i: range(deviceCount))
+	{
+		const FT_DEVICE_LIST_INFO_NODE& deviceInfo = devInfoList[static_cast<qsizetype>(i)];
+		QString description = deviceInfo.Description;
+		if (description.isEmpty())
+			continue;
+
+		QByteArray usbDescriptor;
+		if (description.endsWith(kBugHopperUSBDescriptor, Qt::CaseInsensitive))
+			usbDescriptor = description.toLatin1();
+		else if (description.length() >= 2)
+			usbDescriptor = description.left(description.length() - 2).toLatin1();
+
+		if (!_PlatformConfiguration::containsUSBDescriptor(usbDescriptor)
+			&& !usbDescriptor.startsWith("ALPACA-LITE "))
+			continue;
+
+		PlatformID platformID = _PlatformConfiguration::getUSBDescriptor(usbDescriptor);
+		QByteArray deviceSerialNumber = deviceInfo.SerialNumber;
+		TACPlatformEntry platformEntry = _PlatformConfiguration::getEntry(platformID);
+		DebugBoardType boardType = platformEntry._platformEntry.isNull()
+			? (description.endsWith(kBugHopperUSBDescriptor, Qt::CaseInsensitive) ? eFT232H : eFTDI)
+			: platformEntry._platformEntry->_boardtype;
+		QByteArray serialNumber = _FTDIChipset::normalizeSerialNumber(boardType, deviceSerialNumber);
+		if (serialNumber.isEmpty())
+			continue;
+
+		uint portHash = hash(serialNumber);
+		QChar segment = description.right(1)[0];
+		FTDIChipset ftdiChipset;
+
+		if (hasDevice(portHash))
+		{
+			ftdiChipset = getDevice(serialNumber);
+		}
+		else
+		{
+			ftdiChipset = FTDIChipset(new _FTDIChipset);
+			ftdiChipset->setPlatformID(platformID);
+			ftdiChipset->setBoardType(boardType);
+			_ftdiChipsetList.append(ftdiChipset);
+		}
+
+		ftdiChipset->setSerialNumber(serialNumber);
+		if (ftdiChipset->_usbDescriptor.isEmpty())
+			ftdiChipset->_usbDescriptor = usbDescriptor;
+
+		switch (segment.toLatin1())
+		{
+		case 'A':
+		case 'a':
+			ftdiChipset->setASerialNumber(deviceSerialNumber);
+			break;
+		case 'B':
+		case 'b':
+			ftdiChipset->setBSerialNumber(deviceSerialNumber);
+			break;
+		case 'C':
+		case 'c':
+		case 'R':
+		case 'r':
+			ftdiChipset->setCSerialNumber(deviceSerialNumber);
+			break;
+		case 'D':
+		case 'd':
+			ftdiChipset->setDSerialNumber(deviceSerialNumber);
+			break;
+		}
+
+		ftdiChipset->_active = true;
+		if ((deviceInfo.Flags & FT_FLAGS_OPENED) != 0)
+			ftdiChipset->_lastError = "QTAC failed to enumerate all connected FTDI devices as they are in use";
+	}
+}
+#endif
 
 #ifdef Q_OS_LINUX
 void _FTDIChipset::linuxTraversal()
