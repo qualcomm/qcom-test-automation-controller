@@ -19,6 +19,8 @@
 #include <QDateTime>
 #include <QTextStream>
 
+#include <cstdint>
+
 TACDriveThread::TACDriveThread
 (
 	HashType hash
@@ -33,7 +35,7 @@ TACDriveThread::~TACDriveThread()
 
 TACDriveThread* TACDriveThread::openPort
 (
-	const QByteArray& portName
+	const std::string& portName
 )
 {
 	TACDriveThread* result{Q_NULLPTR};
@@ -145,7 +147,7 @@ QByteArray TACDriveThread::decodeCommand
 		result.remove(kSetNameCommand.toLower());
 		result = result.remove("setname").trimmed();
 
-		args.push_back(result.toLatin1());
+		args.push_back(result.toLatin1().toStdString());
 		result = kSetNameCommand;
 	}
 	else if (result.startsWith(kSetButtonAssertTime) || result.startsWith(kSetButtonAssertTimeAlias))
@@ -153,7 +155,7 @@ QByteArray TACDriveThread::decodeCommand
 		result.remove(kSetNameCommand.toLower());
 		result = result.remove(kSetButtonAssertTimeAlias).trimmed();
 
-		args.push_back(result.toUInt());
+		args.push_back(static_cast<uint32_t>(result.toUInt()));
 		result = kSetButtonAssertTime;
 	}
 	else if (result.startsWith(kSetPowerKeyDelay) || result.startsWith(kSetPowerKeyDelayAlias))
@@ -161,7 +163,7 @@ QByteArray TACDriveThread::decodeCommand
 		result.remove(kSetNameCommand.toLower());
 		result = result.remove(kSetPowerKeyDelayAlias).trimmed();
 
-		args.push_back(result.toUInt());
+		args.push_back(static_cast<uint32_t>(result.toUInt()));
 		result = kSetPowerKeyDelay;
 	}
 	else if (result.startsWith(kSetPinCommand, Qt::CaseInsensitive))
@@ -169,16 +171,16 @@ QByteArray TACDriveThread::decodeCommand
 		result.remove(kSetPinCommand.toLower());
 
 		QStringList argList = result.split(" ", Qt::SkipEmptyParts);
-		args.push_back(result.toUInt()); // state and then pin
+		args.push_back(static_cast<uint32_t>(result.toUInt())); // state and then pin
 
 		result = kSetPinCommand;
 	}
 
-	quint32 hash = CommandStringToHash(result.toLatin1());
+	uint32_t hash = CommandStringToHash(result.toStdString());
 	if (hash != 0)
 	{
 		oldCommandEntry commandEntry = CommandHashToCommandEntry(hash);
-		result = commandEntry._longCommand;
+		result = QString::fromStdString(commandEntry._longCommand);
 	}
 	else
 		result.clear();
@@ -223,7 +225,7 @@ bool TACDriveThread::checkLocalStore
 	case kGetPlatformIDCommandHash:
 		if (_platformID != MICRO_EPM_BOARD_ID_UNKNOWN)
 		{
-			QString response = QString("%1(%2)").arg(PlatformContainer::toString(_platformID)).arg(static_cast<int>(_platformID));
+			QString response = QString("%1(%2)").arg(QString::fromStdString(PlatformContainer::toString(_platformID))).arg(static_cast<int>(_platformID));
 			framePackage->_responses.push_back(response.toLatin1().data());
 			result = true;
 		}
@@ -246,7 +248,7 @@ DebugBoardType TACDriveThread::debugBoardType()
 	return _hardwareType;
 }
 
-QString TACDriveThread::debugBoardTypeString()
+std::string TACDriveThread::debugBoardTypeString()
 {
 	return debugBoardTypeToString(_hardwareType);
 }
@@ -256,12 +258,12 @@ PlatformID TACDriveThread::platformID()
 	return _platformID;
 }
 
-QString TACDriveThread::hardwareVersionString()
+std::string TACDriveThread::hardwareVersionString()
 {
 	return PlatformContainer::toString(_platformID);
 }
 
-QString TACDriveThread::firmwareVersion()
+std::string TACDriveThread::firmwareVersion()
 {
 	return _firmwareString;
 }
@@ -306,12 +308,12 @@ void TACDriveThread::setPortName(const QByteArray &portName)
 	_portName = portName;
 }
 
-QString TACDriveThread::description() const
+std::string TACDriveThread::description() const
 {
 	return _description;
 }
 
-void TACDriveThread::setDescription(const QString &description)
+void TACDriveThread::setDescription(const std::string &description)
 {
 	_description = description;
 }
@@ -331,7 +333,7 @@ QString TACDriveThread::uuid()
 	return _uuid;
 }
 
-QByteArray TACDriveThread::macAddress()
+std::string TACDriveThread::macAddress()
 {
 	return _macAddress;
 }
@@ -379,12 +381,12 @@ void TACDriveThread::log
 	{
 		logEntry = QString(" Delay %1 in msecs").arg(framePackage->_delayInMilliSeconds);
 		timeStampLogMessage(logEntry);
-		AppCore::writeToApplicationLogLine(logEntry);
+		AppCore::writeToApplicationLogLine(logEntry.toStdString());
 	}
 	else if (framePackage->_comment.isEmpty() == false)
 	{
 		logEntry = QString("%1").arg(framePackage->_comment.data());
-		AppCore::writeToApplicationLogLine(logEntry);
+		AppCore::writeToApplicationLogLine(logEntry.toStdString());
 	}
 	else
 	{
@@ -393,12 +395,12 @@ void TACDriveThread::log
 		else
 			logEntry = QString("Request: %1").arg(framePackage->_request.data());
 
-		AppCore::writeToApplicationLogLine(logEntry);
+		AppCore::writeToApplicationLogLine(logEntry.toStdString());
 
 		if (framePackage->_synonym.isEmpty() == false)
 		{
 			logEntry = QString("Synonym: %1").arg(framePackage->_synonym.data());
-			AppCore::writeToApplicationLogLine(logEntry);
+			AppCore::writeToApplicationLogLine(logEntry.toStdString());
 		}
 
 		AppCore::writeToApplicationLogLine("Responses");
@@ -407,7 +409,7 @@ void TACDriveThread::log
 		while (response != framePackage->_responses.end())
 		{
 			logEntry = QString("   %1").arg(response->data());
-			AppCore::writeToApplicationLogLine(logEntry);
+			AppCore::writeToApplicationLogLine(logEntry.toStdString());
 			response++;
 		}
 	}
@@ -421,14 +423,14 @@ void TACDriveThread::timeStampLogMessage
 	QString& timeStampMe
 )
 {
-	static quint64 lastTimeStamp{0};
+	static uint64_t lastTimeStamp{0};
 
 	if (lastTimeStamp == 0)
 	{
 		lastTimeStamp = tickCount();
 	}
 
-	quint64 current = tickCount();
+	uint64_t current = tickCount();
 	timeStampMe += QString("Time: %1 elapsed: %2 (ms)").arg(current).arg(current - lastTimeStamp);
 	lastTimeStamp = current;
 }

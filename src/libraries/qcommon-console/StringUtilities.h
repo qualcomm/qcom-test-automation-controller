@@ -5,19 +5,22 @@
 
 #include "QCommonConsoleGlobal.h"
 
-#include <QPoint>
+#include <cstdint>
+#include <string>
+#include <utility>
+
 #include <QString>
 
-typedef quint64 HashType;
+typedef uint64_t HashType;
 
 QString QCOMMONCONSOLE_EXPORT toCamelCase(const QString&  camelCaseMe, const QChar splitChar = '_', Qt::SplitBehavior splitBehavior = Qt::SkipEmptyParts);
-bool QCOMMONCONSOLE_EXPORT isAlphaNumeric(const QByteArray& testMe);
-QString QCOMMONCONSOLE_EXPORT fromBool(bool value);
+bool QCOMMONCONSOLE_EXPORT isAlphaNumeric(const std::string& testMe);
+std::string QCOMMONCONSOLE_EXPORT fromBool(bool value);
 
-QString QCOMMONCONSOLE_EXPORT fromQPoint(const QPoint& value);
-QPoint QCOMMONCONSOLE_EXPORT toQPoint(const QString& value);
+std::string QCOMMONCONSOLE_EXPORT fromQPoint(const std::pair<int, int>& value);
+std::pair<int, int> QCOMMONCONSOLE_EXPORT toQPoint(const std::string& value);
 
-HashType QCOMMONCONSOLE_EXPORT strHash(const QString& hashMe);
-HashType QCOMMONCONSOLE_EXPORT arrayHash(const QByteArray& hashMe);
+HashType QCOMMONCONSOLE_EXPORT strHash(const std::string& hashMe);
+HashType QCOMMONCONSOLE_EXPORT arrayHash(const std::string& hashMe);
 
 #endif // STRINGUTILITIES_H

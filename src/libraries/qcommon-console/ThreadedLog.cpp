@@ -5,7 +5,9 @@
 
 // Qt
 #include <QDateTime>
-#include <QMutexLocker>
+
+// C++
+#include <mutex>
 
 void _ThreadedLog::open
 (
@@ -53,7 +55,7 @@ void _ThreadedLog::addLogEntry
 	const QString& logEntry
 )
 {
-	QMutexLocker lock(&_mutex);
+	std::lock_guard<std::recursive_mutex> lock(_mutex);
 
 	_logEntries.append(logEntry);
 }
@@ -70,7 +72,7 @@ void _ThreadedLog::run()
 	while (_running)
 	{
 		{
-			QMutexLocker lock(&_mutex);
+			std::lock_guard<std::recursive_mutex> lock(_mutex);
 
 			if (_logEntries.empty() == false)
 			{
@@ -92,7 +94,7 @@ void _ThreadedLog::run()
 
 	while (_logEntries.isEmpty() == false)
 	{
-		QMutexLocker lock(&_mutex);
+		std::lock_guard<std::recursive_mutex> lock(_mutex);
 
 		logEntry = _logEntries.takeFirst();
 		_logFile.write(logEntry.toLatin1());

@@ -129,21 +129,21 @@ bool CommDevice::Send
 
 	if (_serialPort != nullptr && _serialPort->isOpen())
 	{
-		quint64 bytesSent = _serialPort->write(sendData);
+		uint64_t bytesSent = _serialPort->write(sendData);
 		result = (bytesSent == sendData.size());
 	}
 
 	return result;
 }
 
-quint64 CommDevice::Read
+uint64_t CommDevice::Read
 (
 	QByteArray& incomingBytes
 )
 {
-	quint64 bytesAvailable(0);
+	uint64_t bytesAvailable(0);
 
-	const quint64 kMaxToRead(0xFFFFF);
+	const uint64_t kMaxToRead(0xFFFFF);
 	bool first(true);
 
 	if (_serialPort->isReadable())

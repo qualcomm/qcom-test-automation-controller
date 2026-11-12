@@ -5,14 +5,13 @@
 
 #include "QCommonConsoleGlobal.h"
 
-// QT
-#include <QList>
-#include <QString>
+#include <string>
+#include <vector>
 
 class QCOMMONCONSOLE_EXPORT RecentFiles
 {
 public:
-	RecentFiles(const QString& appName, const QString& settingsGroup);
+	RecentFiles(const std::string& appName, const std::string& settingsGroup);
 
 	void clear();
 	void hideExtensions(bool state = false);
@@ -20,21 +19,21 @@ public:
 	int fileCount();
 	void setMaxFileCount(int maxFiles);
 
-	void addFile(const QString& filePath);
-	void removeFile(const QString& filePath);
+	void addFile(const std::string& filePath);
+	void removeFile(const std::string& filePath);
 	void removeFile(int fileIndex);
-	QString getFilePath(int fileIndex);
-	QString getFileName(int fileIndex);
+	std::string getFilePath(int fileIndex);
+	std::string getFileName(int fileIndex);
 
 private:
 	void load();
 	void save();
 
-	QString						_appName;
+	std::string					_appName;
 	bool						_hideExtensions{false};
 	int							_maxFileCount{10};
-	QString						_settingsGroup;
-	QStringList					_recentFiles;
+	std::string					_settingsGroup;
+	std::vector<std::string>	_recentFiles;
 };
 
 #endif // RECENTFILES_H

@@ -5,28 +5,28 @@
 
 #include "QCommonConsoleGlobal.h"
 
-#include <QString>
+#include <string>
 
 class QCOMMONCONSOLE_EXPORT SystemInformation
 {
 public:
 	SystemInformation();
 
-	QString computerName();
-	QString userName();
-	QString osName();
-	QString osVersion();
+	std::string computerName();
+	std::string userName();
+	std::string osName();
+	std::string osVersion();
 
 	// memory
-	QString totalPhysicalMemory();
-	QString totalVirtualMemory();
+	std::string totalPhysicalMemory();
+	std::string totalVirtualMemory();
 
 private:
-	QString						_computerName;
-	QString						_userName;
-	QString						_osName;
-	QString						_osVersion;
-	QString						_totalPhysicalMemory;
+	std::string					_computerName;
+	std::string					_userName;
+	std::string					_osName;
+	std::string					_osVersion;
+	std::string					_totalPhysicalMemory;
 };
 
 #endif // SYSTEMINFORMATION_H

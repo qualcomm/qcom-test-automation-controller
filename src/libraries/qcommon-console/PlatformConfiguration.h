@@ -21,11 +21,13 @@
 #include <QSize>
 #include <QString>
 
+#include <cstdint>
+
 const int kDefaultPlatformId{99999};
 const int kDefaultFirmwareVersion{15};
 const QSize kClassicDimension(560, 725);
 
-typedef qint16 ChipIndex;
+typedef int16_t ChipIndex;
 
 class _PlatformConfiguration;
 
@@ -95,7 +97,7 @@ public:
 
 	// auto incremented file version to provide file history
 	QString getFileVersion();
-	quint32 fileVersion();
+	uint32_t fileVersion();
 
 	// Returns string version of platform type for UI elements
 	QString getPlatformString();
@@ -120,8 +122,8 @@ public:
 	QStringList getAllTabs();
 	QStringList getVisibleTabs();
 
-	void renameTab(const QString& oldName, const QString& newName);
-	void setTabVisible(const QString& tabName, bool visible);
+	void renameTab(const std::string& oldName, const std::string& newName);
+	void setTabVisible(const std::string& tabName, bool visible);
 
 	virtual Pins getPins();
 
@@ -129,33 +131,33 @@ public:
 	Buttons getButtonsMap();
 
 	ScriptVariables getVariables();
-	bool setVariableName(const QString& variableName);
-	void setVariableLabel(const QString& variableName, const QString& variableLabel);
-	void setVariableTooltip(const QString& variableName, const QString& variableTooltip);
-	void setVariableType(const QString& variableName, const VariableType variableType);
-	bool setVariableDefaultValue(const QString& variableName, const QVariant& variableDefaultValue);
-	void setVariableCellLocation(const QString& variableName, const QPoint& variableCellLocation);
-	void deleteVariable(const QString& variableName);
+	bool setVariableName(const std::string& variableName);
+	void setVariableLabel(const std::string& variableName, const std::string& variableLabel);
+	void setVariableTooltip(const std::string& variableName, const std::string& variableTooltip);
+	void setVariableType(const std::string& variableName, const VariableType variableType);
+	bool setVariableDefaultValue(const std::string& variableName, const std::string& variableDefaultValue);
+	void setVariableCellLocation(const std::string& variableName, const std::pair<int, int>& variableCellLocation);
+	void deleteVariable(const std::string& variableName);
 
 	void deleteButton(HashType hash);
 
-	HashType addButtonLabel(const QString& buttonLabel, const QString& tabName);
-	bool setButtonLabel(HashType hash, const QString& buttonLabel);
+	HashType addButtonLabel(const std::string& buttonLabel, const std::string& tabName);
+	bool setButtonLabel(HashType hash, const std::string& buttonLabel);
 
-	HashType addButtonTooltip(const QString& labelName, const QString& tabName, const QString& toolTip);
-	bool setButtonTooltip(HashType hash, const QString& toolTip);
+	HashType addButtonTooltip(const std::string& labelName, const std::string& tabName, const std::string& toolTip);
+	bool setButtonTooltip(HashType hash, const std::string& toolTip);
 
-	HashType addButtonCommand(const QString& labelName, const QString& tabName, const QString& command);
-	bool setButtonCommand(HashType hash, const QString& command);
+	HashType addButtonCommand(const std::string& labelName, const std::string& tabName, const std::string& command);
+	bool setButtonCommand(HashType hash, const std::string& command);
 
-	HashType addButtonCommandGroup(const QString& labelName, const QString& tabName, const CommandGroups& commandGroup);
+	HashType addButtonCommandGroup(const std::string& labelName, const std::string& tabName, const CommandGroups& commandGroup);
 	bool setButtonCommandGroup(HashType hash, const CommandGroups& commandGroup);
 
-	HashType addButtonTab(const QString& labelName, const QString& tabName);
-	bool setButtonTab(HashType hash, const QString& tabName);
+	HashType addButtonTab(const std::string& labelName, const std::string& tabName);
+	bool setButtonTab(HashType hash, const std::string& tabName);
 
-	HashType addButtonCellLocation(const QString& labelName, const QString& tabName, const QPoint& cellLocation);
-	bool setButtonCellLocation(HashType hash, const QPoint& cellLocation);
+	HashType addButtonCellLocation(const std::string& labelName, const std::string& tabName, const std::pair<int, int>& cellLocation);
+	bool setButtonCellLocation(HashType hash, const std::pair<int, int>& cellLocation);
 
 	QSize getFormDimension();
 	void setFormDimension(const QSize& formDimension);
@@ -167,19 +169,19 @@ public:
 	void setUSBDescriptor(const QByteArray& usbDescriptor);
 	QByteArray getUSBDescriptor();
 
-	const QByteArray& getAlpacaScript();
-	void setAlpacaScript(const QByteArray& alpacaScript);
+	const std::string& getAlpacaScript();
+	void setAlpacaScript(const std::string& alpacaScript);
 
 	void setFilePath(const QString& filePath);
 	QString filePath();
 
-	void setSupportedFirmwareVer(const QList<quint32> &firmwareList);
-	QList<quint32> supportedFirmwareVer();
+	void setSupportedFirmwareVer(const QList<uint32_t> &firmwareList);
+	QList<uint32_t> supportedFirmwareVer();
 
 protected:
 
-	virtual void cascadeTabDelete(const QString& deleteMe);
-	virtual void cascadeTabRename(const QString& oldName, const QString& newName);
+	virtual void cascadeTabDelete(const std::string& deleteMe);
+	virtual void cascadeTabRename(const std::string& oldName, const std::string& newName);
 
 	virtual bool read(QJsonObject& parentLevel);
 	virtual void write(QJsonObject& parentLevel);
@@ -194,7 +196,7 @@ protected:
 	QString						_platformPath;
 	QString						_platformFile;
 	PlatformID					_platformId{kDefaultPlatformId};
-	quint32						_fileVersion{0};
+	uint32_t					_fileVersion{0};
 	QString						_name;
 	QString						_author;
 	QString						_description;
@@ -202,8 +204,8 @@ protected:
 	QString						_modifyDate;
 	DebugBoardType				_platform;
 	QByteArray					_usbDescriptor;
-	QByteArray					_alpacaScript;
-	QList<quint32>				_supportedFirmwareVer;
+	std::string					_alpacaScript;
+	QList<uint32_t>				_supportedFirmwareVer;
 
 	Tabs						_tabs;
 	Buttons						_buttons;

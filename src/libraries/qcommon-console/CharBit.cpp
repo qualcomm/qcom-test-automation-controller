@@ -3,8 +3,6 @@
 
 #include "CharBit.h"
 
-#include <QBitArray>
-
 CharBit::CharBit()
 {
 
@@ -16,9 +14,10 @@ void CharBit::set
 	bool value
 )
 {
-	QBitArray bitArray = QBitArray::fromBits(reinterpret_cast<char*>(&_bits), 8);
+	unsigned char bit = static_cast<unsigned char>(1 << (position % 8));
 
-	bitArray.setBit(position % 8, value);
-
-	_bits = *bitArray.bits();
+	if (value)
+		_bits |= bit;
+	else
+		_bits &= static_cast<unsigned char>(~bit);
 }

@@ -9,13 +9,15 @@
 // Qt
 #include <QSettings>
 
+#include <string>
+
 class QCOMMONCONSOLE_EXPORT AlpacaSettings :
 	public QSettings
 {
 	Q_OBJECT
 
 public:
-	AlpacaSettings(const QString& appName);
+	AlpacaSettings(const std::string& appName);
 	~AlpacaSettings();
 };
 

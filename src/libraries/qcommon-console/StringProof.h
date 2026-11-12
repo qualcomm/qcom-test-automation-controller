@@ -4,11 +4,11 @@
 // Copyright (c) Qualcomm Technologies, Inc. and/or its subsidiaries.
 // SPDX-License-Identifier: BSD-3-Clause
 
-#include <QByteArray>
+#include <string>
 
 void initializeStringProof();
 
-QByteArray licenseCheckFailed();
-QByteArray licenseManagerFailed();
+std::string licenseCheckFailed();
+std::string licenseManagerFailed();
 
  #endif // STRINGPROOF_H

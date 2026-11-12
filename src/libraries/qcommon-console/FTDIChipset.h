@@ -13,6 +13,8 @@
 #include <QSharedPointer>
 #include <QMap>
 
+#include <cstdint>
+
 class _FTDIChipset;
 
 typedef QSharedPointer<_FTDIChipset> FTDIChipset;
@@ -29,10 +31,10 @@ public:
 
 	_FTDIChipset();
 
-	static QString ftidStatusToString(unsigned long status);
+	static std::string ftidStatusToString(unsigned long status);
 
-	static quint32 getDeviceCount();
-	static FTDIChipset getDevice(quint32 deviceIndex);
+	static uint32_t getDeviceCount();
+	static FTDIChipset getDevice(uint32_t deviceIndex);
 	static FTDIChipset getDevice(const QByteArray& portName);
 	static QByteArray normalizeSerialNumber(DebugBoardType boardType, const QByteArray& segmentSerialNumber);
 
@@ -91,9 +93,9 @@ public:
 	QByteArray dSerialNumber();
 	void setDSerialNumber(const QByteArray& dSerialNumber);
 
-	bool write(quint8 pin, bool state);
+	bool write(uint8_t pin, bool state);
 
-	void setInvertMask(quint8 mask) { _invertMask = mask; }
+	void setInvertMask(uint8_t mask) { _invertMask = mask; }
 
 private:
 	static HashType hash(const QByteArray& serialNumber);
@@ -137,7 +139,7 @@ private:
 
 	QByteArray          _lastError;
 
-	quint8				_invertMask{0};
+	uint8_t				_invertMask{0};
 
 	static FTDIChipsetList		_ftdiChipsetList;
 };

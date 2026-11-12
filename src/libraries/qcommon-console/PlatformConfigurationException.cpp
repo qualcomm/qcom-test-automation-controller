@@ -3,7 +3,7 @@
 
 #include "PlatformConfigurationException.h"
 
-PlatformConfigurationException::PlatformConfigurationException(QString const& message) :
+PlatformConfigurationException::PlatformConfigurationException(std::string const& message) :
     _message(message)
 {
 
@@ -14,7 +14,7 @@ PlatformConfigurationException::~PlatformConfigurationException()
 
 }
 
-QString PlatformConfigurationException::getMessage() const
+std::string PlatformConfigurationException::getMessage() const
 {
     return _message;
 }

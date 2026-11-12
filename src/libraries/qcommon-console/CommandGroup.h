@@ -5,8 +5,9 @@
 
 #include "QCommonConsoleGlobal.h"
 
-#include <QString>
-#include <QStringList>
+#include <cctype>
+#include <string>
+#include <vector>
 
 enum CommandGroups
 {
@@ -20,7 +21,7 @@ enum CommandGroups
 class QCOMMONCONSOLE_EXPORT CommandGroup
 {
 public:
-	static QString toString(CommandGroups commandGroup)
+	static std::string toString(CommandGroups commandGroup)
 	{
 		switch (commandGroup)
 		{
@@ -31,25 +32,27 @@ public:
 		default:;
 		}
 
-		return QString();
+		return std::string();
 	}
 
-	static QStringList toStringList()
+	static std::vector<std::string> toStringList()
 	{
-		QStringList result;
+		std::vector<std::string> result;
 
-		result.append("<Select Pin Group>");
-		result.append(toString(eConnectionGroup));
-		result.append(toString(eButtonGroup));
-		result.append(toString(eSwitchGroup));
-		result.append(toString(eQuickSettingsGroup));
+		result.push_back("<Select Pin Group>");
+		result.push_back(toString(eConnectionGroup));
+		result.push_back(toString(eButtonGroup));
+		result.push_back(toString(eSwitchGroup));
+		result.push_back(toString(eQuickSettingsGroup));
 
 		return result;
 	}
 
-	static CommandGroups fromString(const QString commandGroupStr)
+	static CommandGroups fromString(const std::string commandGroupStr)
 	{
-		QString temp{commandGroupStr.toLower()};
+		std::string temp{commandGroupStr};
+		for (char& c: temp)
+			c = static_cast<char>(std::tolower(static_cast<unsigned char>(c)));
 
 		if (temp == "connections")
 			return eConnectionGroup;

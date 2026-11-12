@@ -19,15 +19,15 @@ QString getModulePath(void);
 
 bool isProcessRunning
 (
-	const QString& applicationName
+	const std::string& applicationName
 )
 {
-	QString candidatePath{applicationName.toLower()};
+	QString candidatePath{QString::fromStdString(applicationName).toLower()};
 
 	return isPlatformProcessRunning(candidatePath);
 }
 
-bool startProcess(const QString &applicationName)
+bool startProcess(const std::string &applicationName)
 {
 	bool result{false};
 
@@ -37,7 +37,7 @@ bool startProcess(const QString &applicationName)
 		QFileInfo fileInfo(modulePath);
 		QStringList arguments;
 
-		QString appPath = QDir::cleanPath(fileInfo.absolutePath() + QDir::separator() + applicationName);
+		QString appPath = QDir::cleanPath(fileInfo.absolutePath() + QDir::separator() + QString::fromStdString(applicationName));
 
 		result = QProcess::startDetached(appPath, arguments, fileInfo.absolutePath());
 	}

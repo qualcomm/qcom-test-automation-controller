@@ -19,10 +19,13 @@
 
 // Qt
 #include <QList>
-#include <QMutex>
 #include <QSharedPointer>
 
-const QByteArray kMACNotSupported{"Not supported"};
+#include <mutex>
+#include <string>
+#include <vector>
+
+const std::string kMACNotSupported{"Not supported"};
 
 class _AlpacaDevice;
 
@@ -39,15 +42,15 @@ public:
 	virtual ~_AlpacaDevice();
 
 	static void getAlpacaDevices(AlpacaDevices& alpacaDevices, DebugBoardType debugBoardTypeFilter = eUnknownDebugBoard);
-	static quint32 updateAlpacaDevices();
+	static uint32_t updateAlpacaDevices();
 
 	static AlpacaDevice findAlpacaDevice(HashType hash);
-	static AlpacaDevice findAlpacaDevice(const QByteArray& portName);
-	static AlpacaDevice findAlpacaDeviceBySerialNumber(const QByteArray& serialNumber, bool usePartial = true);
-	static AlpacaDevice findAlpacaDeviceByDescription(const QByteArray& description, bool usePartial = true);
-	static AlpacaDevice findAlpacaDeviceByUSBDescriptor(const QByteArray& descriptor, bool usePartial = true);
+	static AlpacaDevice findAlpacaDevice(const std::string& portName);
+	static AlpacaDevice findAlpacaDeviceBySerialNumber(const std::string& serialNumber, bool usePartial = true);
+	static AlpacaDevice findAlpacaDeviceByDescription(const std::string& description, bool usePartial = true);
+	static AlpacaDevice findAlpacaDeviceByUSBDescriptor(const std::string& descriptor, bool usePartial = true);
 
-	QByteArray getLastError();
+	std::string getLastError();
 
 	virtual bool open() = 0;
 	bool isOpen();
@@ -56,28 +59,28 @@ public:
 	virtual void buildMapping() = 0;
 	void buildQuickSettings();
 
-	quint32 commandCount();
-	TACCommand commandEntry(quint32 commandIndex);
+	uint32_t commandCount();
+	TACCommand commandEntry(uint32_t commandIndex);
 	TACCommands commandList();
 
-	quint32 quickCommandCount();
-	QByteArray getQuickCommand(quint32 index);
+	uint32_t quickCommandCount();
+	std::string getQuickCommand(uint32_t index);
 
-	quint32 scriptVariableCount();
-	QByteArray getScriptVariable(const quint32 index);
-	bool updateScriptVariableValue(const QByteArray& scriptVariable, const QByteArray& value);
+	uint32_t scriptVariableCount();
+	std::string getScriptVariable(const uint32_t index);
+	bool updateScriptVariableValue(const std::string& scriptVariable, const std::string& value);
 
-	bool getCommandState(const QByteArray& command);
-	bool sendCommand(const QByteArray& command, bool state);
+	bool getCommandState(const std::string& command);
+	bool sendCommand(const std::string& command, bool state);
 
-	bool quickCommand(const QByteArray& command);
+	bool quickCommand(const std::string& command);
 
 	bool isCommandQueueClear();
 
-	QByteArray getHelp();
+	std::string getHelp();
 
 	virtual void setPinState(PinID pin, bool state);
-	virtual void setAddressPinState(const QString& i2cAddress, quint16 pin, bool state);
+	virtual void setAddressPinState(const std::string& i2cAddress, uint16_t pin, bool state);
 
 	void setWaitForCompletion();
 
@@ -85,8 +88,8 @@ public:
 
 	HashType hash();
 
-	QByteArray portName() const;
-	void setPortName(const QByteArray& portName);
+	std::string portName() const;
+	void setPortName(const std::string& portName);
 
 	// properties
 	DebugBoardType debugBoardType();
@@ -95,26 +98,26 @@ public:
 	QString firmwareVersion();
 
 	uint majorVersion();
-	QString chipVersion();
+	std::string chipVersion();
 	uint minorVersion();
 	uint revisionVersion();
 
-	QByteArray description();
-	QByteArray usbDescriptor();
-	QByteArray serialNumber();
+	std::string description();
+	std::string usbDescriptor();
+	std::string serialNumber();
 	PlatformID platformID();
-	QByteArray macAddress();
+	std::string macAddress();
 	PlatformConfiguration platformConfiguration();
 
 	void externalPowerControl(bool state);
 
-	QByteArray name() const;
-	void setName(const QByteArray& newName);
+	std::string name() const;
+	void setName(const std::string& newName);
 
 	QSize windowDimension();
 
-	QString description() const;
-	void setDescription(const QString& description);
+	std::string description() const;
+	void setDescription(const std::string& description);
 
 	QString serialNumber() const;
 	void setSerialNumber(QString serialNumber);
@@ -124,8 +127,8 @@ public:
 	int getResetCount();
 	void clearResetCount();
 
-	void i2CReadRegister(quint32 addr, quint32 reg);
-	void i2CWriteRegister(quint32 addr, quint32 reg, quint32 data);
+	void i2CReadRegister(uint32_t addr, uint32_t reg);
+	void i2CWriteRegister(uint32_t addr, uint32_t reg, uint32_t data);
 
 	void setActive(bool active = true)
 	{
@@ -142,28 +145,28 @@ public slots:
 	void onDeviceDisconnect();
 
 protected:
-	static QMutex				_mutex;
+	static std::mutex			_mutex;
 	static AlpacaDevices		_alpacaDevices;
 
 	bool						_active{false};
 	HashType					_hash{0};
 	DebugBoardType				_boardType{eUnknownDebugBoard};
-	QByteArray					_portName;
-	QByteArray					_description;
-	QByteArray					_usbDescriptor;
-	QByteArray                  _macAddress{kMACNotSupported};
-	QByteArray					_serialNumber;
+	std::string					_portName;
+	std::string					_description;
+	std::string					_usbDescriptor;
+	std::string                 _macAddress{kMACNotSupported};
+	std::string					_serialNumber;
 	uint						_chipVersion{0};
 	PlatformID					_platformID{MICRO_EPM_BOARD_ID_UNKNOWN};
-	QByteArray					_helpText;
+	std::string					_helpText;
 	TACDriveThread*				_driveThread{Q_NULLPTR};
 
 	PlatformConfiguration		_platformConfiguration;
 	TACCommandMap				_commands;
 	TACCommands					_commandList;
-	QList<QByteArray>			_quickCommandList;
+	std::vector<std::string>	_quickCommandList;
 	AlpacaScript				_alpacaScript;
-	QByteArray                  _lastError;
+	std::string                  _lastError;
 };
 
 #endif // TACDEVICE_H

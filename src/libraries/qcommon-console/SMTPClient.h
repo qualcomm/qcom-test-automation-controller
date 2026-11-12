@@ -7,12 +7,14 @@
 
 // QT
 #include <QException>
-#include <QByteArray>
-#include <QByteArrayList>
+
+#include <cstdint>
+#include <string>
+#include <vector>
 
 // The default SMTP port
-const quint16 kDefaultPort = 25;
-const quint32 kDefaultTimeout = 30000;
+const uint16_t kDefaultPort = 25;
+const uint32_t kDefaultTimeout = 30000;
 
 class QCOMMONCONSOLE_EXPORT SMTPClient
 {
@@ -21,39 +23,39 @@ public:
 	SMTPClient() = default;
 	~SMTPClient();
 
-	QString getHost();
-	void setHost(const QByteArray& hostName);
+	std::string getHost();
+	void setHost(const std::string& hostName);
 
-	quint16 getPort();
-	void setPort(const quint16 portNumber);
+	uint16_t getPort();
+	void setPort(const uint16_t portNumber);
 
-	quint16 getTimeout();
-	void setTimeout(const quint16 timeout);
+	uint16_t getTimeout();
+	void setTimeout(const uint16_t timeout);
 
-	void setCCAddresses(const QByteArrayList& ccAddresses)
+	void setCCAddresses(const std::vector<std::string>& ccAddresses)
 	{
 		_ccAddresses = ccAddresses;
 	}
 
-	void setMimeFiles(const QByteArrayList& mimeFiles);
+	void setMimeFiles(const std::vector<std::string>& mimeFiles);
 
-	void send(const QByteArray& senderAddress, const QByteArray& receiverAddress, const QByteArray &subject, const QByteArray& body);
+	void send(const std::string& senderAddress, const std::string& receiverAddress, const std::string &subject, const std::string& body);
 
 private:
-	bool isMailAddressValid(const QByteArray& mailAddress);
-	QByteArray contentType(const QByteArray& fileName);
+	bool isMailAddressValid(const std::string& mailAddress);
+	std::string contentType(const std::string& fileName);
 
-	QByteArray					_hostName;
-	quint16						_portNumber{kDefaultPort};
-	quint32						_timeout{kDefaultTimeout};
-	QByteArrayList				_ccAddresses;
-	QByteArrayList				_mimeFiles;
+	std::string					_hostName;
+	uint16_t						_portNumber{kDefaultPort};
+	uint32_t						_timeout{kDefaultTimeout};
+	std::vector<std::string>	_ccAddresses;
+	std::vector<std::string>	_mimeFiles;
 };
 
 class QCOMMONCONSOLE_EXPORT SMTPClientException : QException
 {
 public:
-	SMTPClientException(QString const& message) :
+	SMTPClientException(std::string const& message) :
 		  _message(message)
 	{
 
@@ -74,13 +76,13 @@ public:
 		return new SMTPClientException(*this);
 	}
 
-	QString getMessage() const
+	std::string getMessage() const
 	{
 		return _message;
 	}
 
 private:
-	QString                 _message;
+	std::string             _message;
 };
 
 #endif // SMTPCLIENT_H

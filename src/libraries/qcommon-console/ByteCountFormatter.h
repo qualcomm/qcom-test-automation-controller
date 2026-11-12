@@ -4,21 +4,22 @@
 // Copyright (c) Qualcomm Technologies, Inc. and/or its subsidiaries.
 // SPDX-License-Identifier: BSD-3-Clause
 
-#include <QtGlobal>
 #include <QString>
+
+#include <cstdint>
 
 inline QString FormatBytes
 (
-	quint64 byteCount,
+	uint64_t byteCount,
 	int precision = -1
 )
 {
 	double	divisor;
 
-	const quint64 kKiloByte(1024);
-	const quint64 kMegaByte(kKiloByte * 1024);
-	const quint64 kGigaByte(kMegaByte * 1024);
-	const quint64 kTeraByte(kGigaByte * 1024);
+	const uint64_t kKiloByte(1024);
+	const uint64_t kMegaByte(kKiloByte * 1024);
+	const uint64_t kGigaByte(kMegaByte * 1024);
+	const uint64_t kTeraByte(kGigaByte * 1024);
 
 	int unitArrayIndex;
 	QString unitArray[] =

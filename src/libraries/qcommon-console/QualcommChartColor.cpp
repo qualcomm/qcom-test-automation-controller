@@ -4,9 +4,9 @@
 #include "QualcommChartColor.h"
 #include "QualcommColors.h"
 
-#include <QVector>
+#include <vector>
 
-QVector<BasicColor> gChartColors;
+std::vector<BasicColor> gChartColors;
 
 const int kChartColorCount(34);
 
@@ -14,7 +14,7 @@ BasicColor qualcommChartColor(uint chartColorIndex)
 {
 	BasicColor result;
 
-	if (gChartColors.isEmpty())
+	if (gChartColors.empty())
 	{
 		gChartColors.resize(kChartColorCount);
 

@@ -53,8 +53,8 @@ _PIC32CXPlatformConfiguration::_PIC32CXPlatformConfiguration()
 	deviceInfoTab._ordinal = 1;
 	deviceInfoTab._userTab = false;
 
-	_tabs.append(generalTab);
-	_tabs.append(deviceInfoTab);
+	_tabs.push_back(generalTab);
+	_tabs.push_back(deviceInfoTab);
 }
 
 _PIC32CXPlatformConfiguration::~_PIC32CXPlatformConfiguration()
@@ -104,9 +104,9 @@ PIC32CXPinList _PIC32CXPlatformConfiguration::getAllPins()
 {
 	PIC32CXPinList pinList;
 
-	for (const auto& pinData: std::as_const(_pinEntries))
+	for (const auto& entry: _pinEntries)
 	{
-		pinList.append(pinData);
+		pinList.push_back(entry.second);
 	}
 
 	auto sortLambda = [] (PIC32CXPinData& p1, PIC32CXPinData& p2) -> bool
@@ -123,10 +123,10 @@ PIC32CXPinList _PIC32CXPlatformConfiguration::getActivePins()
 {
 	PIC32CXPinList pinList;
 
-	for (const auto& pinData: std::as_const(_pinEntries))
+	for (const auto& entry: _pinEntries)
 	{
-		if (pinData._enabled == true)
-			pinList.append(pinData);
+		if (entry.second._enabled == true)
+			pinList.push_back(entry.second);
 	}
 
 	auto sortLambda = [] (PIC32CXPinData& p1, PIC32CXPinData& p2) -> bool
@@ -147,7 +147,7 @@ bool _PIC32CXPlatformConfiguration::getPinEnableState(const PinID pinId) const
 
 	if (_pinEntries.find(hash) != _pinEntries.end())
 	{
-		const auto pinData = _pinEntries[hash];
+		const auto pinData = _pinEntries.at(hash);
 		result = pinData._enabled;
 	}
 
@@ -179,7 +179,7 @@ bool _PIC32CXPlatformConfiguration::getPinInvertedState(const PinID pinId) const
 
 	if (_pinEntries.find(hash) != _pinEntries.end())
 	{
-		const auto pinData = _pinEntries[hash];
+		const auto pinData = _pinEntries.at(hash);
 		result = pinData._inverted;
 	}
 
@@ -204,21 +204,21 @@ void _PIC32CXPlatformConfiguration::setPinInvertedState(const HashType hash, boo
 	}
 }
 
-QString _PIC32CXPlatformConfiguration::getPinLabel(const PinID pinId) const
+std::string _PIC32CXPlatformConfiguration::getPinLabel(const PinID pinId) const
 {
-	QString result;
+	std::string result;
 
 	HashType hash = PIC32CXPinData::makePIC32CXHash(pinId);
 
 	if (_pinEntries.find(hash) != _pinEntries.end())
 	{
-		const auto pinData = _pinEntries[hash];
+		const auto pinData = _pinEntries.at(hash);
 		result = pinData._pinLabel;
 	}
 	return result;
 }
 
-void _PIC32CXPlatformConfiguration::setPinLabel(const HashType hash, const QString& pinLabel)
+void _PIC32CXPlatformConfiguration::setPinLabel(const HashType hash, const std::string& pinLabel)
 {
 	if (_pinEntries.find(hash) != _pinEntries.end())
 	{
@@ -231,22 +231,22 @@ void _PIC32CXPlatformConfiguration::setPinLabel(const HashType hash, const QStri
 	}
 }
 
-QString _PIC32CXPlatformConfiguration::getPinTooltip(const PinID pinId) const
+std::string _PIC32CXPlatformConfiguration::getPinTooltip(const PinID pinId) const
 {
-	QString result;
+	std::string result;
 
 	HashType hash = PIC32CXPinData::makePIC32CXHash(pinId);
 
 	if (_pinEntries.find(hash) != _pinEntries.end())
 	{
-		const auto pinData = _pinEntries[hash];
+		const auto pinData = _pinEntries.at(hash);
 		result = pinData._pinTooltip;
 	}
 
 	return result;
 }
 
-void _PIC32CXPlatformConfiguration::setPinTooltip(const HashType hash, const QString& pinTooltip)
+void _PIC32CXPlatformConfiguration::setPinTooltip(const HashType hash, const std::string& pinTooltip)
 {
 	if (_pinEntries.find(hash) != _pinEntries.end())
 	{
@@ -259,22 +259,22 @@ void _PIC32CXPlatformConfiguration::setPinTooltip(const HashType hash, const QSt
 	}
 }
 
-QString _PIC32CXPlatformConfiguration::getPinCommand(const PinID pinId) const
+std::string _PIC32CXPlatformConfiguration::getPinCommand(const PinID pinId) const
 {
-	QString result;
+	std::string result;
 
 	HashType hash = PIC32CXPinData::makePIC32CXHash(pinId);
 
 	if (_pinEntries.find(hash) != _pinEntries.end())
 	{
-		const auto pinData = _pinEntries[hash];
+		const auto pinData = _pinEntries.at(hash);
 		result = pinData._pinCommand;
 	}
 
 	return result;
 }
 
-void _PIC32CXPlatformConfiguration::setPinCommand(const HashType hash, const QString &pinCommand)
+void _PIC32CXPlatformConfiguration::setPinCommand(const HashType hash, const std::string &pinCommand)
 {
 	if (_pinEntries.find(hash) != _pinEntries.end())
 	{
@@ -299,7 +299,7 @@ CommandGroups _PIC32CXPlatformConfiguration::getPinGroup(const PinID pinId) cons
 
 	if (_pinEntries.find(hash) != _pinEntries.end())
 	{
-		const auto pinData = _pinEntries[hash];
+		const auto pinData = _pinEntries.at(hash);
 		result = pinData._commandGroup;
 	}
 
@@ -324,22 +324,22 @@ void _PIC32CXPlatformConfiguration::setPinGroup(const HashType hash, const Comma
 	}
 }
 
-QString _PIC32CXPlatformConfiguration::getTabName(const PinID pinId) const
+std::string _PIC32CXPlatformConfiguration::getTabName(const PinID pinId) const
 {
-	QString result;
+	std::string result;
 
 	HashType hash = PIC32CXPinData::makePIC32CXHash(pinId);
 
 	if (_pinEntries.find(hash) != _pinEntries.end())
 	{
-		const auto pinData = _pinEntries[hash];
+		const auto pinData = _pinEntries.at(hash);
 		result = pinData._tabName;
 	}
 
 	return result;
 }
 
-void _PIC32CXPlatformConfiguration::setTabName(const HashType hash, const QString& tabName)
+void _PIC32CXPlatformConfiguration::setTabName(const HashType hash, const std::string& tabName)
 {
 	if (_pinEntries.find(hash) != _pinEntries.end())
 	{
@@ -357,22 +357,22 @@ void _PIC32CXPlatformConfiguration::setTabName(const HashType hash, const QStrin
 	}
 }
 
-QPoint _PIC32CXPlatformConfiguration::getPinCellLocation(const PinID pinId) const
+std::pair<int, int> _PIC32CXPlatformConfiguration::getPinCellLocation(const PinID pinId) const
 {
-	QPoint result(-1,-1);
+	std::pair<int, int> result(-1, -1);
 
 	HashType hash = PIC32CXPinData::makePIC32CXHash(pinId);
 
 	if (_pinEntries.find(hash) != _pinEntries.end())
 	{
-		const auto pinData = _pinEntries[hash];
+		const auto pinData = _pinEntries.at(hash);
 		result = pinData._cellLocation;
 	}
 
 	return result;
 }
 
-void _PIC32CXPlatformConfiguration::setPinCellLocation(const HashType hash, const QPoint& cellLocation)
+void _PIC32CXPlatformConfiguration::setPinCellLocation(const HashType hash, const std::pair<int, int>& cellLocation)
 {
 	if (_pinEntries.find(hash) != _pinEntries.end())
 	{
@@ -389,33 +389,33 @@ void _PIC32CXPlatformConfiguration::setPinCellLocation(const HashType hash, cons
 	}
 }
 
-void _PIC32CXPlatformConfiguration::cascadeTabDelete(const QString &deleteMe)
+void _PIC32CXPlatformConfiguration::cascadeTabDelete(const std::string &deleteMe)
 {
-	for (int idx=0; idx<_tabs.length(); idx++)
+	for (auto idx = _tabs.begin(); idx != _tabs.end(); )
 	{
-		if (_tabs.at(idx)._name == deleteMe)
-		{
-			_tabs.removeAt(idx);
-		}
+		if (idx->_name == deleteMe)
+			idx = _tabs.erase(idx);
+		else
+			++idx;
 	}
 
-	for (auto& pinEntry: _pinEntries)
+	for (auto& entry: _pinEntries)
 	{
-		if (pinEntry._tabName == deleteMe)
-			pinEntry._tabName = QString();
+		if (entry.second._tabName == deleteMe)
+			entry.second._tabName.clear();
 	}
 }
 
 void _PIC32CXPlatformConfiguration::cascadeTabRename
 	(
-		const QString& oldName,
-		const QString& newName
+		const std::string& oldName,
+		const std::string& newName
 		)
 {
-	for (auto& pinEntry: _pinEntries)
+	for (auto& entry: _pinEntries)
 	{
-		if (pinEntry._tabName == oldName)
-			pinEntry._tabName = newName;
+		if (entry.second._tabName == oldName)
+			entry.second._tabName = newName;
 	}
 }
 
@@ -447,24 +447,24 @@ bool _PIC32CXPlatformConfiguration::read(QJsonObject &parentLevel)
 			pinData._inverted = pinEntry.value(kInverted).toBool();
 
 		if (pinEntry.contains(kName))
-			pinData._pinLabel = pinEntry.value(kName).toString();
+			pinData._pinLabel = pinEntry.value(kName).toString().toStdString();
 
 		if (pinEntry.contains(kToolTip))
-			pinData._pinTooltip = pinEntry.value(kToolTip).toString();
+			pinData._pinTooltip = pinEntry.value(kToolTip).toString().toStdString();
 
 		if (pinEntry.contains(kCommand))
-			pinData._pinCommand = pinEntry.value(kCommand).toString();
+			pinData._pinCommand = pinEntry.value(kCommand).toString().toStdString();
 
 		if (pinEntry.contains(kCommmandGroup))
 			pinData._commandGroup = CommandGroups(pinEntry.value(kCommmandGroup).toInt());
 
 		if (pinEntry.contains(kTabName))
-			pinData._tabName = pinEntry.value(kTabName).toString();
+			pinData._tabName = pinEntry.value(kTabName).toString().toStdString();
 
 		if (pinEntry.contains(kRunPriority))
-			pinData._cellLocation = toQPoint(pinEntry.value(kRunPriority).toString());
+			pinData._cellLocation = toQPoint(pinEntry.value(kRunPriority).toString().toStdString());
 
-		_pinEntries.insert(pinData._hash, pinData);
+		_pinEntries[pinData._hash] = pinData;
 	}
 
 	return result;
@@ -477,20 +477,21 @@ void _PIC32CXPlatformConfiguration::write(QJsonObject &parentLevel)
 	// Writing platform configuration mapping
 	QJsonArray jsonPlatformPinData;
 
-	for (const auto& pinData : std::as_const(_pinEntries))
+	for (const auto& entry : _pinEntries)
 	{
+		const PIC32CXPinData& pinData = entry.second;
 		QJsonObject pic32cxPinData;
 
 		pic32cxPinData.insert(kPinNumber, static_cast<int>(pinData._setPin));
 		pic32cxPinData.insert(kEnabled, pinData._enabled);
 		pic32cxPinData.insert(kInverted, pinData._inverted);
-		pic32cxPinData.insert(kName, pinData._pinLabel);
-		pic32cxPinData.insert(kToolTip, pinData._pinTooltip);
-		pic32cxPinData.insert(kCommand, pinData._pinCommand);
+		pic32cxPinData.insert(kName, QString::fromStdString(pinData._pinLabel));
+		pic32cxPinData.insert(kToolTip, QString::fromStdString(pinData._pinTooltip));
+		pic32cxPinData.insert(kCommand, QString::fromStdString(pinData._pinCommand));
 		pic32cxPinData.insert(kCommmandGroup, pinData._commandGroup);
 		// run_prority indicates cell_location (the location of the PinLED within TAC)
-		pic32cxPinData[kRunPriority] = fromQPoint(pinData._cellLocation);
-		pic32cxPinData.insert(kTabName, pinData._tabName);
+		pic32cxPinData[kRunPriority] = QString::fromStdString(fromQPoint(pinData._cellLocation));
+		pic32cxPinData.insert(kTabName, QString::fromStdString(pinData._tabName));
 
 		jsonPlatformPinData.append(pic32cxPinData);
 	}
@@ -513,7 +514,7 @@ void _PIC32CXPlatformConfiguration ::initialize()
 	pinData._pinTooltip = "Debug pin";
 	pinData._commandGroup = eConnectionGroup;
 	pinData._tabName = "General";
-	pinData._cellLocation = QPoint(-1,-1);
+	pinData._cellLocation = std::make_pair(-1, -1);
 
 	_pinEntries[pinData._hash] = pinData;
 
@@ -528,7 +529,7 @@ void _PIC32CXPlatformConfiguration ::initialize()
 	pinData._pinTooltip = "Disconnects power to the device";
 	pinData._commandGroup = eConnectionGroup;
 	pinData._tabName = "General";
-	pinData._cellLocation = QPoint(0,0);
+	pinData._cellLocation = std::make_pair(0, 0);
 
 	_pinEntries[pinData._hash] = pinData;
 
@@ -543,7 +544,7 @@ void _PIC32CXPlatformConfiguration ::initialize()
 	pinData._pinTooltip = "Enables KK Power";
 	pinData._commandGroup = eButtonGroup;
 	pinData._tabName = "General";
-	pinData._cellLocation = QPoint(0,0);
+	pinData._cellLocation = std::make_pair(0, 0);
 
 	_pinEntries[pinData._hash] = pinData;
 
@@ -558,7 +559,7 @@ void _PIC32CXPlatformConfiguration ::initialize()
 	pinData._pinTooltip = "MD PS HOLD";
 	pinData._commandGroup = eButtonGroup;
 	pinData._tabName = "General";
-	pinData._cellLocation = QPoint(1,0);
+	pinData._cellLocation = std::make_pair(1, 0);
 
 	_pinEntries[pinData._hash] = pinData;
 
@@ -573,7 +574,7 @@ void _PIC32CXPlatformConfiguration ::initialize()
 	pinData._pinTooltip = "KK Resin N";
 	pinData._commandGroup = eButtonGroup;
 	pinData._tabName = "General";
-	pinData._cellLocation = QPoint(2,0);
+	pinData._cellLocation = std::make_pair(2, 0);
 
 	_pinEntries[pinData._hash] = pinData;
 
@@ -588,7 +589,7 @@ void _PIC32CXPlatformConfiguration ::initialize()
 	pinData._pinTooltip = "PMS Power On";
 	pinData._commandGroup = eButtonGroup;
 	pinData._tabName = "General";
-	pinData._cellLocation = QPoint(-1,-1);
+	pinData._cellLocation = std::make_pair(-1, -1);
 
 	_pinEntries[pinData._hash] = pinData;
 
@@ -604,7 +605,7 @@ void _PIC32CXPlatformConfiguration ::initialize()
 	pinData._pinTooltip = "UEFI";
 	pinData._commandGroup = eButtonGroup;
 	pinData._tabName = "General";
-	pinData._cellLocation = QPoint(0,2);
+	pinData._cellLocation = std::make_pair(0, 2);
 
 	_pinEntries[pinData._hash] = pinData;
 
@@ -619,7 +620,7 @@ void _PIC32CXPlatformConfiguration ::initialize()
 	pinData._pinTooltip = "Power Off";
 	pinData._commandGroup = eButtonGroup;
 	pinData._tabName = "General";
-	pinData._cellLocation = QPoint(0,1);
+	pinData._cellLocation = std::make_pair(0, 1);
 
 	_pinEntries[pinData._hash] = pinData;
 
@@ -634,7 +635,7 @@ void _PIC32CXPlatformConfiguration ::initialize()
 	pinData._pinTooltip = "PCIE 0 Attention";
 	pinData._commandGroup = eSwitchGroup;
 	pinData._tabName = "General";
-	pinData._cellLocation = QPoint(0,0);
+	pinData._cellLocation = std::make_pair(0, 0);
 
 	_pinEntries[pinData._hash] = pinData;
 
@@ -649,7 +650,7 @@ void _PIC32CXPlatformConfiguration ::initialize()
 	pinData._pinTooltip = "PCIE 1 Attention";
 	pinData._commandGroup = eSwitchGroup;
 	pinData._tabName = "General";
-	pinData._cellLocation = QPoint(1,0);
+	pinData._cellLocation = std::make_pair(1, 0);
 
 	_pinEntries[pinData._hash] = pinData;
 
@@ -664,7 +665,7 @@ void _PIC32CXPlatformConfiguration ::initialize()
 	pinData._pinTooltip = "PCIE 2 Attention";
 	pinData._commandGroup = eSwitchGroup;
 	pinData._tabName = "General";
-	pinData._cellLocation = QPoint(2,0);
+	pinData._cellLocation = std::make_pair(2, 0);
 
 	_pinEntries[pinData._hash] = pinData;
 
@@ -679,7 +680,7 @@ void _PIC32CXPlatformConfiguration ::initialize()
 	pinData._pinTooltip = "PCIE 3 Attention";
 	pinData._commandGroup = eSwitchGroup;
 	pinData._tabName = "General";
-	pinData._cellLocation = QPoint(0,1);
+	pinData._cellLocation = std::make_pair(0, 1);
 
 	_pinEntries[pinData._hash] = pinData;
 
@@ -694,7 +695,7 @@ void _PIC32CXPlatformConfiguration ::initialize()
 	pinData._pinTooltip = "Debug pin";
 	pinData._commandGroup = eSwitchGroup;
 	pinData._tabName = "General";
-	pinData._cellLocation = QPoint(-1,-1);
+	pinData._cellLocation = std::make_pair(-1, -1);
 
 	_pinEntries[pinData._hash] = pinData;
 
@@ -709,7 +710,7 @@ void _PIC32CXPlatformConfiguration ::initialize()
 	pinData._pinTooltip = "Kratos Trigger";
 	pinData._commandGroup = eSwitchGroup;
 	pinData._tabName = "General";
-	pinData._cellLocation = QPoint(-1,-1);
+	pinData._cellLocation = std::make_pair(-1, -1);
 
 	_pinEntries[pinData._hash] = pinData;
 
@@ -724,7 +725,7 @@ void _PIC32CXPlatformConfiguration ::initialize()
 	pinData._pinTooltip = "Debug pin";
 	pinData._commandGroup = eSwitchGroup;
 	pinData._tabName = "General";
-	pinData._cellLocation = QPoint(-1,-1);
+	pinData._cellLocation = std::make_pair(-1, -1);
 
 	_pinEntries[pinData._hash] = pinData;
 
@@ -739,7 +740,7 @@ void _PIC32CXPlatformConfiguration ::initialize()
 	pinData._pinTooltip = "QCC BLD Disconnect";
 	pinData._commandGroup = eButtonGroup;
 	pinData._tabName = "General";
-	pinData._cellLocation = QPoint(-1,-1);
+	pinData._cellLocation = std::make_pair(-1, -1);
 
 	_pinEntries[pinData._hash] = pinData;
 
@@ -754,7 +755,7 @@ void _PIC32CXPlatformConfiguration ::initialize()
 	pinData._pinTooltip = "BB BLD Disconnect";
 	pinData._commandGroup = eSwitchGroup;
 	pinData._tabName = "General";
-	pinData._cellLocation = QPoint(-1,-1);
+	pinData._cellLocation = std::make_pair(-1, -1);
 
 	_pinEntries[pinData._hash] = pinData;
 
@@ -769,7 +770,7 @@ void _PIC32CXPlatformConfiguration ::initialize()
 	pinData._pinTooltip = "Fastboot SS";
 	pinData._commandGroup = eSwitchGroup;
 	pinData._tabName = "General";
-	pinData._cellLocation = QPoint(1,1);
+	pinData._cellLocation = std::make_pair(1, 1);
 
 	_pinEntries[pinData._hash] = pinData;
 
@@ -784,7 +785,7 @@ void _PIC32CXPlatformConfiguration ::initialize()
 	pinData._pinTooltip = "Debug pin";
 	pinData._commandGroup = eSwitchGroup;
 	pinData._tabName = "General";
-	pinData._cellLocation = QPoint(-1,-1);
+	pinData._cellLocation = std::make_pair(-1, -1);
 
 	_pinEntries[pinData._hash] = pinData;
 
@@ -799,7 +800,7 @@ void _PIC32CXPlatformConfiguration ::initialize()
 	pinData._pinTooltip = "PG QAM VR4P5";
 	pinData._commandGroup = eButtonGroup;
 	pinData._tabName = "General";
-	pinData._cellLocation = QPoint(-1,-1);
+	pinData._cellLocation = std::make_pair(-1, -1);
 
 	_pinEntries[pinData._hash] = pinData;
 
@@ -814,7 +815,7 @@ void _PIC32CXPlatformConfiguration ::initialize()
 	pinData._pinTooltip = "PG QAM SAIL VR3P3";
 	pinData._commandGroup = eButtonGroup;
 	pinData._tabName = "General";
-	pinData._cellLocation = QPoint(-1,-1);
+	pinData._cellLocation = std::make_pair(-1, -1);
 
 	_pinEntries[pinData._hash] = pinData;
 
@@ -829,7 +830,7 @@ void _PIC32CXPlatformConfiguration ::initialize()
 	pinData._pinTooltip = "Force MD PS HOLD";
 	pinData._commandGroup = eButtonGroup;
 	pinData._tabName = "General";
-	pinData._cellLocation = QPoint(1,1);
+	pinData._cellLocation = std::make_pair(1, 1);
 
 	_pinEntries[pinData._hash] = pinData;
 
@@ -844,7 +845,7 @@ void _PIC32CXPlatformConfiguration ::initialize()
 	pinData._pinTooltip = "Force SS PS HOLD";
 	pinData._commandGroup = eButtonGroup;
 	pinData._tabName = "General";
-	pinData._cellLocation = QPoint(2,1);
+	pinData._cellLocation = std::make_pair(2, 1);
 
 	_pinEntries[pinData._hash] = pinData;
 
@@ -855,7 +856,7 @@ void _PIC32CXPlatformConfiguration ::initialize()
 	pinData._enabled = false;
 	pinData._inverted = false;
 	pinData._tabName = "General";
-	pinData._cellLocation = QPoint(-1,-1);
+	pinData._cellLocation = std::make_pair(-1, -1);
 
 	_pinEntries[pinData._hash] = pinData;
 
@@ -870,7 +871,7 @@ void _PIC32CXPlatformConfiguration ::initialize()
 	pinData._pinTooltip = "Disconnect USB0";
 	pinData._commandGroup = eConnectionGroup;
 	pinData._tabName = "General";
-	pinData._cellLocation = QPoint(1,0);
+	pinData._cellLocation = std::make_pair(1, 0);
 
 	_pinEntries[pinData._hash] = pinData;
 
@@ -885,7 +886,7 @@ void _PIC32CXPlatformConfiguration ::initialize()
 	pinData._pinTooltip = "-";
 	pinData._commandGroup = eButtonGroup;
 	pinData._tabName = "General";
-	pinData._cellLocation = QPoint(4,0);
+	pinData._cellLocation = std::make_pair(4, 0);
 
 	_pinEntries[pinData._hash] = pinData;
 	
@@ -896,7 +897,7 @@ void _PIC32CXPlatformConfiguration ::initialize()
 	pinData._enabled = false;
 	pinData._inverted = false;
 	pinData._tabName = "General";
-	pinData._cellLocation = QPoint(-1,-1);
+	pinData._cellLocation = std::make_pair(-1, -1);
 
 	_pinEntries[pinData._hash] = pinData;
 
@@ -911,7 +912,7 @@ void _PIC32CXPlatformConfiguration ::initialize()
 	pinData._pinTooltip = "USB 2 Disable";
 	pinData._commandGroup = eConnectionGroup;
 	pinData._tabName = "General";
-	pinData._cellLocation = QPoint(0,1);
+	pinData._cellLocation = std::make_pair(0, 1);
 
 	_pinEntries[pinData._hash] = pinData;
 
@@ -926,7 +927,7 @@ void _PIC32CXPlatformConfiguration ::initialize()
 	pinData._pinTooltip = "Fast K Power Off Enable";
 	pinData._commandGroup = eButtonGroup;
 	pinData._tabName = "General";
-	pinData._cellLocation = QPoint(4,2);
+	pinData._cellLocation = std::make_pair(4, 2);
 
 	_pinEntries[pinData._hash] = pinData;
 
@@ -941,7 +942,7 @@ void _PIC32CXPlatformConfiguration ::initialize()
 	pinData._pinTooltip = "Mode 0 for Primary SOC";
 	pinData._commandGroup = eButtonGroup;
 	pinData._tabName = "General";
-	pinData._cellLocation = QPoint(1,2);
+	pinData._cellLocation = std::make_pair(1, 2);
 
 	_pinEntries[pinData._hash] = pinData;
 
@@ -956,7 +957,7 @@ void _PIC32CXPlatformConfiguration ::initialize()
 	pinData._pinTooltip = "Mode 1";
 	pinData._commandGroup = eButtonGroup;
 	pinData._tabName = "General";
-	pinData._cellLocation = QPoint(2,2);
+	pinData._cellLocation = std::make_pair(2, 2);
 
 	_pinEntries[pinData._hash] = pinData;
 
@@ -971,7 +972,7 @@ void _PIC32CXPlatformConfiguration ::initialize()
 	pinData._pinTooltip = "MD EDL";
 	pinData._commandGroup = eButtonGroup;
 	pinData._tabName = "General";
-	pinData._cellLocation = QPoint(0,3);
+	pinData._cellLocation = std::make_pair(0, 3);
 
 	_pinEntries[pinData._hash] = pinData;
 
@@ -986,7 +987,7 @@ void _PIC32CXPlatformConfiguration ::initialize()
 	pinData._pinTooltip = "Mode 0";
 	pinData._commandGroup = eButtonGroup;
 	pinData._tabName = "General";
-	pinData._cellLocation = QPoint(-1,-1);
+	pinData._cellLocation = std::make_pair(-1, -1);
 
 	_pinEntries[pinData._hash] = pinData;
 
@@ -1001,7 +1002,7 @@ void _PIC32CXPlatformConfiguration ::initialize()
 	pinData._pinTooltip = "SS EDL";
 	pinData._commandGroup = eButtonGroup;
 	pinData._tabName = "General";
-	pinData._cellLocation = QPoint(1,3);
+	pinData._cellLocation = std::make_pair(1, 3);
 
 	_pinEntries[pinData._hash] = pinData;
 
@@ -1016,7 +1017,7 @@ void _PIC32CXPlatformConfiguration ::initialize()
 	pinData._pinTooltip = "Debug pin";
 	pinData._commandGroup = eButtonGroup;
 	pinData._tabName = "General";
-	pinData._cellLocation = QPoint(-1,-1);
+	pinData._cellLocation = std::make_pair(-1, -1);
 
 	_pinEntries[pinData._hash] = pinData;
 
@@ -1031,7 +1032,7 @@ void _PIC32CXPlatformConfiguration ::initialize()
 	pinData._pinTooltip = "PMS Fast Power Off";
 	pinData._commandGroup = eUnknownCommandGroup;
 	pinData._tabName = "General";
-	pinData._cellLocation = QPoint(-1,-1);
+	pinData._cellLocation = std::make_pair(-1, -1);
 
 	_pinEntries[pinData._hash] = pinData;
 
@@ -1046,7 +1047,7 @@ void _PIC32CXPlatformConfiguration ::initialize()
 	pinData._pinTooltip = "PMS Enable";
 	pinData._commandGroup = eUnknownCommandGroup;
 	pinData._tabName = "General";
-	pinData._cellLocation = QPoint(-1,-1);
+	pinData._cellLocation = std::make_pair(-1, -1);
 
 	_pinEntries[pinData._hash] = pinData;
 
@@ -1061,7 +1062,7 @@ void _PIC32CXPlatformConfiguration ::initialize()
 	pinData._pinTooltip = "-";
 	pinData._commandGroup = eButtonGroup;
 	pinData._tabName = "General";
-	pinData._cellLocation = QPoint(-1,-1);
+	pinData._cellLocation = std::make_pair(-1, -1);
 
 	_pinEntries[pinData._hash] = pinData;
 
@@ -1076,7 +1077,7 @@ void _PIC32CXPlatformConfiguration ::initialize()
 	pinData._pinTooltip = "-";
 	pinData._commandGroup = eButtonGroup;
 	pinData._tabName = "General";
-	pinData._cellLocation = QPoint(-1,-1);
+	pinData._cellLocation = std::make_pair(-1, -1);
 
 	_pinEntries[pinData._hash] = pinData;
 
@@ -1091,7 +1092,7 @@ void _PIC32CXPlatformConfiguration ::initialize()
 	pinData._pinTooltip = "Mode 2";
 	pinData._commandGroup = eSwitchGroup;
 	pinData._tabName = "General";
-	pinData._cellLocation = QPoint(-1,-1);
+	pinData._cellLocation = std::make_pair(-1, -1);
 
 	_pinEntries[pinData._hash] = pinData;
 
@@ -1106,7 +1107,7 @@ void _PIC32CXPlatformConfiguration ::initialize()
 	pinData._pinTooltip = "EUD for Primary SOC";
 	pinData._commandGroup = eButtonGroup;
 	pinData._tabName = "General";
-	pinData._cellLocation = QPoint(2,3);
+	pinData._cellLocation = std::make_pair(2, 3);
 
 	_pinEntries[pinData._hash] = pinData;
 
@@ -1121,7 +1122,7 @@ void _PIC32CXPlatformConfiguration ::initialize()
 	pinData._pinTooltip = "USB1 Disconnect";
 	pinData._commandGroup = eConnectionGroup;
 	pinData._tabName = "General";
-	pinData._cellLocation = QPoint(2,0);
+	pinData._cellLocation = std::make_pair(2, 0);
 
 	_pinEntries[pinData._hash] = pinData;
 
@@ -1136,7 +1137,7 @@ void _PIC32CXPlatformConfiguration ::initialize()
 	pinData._pinTooltip = "Debug I2C 7";
 	pinData._commandGroup = eButtonGroup;
 	pinData._tabName = "General";
-	pinData._cellLocation = QPoint(-1,-1);
+	pinData._cellLocation = std::make_pair(-1, -1);
 
 	_pinEntries[pinData._hash] = pinData;
 
@@ -1151,7 +1152,7 @@ void _PIC32CXPlatformConfiguration ::initialize()
 	pinData._pinTooltip = "MD Fastboot";
 	pinData._commandGroup = eSwitchGroup;
 	pinData._tabName = "General";
-	pinData._cellLocation = QPoint(2,1);
+	pinData._cellLocation = std::make_pair(2, 1);
 
 	_pinEntries[pinData._hash] = pinData;
 
@@ -1163,7 +1164,7 @@ void _PIC32CXPlatformConfiguration ::initialize()
 
 	button._label = "Power On";
 	button._tab = "General";
-	button._cellLocation = QPoint(0, 0);
+	button._cellLocation = std::make_pair(0, 0);
 	button._commandGroup = eQuickSettingsGroup;
 	button._toolTip = "Power on the MTP/Device";
 	button._command = "powerOn";
@@ -1173,7 +1174,7 @@ void _PIC32CXPlatformConfiguration ::initialize()
 
 	button._label = "Power Off";
 	button._tab = "General";
-	button._cellLocation = QPoint(1, 0);
+	button._cellLocation = std::make_pair(1, 0);
 	button._commandGroup = eQuickSettingsGroup;
 	button._toolTip = "Power off the MTP/Device";
 	button._command = "powerOff";
@@ -1183,7 +1184,7 @@ void _PIC32CXPlatformConfiguration ::initialize()
 
 	button._label = "Boot MD EDL";
 	button._tab = "General";
-	button._cellLocation = QPoint(2, 0);
+	button._cellLocation = std::make_pair(2, 0);
 	button._commandGroup = eQuickSettingsGroup;
 	button._toolTip = "Boots the device to primary EDL";
 	button._command = "bootToEDL";
@@ -1193,7 +1194,7 @@ void _PIC32CXPlatformConfiguration ::initialize()
 
 	button._label = "Boot SS EDL";
 	button._tab = "General";
-	button._cellLocation = QPoint(0, 1);
+	button._cellLocation = std::make_pair(0, 1);
 	button._commandGroup = eQuickSettingsGroup;
 	button._toolTip = "Boots the device to secondary EDL";
 	button._command = "bootToSecondaryEDL";
@@ -1203,7 +1204,7 @@ void _PIC32CXPlatformConfiguration ::initialize()
 
 	button._label = "Boot to UEFI";
 	button._tab = "General";
-	button._cellLocation = QPoint(1, 1);
+	button._cellLocation = std::make_pair(1, 1);
 	button._commandGroup = eQuickSettingsGroup;
 	button._toolTip = "Boots the device to UEFI";
 	button._command = "bootToUEFI";
@@ -1213,7 +1214,7 @@ void _PIC32CXPlatformConfiguration ::initialize()
 
 	button._label = "Boot to MD Fastboot";
 	button._tab = "General";
-	button._cellLocation = QPoint(2, 1);
+	button._cellLocation = std::make_pair(2, 1);
 	button._commandGroup = eQuickSettingsGroup;
 	button._toolTip = "Boots the device to primary fastboot";
 	button._command = "bootToFastboot";
@@ -1223,7 +1224,7 @@ void _PIC32CXPlatformConfiguration ::initialize()
 
 	button._label = "Boot to SS MD Fastboot";
 	button._tab = "General";
-	button._cellLocation = QPoint(3, 0);
+	button._cellLocation = std::make_pair(3, 0);
 	button._commandGroup = eQuickSettingsGroup;
 	button._toolTip = "Boots the device to secondary fastboot";
 	button._command = "bootToSecondaryFastboot";
@@ -1244,25 +1245,25 @@ void _PIC32CXPlatformConfiguration ::initialize()
 	variable._tooltip = "Configurable Boot to EDL timing in milliseconds";
 	variable._type = eIntegerType;
 	variable._defaultValue = 1500;
-	variable._cellLocation = QPoint(0,0);
+	variable._cellLocation = {0,0};
 
-	_scriptVariables.insert(variable._name, variable);
+	_scriptVariables.insert({variable._name, variable});
 
 	variable._name = "uefi";
 	variable._label = "UEFI timing (ms)";
 	variable._tooltip = "Configurable Boot to UEFI timing in milliseconds";
 	variable._type = eIntegerType;
 	variable._defaultValue = 10000;
-	variable._cellLocation = QPoint(0,1);
+	variable._cellLocation = {0,1};
 
-	_scriptVariables.insert(variable._name, variable);
+	_scriptVariables.insert({variable._name, variable});
 
 	variable._name = "fastboot";
 	variable._label = "Fastboot timing (ms)";
 	variable._tooltip = "Configurable Boot to fastboot timing in milliseconds";
 	variable._type = eIntegerType;
 	variable._defaultValue = 10000;
-	variable._cellLocation = QPoint(1,0);
+	variable._cellLocation = {1,0};
 
-	_scriptVariables.insert(variable._name, variable);
+	_scriptVariables.insert({variable._name, variable});
 }

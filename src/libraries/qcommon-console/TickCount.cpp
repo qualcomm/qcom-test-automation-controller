@@ -17,12 +17,12 @@
 
 #include <QThread>
 
-quint64 tickCount()
+uint64_t tickCount()
 {
-	quint64 result(0);
+	uint64_t result(0);
 
 #ifdef Q_OS_WIN
-	result = (quint64) ::GetTickCount();
+	result = (uint64_t) ::GetTickCount();
 #endif
 
 #ifdef Q_OS_LINUX
@@ -30,8 +30,8 @@ quint64 tickCount()
 
 	if (clock_gettime(CLOCK_MONOTONIC, &ts) == 0)
 	{
-		result = (quint64) ts.tv_sec * (quint64) 1000;
-		result += (quint64) ts.tv_nsec / (quint64) 1000000;
+		result = (uint64_t) ts.tv_sec * (uint64_t) 1000;
+		result += (uint64_t) ts.tv_nsec / (uint64_t) 1000000;
 	}
 #endif
 
@@ -45,10 +45,10 @@ quint64 tickCount()
 bool sleepUntil
 (
 	std::function<bool ()> test,
-	quint64 milliseconds
+	uint64_t milliseconds
 )
 {
-	quint64 then = tickCount() + milliseconds;
+	uint64_t then = tickCount() + milliseconds;
 
 	while (then > tickCount())
 	{

@@ -5,10 +5,12 @@
 
 #include <QtGlobal>
 
+#include <cstdint>
+
 class Throttle
 {
 public:
-   Throttle(quint32 min, quint32 max, quint32 step = 1)
+   Throttle(uint32_t min, uint32_t max, uint32_t step = 1)
    {
       Q_ASSERT(min <= max);
 
@@ -32,16 +34,16 @@ public:
       }
    }
 
-   quint32 sleepTime()
+   uint32_t sleepTime()
    {
       return m_current;
    }
 
 private:
-   quint32                     m_current{0};
-   quint32                     m_min{0};
-   quint32                     m_max{0};
-   quint32                     m_step{0};
+   uint32_t                     m_current{0};
+   uint32_t                     m_min{0};
+   uint32_t                     m_max{0};
+   uint32_t                     m_step{0};
 };
 
 #endif // THROTTLE_H

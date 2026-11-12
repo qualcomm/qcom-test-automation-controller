@@ -65,7 +65,7 @@ QByteArray TACPSOCCoder::encode
 {
 	QByteArray result(encodeMe);
 
-	switch (CommandStringToHash(encodeMe))
+	switch (CommandStringToHash(encodeMe.toStdString()))
 	{
 	case kVersionCommandHash:
 		result = "version\r";
@@ -76,7 +76,7 @@ QByteArray TACPSOCCoder::encode
 		break;
 
 	case kSetNameCommandHash:
-		result = "setname " + arguments.at(0).toByteArray() + "\r";
+		result = "setname " + QByteArray::fromStdString(std::get<std::string>(arguments.at(0))) + "\r";
 		break;
 
 	case kGetUUIDCommandHash:
@@ -96,7 +96,7 @@ QByteArray TACPSOCCoder::encode
 		break;
 
 	case kI2CReadRegisterCommandHash:
-		result = "i2c readRegisterBytes " + arguments.at(0).toByteArray() + " 1";
+		result = "i2c readRegisterBytes " + QByteArray::fromStdString(std::get<std::string>(arguments.at(0))) + " 1";
 		break;
 
 	case kI2CReadRegisterValueCommandHash:
@@ -104,13 +104,13 @@ QByteArray TACPSOCCoder::encode
 		break;
 
 	case kI2CWriteRegisterCommandHash:
-		if (arguments.count() == 3)
-			result = "i2c write " + arguments.at(0).toByteArray() + " " + arguments.at(1).toByteArray() + " " + variantToBoolString(arguments.at(2)) + "\r";
+		if (arguments.size() == 3)
+			result = "i2c write " + QByteArray::fromStdString(std::get<std::string>(arguments.at(0))) + " " + QByteArray::fromStdString(std::to_string(std::get<uint32_t>(arguments.at(1)))) + " " + QByteArray(std::get<bool>(arguments.at(2)) ? "1" : "0") + "\r";
 		break;
 
 	case kSetPinCommandHash:
-		if (arguments.count() == 2)
-			result = "pin " + variantToBoolString(arguments.at(0)) + " " + arguments.at(1).toByteArray()   + "\r";
+		if (arguments.size() == 2)
+			result = "pin " + QByteArray(std::get<bool>(arguments.at(0)) ? "1" : "0") + " " + QByteArray::fromStdString(std::to_string(std::get<uint32_t>(arguments.at(1)))) + "\r";
 		break;
 
 	default:

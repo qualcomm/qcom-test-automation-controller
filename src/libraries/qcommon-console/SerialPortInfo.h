@@ -10,6 +10,8 @@
 #include <QList>
 #include <QtSerialPort/QSerialPortInfo>
 
+#include <cstdint>
+
 class SerialPortInfo;
 
 typedef QList<SerialPortInfo> SerialPortInfos;
@@ -33,7 +35,7 @@ public:
 	bool operator < (const SerialPortInfo& compareMe);
 
 private:
-	quint64						_hash{0};
+	uint64_t					_hash{0};
 };
 
 bool equal(const SerialPortInfos& si1, const SerialPortInfos& si2);

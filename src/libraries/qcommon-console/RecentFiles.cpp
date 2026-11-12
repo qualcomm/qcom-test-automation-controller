@@ -11,10 +11,23 @@
 #include <QFileInfo>
 #include <QSettings>
 
+static int indexOfCaseInsensitive(const std::vector<std::string>& files, const std::string& filePath)
+{
+	QString targetFilePath = QString::fromStdString(filePath);
+
+	for (size_t index = 0; index < files.size(); index++)
+	{
+		if (QString::fromStdString(files[index]).compare(targetFilePath, Qt::CaseInsensitive) == 0)
+			return static_cast<int>(index);
+	}
+
+	return -1;
+}
+
 RecentFiles::RecentFiles
 (
-	const QString& appName,
-	const QString& settingsGroup
+	const std::string& appName,
+	const std::string& settingsGroup
 ) :
 	_appName(appName),
 	_settingsGroup(settingsGroup)
@@ -39,7 +52,7 @@ void RecentFiles::hideExtensions
 
 int RecentFiles::fileCount()
 {
-	return _recentFiles.count();
+	return static_cast<int>(_recentFiles.size());
 }
 
 void RecentFiles::setMaxFileCount
@@ -56,7 +69,7 @@ void RecentFiles::setMaxFileCount
 			maxFiles = 20;
 
 		_maxFileCount = maxFiles;
-		while (_recentFiles.count() > _maxFileCount)
+		while (static_cast<int>(_recentFiles.size()) > _maxFileCount)
 		{
 			_recentFiles.pop_back();
 		}
@@ -67,23 +80,24 @@ void RecentFiles::setMaxFileCount
 
 void RecentFiles::addFile
 (
-	const QString& filePath
+	const std::string& filePath
 )
 {
-	if (_recentFiles.contains(filePath, Qt::CaseInsensitive) == false)
+	int index = indexOfCaseInsensitive(_recentFiles, filePath);
+
+	if (index == -1)
 	{
-		if (_recentFiles.count() == _maxFileCount)
+		if (static_cast<int>(_recentFiles.size()) == _maxFileCount)
 			_recentFiles.pop_back();
 
-		_recentFiles.push_front(filePath);
+		_recentFiles.insert(_recentFiles.begin(), filePath);
 	}
 	else
 	{
-		int index = _recentFiles.indexOf(filePath);
-		if (index != -1 && index != 0)
+		if (index != 0)
 		{
-			_recentFiles.removeAt(index);
-			_recentFiles.push_front(filePath);
+			_recentFiles.erase(_recentFiles.begin() + index);
+			_recentFiles.insert(_recentFiles.begin(), filePath);
 		}
 	}
 
@@ -92,7 +106,7 @@ void RecentFiles::addFile
 
 void RecentFiles::removeFile
 (
-	const QString& filePath
+	const std::string& filePath
 )
 {
 	int fileIndex(0);
@@ -115,38 +129,38 @@ void RecentFiles::removeFile
 	int fileIndex
 )
 {
-	if (fileIndex >= 0 && fileIndex < _recentFiles.count())
+	if (fileIndex >= 0 && fileIndex < static_cast<int>(_recentFiles.size()))
 		_recentFiles.erase(_recentFiles.begin() + fileIndex);
 }
 
-QString RecentFiles::getFilePath
+std::string RecentFiles::getFilePath
 (
 	int fileIndex
 )
 {
-	QString result;
+	std::string result;
 
-	if (fileIndex >= 0 && fileIndex < _recentFiles.count())
+	if (fileIndex >= 0 && fileIndex < static_cast<int>(_recentFiles.size()))
 		result = _recentFiles.at(fileIndex);
 
 	return result;
 }
 
-QString RecentFiles::getFileName
+std::string RecentFiles::getFileName
 (
 	int fileIndex
 )
 {
-	QString result(getFilePath(fileIndex));
+	std::string result(getFilePath(fileIndex));
 
-	if (result.isEmpty() == false)
+	if (result.empty() == false)
 	{
-		QFileInfo fileInfo(result);
+		QFileInfo fileInfo(QString::fromStdString(result));
 
 		if (_hideExtensions)
-			result = fileInfo.baseName();
+			result = fileInfo.baseName().toStdString();
 		else
-			result = fileInfo.fileName();
+			result = fileInfo.fileName().toStdString();
 	}
 
 	return result;
@@ -156,8 +170,8 @@ void RecentFiles::load()
 {
 	AlpacaSettings settings(_appName);
 
-	if (_settingsGroup.isEmpty() == false)
-		settings.beginGroup(_settingsGroup);
+	if (_settingsGroup.empty() == false)
+		settings.beginGroup(QString::fromStdString(_settingsGroup));
 
 	_maxFileCount = settings.value("maxFileCount", _maxFileCount).toInt();
 
@@ -170,13 +184,13 @@ void RecentFiles::load()
 		{
 			QFileInfo fileInfo(recentFile);
 			if (fileInfo.exists())
-				_recentFiles.push_back(recentFile);
+				_recentFiles.push_back(recentFile.toStdString());
 		}
 	}
 
 	settings.endArray();
 
-	if (_settingsGroup.isEmpty() == false)
+	if (_settingsGroup.empty() == false)
 		settings.endGroup();
 }
 
@@ -184,8 +198,8 @@ void RecentFiles::save()
 {
 	AlpacaSettings settings(_appName);
 
-	if (_settingsGroup.isEmpty() == false)
-		settings.beginGroup(_settingsGroup);
+	if (_settingsGroup.empty() == false)
+		settings.beginGroup(QString::fromStdString(_settingsGroup));
 
 	settings.remove("recentFiles");
 
@@ -196,11 +210,11 @@ void RecentFiles::save()
 	for (auto i: range(_recentFiles.size()))
 	{
 		settings.setArrayIndex(i);
-		settings.setValue("recentFile", _recentFiles.at(i));
+		settings.setValue("recentFile", QString::fromStdString(_recentFiles.at(i)));
 	}
 
 	settings.endArray();
 
-	if (_settingsGroup.isEmpty() == false)
+	if (_settingsGroup.empty() == false)
 		settings.endGroup();
 }

@@ -14,7 +14,7 @@
 // C++
 #include <stdexcept>
 
-const quint16 kMaxI2CPins(8);
+const uint16_t kMaxI2CPins(8);
 
 TACPSOCCommand::TACPSOCCommand
 (
@@ -51,7 +51,7 @@ void TACPSOCCommand::uuid()
 	send(kGetUUIDCommand, Arguments(), false, false);
 }
 
-void TACPSOCCommand::setPinState(quint16 pin, bool state)
+void TACPSOCCommand::setPinState(uint16_t pin, bool state)
 {
 	Arguments args;
 
@@ -68,7 +68,7 @@ void TACPSOCCommand::setName
 {
 	Arguments args;
 
-	args.push_back(newName);
+	args.push_back(newName.toStdString());
 
 	send(kSetNameCommand, args, false, false);
 }
@@ -85,8 +85,8 @@ void TACPSOCCommand::clearResetCount()
 
 void TACPSOCCommand::i2CReadRegister
 (
-	quint32 addr,
-	quint32 reg
+	uint32_t addr,
+	uint32_t reg
 )
 {
 	QByteArray addrString;
@@ -121,7 +121,7 @@ void TACPSOCCommand::i2CReadRegister
 
 	Arguments args;
 
-	args.push_back(addrString + " " + regString);
+	args.push_back((addrString + " " + regString).toStdString());
 	send(kI2CReadRegisterCommand, args, false, false);
 
 	addDelay(500);
@@ -132,9 +132,9 @@ void TACPSOCCommand::i2CReadRegister
 
 void TACPSOCCommand::i2CWriteRegister
 (
-	quint32 addr,
-	quint32 reg,
-	quint32 data
+	uint32_t addr,
+	uint32_t reg,
+	uint32_t data
 )
 {
    QByteArray addrString;
@@ -183,20 +183,20 @@ void TACPSOCCommand::i2CWriteRegister
 
    Arguments args;
 
-   args.push_back(addrString + " " + regString + " " + dataString);
+   args.push_back((addrString + " " + regString + " " + dataString).toStdString());
    send(kI2CWriteRegisterCommand, args, false, false);
 }
 
 void TACPSOCCommand::setAddressPinState
 (
-	const QString& i2cAddress,
-	quint16 pin,
+	const std::string& i2cAddress,
+	uint16_t pin,
 	bool state
 )
 {
 	Arguments args;
-	args.push_back(i2cAddress.toLatin1());
-	args.push_back(pin % kMaxI2CPins);
+	args.push_back(i2cAddress);
+	args.push_back(static_cast<uint32_t>(pin % kMaxI2CPins));
 	args.push_back(state);
 
 	send(kI2CWriteRegisterCommand, args, false, false);
@@ -213,7 +213,7 @@ void TACPSOCCommand::send
 	_sender->send(command, arguments, console, _receiver, store);
 }
 
-void TACPSOCCommand::addDelay(quint32 delayInMilliSeconds)
+void TACPSOCCommand::addDelay(uint32_t delayInMilliSeconds)
 {
 	_sender->addDelay(delayInMilliSeconds, _receiver);
 }

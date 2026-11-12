@@ -9,6 +9,8 @@
 #include <QtSerialPort/QSerialPortInfo>
 #include <QtSerialPort/QSerialPort>
 
+#include <cstdint>
+
 class CommDevice :
 	public QObject
 {
@@ -28,7 +30,7 @@ public:
 	}
 
 	virtual bool Send(const QByteArray& sendData);
-	quint64 Read(QByteArray& incomingBytes);
+	uint64_t Read(QByteArray& incomingBytes);
 
 public slots:
 	bool IsOpen();

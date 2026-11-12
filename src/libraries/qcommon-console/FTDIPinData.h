@@ -8,6 +8,12 @@
 #include "PlatformConfiguration.h"
 #include "StringUtilities.h"
 
+#include <cctype>
+#include <map>
+#include <string>
+#include <utility>
+#include <vector>
+
 const int kMaxPinIndex{7};
 const int kPinsPerBus{8};
 
@@ -44,12 +50,12 @@ struct FTDIBusData
 		QString chipStr = QString::number(chipIndex);
 		QString busStr = QString(bus);
 
-		result = strHash(chipStr + busStr);
+		result = strHash((chipStr + busStr).toStdString());
 
 		return result;
 	}
 
-	static QString toString(FTDIBusFunction busFunction)
+	static std::string toString(FTDIBusFunction busFunction)
 	{
 		switch(busFunction)
 		{
@@ -60,13 +66,16 @@ struct FTDIBusData
 		case eBusFunctionD2XX:
 			return "D2XX";
 		default:
-			return QString();
+			return std::string();
 		}
 	}
 
-	static FTDIBusFunction fromString(const QString& busFunction)
+	static FTDIBusFunction fromString(const std::string& busFunction)
 	{
-		QString temp{busFunction.toUpper()};
+		std::string temp{busFunction};
+		for (char& c: temp)
+			c = static_cast<char>(std::toupper(static_cast<unsigned char>(c)));
+
 		if (temp == "VCP")
 			return eBusFunctionVCP;
 		if (temp == "D2XX")
@@ -82,7 +91,7 @@ struct FTDIBusData
 	FTDIBusFunction				_busFunction{eBusFunctionUnknown};
 };
 
-typedef QMap<HashType, FTDIBusData> FTDIBusFunctions;
+typedef std::map<HashType, FTDIBusData> FTDIBusFunctions;
 
 struct FTDIPinData
 {
@@ -109,7 +118,7 @@ struct FTDIPinData
 		QString busStr = QString(bus);
 		QString pinStr = QString::number(pin);
 
-		result = strHash(chipStr + busStr + pinStr);
+		result = strHash((chipStr + busStr + pinStr).toStdString());
 
 		return result;
 	}
@@ -122,19 +131,19 @@ struct FTDIPinData
 	PinID						_setPin{static_cast<PinID>(-1)};
 	bool						_enabled{false};
 	bool						_input{false};
-	QString						_pinLabel;
-	QString						_pinTooltip;
+	std::string					_pinLabel;
+	std::string					_pinTooltip;
 	bool						_initialValue{false};
 	int							_initializationPriority{-1};
 	bool						_inverted{false};
-	QString						_pinCommand;
+	std::string					_pinCommand;
 	CommandGroups				_commandGroup{eUnknownCommandGroup};
-	QPoint						_cellLocation{QPoint(-1,-1)};
-	QString						_tabName{"General"};
+	std::pair<int, int>			_cellLocation{-1, -1};
+	std::string					_tabName{"General"};
 };
 
-typedef QMap<HashType, FTDIPinData> FTDIPinEntries;
-typedef QList<FTDIPinData> FTDIPinList;
+typedef std::map<HashType, FTDIPinData> FTDIPinEntries;
+typedef std::vector<FTDIPinData> FTDIPinList;
 
 
 #endif // FTDIPINDATA_H

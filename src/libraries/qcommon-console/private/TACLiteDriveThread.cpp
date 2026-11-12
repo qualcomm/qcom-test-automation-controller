@@ -19,7 +19,7 @@
 #define on true
 #define off false
 
-const QString kTACLiteDriveTrainName{QStringLiteral("TAC Lite Drive Train")};
+const std::string kTACLiteDriveTrainName{"TAC Lite Drive Train"};
 
 TACLiteDriveThread::TACLiteDriveThread
 (
@@ -35,7 +35,7 @@ TACLiteDriveThread::TACLiteDriveThread
 
 	if (alpacaDevice->active())
 	{
-		_ftdiChipset = _FTDIChipset::getDevice(alpacaDevice->portName());
+		_ftdiChipset = _FTDIChipset::getDevice(QByteArray::fromStdString(alpacaDevice->portName()));
 		if (_ftdiChipset.isNull() == false)
 		{
 			_portName = _ftdiChipset->portName();
@@ -43,7 +43,7 @@ TACLiteDriveThread::TACLiteDriveThread
 			_name = _ftdiChipset->serialNumber();
 
 			_versionString = _ftdiChipset->versionString().toLatin1();
-			_firmwareString = _ftdiChipset->firmwareString().toLatin1();
+			_firmwareString = _ftdiChipset->firmwareString().toStdString();
 			_hardwareType = _ftdiChipset->boardType();
 			_firmwareMajor = 1;
 			_firmwareChip = 10000;
@@ -76,7 +76,7 @@ bool TACLiteDriveThread::openFTDIDevice()
 			_ftdiChipset->setBoardType(_hardwareType);
 			if (_ftdiChipset->open(_pinsets))
 			{
-				AppCore::writeToApplicationLogLine(QString("Opened port %1\n").arg(_ftdiChipset->portName().data()));
+				AppCore::writeToApplicationLogLine("Opened port " + _ftdiChipset->portName().toStdString() + "\n");
 
 				result = true;
 			}
@@ -117,7 +117,7 @@ void TACLiteDriveThread::externalPowerControl
 
 void TACLiteDriveThread::setPinState
 (
-	quint16 pin,
+	uint16_t pin,
 	bool state
 )
 {
@@ -146,15 +146,15 @@ void TACLiteDriveThread::sendCommandSequence
 				break;
 
 			case _CommandEntry::eSetPin:
-				tacCommand.setPinState(commandEntry->_pinID, commandEntry->_arguement.toBool());
+				tacCommand.setPinState(commandEntry->_pinID, std::get<bool>(commandEntry->_arguement));
 				break;
 
 			case _CommandEntry::eLog:
-				tacCommand.addLogComment(commandEntry->_arguement.toString().toLatin1());
+				tacCommand.addLogComment(QByteArray::fromStdString(std::get<std::string>(commandEntry->_arguement)));
 				break;
 
 			case _CommandEntry::eDelay:
-				tacCommand.addDelay(commandEntry->_arguement.toUInt());
+				tacCommand.addDelay(std::get<uint32_t>(commandEntry->_arguement));
 				break;
 
 			case _CommandEntry::eBaseCommand:
@@ -179,15 +179,15 @@ void TACLiteDriveThread::clearResetCount()
 
 void TACLiteDriveThread::i2CReadRegister
 (
-	quint32 addr,
-	quint32 reg
+	uint32_t addr,
+	uint32_t reg
 )
 {
 	Q_UNUSED(addr)
 	Q_UNUSED(reg)
 }
 
-void TACLiteDriveThread::i2CWriteRegister(quint32 addr, quint32 reg, quint32 data)
+void TACLiteDriveThread::i2CWriteRegister(uint32_t addr, uint32_t reg, uint32_t data)
 {
 	Q_UNUSED(addr)
 	Q_UNUSED(reg)
@@ -202,7 +202,7 @@ void TACLiteDriveThread::setName
 	Q_UNUSED(newName)
 }
 
-quint32 TACLiteDriveThread::send
+uint32_t TACLiteDriveThread::send
 (
 	const QByteArray& sendMe,
 	const Arguments& arguments,
@@ -284,7 +284,7 @@ void TACLiteDriveThread::run()
 	{
 		emit hardwareTypeUpdate(_versionString);
 		emit hardwareVersionUpdate("0.1.1");	
-		emit firmwareVersionUpdate(_firmwareString);
+		emit firmwareVersionUpdate(QString::fromStdString(_firmwareString));
 
 		emit nameUpdate(_name);
 		emit uuidUpdate(_uuid);
@@ -304,8 +304,8 @@ void TACLiteDriveThread::run()
 		emit deviceDisconnected();
 	}
 
-	AppCore::writeToApplicationLogLine(QString("Hardware: %1\n").arg(_hardwareType));
-	AppCore::writeToApplicationLogLine(QString("Platform ID: %1(%2)\n").arg(PlatformContainer::toString(_platformID)).arg(static_cast<int>(_platformID)));
+	AppCore::writeToApplicationLogLine("Hardware: " + std::to_string(static_cast<int>(_hardwareType)) + "\n");
+	AppCore::writeToApplicationLogLine("Platform ID: " + PlatformContainer::toString(_platformID) + "(" + std::to_string(static_cast<int>(_platformID)) + ")\n");
 
 	if (weAreRunning())
 	{
@@ -331,13 +331,13 @@ void TACLiteDriveThread::run()
 					int pin = framePackage->_codedRequest.toInt();
 					bool state = getElectrialPinValue(framePackage->_requestHash, framePackage->_arguments);
 
-					AppCore::writeToApplicationLogLine("TACLiteDriveThread::run() write " + framePackage->_codedRequest + " state:" + (state ? "on" : "off"));
+					AppCore::writeToApplicationLogLine("TACLiteDriveThread::run() write " + framePackage->_codedRequest.toStdString() + " state:" + (state ? "on" : "off"));
 
 					if (_ftdiChipset.isNull() == false)
 					{
 						if (_ftdiChipset->write(pin, state) == false)
 						{
-							QString logMessage = QString("TACLiteDriveThread::run() write failure pin %1").arg(pin);
+							std::string logMessage = "TACLiteDriveThread::run() write failure pin " + std::to_string(pin);
 
 							AppCore::writeToApplicationLogLine(logMessage);
 
@@ -347,13 +347,13 @@ void TACLiteDriveThread::run()
 						{
 							QByteArray argument;
 
-							if (framePackage->_arguments.at(0).typeId() == QMetaType::Bool)
+							if (std::holds_alternative<bool>(framePackage->_arguments.at(0)))
 							{
-								argument = (framePackage->_arguments.at(0).toBool() == true) ? "on" : "off";
+								argument = std::get<bool>(framePackage->_arguments.at(0)) ? "on" : "off";
 							}
-							else
+							else if (std::holds_alternative<std::string>(framePackage->_arguments.at(0)))
 							{
-								argument = framePackage->_arguments.at(0).toByteArray();
+								argument = QByteArray::fromStdString(std::get<std::string>(framePackage->_arguments.at(0)));
 							}
 
 							framePackage->_responses.push_back(framePackage->_request + " " + argument);
@@ -405,7 +405,7 @@ void TACLiteDriveThread::sendCommand
 {
 	if (command.startsWith(kHelpCommand) == false)
 	{
-		QList<QVariant> args;
+		Arguments args;
 		QByteArray decodedCommand = decodeCommand(command, args);
 
 		send(decodedCommand, args, console, receiveInterface, shouldStore);
@@ -414,12 +414,12 @@ void TACLiteDriveThread::sendCommand
 
 bool TACLiteDriveThread::getElectrialPinValue
 (
-	quint32 kCommandHash,
+	uint32_t kCommandHash,
 	const Arguments& arguments
 )
 {
 	bool result{0};
-	bool argValue = arguments.at(0).toBool();
+	bool argValue = std::get<bool>(arguments.at(0));
 	switch (kCommandHash)
 	{
 	case kSetPinCommandHash:
@@ -434,11 +434,11 @@ void TACLiteDriveThread::handleSetName
 	FramePackage& framePackage
 )
 {
-	QVariant variant{framePackage->getArgument(0)};
+	Argument argument{framePackage->getArgument(0)};
 
-	if (variant.isValid())
+	if (std::holds_alternative<std::string>(argument))
 	{
-		_name = variant.toByteArray();
+		_name = QByteArray::fromStdString(std::get<std::string>(argument));
 		framePackage->_synonym = "Set Name " + _name;
 	}
 
@@ -450,12 +450,12 @@ void TACLiteDriveThread::handleSetPin
 	FramePackage &framePackage
 )
 {
-	QVariant state{framePackage->getArgument(0)};
-	QVariant pin{framePackage->getArgument(1)};
+	bool state = std::get<bool>(framePackage->getArgument(0));
+	uint32_t pin = std::get<uint32_t>(framePackage->getArgument(1));
 
-	framePackage->_synonym = "Set Pin " + pin.toByteArray() + " " + state.toByteArray();
+	framePackage->_synonym = "Set Pin " + QByteArray::number(pin) + " " + QByteArray(state ? "true" : "false");
 
-	emit pinStateChanged(pin.toULongLong(), state.toBool());
+	emit pinStateChanged(pin, state);
 }
 
 void TACLiteDriveThread::handleUUIDResponse

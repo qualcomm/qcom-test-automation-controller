@@ -5,18 +5,17 @@
 
 // QT's color class is based in the gui lib.  We want this library to not be dependant on gui or widgets.
 
-#include <QtGlobal>
+#include <cstdint>
+#include <string>
 
-const quint16 kOpaque{255};
-
-#include <QString>
+const uint16_t kOpaque{255};
 
 class BasicColor
 {
 
 public:
 	BasicColor() = default;
-	BasicColor(quint16 red, quint16 green, quint16 blue, quint16 alpha = kOpaque);
+	BasicColor(uint16_t red, uint16_t green, uint16_t blue, uint16_t alpha = kOpaque);
 	BasicColor(const BasicColor& copyMe) = default;
 	BasicColor& operator= (const BasicColor& assignMe) = default;
 
@@ -25,22 +24,22 @@ public:
 		return _valid;
 	}
 
-	quint16 red() const { return _red; }
-	quint16 green() const { return _green; }
-	quint16 blue() const { return _blue; }
-	quint16 alpha() const { return _alpha; }
+	uint16_t red() const { return _red; }
+	uint16_t green() const { return _green; }
+	uint16_t blue() const { return _blue; }
+	uint16_t alpha() const { return _alpha; }
 
-	QString name() const;
-	void setNamedColor(const QString& namedColor);
+	std::string name() const;
+	void setNamedColor(const std::string& namedColor);
 
-	BasicColor lighter(quint16 scale);
+	BasicColor lighter(uint16_t scale);
 
 private:
 	bool						_valid{false};
-	quint16						_alpha{kOpaque};
-	quint16						_red{0};
-	quint16						_green{0};
-	quint16						_blue{0};
+	uint16_t					_alpha{kOpaque};
+	uint16_t					_red{0};
+	uint16_t					_green{0};
+	uint16_t					_blue{0};
 };
 
 #endif // BASICCOLOR_H

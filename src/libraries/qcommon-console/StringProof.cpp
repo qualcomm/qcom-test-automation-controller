@@ -4,8 +4,8 @@
 #include "StringProof.h"
 #include "EncryptedString.h"
 
-const EncryptedString kWindowsTACConfigPath(QByteArrayLiteral("380d3a604b0e064b564070541504716514030a4e575d54646c5e43595057694250053b5a0e131d5e014365"));
-const EncryptedString kLinuxTACConfigPath(QByteArrayLiteral("380d3a604b0e064b564070541504716514030a4e575d54646c5e43595057694250053b5a0e131d5e014365"));
+const EncryptedString kWindowsTACConfigPath(std::string("380d3a604b0e064b564070541504716514030a4e575d54646c5e43595057694250053b5a0e131d5e014365"));
+const EncryptedString kLinuxTACConfigPath(std::string("380d3a604b0e064b564070541504716514030a4e575d54646c5e43595057694250053b5a0e131d5e014365"));
 
 void initializeStringProof()
 {

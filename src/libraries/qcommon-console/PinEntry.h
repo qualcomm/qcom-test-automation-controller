@@ -9,22 +9,26 @@
 #include "PinID.h"
 #include "StringUtilities.h"
 
+#include <string>
+#include <utility>
+#include <vector>
+
 struct PinEntry
 {
     PinID						_pin{0};
     bool						_enabled{false};
     HashType					_hash{0};
-    QString						_pinLabel;
-    QString						_pinTooltip;
+    std::string					_pinLabel;
+    std::string					_pinTooltip;
     bool						_initialValue{false};
     int							_initializationPriority{0};
     bool						_inverted{false};
-    QString						_pinCommand;
+    std::string					_pinCommand;
     CommandGroups				_commandGroup{eUnknownCommandGroup};
-    QPoint						_cellLocation{QPoint(-1,-1)};
-    QString						_tabName{"General"};
+    std::pair<int, int>			_cellLocation{-1, -1};
+    std::string					_tabName{"General"};
 };
 
-typedef QList<PinEntry> Pins;
+typedef std::vector<PinEntry> Pins;
 
 #endif // PINENTRY_H

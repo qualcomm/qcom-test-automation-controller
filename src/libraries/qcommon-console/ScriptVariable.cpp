@@ -3,9 +3,25 @@
 
 #include "ScriptVariable.h"
 
-QString variableTypeToString(VariableType variableType)
+#include <cctype>
+
+static bool equalsCaseInsensitive(const std::string& left, const std::string& right)
 {
-	QString result("Unknown");
+	if (left.size() != right.size())
+		return false;
+
+	for (size_t index = 0; index < left.size(); index++)
+	{
+		if (std::tolower(static_cast<unsigned char>(left[index])) != std::tolower(static_cast<unsigned char>(right[index])))
+			return false;
+	}
+
+	return true;
+}
+
+std::string variableTypeToString(VariableType variableType)
+{
+	std::string result("Unknown");
 
 	switch (variableType)
 	{
@@ -20,15 +36,15 @@ QString variableTypeToString(VariableType variableType)
 
 }
 
-VariableType variableTypeFromString(const QString& boardString)
+VariableType variableTypeFromString(const std::string& boardString)
 {
 	VariableType result{eUnknownVariableType};
 
-	if (boardString.compare("Integer", Qt::CaseInsensitive) == 0)
+	if (equalsCaseInsensitive(boardString, "Integer"))
         result = eIntegerType;
-    else if (boardString.compare("Boolean", Qt::CaseInsensitive) == 0)
+    else if (equalsCaseInsensitive(boardString, "Boolean"))
         result = eBooleanType;
-	else if (boardString.compare("Float", Qt::CaseInsensitive) == 0)
+	else if (equalsCaseInsensitive(boardString, "Float"))
 		result = eFloatType;
 	return result;
 }

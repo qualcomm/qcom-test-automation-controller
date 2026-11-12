@@ -17,6 +17,8 @@ class AppCore;
 #include <QSerialPortInfo>
 #include <QString>
 
+#include <cstdint>
+
 class QCOMMONCONSOLE_EXPORT SerialTableModel :
 	public QAbstractTableModel
 {
@@ -28,9 +30,9 @@ public:
 
 	void setAppCore(AppCore* appCore);
 
-	void addFilterKey(quint16 vendorID, quint16 productID);
+	void addFilterKey(uint16_t vendorID, uint16_t productID);
 
-	virtual bool filterProc(quint16 vendorID, quint16 productID);
+	virtual bool filterProc(uint16_t vendorID, uint16_t productID);
 
 	QVariant portData(int deviceIndex, int dataIndex);
 	QString portName(int deviceIndex);

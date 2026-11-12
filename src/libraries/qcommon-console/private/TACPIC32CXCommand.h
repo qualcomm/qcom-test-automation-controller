@@ -13,7 +13,8 @@ class ReceiveInterface;
 
 // Qt
 #include <QByteArray>
-#include <QVariant>
+
+#include <cstdint>
 
 class QCOMMONCONSOLE_EXPORT TACPIC32CXCommand
 {
@@ -25,12 +26,12 @@ public:
 	void name();
 	void uuid();
 
-	virtual void setPinState(quint16 pin, bool state);
+	virtual void setPinState(uint16_t pin, bool state);
 
 	void setName(const QByteArray& newName);
 
 	void send(const QByteArray& command, const Arguments& arguments, bool console, bool store = true);
-	void addDelay(quint32 delayInMilliSeconds);
+	void addDelay(uint32_t delayInMilliSeconds);
 	void addLogComment(const QByteArray& comment);
 	void addEndTransaction();
 

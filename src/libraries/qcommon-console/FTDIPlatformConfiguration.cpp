@@ -14,6 +14,8 @@
 #include <QJsonObject>
 #include <QJsonArray>
 
+#include <cstdint>
+
 const QString kChipCount(QStringLiteral("chip_count"));
 const QString kChipIndex(QStringLiteral("chip_index"));
 const QString kBus(QStringLiteral("bus"));
@@ -38,7 +40,7 @@ const int kMaximumChipCount{4};
 
 _FTDIPlatformConfiguration::_FTDIPlatformConfiguration
 (
-	quint16 chipCount
+	uint16_t chipCount
 )
 {
 	_resetActive = false;
@@ -67,22 +69,22 @@ _FTDIPlatformConfiguration::_FTDIPlatformConfiguration
 	fusionTab._ordinal = 3;
 	fusionTab._userTab = false;
 
-	_tabs.append(generalTab);
-	_tabs.append(deviceInfoTab);
-	_tabs.append(fusionTab);
+	_tabs.push_back(generalTab);
+	_tabs.push_back(deviceInfoTab);
+	_tabs.push_back(fusionTab);
 
 	initialize(chipCount);
 }
 
 void _FTDIPlatformConfiguration::initialize
 (
-	quint16 chipCount
+	uint16_t chipCount
 )
 {
 	_platform = eFTDI;
 
 	static QList<Bus> busList;
-	static QList<quint32> pinList = {0, 1, 2, 3, 4, 5, 6, 7};
+	static QList<uint32_t> pinList = {0, 1, 2, 3, 4, 5, 6, 7};
 
 	if (chipCount > kMaximumChipCount)
 	{
@@ -107,7 +109,7 @@ void _FTDIPlatformConfiguration::initialize
 
 				pinData._initializationPriority = -1;
 				pinData._commandGroup = eUnknownCommandGroup;
-				pinData._cellLocation = QPoint(-1,-1);
+				pinData._cellLocation = std::make_pair(-1, -1);
 
 				_pinEntries[pinData._hash] = pinData;
 				_busFunctions[busData._hash] = busData;
@@ -137,7 +139,7 @@ void _FTDIPlatformConfiguration::initialize
 	pinData._pinTooltip = "Force PS_HOLD to high";
 	pinData._commandGroup = eSwitchGroup;
 	pinData._tabName = "General";
-	pinData._cellLocation = QPoint(0,2);
+	pinData._cellLocation = std::make_pair(0, 2);
 
 	busData._hash = FTDIBusData::makeFTDIHash(pinData._chipIndex, pinData._bus);
 	busData._chipIndex = pinData._chipIndex;
@@ -166,7 +168,7 @@ void _FTDIPlatformConfiguration::initialize
 	pinData._pinTooltip = "Disconnects the UIM 1";
 	pinData._commandGroup = eSwitchGroup;
 	pinData._tabName = "General";
-	pinData._cellLocation = QPoint(0,0);
+	pinData._cellLocation = std::make_pair(0, 0);
 
 	busData._hash = FTDIBusData::makeFTDIHash(pinData._chipIndex, pinData._bus);
 	busData._chipIndex = pinData._chipIndex;
@@ -195,7 +197,7 @@ void _FTDIPlatformConfiguration::initialize
 	pinData._pinTooltip = "Disconnects headset";
 	pinData._commandGroup = eSwitchGroup;
 	pinData._tabName = "General";
-	pinData._cellLocation = QPoint(0,5);
+	pinData._cellLocation = std::make_pair(0, 5);
 
 	busData._hash = FTDIBusData::makeFTDIHash(pinData._chipIndex, pinData._bus);
 	busData._chipIndex = pinData._chipIndex;
@@ -224,7 +226,7 @@ void _FTDIPlatformConfiguration::initialize
 	pinData._pinTooltip = "Disconnects the UIM 2";
 	pinData._commandGroup = eSwitchGroup;
 	pinData._tabName = "General";
-	pinData._cellLocation = QPoint(1,0);
+	pinData._cellLocation = std::make_pair(1, 0);
 
 	busData._hash = FTDIBusData::makeFTDIHash(pinData._chipIndex, pinData._bus);
 	busData._chipIndex = pinData._chipIndex;
@@ -253,7 +255,7 @@ void _FTDIPlatformConfiguration::initialize
 	pinData._pinTooltip = "Disconnects the SD Card";
 	pinData._commandGroup = eSwitchGroup;
 	pinData._tabName = "General";
-	pinData._cellLocation = QPoint(0,3);
+	pinData._cellLocation = std::make_pair(0, 3);
 
 	busData._hash = FTDIBusData::makeFTDIHash(pinData._chipIndex, pinData._bus);
 	busData._chipIndex = pinData._chipIndex;
@@ -282,7 +284,7 @@ void _FTDIPlatformConfiguration::initialize
 	pinData._pinTooltip = "Secondary Emergency Download Mode";
 	pinData._commandGroup = eSwitchGroup;
 	pinData._tabName = "Fusion";
-	pinData._cellLocation = QPoint(0,0);
+	pinData._cellLocation = std::make_pair(0, 0);
 
 	busData._hash = FTDIBusData::makeFTDIHash(pinData._chipIndex, pinData._bus);
 	busData._chipIndex = pinData._chipIndex;
@@ -311,7 +313,7 @@ void _FTDIPlatformConfiguration::initialize
 	pinData._pinTooltip = "Disconnects VBUS 1";
 	pinData._commandGroup = eConnectionGroup;
 	pinData._tabName = "General";
-	pinData._cellLocation = QPoint(2,0);
+	pinData._cellLocation = std::make_pair(2, 0);
 
 	busData._hash = FTDIBusData::makeFTDIHash(pinData._chipIndex, pinData._bus);
 	busData._chipIndex = pinData._chipIndex;
@@ -340,7 +342,7 @@ void _FTDIPlatformConfiguration::initialize
 	pinData._pinTooltip = "Fusion Secondary PM_RESIN_N";
 	pinData._commandGroup = eSwitchGroup;
 	pinData._tabName = "Fusion";
-	pinData._cellLocation = QPoint(0,1);
+	pinData._cellLocation = std::make_pair(0, 1);
 
 	busData._hash = FTDIBusData::makeFTDIHash(pinData._chipIndex, pinData._bus);
 	busData._chipIndex = pinData._chipIndex;
@@ -369,7 +371,7 @@ void _FTDIPlatformConfiguration::initialize
 	pinData._pinTooltip = "VOL_UP + PWR_ON = Held for boot to UEFI menu";
 	pinData._commandGroup = eButtonGroup;
 	pinData._tabName = "General";
-	pinData._cellLocation = QPoint(0,1);
+	pinData._cellLocation = std::make_pair(0, 1);
 
 	busData._hash = FTDIBusData::makeFTDIHash(pinData._chipIndex, pinData._bus);
 	busData._chipIndex = pinData._chipIndex;
@@ -398,7 +400,7 @@ void _FTDIPlatformConfiguration::initialize
 	pinData._pinTooltip = "Battery power off/on";
 	pinData._commandGroup = eConnectionGroup;
 	pinData._tabName = "General";
-	pinData._cellLocation = QPoint(0,0);
+	pinData._cellLocation = std::make_pair(0, 0);
 
 	busData._hash = FTDIBusData::makeFTDIHash(pinData._chipIndex, pinData._bus);
 	busData._chipIndex = pinData._chipIndex;
@@ -427,7 +429,7 @@ void _FTDIPlatformConfiguration::initialize
 	pinData._pinTooltip = "(PM_RESIN_N) (Held to boot to fastboot)";
 	pinData._commandGroup = eButtonGroup;
 	pinData._tabName = "General";
-	pinData._cellLocation = QPoint(0,2);
+	pinData._cellLocation = std::make_pair(0, 2);
 
 	busData._hash = FTDIBusData::makeFTDIHash(pinData._chipIndex, pinData._bus);
 	busData._chipIndex = pinData._chipIndex;
@@ -456,7 +458,7 @@ void _FTDIPlatformConfiguration::initialize
 	pinData._pinTooltip = "Power On (VOL_UP + PWR_ON = Held for boot to UEFI menu)";
 	pinData._commandGroup = eButtonGroup;
 	pinData._tabName = "General";
-	pinData._cellLocation = QPoint(0,0);
+	pinData._cellLocation = std::make_pair(0, 0);
 
 	busData._hash = FTDIBusData::makeFTDIHash(pinData._chipIndex, pinData._bus);
 	busData._chipIndex = pinData._chipIndex;
@@ -485,7 +487,7 @@ void _FTDIPlatformConfiguration::initialize
 	pinData._pinTooltip = "Embedded USB Debug (EUD)";
 	pinData._commandGroup = eSwitchGroup;
 	pinData._tabName = "General";
-	pinData._cellLocation = QPoint(0,4);
+	pinData._cellLocation = std::make_pair(0, 4);
 
 	busData._hash = FTDIBusData::makeFTDIHash(pinData._chipIndex, pinData._bus);
 	busData._chipIndex = pinData._chipIndex;
@@ -514,7 +516,7 @@ void _FTDIPlatformConfiguration::initialize
 	pinData._pinTooltip = "Primary Emergency Download Mode";
 	pinData._commandGroup = eSwitchGroup;
 	pinData._tabName = "General";
-	pinData._cellLocation = QPoint(0,1);
+	pinData._cellLocation = std::make_pair(0, 1);
 
 	busData._hash = FTDIBusData::makeFTDIHash(pinData._chipIndex, pinData._bus);
 	busData._chipIndex = pinData._chipIndex;
@@ -543,7 +545,7 @@ void _FTDIPlatformConfiguration::initialize
 	pinData._pinTooltip = "SW must program it to 1 to enable some output signals. False - Disables the control on some of the FTDI pins: DDBUS 0/2/4/7, CDBUS 0/2/4/7. True - Enable the control on all the FTDI pins.";
 	pinData._commandGroup = eUnknownCommandGroup;
 	pinData._tabName = "<select a group>";
-	pinData._cellLocation = QPoint(-1,-1);
+	pinData._cellLocation = std::make_pair(-1, -1);
 
 	busData._hash = FTDIBusData::makeFTDIHash(pinData._chipIndex, pinData._bus);
 	busData._chipIndex = pinData._chipIndex;
@@ -572,7 +574,7 @@ void _FTDIPlatformConfiguration::initialize
 	pinData._pinTooltip = "Disconnects VBUS0";
 	pinData._commandGroup = eConnectionGroup;
 	pinData._tabName = "General";
-	pinData._cellLocation = QPoint(1,0);
+	pinData._cellLocation = std::make_pair(1, 0);
 
 	busData._hash = FTDIBusData::makeFTDIHash(pinData._chipIndex, pinData._bus);
 	busData._chipIndex = pinData._chipIndex;
@@ -596,7 +598,7 @@ FTDIPinData _FTDIPlatformConfiguration::getPinData(ChipIndex chipIndex, Bus bus,
 
 	if (_pinEntries.find(hash) != _pinEntries.end())
 	{
-		result = _pinEntries[hash];
+		result = _pinEntries.at(hash);
 	}
 
 	return result;
@@ -606,9 +608,9 @@ FTDIPinList _FTDIPlatformConfiguration::getAllPins() const
 {
 	FTDIPinList result;
 
-	for (const auto& pinEntry : std::as_const(_pinEntries))
+	for (const auto& entry : _pinEntries)
 	{
-		result.append(pinEntry);
+		result.push_back(entry.second);
 	}
 
 	auto sortLambda = [] (FTDIPinData& p1, FTDIPinData& p2) -> bool
@@ -631,10 +633,10 @@ FTDIPinList _FTDIPlatformConfiguration::getActivePins() const
 {
 	FTDIPinList result;
 
-	for (const auto& pinEntry : std::as_const(_pinEntries))
+	for (const auto& entry : _pinEntries)
 	{
-		if (pinEntry._enabled == true)
-			result.append(pinEntry);
+		if (entry.second._enabled == true)
+			result.push_back(entry.second);
 	}
 
 	auto sortLambda = [] (FTDIPinData& p1, FTDIPinData& p2) -> bool
@@ -664,15 +666,15 @@ FTDIPinList _FTDIPlatformConfiguration::getActivePins
 	FTDIBusData busData = getBusFunction(chipIndex, bus);
 	if (busData._busFunction == eBusFunctionD2XX)
 	{
-		for (const auto& pinEntry : std::as_const(_pinEntries))
+		for (const auto& entry : _pinEntries)
 		{
-			if (pinEntry._enabled == true)
+			if (entry.second._enabled == true)
 			{
-				if (pinEntry._chipIndex == chipIndex)
+				if (entry.second._chipIndex == chipIndex)
 				{
-					if (pinEntry._bus == bus)
+					if (entry.second._bus == bus)
 					{
-						result.append(pinEntry);
+						result.push_back(entry.second);
 					}
 				}
 			}
@@ -741,7 +743,7 @@ bool _FTDIPlatformConfiguration::getPinEnableState
 
 	if (_pinEntries.find(hash) != _pinEntries.end())
 	{
-		const auto pinData = _pinEntries[hash];
+		const auto pinData = _pinEntries.at(hash);
 		result = pinData._enabled;
 	}
 
@@ -791,7 +793,7 @@ bool _FTDIPlatformConfiguration::getPinInputState
 
 	if (_pinEntries.find(hash) != _pinEntries.end())
 	{
-		const auto pinData = _pinEntries[hash];
+		const auto pinData = _pinEntries.at(hash);
 		result = pinData._input;
 	}
 
@@ -841,7 +843,7 @@ bool _FTDIPlatformConfiguration::getInitialPinValue
 
 	if (_pinEntries.find(hash) != _pinEntries.end())
 	{
-		const auto pinData = _pinEntries[hash];
+		const auto pinData = _pinEntries.at(hash);
 		result = pinData._initialValue;
 	}
 
@@ -895,7 +897,7 @@ int _FTDIPlatformConfiguration::getPinInitializationPriority
 
 	if (_pinEntries.find(hash) != _pinEntries.end())
 	{
-		auto pinData = _pinEntries[hash];
+		auto pinData = _pinEntries.at(hash);
 		result = pinData._initializationPriority;
 	}
 
@@ -946,7 +948,7 @@ bool _FTDIPlatformConfiguration::getPinInvertedState
 
 	if (_pinEntries.find(hash) != _pinEntries.end())
 	{
-		const auto pinData = _pinEntries[hash];
+		const auto pinData = _pinEntries.at(hash);
 		result = pinData._inverted;
 	}
 
@@ -983,20 +985,20 @@ void _FTDIPlatformConfiguration::setPinInvertedState
 	setPinInvertedState(hash, newState);
 }
 
-QString _FTDIPlatformConfiguration::getPinLabel
+std::string _FTDIPlatformConfiguration::getPinLabel
 (
 	const ChipIndex chipIndex,
 	const Bus& busName,
 	const PinID pinId
 ) const
 {
-	QString result;
+	std::string result;
 
 	HashType hash = FTDIPinData::makeFTDIHash(chipIndex, busName, pinId);
 
 	if (_pinEntries.find(hash) != _pinEntries.end())
 	{
-		const auto pinData = _pinEntries[hash];
+		const auto pinData = _pinEntries.at(hash);
 		result = pinData._pinLabel;
 	}
 	return result;
@@ -1005,7 +1007,7 @@ QString _FTDIPlatformConfiguration::getPinLabel
 void _FTDIPlatformConfiguration::setPinLabel
 (
 	HashType hash,
-	const QString& pinLabel
+	const std::string& pinLabel
 )
 {
 	if (_pinEntries.find(hash) != _pinEntries.end())
@@ -1024,27 +1026,27 @@ void _FTDIPlatformConfiguration::setPinLabel
 	const ChipIndex chipIndex,
 	const Bus& busName,
 	const PinID pinId,
-	const QString& pinLabel
+	const std::string& pinLabel
 )
 {
 	HashType hash = FTDIPinData::makeFTDIHash(chipIndex, busName, pinId);
 	setPinLabel(hash, pinLabel);
 }
 
-QString _FTDIPlatformConfiguration::getPinTooltip
+std::string _FTDIPlatformConfiguration::getPinTooltip
 (
 	const ChipIndex chipIndex,
 	const Bus& busName,
 	const PinID pinId
 ) const
 {
-	QString result;
+	std::string result;
 
 	HashType hash = FTDIPinData::makeFTDIHash(chipIndex, busName, pinId);
 
 	if (_pinEntries.find(hash) != _pinEntries.end())
 	{
-		const auto pinData = _pinEntries[hash];
+		const auto pinData = _pinEntries.at(hash);
 		result = pinData._pinTooltip;
 	}
 
@@ -1054,7 +1056,7 @@ QString _FTDIPlatformConfiguration::getPinTooltip
 void _FTDIPlatformConfiguration::setPinTooltip
 (
 	HashType hash,
-	const QString& pinTooltip
+	const std::string& pinTooltip
 )
 {
 	if (_pinEntries.find(hash) != _pinEntries.end())
@@ -1073,27 +1075,27 @@ void _FTDIPlatformConfiguration::setPinTooltip
 	const ChipIndex chipIndex,
 	const Bus& busName,
 	const PinID pinId,
-	const QString& pinTooltip
+	const std::string& pinTooltip
 )
 {
 	HashType hash = FTDIPinData::makeFTDIHash(chipIndex, busName, pinId);
 	setPinTooltip(hash, pinTooltip);
 }
 
-QString _FTDIPlatformConfiguration::getPinCommand
+std::string _FTDIPlatformConfiguration::getPinCommand
 (
 	const ChipIndex chipIndex,
 	const Bus& busName,
 	const PinID pinId
 ) const
 {
-	QString result;
+	std::string result;
 
 	HashType hash = FTDIPinData::makeFTDIHash(chipIndex, busName, pinId);
 
 	if (_pinEntries.find(hash) != _pinEntries.end())
 	{
-		const auto pinData = _pinEntries[hash];
+		const auto pinData = _pinEntries.at(hash);
 		result = pinData._pinCommand;
 	}
 
@@ -1103,7 +1105,7 @@ QString _FTDIPlatformConfiguration::getPinCommand
 void _FTDIPlatformConfiguration::setPinCommand
 (
 	HashType hash,
-	const QString& pinCommand
+	const std::string& pinCommand
 )
 {
 	if (_pinEntries.find(hash) != _pinEntries.end())
@@ -1126,7 +1128,7 @@ void _FTDIPlatformConfiguration::setPinCommand
 	const ChipIndex chipIndex,
 	const Bus& busName,
 	const PinID pinId,
-	const QString &pinCommand
+	const std::string &pinCommand
 )
 {
 	HashType hash = FTDIPinData::makeFTDIHash(chipIndex, busName, pinId);
@@ -1146,7 +1148,7 @@ CommandGroups _FTDIPlatformConfiguration::getPinGroup
 
 	if (_pinEntries.find(hash) != _pinEntries.end())
 	{
-		const auto pinData = _pinEntries[hash];
+		const auto pinData = _pinEntries.at(hash);
 		result = pinData._commandGroup;
 	}
 
@@ -1187,20 +1189,20 @@ void _FTDIPlatformConfiguration::setPinGroup
 	setPinGroup(hash, commandGroup);
 }
 
-QString _FTDIPlatformConfiguration::getTabName
+std::string _FTDIPlatformConfiguration::getTabName
 (
 	const ChipIndex chipIndex,
 	const Bus& busName,
 	const PinID pinId
 ) const
 {
-	QString result;
+	std::string result;
 
 	HashType hash = FTDIPinData::makeFTDIHash(chipIndex, busName, pinId);
 
 	if (_pinEntries.find(hash) != _pinEntries.end())
 	{
-		const auto pinData = _pinEntries[hash];
+		const auto pinData = _pinEntries.at(hash);
 		result = pinData._tabName;
 	}
 
@@ -1210,7 +1212,7 @@ QString _FTDIPlatformConfiguration::getTabName
 void _FTDIPlatformConfiguration::setTabName
 (
 	HashType hash,
-	const QString& tabName
+	const std::string& tabName
 )
 {
 	if (_pinEntries.find(hash) != _pinEntries.end())
@@ -1234,28 +1236,28 @@ void _FTDIPlatformConfiguration::setTabName
 	const ChipIndex chipIndex,
 	const Bus& busName,
 	const PinID pinId,
-	const QString& tabName)
+	const std::string& tabName)
 {
 	HashType hash = FTDIPinData::makeFTDIHash(chipIndex, busName, pinId);
 	setTabName(hash, tabName);
 }
 
-QPoint _FTDIPlatformConfiguration::getPinCellLocation(const ChipIndex chipIndex, const Bus& busName, const PinID pinId) const
+std::pair<int, int> _FTDIPlatformConfiguration::getPinCellLocation(const ChipIndex chipIndex, const Bus& busName, const PinID pinId) const
 {
-	QPoint result(-1,-1);
+	std::pair<int, int> result(-1, -1);
 
 	HashType hash = FTDIPinData::makeFTDIHash(chipIndex, busName, pinId);
 
 	if (_pinEntries.find(hash) != _pinEntries.end())
 	{
-		const auto pinData = _pinEntries[hash];
+		const auto pinData = _pinEntries.at(hash);
 		result = pinData._cellLocation;
 	}
 
 	return result;
 }
 
-void _FTDIPlatformConfiguration::setPinCellLocation(HashType hash, const QPoint& cellLocation)
+void _FTDIPlatformConfiguration::setPinCellLocation(HashType hash, const std::pair<int, int>& cellLocation)
 {
 	if (_pinEntries.find(hash) != _pinEntries.end())
 	{
@@ -1277,7 +1279,7 @@ void _FTDIPlatformConfiguration::setPinCellLocation
 	const ChipIndex chipIndex,
 	const Bus& busName,
 	const PinID pinId,
-	const QPoint& cellLocation
+	const std::pair<int, int>& cellLocation
 )
 {
 	HashType hash = FTDIPinData::makeFTDIHash(chipIndex, busName, pinId);
@@ -1296,7 +1298,7 @@ FTDIBusData _FTDIPlatformConfiguration::getBusFunction
 
 	if (_busFunctions.find(hashType) != _busFunctions.end())
 	{
-		result = _busFunctions[hashType];
+		result = _busFunctions.at(hashType);
 	}
 	return result;
 }
@@ -1352,33 +1354,33 @@ FTDIPinSets _FTDIPlatformConfiguration::getPinSet
 	return result;
 }
 
-void _FTDIPlatformConfiguration::cascadeTabDelete(const QString &deleteMe)
+void _FTDIPlatformConfiguration::cascadeTabDelete(const std::string &deleteMe)
 {
-	for (int idx=0; idx<_tabs.length(); idx++)
+	for (auto idx = _tabs.begin(); idx != _tabs.end(); )
 	{
-		if (_tabs.at(idx)._name == deleteMe)
-		{
-			_tabs.removeAt(idx);
-		}
+		if (idx->_name == deleteMe)
+			idx = _tabs.erase(idx);
+		else
+			++idx;
 	}
 
-	for (auto& pinEntry: _pinEntries)
+	for (auto& entry: _pinEntries)
 	{
-		if (pinEntry._tabName == deleteMe)
-			pinEntry._tabName = QString();
+		if (entry.second._tabName == deleteMe)
+			entry.second._tabName.clear();
 	}
 }
 
 void _FTDIPlatformConfiguration::cascadeTabRename
 (
-	const QString& oldName,
-	const QString& newName
+	const std::string& oldName,
+	const std::string& newName
 )
 {
-	for (auto& pinEntry: _pinEntries)
+	for (auto& entry: _pinEntries)
 	{
-		if (pinEntry._tabName == oldName)
-			pinEntry._tabName = newName;
+		if (entry.second._tabName == oldName)
+			entry.second._tabName = newName;
 	}
 }
 
@@ -1426,10 +1428,10 @@ bool _FTDIPlatformConfiguration::read(QJsonObject& parentLevel)
 					pinData._enabled = pinEntry[kEnabled].toBool();
 
 				if (pinEntry.contains(kName))
-					pinData._pinLabel = pinEntry[kName].toString();
+					pinData._pinLabel = pinEntry[kName].toString().toStdString();
 
 				if (pinEntry.contains(kToolTip))
-					pinData._pinTooltip = pinEntry[kToolTip].toString();
+					pinData._pinTooltip = pinEntry[kToolTip].toString().toStdString();
 
 				if (pinEntry.contains(kInitialValue))
 					pinData._initialValue = pinEntry[kInitialValue].toBool();
@@ -1441,25 +1443,25 @@ bool _FTDIPlatformConfiguration::read(QJsonObject& parentLevel)
 					pinData._inverted = pinEntry[kInverted].toBool();
 
 				if (pinEntry.contains(kCommand))
-					pinData._pinCommand = pinEntry[kCommand].toString();
+					pinData._pinCommand = pinEntry[kCommand].toString().toStdString();
 
 				if (pinEntry.contains(kCommandGroup))
 					pinData._commandGroup = static_cast<CommandGroups>(pinEntry[kCommandGroup].toInt());
 
 				if (pinEntry.contains(kRunPriority))
 				{
-					pinData._cellLocation = QPoint(-1, -1);
+					pinData._cellLocation = std::make_pair(-1, -1);
 					QString pointString = pinEntry[kRunPriority].toString();
 					if (pointString.size() > 0)
 					{
-						QPoint point = toQPoint(pointString);
-						if (point.x() >= 0 && point.y() >= 0)
+						std::pair<int, int> point = toQPoint(pointString.toStdString());
+						if (point.first >= 0 && point.second >= 0)
 							pinData._cellLocation = point;
 					}
 				}
 
 				if (pinEntry.contains(kTabName))
-					pinData._tabName = pinEntry[kTabName].toString();
+					pinData._tabName = pinEntry[kTabName].toString().toStdString();
 
 				_pinEntries[pinData._hash] = pinData;
 			}
@@ -1506,8 +1508,9 @@ void _FTDIPlatformConfiguration::write(QJsonObject& parentLevel)
 
 	QJsonArray pinsArray;
 
-	for (auto& pinEntry : _pinEntries)
+	for (auto& entry : _pinEntries)
 	{
+		const FTDIPinData& pinEntry = entry.second;
 		QJsonObject pinData;
 
 		pinData[kChipIndex] = pinEntry._chipIndex;
@@ -1515,16 +1518,16 @@ void _FTDIPlatformConfiguration::write(QJsonObject& parentLevel)
 		pinData[kPinNumber] = QString::number(pinEntry._chipPin);
 		pinData[kEnabled] = pinEntry._enabled;
 		pinData[kInput] = pinEntry._input;
-		pinData[kName] = pinEntry._pinLabel;
-		pinData[kToolTip] = pinEntry._pinTooltip;
+		pinData[kName] = QString::fromStdString(pinEntry._pinLabel);
+		pinData[kToolTip] = QString::fromStdString(pinEntry._pinTooltip);
 		pinData[kInitialValue] = pinEntry._initialValue;
 		pinData[kPriority] = pinEntry._initializationPriority;
 		pinData[kInverted] = pinEntry._inverted;
-		pinData[kCommand] = pinEntry._pinCommand;
+		pinData[kCommand] = QString::fromStdString(pinEntry._pinCommand);
 		pinData[kCommandGroup] = pinEntry._commandGroup;
-		pinData[kRunPriority] = fromQPoint(pinEntry._cellLocation);
+		pinData[kRunPriority] = QString::fromStdString(fromQPoint(pinEntry._cellLocation));
 
-		pinData[kTabName] = pinEntry._tabName;
+		pinData[kTabName] = QString::fromStdString(pinEntry._tabName);
 
 		pinsArray.append(pinData);
 	}
@@ -1533,8 +1536,9 @@ void _FTDIPlatformConfiguration::write(QJsonObject& parentLevel)
 
 	QJsonArray busArray;
 
-	for (const auto& busFunction : std::as_const(_busFunctions))
+	for (const auto& entry : _busFunctions)
 	{
+		const FTDIBusData& busFunction = entry.second;
 		QJsonObject busData;
 
 		busData[kChipIndex] = busFunction._chipIndex;

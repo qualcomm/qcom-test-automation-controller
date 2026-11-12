@@ -6,40 +6,39 @@
 // QCommon
 #include "QCommonConsoleGlobal.h"
 
-// QT
-#include <QMap>
-#include <QString>
-#include <QStringList>
+#include <map>
+#include <string>
+#include <vector>
 
-typedef QMap<QString, QString> KeyValuePairs;
+typedef std::map<std::string, std::string> KeyValuePairs;
 
 class QCOMMONCONSOLE_EXPORT CommandLineParser
 {
 public:
-	CommandLineParser(const QStringList& args);
+	CommandLineParser(const std::vector<std::string>& args);
 
-	void setVersion(const QByteArray& version);
+	void setVersion(const std::string& version);
 	bool versionRequested();
-	QByteArray version();
+	std::string version();
 
 	bool helpRequested();
 
-	void addHelpLine(const QString& helpText);
+	void addHelpLine(const std::string& helpText);
 	void addHelpLine();
-	const QString helpText();
+	const std::string helpText();
 
-	bool isSet(const QStringList& keys);
-	QString value(const QString& key);
+	bool isSet(const std::vector<std::string>& keys);
+	std::string value(const std::string& key);
 
 protected:
-	QStringList					_args;
+	std::vector<std::string>	_args;
 	KeyValuePairs				_values;
 
 	bool						_helpRequested{false};
-	QString						_helpText;
+	std::string					_helpText;
 
 	bool						_versionRequested{false};
-	QByteArray					_version;
+	std::string					_version;
 };
 
 #endif // COMMANDLINEPARSER_H

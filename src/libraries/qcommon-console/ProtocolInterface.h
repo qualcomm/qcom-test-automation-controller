@@ -11,10 +11,12 @@
 // Qt
 #include <QByteArray>
 #include <QDateTime>
-#include <QRecursiveMutex>
 #include <QObject>
 
-const quint32 kBadQueueValue(0xFFFFFFFF);
+#include <cstdint>
+#include <mutex>
+
+const uint32_t kBadQueueValue(0xFFFFFFFF);
 
 class QCOMMONCONSOLE_EXPORT ProtocolInterface
 {
@@ -29,12 +31,12 @@ public:
 	FramePackage& pendingFramePackage();
 
 	void queueCommand(const FramePackage& framePackage);
-	void queueDelay(quint32 delayInMilliSeconds, ReceiveInterface* receiveInterface = Q_NULLPTR);
+	void queueDelay(uint32_t delayInMilliSeconds, ReceiveInterface* receiveInterface = Q_NULLPTR);
 	void queueLogComment(const QByteArray& comment);
 	void queueEndTransaction(ReceiveInterface* receiveInterface = Q_NULLPTR);
 
 	FramePackage getNextFramePackage();
-	quint32 queueSize();
+	uint32_t queueSize();
 
 	// Data incoming
 	bool handleRecievedData(const QByteArray& receivedData);
@@ -46,7 +48,7 @@ public:
 		_baseTime = baseTime;
 	}
 
-	void setTimeout(quint64 timeout)
+	void setTimeout(uint64_t timeout)
 	{
 		_timeout = (timeout < 750) ? _timeout : 750;
 	}
@@ -54,9 +56,9 @@ public:
 protected:
 	QDateTime					_baseTime;
 	FrameCoder*					_frameCoder{Q_NULLPTR};
-	quint64						_timeout{750};
-	
-	static quint32				_sendID;
+	uint64_t					_timeout{750};
+
+	static uint32_t				_sendID;
 
 	virtual void frameComplete(const QByteArray& completedFrame) = 0;
 	virtual void badFrame(const QByteArray& completedFrame) = 0;
@@ -64,13 +66,13 @@ protected:
 	static void frameCompleteFunc(const QByteArray& completedFrame, ProtocolInterface* userData);
 	static void badFrameFunc(const QByteArray& completedFrame, ProtocolInterface* userData);
 
-	quint32 getNextSendID();
+	uint32_t getNextSendID();
 
 private:
-	QRecursiveMutex				_pendingFramePackageMutex;
+	std::recursive_mutex		_pendingFramePackageMutex;
 	FramePackage				_pendingFramePackage{FramePackage(Q_NULLPTR)};
 
-	QRecursiveMutex				_outQueueMutex;
+	std::recursive_mutex		_outQueueMutex;
 	FramePackageList			_outboundData;
 };
 

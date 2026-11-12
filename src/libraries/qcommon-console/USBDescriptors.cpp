@@ -17,6 +17,18 @@
 #include <QJsonObject>
 #include <QTime>
 
+#include <cctype>
+
+static std::string toLowerCopy(const std::string& value)
+{
+	std::string result{value};
+
+	for (char& c: result)
+		c = static_cast<char>(std::tolower(static_cast<unsigned char>(c)));
+
+	return result;
+}
+
 // Parameters in the JSON TAC Configuration
 const QString kModifyDate(QStringLiteral("modification_date"));
 const QString kUSBCatalog(QStringLiteral("catalog"));
@@ -34,7 +46,7 @@ const QString kChip4BusSet(QStringLiteral("chip4BusSet"));
 
 USBDescriptors::USBDescriptors()
 {
-	_modifyDate = QDateTime::currentDateTime().toString();
+	_modifyDate = QDateTime::currentDateTime().toString().toStdString();
 }
 
 DescriptorList USBDescriptors::getDescriptors()
@@ -79,14 +91,16 @@ USBDescriptor USBDescriptors::getPlatformDescriptor
 
 PlatformID USBDescriptors::getPlatformId
 (
-	const QByteArray& usbDescriptor
+	const std::string& usbDescriptor
 )
 {
 	PlatformID result{0};
 
-	for (const auto& usbDescriptorEntry: std::as_const(_descriptorList))
+	std::string targetUsbDescriptor = toLowerCopy(usbDescriptor);
+
+	for (const auto& usbDescriptorEntry: _descriptorList)
 	{
-		if (usbDescriptorEntry._usbDescriptor.compare(usbDescriptor, Qt::CaseInsensitive) == 0)
+		if (toLowerCopy(usbDescriptorEntry._usbDescriptor) == targetUsbDescriptor)
 		{
 			result = usbDescriptorEntry._platformID;
 			break;
@@ -98,18 +112,18 @@ PlatformID USBDescriptors::getPlatformId
 
 void USBDescriptors::addUSBDescriptor(USBDescriptor usbDescriptor)
 {
-	_descriptorList.append(usbDescriptor);
+	_descriptorList.push_back(usbDescriptor);
 }
 
 bool USBDescriptors::load
 (
-	const QString& filePath
+	const std::string& filePath
 )
 {
 	bool result(false);
 
 	QJsonDocument document;
-	QFile jsonFile(filePath);
+	QFile jsonFile(QString::fromStdString(filePath));
 
 	if (jsonFile.open(QIODevice::ReadOnly))
 	{
@@ -130,18 +144,18 @@ bool USBDescriptors::load
 				}
 				else
 				{
-					_lastError = QObject::tr("JSON Document is NULL") ;
+					_lastError = QObject::tr("JSON Document is NULL").toStdString();
 				}
 			}
 			else
 			{
-				_lastError = QObject::tr("Error parsing configuration file") + parserError.errorString();
+				_lastError = (QObject::tr("Error parsing configuration file") + parserError.errorString()).toStdString();
 			}
 		}
 	}
 	else
 	{
-		_lastError = QObject::tr("Unable to open platform configuration file ") + filePath;
+		_lastError = QObject::tr("Unable to open platform configuration file ").toStdString() + filePath;
 	}
 
 	return result;
@@ -149,12 +163,12 @@ bool USBDescriptors::load
 
 bool USBDescriptors::save
 (
-	const QString &filePath
+	const std::string &filePath
 )
 {
 	bool result{false};
 
-	QFile targetFile(filePath);
+	QFile targetFile(QString::fromStdString(filePath));
 	if (targetFile.open(QIODevice::WriteOnly) == true)
 	{
 		QJsonObject rootLevel;
@@ -169,7 +183,7 @@ bool USBDescriptors::save
 			QByteArray jsonDocument = document.toJson(QJsonDocument::Indented);
 			if (jsonDocument.isEmpty() == false)
 			{
-				QFile jsonFile(filePath);
+				QFile jsonFile(QString::fromStdString(filePath));
 
 				if (jsonFile.open(QIODevice::WriteOnly) == true)
 				{
@@ -185,7 +199,7 @@ bool USBDescriptors::save
 	return result;
 }
 
-QString USBDescriptors::getLastError()
+std::string USBDescriptors::getLastError()
 {
 	return _lastError;
 }
@@ -197,7 +211,7 @@ bool USBDescriptors::read(QJsonObject& parentLevel)
 
 	jsonValue = parentLevel.value(kModifyDate);
 	if (jsonValue.isNull() == false)
-		_modifyDate = jsonValue.toString();
+		_modifyDate = jsonValue.toString().toStdString();
 
 	QJsonArray usbCatalog = parentLevel.value(kUSBCatalog).toArray();
 	if (usbCatalog.count() > 0)
@@ -220,22 +234,22 @@ bool USBDescriptors::read(QJsonObject& parentLevel)
 						usbDescriptor._debugBoardType = static_cast<DebugBoardType>(catalogData[kDebugBoardType].toInt());
 
 					if (catalogData.contains(kUSBDescriptor) && catalogData[kUSBDescriptor].isString())
-						usbDescriptor._usbDescriptor = catalogData[kUSBDescriptor].toString().toLatin1();
+						usbDescriptor._usbDescriptor = catalogData[kUSBDescriptor].toString().toStdString();
 
 					if (catalogData.contains(kName) && catalogData[kName].isString())
-						usbDescriptor._name = catalogData[kName].toString();
+						usbDescriptor._name = catalogData[kName].toString().toStdString();
 
 					if (catalogData.contains(kDescription) && catalogData[kDescription].isString())
-						usbDescriptor._description = catalogData[kDescription].toString();
+						usbDescriptor._description = catalogData[kDescription].toString().toStdString();
 
 					if (catalogData.contains(kRevisionNumber))
-						usbDescriptor._revision = static_cast<quint32>(catalogData[kRevisionNumber].toInt());
+						usbDescriptor._revision = static_cast<uint32_t>(catalogData[kRevisionNumber].toInt());
 
 					if (catalogData.contains(kConfigFilePath) && catalogData[kConfigFilePath].isString())
-						usbDescriptor._configurationFilePath = catalogData[kConfigFilePath].toString().toLatin1();
+						usbDescriptor._configurationFilePath = catalogData[kConfigFilePath].toString().toStdString();
 
 #ifdef Q_OS_LINUX
-					usbDescriptor._configurationFilePath = expandPath(QString(usbDescriptor._configurationFilePath)).toLatin1();
+					usbDescriptor._configurationFilePath = expandPath(usbDescriptor._configurationFilePath);
 #endif
 
 					if (usbDescriptor._debugBoardType == eFTDI)
@@ -264,7 +278,7 @@ bool USBDescriptors::read(QJsonObject& parentLevel)
 
 void USBDescriptors::write(QJsonObject& parentLevel)
 {
-	parentLevel[kModifyDate] = _modifyDate;
+	parentLevel[kModifyDate] = QString::fromStdString(_modifyDate);
 
 	QJsonArray catalog;
 
@@ -274,11 +288,11 @@ void USBDescriptors::write(QJsonObject& parentLevel)
 
 		usbDescriptorObject[kPlatformId] = static_cast<int>(usbDescriptor._platformID);
 		usbDescriptorObject[kDebugBoardType] = static_cast<int>(usbDescriptor._debugBoardType);
-		usbDescriptorObject[kUSBDescriptor] = QString(usbDescriptor._usbDescriptor);
-		usbDescriptorObject[kName] = usbDescriptor._name;
-		usbDescriptorObject[kDescription] = usbDescriptor._description;
+		usbDescriptorObject[kUSBDescriptor] = QString::fromStdString(usbDescriptor._usbDescriptor);
+		usbDescriptorObject[kName] = QString::fromStdString(usbDescriptor._name);
+		usbDescriptorObject[kDescription] = QString::fromStdString(usbDescriptor._description);
 		usbDescriptorObject[kRevisionNumber] = static_cast<int>(usbDescriptor._revision);
-		usbDescriptorObject[kConfigFilePath] = QString(usbDescriptor._configurationFilePath);
+		usbDescriptorObject[kConfigFilePath] = QString::fromStdString(usbDescriptor._configurationFilePath);
 
 		if (usbDescriptor._debugBoardType == eFTDI)
 		{

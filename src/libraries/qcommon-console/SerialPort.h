@@ -9,6 +9,8 @@
 #include <QtSerialPort/QSerialPort>
 #include <QtSerialPort/QSerialPortInfo>
 
+#include <cstdint>
+
 struct QCOMMONCONSOLE_EXPORT SerialPortSettings
 {
 	SerialPortSettings()
@@ -23,8 +25,8 @@ struct QCOMMONCONSOLE_EXPORT SerialPortSettings
 
 	SerialPortSettings(const SerialPortSettings& copyMe) = default;
 
-	qint32						_baudRate;
-	quint32                     _timeout;
+	int32_t						_baudRate;
+	uint32_t                    _timeout;
 	QSerialPort::DataBits		_dataBits;
 	QSerialPort::Parity			_parity;
 	QSerialPort::StopBits		_stopBits;

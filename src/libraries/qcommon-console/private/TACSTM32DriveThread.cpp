@@ -15,7 +15,7 @@
 #include <QDateTime>
 #include <QDir>
 
-const QString kTACSTM32DriveTrainName{QStringLiteral("TAC STM32 Drive Train")};
+const std::string kTACSTM32DriveTrainName{"TAC STM32 Drive Train"};
 
 TACSTM32DriveThread::TACSTM32DriveThread
 (
@@ -33,15 +33,15 @@ TACSTM32DriveThread::TACSTM32DriveThread
 	{
 		_stm32Device = static_cast<STM32Device*>(alpacaDevice.data());
 
-		_portName = alpacaDevice->portName();
+		_portName = QByteArray::fromStdString(alpacaDevice->portName());
 		_platformID = alpacaDevice->platformID();
 		_hardwareType = alpacaDevice->debugBoardType();
-		_name = alpacaDevice->serialNumber();
+		_name = QByteArray::fromStdString(alpacaDevice->serialNumber());
 		_description = "Arduino BugHopper V2 Board";
 		_uuid = "Bug Hopper V2 - No UUID";
 
-		setSerialNumber(alpacaDevice->serialNumber());
-		setPortName(alpacaDevice->portName());
+		setSerialNumber(QString::fromStdString(alpacaDevice->serialNumber()));
+		setPortName(QByteArray::fromStdString(alpacaDevice->portName()));
 
 		connect(this, &TACDriveThread::deviceDisconnected, alpacaDevice.data(), &_AlpacaDevice::onDeviceDisconnect, Qt::DirectConnection);
 		connect(this, &TACDriveThread::progress, alpacaDevice.data(), &_AlpacaDevice::progress);
@@ -72,7 +72,7 @@ bool TACSTM32DriveThread::openSTM32Device()
 	return result;
 }
 
-void TACSTM32DriveThread::setPinState(quint16 pin, bool state)
+void TACSTM32DriveThread::setPinState(uint16_t pin, bool state)
 {
 	{
 		TACSTM32Command tacCommand(this, this);
@@ -99,15 +99,15 @@ void TACSTM32DriveThread::sendCommandSequence
 				break;
 
 			case _CommandEntry::eSetPin:
-				tacCommand.setPinState(commandEntry->_pinID, commandEntry->_arguement.toBool());
+				tacCommand.setPinState(commandEntry->_pinID, std::get<bool>(commandEntry->_arguement));
 				break;
 
 			case _CommandEntry::eLog:
-				tacCommand.addLogComment(commandEntry->_arguement.toString().toLatin1());
+				tacCommand.addLogComment(QByteArray::fromStdString(std::get<std::string>(commandEntry->_arguement)));
 				break;
 
 			case _CommandEntry::eDelay:
-				tacCommand.addDelay(commandEntry->_arguement.toUInt());
+				tacCommand.addDelay(std::get<uint32_t>(commandEntry->_arguement));
 				break;
 
 			case _CommandEntry::eBaseCommand:
@@ -132,8 +132,8 @@ void TACSTM32DriveThread::clearResetCount()
 
 void TACSTM32DriveThread::i2CReadRegister
 (
-	quint32 addr,
-	quint32 reg
+	uint32_t addr,
+	uint32_t reg
 )
 {
 	Q_UNUSED(addr)
@@ -142,9 +142,9 @@ void TACSTM32DriveThread::i2CReadRegister
 
 void TACSTM32DriveThread::i2CWriteRegister
 (
-	quint32 addr,
-	quint32 reg,
-	quint32 data
+	uint32_t addr,
+	uint32_t reg,
+	uint32_t data
 )
 {
 	Q_UNUSED(addr)
@@ -178,7 +178,7 @@ void TACSTM32DriveThread::sendCommand
 	send(decodedCommand, args, console, receiveInterface, shouldStore);
 }
 
-quint32 TACSTM32DriveThread::send
+uint32_t TACSTM32DriveThread::send
 (
 	const QByteArray& sendMe,
 	const Arguments& arguments,
@@ -213,12 +213,12 @@ void TACSTM32DriveThread::receive
 		{
 		case kSetPinCommandHash:
 			{
-				QVariant state{framePackage->getArgument(0)};
-				QVariant pin{framePackage->getArgument(1)};
+				bool state = std::get<bool>(framePackage->getArgument(0));
+				uint32_t pin = std::get<uint32_t>(framePackage->getArgument(1));
 
-				framePackage->_synonym = "Set Pin " + pin.toByteArray() + " " + state.toByteArray();
+				framePackage->_synonym = "Set Pin " + QByteArray::number(pin) + " " + QByteArray(state ? "true" : "false");
 
-				emit pinStateChanged(pin.toULongLong(), state.toBool());
+				emit pinStateChanged(pin, state);
 			}
 			break;
 
@@ -294,7 +294,7 @@ void TACSTM32DriveThread::run()
 					}
 					else
 					{
-						AppCore::writeToApplicationLogLine(QString("TACSTM32DriveThread::run() write failure for request %1").arg(framePackage->_request.data()));
+						AppCore::writeToApplicationLogLine("TACSTM32DriveThread::run() write failure for request " + framePackage->_request.toStdString());
 
 						framePackage->_valid = false;
 						framePackage->_lastError = "BugHopper V2 write failed";

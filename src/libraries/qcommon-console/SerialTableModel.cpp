@@ -14,8 +14,10 @@
 
 // C++
 #include <algorithm>
+#include <cstdint>
+#include <utility>
 
-typedef QPair<quint16, quint16> FilterKey;
+typedef std::pair<uint16_t, uint16_t> FilterKey;
 
 template<class T> QByteArray DecAndHexPrint(T value, int width)
 {
@@ -58,11 +60,11 @@ SerialTableModel::~SerialTableModel()
 
 void SerialTableModel::addFilterKey
 (
-	quint16 vendorID,
-	quint16 productID
+	uint16_t vendorID,
+	uint16_t productID
 )
 {
-	FilterKey filterKey = qMakePair(vendorID, productID);
+	FilterKey filterKey = std::make_pair(vendorID, productID);
 
 	if (_impl->_filterKeys.contains(filterKey) == false)
 	{
@@ -72,8 +74,8 @@ void SerialTableModel::addFilterKey
 
 bool SerialTableModel::filterProc
 (
-	quint16 vendorID,
-	quint16 productID
+	uint16_t vendorID,
+	uint16_t productID
 )
 {
 	Q_UNUSED(vendorID)
@@ -118,7 +120,7 @@ void SerialTableModel::refresh()
 	{
 		for (const auto& serialPortInfo: std::as_const(availablePorts))
 		{
-			QString message = QString("Found serial port with vendor id: %1 and product id: %2\n").arg(serialPortInfo.vendorIdentifier()).arg(serialPortInfo.productIdentifier());
+			std::string message = "Found serial port with vendor id: " + std::to_string(serialPortInfo.vendorIdentifier()) + " and product id: " + std::to_string(serialPortInfo.productIdentifier()) + "\n";
 			appCore->writeToAppLog(message);
 		}
 	}

@@ -36,7 +36,7 @@ void TACLiteProtocol::setTACDriveTrain
 	_tacDriveTrain = tacDriveTrain;
 }
 
-quint32 TACLiteProtocol::sendCommand
+uint32_t TACLiteProtocol::sendCommand
 (
 	const QByteArray& command,
 	const Arguments& arguments,
@@ -45,7 +45,7 @@ quint32 TACLiteProtocol::sendCommand
 	bool shouldStore
 )
 {
-	quint32 result(kBadQueueValue);
+	uint32_t result(kBadQueueValue);
 
 	if (command.isEmpty() == false)
 	{
@@ -56,7 +56,7 @@ quint32 TACLiteProtocol::sendCommand
 		framePackage->_packetID = result;
 		framePackage->_request = command;
 		framePackage->_arguments = arguments;
-		framePackage->_requestHash = CommandStringToHash(command);
+		framePackage->_requestHash = CommandStringToHash(command.toStdString());
 		framePackage->_console = console;
 		framePackage->_shouldStore = shouldStore;
 		framePackage->_tickcount = tickCount();

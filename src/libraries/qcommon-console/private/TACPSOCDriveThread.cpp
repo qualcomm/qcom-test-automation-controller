@@ -18,10 +18,12 @@
 #include <QDateTime>
 #include <QTextStream>
 
+#include <cstdint>
+
 #define on true
 #define off false
 
-const QString kTACSerialDriveTrainName(QStringLiteral("TAC Serial Drive Train"));
+const std::string kTACSerialDriveTrainName("TAC Serial Drive Train");
 
 TACPSOCDriveThread::TACPSOCDriveThread
 (
@@ -38,8 +40,8 @@ TACPSOCDriveThread::TACPSOCDriveThread
 	AlpacaDevice alpacaDevice = _AlpacaDevice::findAlpacaDevice(hash);
 	if (alpacaDevice->active())
 	{
-		_portName = alpacaDevice->portName();
-		_serialNumber = alpacaDevice->serialNumber();
+		_portName = QByteArray::fromStdString(alpacaDevice->portName());
+		_serialNumber = QString::fromStdString(alpacaDevice->serialNumber());
 		_description = alpacaDevice->description();
 
 		connect(this, &TACDriveThread::pinStateChanged, alpacaDevice.data(), &_AlpacaDevice::on_pinStateChanged);
@@ -79,8 +81,8 @@ bool TACPSOCDriveThread::openSerialDevice()
 
 			emit serialNumUpdate(_serialNumber);
 
-			AppCore::writeToApplicationLogLine(QString("Device %1 opened").arg(_tacPortInfo.serialNumber()));
-			AppCore::writeToApplicationLogLine(QString("Com port %1\n").arg(_tacPortInfo.portName()));
+			AppCore::writeToApplicationLogLine("Device " + _serialNumber.toStdString() + " opened");
+			AppCore::writeToApplicationLogLine("Com port " + portName().toStdString() + "\n");
 
 			result = true;
 		}
@@ -88,7 +90,7 @@ bool TACPSOCDriveThread::openSerialDevice()
 		{
 			_lastErrorMessage = "Unable to open TAC Port. " + serialPortError().toLatin1();
 
-			AppCore::writeToApplicationLogLine(_lastErrorMessage);
+			AppCore::writeToApplicationLogLine(_lastErrorMessage.toStdString());
 
 			emit errorOnOpen("PSOC Device Open Failed, Check the Application Log");
 
@@ -127,7 +129,7 @@ void TACPSOCDriveThread::endTransaction
 
 void TACPSOCDriveThread::setPinState
 (
-	quint16 pin,
+	uint16_t pin,
 	bool state
 )
 {
@@ -142,8 +144,8 @@ void TACPSOCDriveThread::setPinState
 
 void TACPSOCDriveThread::setAddressPinState
 (
-	const QString& i2cAddress,
-	quint16 pin,
+	const std::string& i2cAddress,
+	uint16_t pin,
 	bool state
 )
 {
@@ -170,15 +172,15 @@ void TACPSOCDriveThread::sendCommandSequence
 			break;
 
 		case _CommandEntry::eSetPin:
-			tacCommand.setPinState(commandEntry->_pinID, commandEntry->_arguement.toBool());
+			tacCommand.setPinState(commandEntry->_pinID, std::get<bool>(commandEntry->_arguement));
 			break;
 
 		case _CommandEntry::eLog:
-			tacCommand.addLogComment(commandEntry->_arguement.toString().toLatin1() + "\n");
+			tacCommand.addLogComment(QByteArray::fromStdString(std::get<std::string>(commandEntry->_arguement)) + "\n");
 			break;
 
 		case _CommandEntry::eDelay:
-			tacCommand.addDelay(commandEntry->_arguement.toUInt());
+			tacCommand.addDelay(std::get<uint32_t>(commandEntry->_arguement));
 			break;
 
 		case _CommandEntry::eBaseCommand:
@@ -215,8 +217,8 @@ void TACPSOCDriveThread::clearResetCount()
 
 void TACPSOCDriveThread::i2CReadRegister
 (
-	quint32 addr,
-	quint32 reg
+	uint32_t addr,
+	uint32_t reg
 )
 {
 	{
@@ -237,9 +239,9 @@ void TACPSOCDriveThread::i2CReadRegister
 
 void TACPSOCDriveThread::i2CWriteRegister
 (
-	quint32 addr,
-	quint32 reg,
-	quint32 data
+	uint32_t addr,
+	uint32_t reg,
+	uint32_t data
 )
 {
 	{
@@ -375,7 +377,7 @@ void TACPSOCDriveThread::setName
 	{
 		if (newName != _name)
 		{
-			if (isAlphaNumeric(newName) == true)
+			if (isAlphaNumeric(newName.toStdString()) == true)
 			{
 				{
 					TACPSOCCommand tacCommand(this, this);
@@ -389,7 +391,7 @@ void TACPSOCDriveThread::setName
 	}
 }
 
-quint32 TACPSOCDriveThread::send
+uint32_t TACPSOCDriveThread::send
 (
 	const QByteArray& sendMe,
 	const Arguments& arguments,
@@ -419,7 +421,7 @@ bool TACPSOCDriveThread::readSerialData()
 		if (buffer.isEmpty() == false)
 		{
 #ifdef DEBUG
-			AppCore::writeToApplicationLogLine(buffer);
+			AppCore::writeToApplicationLogLine(buffer.toStdString());
 #endif
 			_protocolInterface->handleRecievedData(buffer);
 			result = true;
@@ -538,19 +540,19 @@ void TACPSOCDriveThread::run()
 					else
 					{
 #ifdef DEBUG
-						AppCore::writeToApplicationLogLine("TACPSOCDriveThread::run()::Write: " + framePackage->_codedRequest);
+						AppCore::writeToApplicationLogLine("TACPSOCDriveThread::run()::Write: " + framePackage->_codedRequest.toStdString());
 #endif
 
-						qint64 bytesWritten = _serialPort->write(framePackage->_codedRequest);
+						int64_t bytesWritten = _serialPort->write(framePackage->_codedRequest);
 						if (bytesWritten == -1)
 						{
-							AppCore::writeToApplicationLogLine(QByteArray("TACPSOCDriveThread::run()::bytesWritten == -1"));
+							AppCore::writeToApplicationLogLine("TACPSOCDriveThread::run()::bytesWritten == -1");
 
 							QString errorString = _serialPort->errorString();
 							if (errorString.isEmpty() == false)
 							{
 								errorString = QString("Error on write ") + errorString;
-								AppCore::writeToApplicationLogLine(errorString);
+								AppCore::writeToApplicationLogLine(errorString.toStdString());
 							}
 
 							stopRunning();
@@ -657,7 +659,7 @@ void TACPSOCDriveThread::handleI2CWrite
 {
 	if (framePackage->_valid)
 	{
-		QByteArray successResult = framePackage->_request + " " + framePackage->getArgument(0).toByteArray() + " Successful";
+		QByteArray successResult = framePackage->_request + " " + QByteArray::fromStdString(std::get<std::string>(framePackage->getArgument(0))) + " Successful";
 		emit i2CWriteResult(successResult);
 	}
 	else
@@ -672,20 +674,21 @@ void TACPSOCDriveThread::handleSetPin
 	FramePackage& framePackage
 )
 {
-	QVariant pinVariant{framePackage->getArgument(1)};
-	QVariant stateVariant{framePackage->getArgument(0)};
+	Argument pinArgument{framePackage->getArgument(1)};
+	Argument stateArgument{framePackage->getArgument(0)};
 
-	if (pinVariant.isValid() && stateVariant.isValid())
+	if (std::holds_alternative<uint32_t>(pinArgument) && std::holds_alternative<bool>(stateArgument))
 	{
-		QString pinString = QString("Pin %1 ").arg(pinVariant.toString());
+		uint32_t pin = std::get<uint32_t>(pinArgument);
+		QString pinString = QString("Pin %1 ").arg(pin);
 
-		bool pinOn = stateVariant.toBool();
+		bool pinOn = std::get<bool>(stateArgument);
 		if (pinOn)
 			framePackage->_synonym = pinString.toLatin1() + "on";
 		else
 			framePackage->_synonym = pinString.toLatin1() + "off";
 
-		emit pinStateChanged(static_cast<PinID>(pinVariant.toUInt()), pinOn);
+		emit pinStateChanged(static_cast<PinID>(pin), pinOn);
 	}
 }
 
@@ -694,11 +697,11 @@ void TACPSOCDriveThread::handleSetName
 	FramePackage& framePackage
 )
 {
-	QVariant variant{framePackage->getArgument(0)};
+	Argument argument{framePackage->getArgument(0)};
 
-	if (variant.isValid())
+	if (std::holds_alternative<std::string>(argument))
 	{
-		_name = variant.toByteArray();
+		_name = QByteArray::fromStdString(std::get<std::string>(argument));
 		framePackage->_synonym = "Set Name " + _name;
 	}
 
@@ -740,7 +743,7 @@ void TACPSOCDriveThread::handleVersionResponse
 		}
 
 		_versionString = versionString;
-		AppCore::writeToApplicationLogLine(QString("Version String: %1").arg(_versionString.data()));
+		AppCore::writeToApplicationLogLine("Version String: " + std::string(_versionString.data()));
 
 		retryCount = 1;
 
@@ -765,7 +768,7 @@ void TACPSOCDriveThread::handleVersionResponse
 				{
 					QString firmwareString = versionParts.at(fwIndex + 2);
 
-					_firmwareString = firmwareString.toLatin1();
+					_firmwareString = firmwareString.toStdString();
 
 					QStringList firmwareVersionParts = firmwareString.split(".", Qt::SkipEmptyParts);
 					if (firmwareVersionParts.count() >= 4)
@@ -794,7 +797,7 @@ void TACPSOCDriveThread::handleVersionResponse
 	}
 	else if (retryCount < 4)
 	{
-		AppCore::writeToApplicationLogLine(QString("Version Failed Retry %1").arg(retryCount));
+		AppCore::writeToApplicationLogLine("Version Failed Retry " + std::to_string(retryCount));
 		TACPSOCCommand tacCommand(this, this);
 
 		tacCommand.version();
@@ -872,13 +875,13 @@ void TACPSOCDriveThread::log
 	{
 		logEntry = QString("Delay %1 in msecs").arg(framePackage->_delayInMilliSeconds);
 		timeStampLogMessage(logEntry);
-		AppCore::writeToApplicationLogLine(logEntry);
+		AppCore::writeToApplicationLogLine(logEntry.toStdString());
 	}
 	else if (framePackage->_comment.isEmpty() == false)
 	{
 		logEntry = QString("%1").arg(framePackage->_comment.data());
 		timeStampLogMessage(logEntry);
-		AppCore::writeToApplicationLogLine(logEntry);
+		AppCore::writeToApplicationLogLine(logEntry.toStdString());
 	}
 	else
 	{
@@ -887,16 +890,16 @@ void TACPSOCDriveThread::log
 		else
 			logEntry = QString("Request: %1").arg(framePackage->_request.data());
 
-		AppCore::writeToApplicationLogLine(logEntry);
+		AppCore::writeToApplicationLogLine(logEntry.toStdString());
 
 		logEntry.clear();
 		timeStampLogMessage(logEntry);
-		AppCore::writeToApplicationLogLine(logEntry);
+		AppCore::writeToApplicationLogLine(logEntry.toStdString());
 
 		if (framePackage->_synonym.isEmpty() == false)
 		{
 			logEntry = QString("Synonym: %1").arg(framePackage->_synonym.data());
-			AppCore::writeToApplicationLogLine(logEntry);
+			AppCore::writeToApplicationLogLine(logEntry.toStdString());
 		}
 
 		AppCore::writeToApplicationLogLine("Responses");
@@ -905,7 +908,7 @@ void TACPSOCDriveThread::log
 		while (response != framePackage->_responses.end())
 		{
 			logEntry = QString("   %1").arg(response->data());
-			AppCore::writeToApplicationLogLine(logEntry);
+			AppCore::writeToApplicationLogLine(logEntry.toStdString());
 			response++;
 		}
 

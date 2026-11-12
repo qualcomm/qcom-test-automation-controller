@@ -9,13 +9,15 @@
 #include "AppCore.h"
 #include "PreferencesBase.h"
 
+#include <string>
+
 class QCOMMONCONSOLE_EXPORT AlpacaSharedLibrary
 {
 public:
 	explicit AlpacaSharedLibrary();
 	~AlpacaSharedLibrary();
 
-	bool initialize(const QByteArray& appName, const QByteArray& appVersion, PreferencesBase* preferencesBase);
+	bool initialize(const std::string& appName, const std::string& appVersion, PreferencesBase* preferencesBase);
 
 	static AppCore* getAppCore();
 
@@ -24,22 +26,22 @@ public:
 	void setLoggingState(bool state);
 	bool getLoggingState();
 
-	QByteArray lastError()
+	std::string lastError()
 	{
-		QByteArray result{_lastError};
+		std::string result{_lastError};
 
 		_lastError.clear();
 		return result;
 	}
 
-	void setLastError(const QByteArray& lastError)
+	void setLastError(const std::string& lastError)
 	{
 		_lastError = lastError;
 	}
 protected:
-	QString						_appName;
-	QString						_appVersion;
-	QByteArray					_lastError;
+	std::string					_appName;
+	std::string					_appVersion;
+	std::string					_lastError;
 	static AppCore*				_appCore;
 	bool						_validLicense{true};
 };

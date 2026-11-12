@@ -35,7 +35,7 @@ uint SerialPortInfo::hash()
 {
 	if (_hash == 0)
 	{
-		_hash = ::strHash(portName());
+		_hash = ::strHash(portName().toStdString());
 	}
 
 	return _hash;

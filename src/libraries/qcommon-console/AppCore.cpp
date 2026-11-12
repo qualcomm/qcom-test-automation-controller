@@ -93,11 +93,11 @@ void AppCore::setPreferences
 	setAppLogging(_preferences->loggingActive());
 }
 
-quint32 AppCore::daysSinceInstall()
+uint32_t AppCore::daysSinceInstall()
 {
-	quint32 result{0};
+	uint32_t result{0};
 
-	QString buildDateStr = kCompileDate.trimmed();
+	QString buildDateStr = QString::fromStdString(kCompileDate).trimmed();
 
 	buildDateStr = buildDateStr.replace("  ", " ");
 
@@ -111,10 +111,10 @@ quint32 AppCore::daysSinceInstall()
 	if (result > 90)
 	{
 		QString message = "Current Date:" + QDate::currentDate().toString();
-		writeToAppLog(message);
+		writeToAppLog(message.toStdString());
 
 		message = "Build Date:" + buildDateTime.toString();
-		writeToAppLog(message);
+		writeToAppLog(message.toStdString());
 
 		QSettings alpacaSettings;
 		alpacaSettings.setValue("dateCheckNotified", false);
@@ -142,18 +142,18 @@ void AppCore::setAppLogging
 
 		if (_preferences != Q_NULLPTR)
 		{
-			logPath = QDir::cleanPath(_preferences->appLogPath() + QDir::separator() + _ThreadedLog::createLogName(_appName + "_"));
+			logPath = QDir::cleanPath(QString::fromStdString(_preferences->appLogPath()) + QDir::separator() + _ThreadedLog::createLogName(QString::fromStdString(_appName + "_")));
 		}
 		else
 		{
-			logPath = QDir::cleanPath(defaultGlobalLoggingPath() + QDir::separator() + _ThreadedLog::createLogName(_appName + "_"));
+			logPath = QDir::cleanPath(QString::fromStdString(defaultGlobalLoggingPath()) + QDir::separator() + _ThreadedLog::createLogName(QString::fromStdString(_appName + "_")));
 		}
 
 		_appThreadedLog = _ThreadedLog::createThreadedLog();
 		_appThreadedLog->open(logPath);
 
 		writeToAppLog(_appName + " Application log started\n");
-		writeToAppLog("QTAC Version: " + QString(QTAC_VERSION) + "\n");
+		writeToAppLog("QTAC Version: " + QString(QTAC_VERSION).toStdString() + "\n");
 		writeToAppLog(_appName + " Version: " + _appVersion + "\n");
 	}
 }
@@ -177,11 +177,11 @@ void AppCore::setRunLogging(bool loggingState)
 
 		if (_preferences != Q_NULLPTR)
 		{
-			logPath = QDir::cleanPath(_preferences->runLogPath() + QDir::separator() + _ThreadedLog::createLogName(_appName + "_"));
+			logPath = QDir::cleanPath(QString::fromStdString(_preferences->runLogPath()) + QDir::separator() + _ThreadedLog::createLogName(QString::fromStdString(_appName + "_")));
 		}
 		else
 		{
-			logPath = QDir::cleanPath(defaultLoggingPath(_appName) + QDir::separator() + _ThreadedLog::createLogName(_appName + "_"));
+			logPath = QDir::cleanPath(QString::fromStdString(defaultLoggingPath(_appName)) + QDir::separator() + _ThreadedLog::createLogName(QString::fromStdString(_appName + "_")));
 		}
 
 		_runThreadedLog = _ThreadedLog::createThreadedLog();
@@ -195,9 +195,9 @@ bool AppCore::runLoggingActive()
 	return _runThreadedLog.isNull() == false;
 }
 
-QString AppCore::loggingPath()
+std::string AppCore::loggingPath()
 {
-	QString result{defaultLoggingPath(_appName)};
+	std::string result{defaultLoggingPath(_appName)};
 
 	if (_preferences != Q_NULLPTR)
 		result = _preferences->runLogPath();
@@ -207,8 +207,8 @@ QString AppCore::loggingPath()
 
 bool AppCore::checkLicense
 (
-		const QByteArray& productID,
-		const QByteArray& featureID
+		const std::string& productID,
+		const std::string& featureID
 )
 {
 	bool result{true};
@@ -236,7 +236,7 @@ void AppCore::postAutomationEvent()
 
 void AppCore::postMetric
 (
-	const QByteArray& metricID,
+	const std::string& metricID,
 	double metric
 )
 {
@@ -249,13 +249,13 @@ void AppCore::postMetric
 	// }
 }
 
-void AppCore::writeToAppLog(const QString &writeMe)
+void AppCore::writeToAppLog(const std::string &writeMe)
 {
 	if (_appThreadedLog.isNull() == false)
-		_appThreadedLog->addLogEntry("[" + QTime::currentTime().toString("hh:mm:ss:zzz") + "]: " + writeMe);
+		_appThreadedLog->addLogEntry("[" + QTime::currentTime().toString("hh:mm:ss:zzz") + "]: " + QString::fromStdString(writeMe));
 }
 
-void AppCore::writeToApplicationLog(const QString& writeMe)
+void AppCore::writeToApplicationLog(const std::string& writeMe)
 {
 	AppCore* appCore = AppCore::getAppCore();
 	if (appCore != Q_NULLPTR)
@@ -264,19 +264,19 @@ void AppCore::writeToApplicationLog(const QString& writeMe)
 
 void AppCore::writeToApplicationLogLine
 (
-	const QString& writeMe
+	const std::string& writeMe
 )
 {
-	AppCore::writeToApplicationLog(writeMe + QString("\n"));
+	AppCore::writeToApplicationLog(writeMe + "\n");
 }
 
-void AppCore::writeToRunLog(const QString& writeMe)
+void AppCore::writeToRunLog(const std::string& writeMe)
 {
 	if (_runThreadedLog.isNull() == false)
-		_runThreadedLog->addLogEntry(writeMe);
+		_runThreadedLog->addLogEntry(QString::fromStdString(writeMe));
 }
 
-void AppCore::writeToRuntimeLog(const QString& writeMe)
+void AppCore::writeToRuntimeLog(const std::string& writeMe)
 {
 	AppCore* appCore = AppCore::getAppCore();
 	if (appCore != Q_NULLPTR)

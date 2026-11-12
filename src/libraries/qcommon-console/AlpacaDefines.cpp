@@ -3,11 +3,11 @@
 
 #include "AlpacaDefines.h"
 
-quint32 makeFirmwareVersion
+uint32_t makeFirmwareVersion
 (
-	quint32 hw,
-	quint32 major,
-	quint32 minor
+	uint32_t hw,
+	uint32_t major,
+	uint32_t minor
 )
 {
 	return (hw << 16) | (major << 8) | minor;

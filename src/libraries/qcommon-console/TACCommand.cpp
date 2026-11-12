@@ -3,14 +3,14 @@
 
 #include "TACCommand.h"
 
-QString TACCommand::command()
+std::string TACCommand::command()
 {
 	return _command;
 }
 
 bool TACCommand::contains
 (
-	const QString &command,
+	const std::string &command,
 	const TACCommands &tacCommands
 )
 {
@@ -28,7 +28,7 @@ bool TACCommand::contains
 	return result;
 }
 
-TACCommand TACCommand::find(const QString &command, const TACCommands &tacCommands)
+TACCommand TACCommand::find(const std::string &command, const TACCommands &tacCommands)
 {
 	TACCommand result;
 

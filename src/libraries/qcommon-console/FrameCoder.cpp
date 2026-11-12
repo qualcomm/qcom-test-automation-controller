@@ -29,14 +29,6 @@ QByteArray FrameCoder::encode
 	return encodeMe;
 }
 
-QByteArray FrameCoder::variantToBoolString(const QVariant& state) const
-{
-	if (state.toBool() == true)
-		return "1";
-
-	return "0";
-}
-
 void FrameCoder::setupCallbackFunctions
 (
 	ProtocolInterface* protocolInterface,

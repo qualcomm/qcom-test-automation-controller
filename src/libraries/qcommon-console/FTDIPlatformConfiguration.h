@@ -10,15 +10,16 @@
 #include "FTDIPinData.h"
 #include "StringUtilities.h"
 
+#include <cstdint>
 
 class QCOMMONCONSOLE_EXPORT _FTDIPlatformConfiguration:
 	public _PlatformConfiguration
 {
 public:
 	_FTDIPlatformConfiguration() = delete;
-	_FTDIPlatformConfiguration(quint16 chipCount);
+	_FTDIPlatformConfiguration(uint16_t chipCount);
 
-	void initialize(quint16 chipCount);
+	void initialize(uint16_t chipCount);
 
 	virtual ~_FTDIPlatformConfiguration();
 
@@ -52,29 +53,29 @@ public:
 	void setPinInvertedState(HashType hash, bool newState);
 	void setPinInvertedState(const ChipIndex chipIndex, const Bus& busName, const PinID pinId, bool newState);
 
-	QString getPinLabel(const ChipIndex chipIndex, const Bus& busName, const PinID pinId) const;
-	void setPinLabel(HashType hash, const QString& pinLabel);
-	void setPinLabel(const ChipIndex chipIndex, const Bus& busName, const PinID pinId, const QString& pinLabel);
+	std::string getPinLabel(const ChipIndex chipIndex, const Bus& busName, const PinID pinId) const;
+	void setPinLabel(HashType hash, const std::string& pinLabel);
+	void setPinLabel(const ChipIndex chipIndex, const Bus& busName, const PinID pinId, const std::string& pinLabel);
 
-	QString getPinTooltip(const ChipIndex chipIndex, const Bus& busName, const PinID pinId) const;
-	void setPinTooltip(HashType hash, const QString& pinTooltip);
-	void setPinTooltip(const ChipIndex chipIndex, const Bus& busName, const PinID pinId, const QString& pinTooltip);
+	std::string getPinTooltip(const ChipIndex chipIndex, const Bus& busName, const PinID pinId) const;
+	void setPinTooltip(HashType hash, const std::string& pinTooltip);
+	void setPinTooltip(const ChipIndex chipIndex, const Bus& busName, const PinID pinId, const std::string& pinTooltip);
 
-	QString getPinCommand(const ChipIndex chipIndex, const Bus& busName, const PinID pinId) const;
-	void setPinCommand(HashType hash, const QString& pinCommand);
-	void setPinCommand(const ChipIndex chipIndex, const Bus& busName, const PinID pinId, const QString& pinCommand);
+	std::string getPinCommand(const ChipIndex chipIndex, const Bus& busName, const PinID pinId) const;
+	void setPinCommand(HashType hash, const std::string& pinCommand);
+	void setPinCommand(const ChipIndex chipIndex, const Bus& busName, const PinID pinId, const std::string& pinCommand);
 
 	CommandGroups getPinGroup(const ChipIndex chipIndex, const Bus& busName, const PinID pinId) const;
 	void setPinGroup(HashType hash, const CommandGroups pinGroup);
 	void setPinGroup(const ChipIndex chipIndex, const Bus& busName, const PinID pinId, const CommandGroups pinGroup);
 
-	QString getTabName(const ChipIndex chipIndex, const Bus& busName, const PinID pinId) const;
-	void setTabName(HashType hash, const QString& tabName);
-	void setTabName(const ChipIndex chipIndex, const Bus& busName, const PinID pinId, const QString& tabName);
+	std::string getTabName(const ChipIndex chipIndex, const Bus& busName, const PinID pinId) const;
+	void setTabName(HashType hash, const std::string& tabName);
+	void setTabName(const ChipIndex chipIndex, const Bus& busName, const PinID pinId, const std::string& tabName);
 
-	QPoint getPinCellLocation(const ChipIndex chipIndex, const Bus& busName, const PinID pinId) const;
-	void setPinCellLocation(HashType hash, const QPoint& cellLocation);
-	void setPinCellLocation(const ChipIndex chipIndex, const Bus& busName, const PinID pinId, const QPoint& cellLocation);
+	std::pair<int, int> getPinCellLocation(const ChipIndex chipIndex, const Bus& busName, const PinID pinId) const;
+	void setPinCellLocation(HashType hash, const std::pair<int, int>& cellLocation);
+	void setPinCellLocation(const ChipIndex chipIndex, const Bus& busName, const PinID pinId, const std::pair<int, int>& cellLocation);
 
 	FTDIBusData getBusFunction(const ChipIndex chipIndex, const Bus& busName) const;
 	void setBusFunction(HashType hash, const FTDIBusFunction busFunction);
@@ -83,8 +84,8 @@ public:
 	FTDIPinSets getPinSet(const ChipIndex chipIndex);
 
 protected:
-	virtual void cascadeTabDelete(const QString& deleteMe);
-	virtual void cascadeTabRename(const QString& oldName, const QString& newName);
+	virtual void cascadeTabDelete(const std::string& deleteMe);
+	virtual void cascadeTabRename(const std::string& oldName, const std::string& newName);
 
 	virtual bool read(QJsonObject& parentLevel);
 	virtual void write(QJsonObject& parentLevel);
@@ -96,7 +97,7 @@ private:
 	int							_chipCount{1};
 	FTDIPinEntries				_pinEntries;
 	FTDIBusFunctions            _busFunctions;
-	QString						_usbDescriptorString;
+	std::string					_usbDescriptorString;
 };
 
 #endif // FTDIPLATFORMCONFIGURATION_H

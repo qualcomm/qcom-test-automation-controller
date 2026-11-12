@@ -11,11 +11,8 @@
 // Qt
 #include <QByteArray>
 #include <QObject>
-#include <QPair>
-#include <QVariant>
 
-typedef QPair<QString, QVariant> ErrorParameter;
-typedef QList<ErrorParameter> ErrorParameters;
+#include <string>
 
 class ProtocolInterface;
 
@@ -38,9 +35,7 @@ public:
 protected:
 	Q_DISABLE_COPY(FrameCoder)
 
-	QByteArray variantToBoolString(const QVariant& state) const;
-
-	QByteArray					_frame;
+	std::string					_frame;
 
 	ProtocolInterface*			_protocolInterface{Q_NULLPTR};
 	FrameCompleteFunc			_frameFunction{Q_NULLPTR};

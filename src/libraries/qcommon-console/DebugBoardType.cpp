@@ -3,9 +3,25 @@
 
 #include "DebugBoardType.h"
 
-QString debugBoardTypeToString(DebugBoardType debugBoardType)
+#include <cctype>
+
+static bool equalsCaseInsensitive(const std::string& left, const std::string& right)
 {
-	QString result("Unknown");
+	if (left.size() != right.size())
+		return false;
+
+	for (size_t index = 0; index < left.size(); index++)
+	{
+		if (std::tolower(static_cast<unsigned char>(left[index])) != std::tolower(static_cast<unsigned char>(right[index])))
+			return false;
+	}
+
+	return true;
+}
+
+std::string debugBoardTypeToString(DebugBoardType debugBoardType)
+{
+	std::string result("Unknown");
 
 	switch (debugBoardType)
 	{
@@ -22,29 +38,29 @@ QString debugBoardTypeToString(DebugBoardType debugBoardType)
 	return result;
 }
 
-DebugBoardType debugBoardTypeFromString(const QString& boardString)
+DebugBoardType debugBoardTypeFromString(const std::string& boardString)
 {
 	DebugBoardType result{eUnknownDebugBoard};
 
-	if (boardString.compare("PSOC", Qt::CaseInsensitive) == 0)
+	if (equalsCaseInsensitive(boardString, "PSOC"))
 		result = ePSOC;
-	else if (boardString.compare("FTDI", Qt::CaseInsensitive) == 0)
+	else if (equalsCaseInsensitive(boardString, "FTDI"))
 		result = eFTDI;
-	else if (boardString.compare("PIC32CXAuto", Qt::CaseInsensitive) == 0)
+	else if (equalsCaseInsensitive(boardString, "PIC32CXAuto"))
 		result = ePIC32CXAuto;
-	else if (boardString.compare("Spider Board", Qt::CaseInsensitive) == 0)
+	else if (equalsCaseInsensitive(boardString, "Spider Board"))
 		result = eSpiderBoard;
-	else if (boardString.compare("FT232H", Qt::CaseInsensitive) == 0)
+	else if (equalsCaseInsensitive(boardString, "FT232H"))
 		result = eFT232H;
-	else if (boardString.compare("STM32", Qt::CaseInsensitive) == 0)
+	else if (equalsCaseInsensitive(boardString, "STM32"))
 		result = eSTM32;
 
 	return result;
 }
 
-QString psocVariantToString(PSOCVariant psocVariant)
+std::string psocVariantToString(PSOCVariant psocVariant)
 {
-	QString result("Unknown");
+	std::string result("Unknown");
 
 	switch (psocVariant)
 	{
@@ -58,21 +74,21 @@ QString psocVariantToString(PSOCVariant psocVariant)
 	return result;
 }
 
-PSOCVariant psocVariantFromString(const QString &psocVariantString)
+PSOCVariant psocVariantFromString(const std::string &psocVariantString)
 {
 	PSOCVariant result{ePSOCUnknown};
 
-	if (psocVariantString.compare("GPIO", Qt::CaseInsensitive) == 0)
+	if (equalsCaseInsensitive(psocVariantString, "GPIO"))
 		result = ePSOCGPIO;
-	else if (psocVariantString.compare("GPIO with I2C", Qt::CaseInsensitive) == 0)
+	else if (equalsCaseInsensitive(psocVariantString, "GPIO with I2C"))
 		result = ePSOCGPIOIIC;
 
 	return result;
 }
 
-QString psocSlaveToString(const PSOCIICVariant slave)
+std::string psocSlaveToString(const PSOCIICVariant slave)
 {
-	QString result("Unknown");
+	std::string result("Unknown");
 
 	switch (slave)
 	{

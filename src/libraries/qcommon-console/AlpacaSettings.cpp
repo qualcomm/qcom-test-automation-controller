@@ -8,10 +8,10 @@
 
 AlpacaSettings::AlpacaSettings
 (
-	const QString& appName
+	const std::string& appName
 )
 {
-	beginGroup(appName);
+	beginGroup(QString::fromStdString(appName));
 }
 
 AlpacaSettings::~AlpacaSettings()

@@ -8,12 +8,74 @@
 #include "ConsoleApplicationEnhancements.h"
 #include "ScriptVariable.h"
 
-// Qt
-#include <QSharedPointer>
-#include <QTextStream>
-
 // c++
+#include <algorithm>
+#include <cctype>
+#include <fstream>
+#include <sstream>
 #include <utility>
+
+static std::string trimCopy(const std::string& value)
+{
+	size_t start = value.find_first_not_of(" \t\r\n");
+	if (start == std::string::npos)
+		return std::string();
+
+	size_t end = value.find_last_not_of(" \t\r\n");
+
+	return value.substr(start, end - start + 1);
+}
+
+static std::string toLowerCopy(const std::string& value)
+{
+	std::string result{value};
+	for (char& c: result)
+		c = static_cast<char>(std::tolower(static_cast<unsigned char>(c)));
+
+	return result;
+}
+
+static bool equalsCaseInsensitive(const std::string& left, const std::string& right)
+{
+	return toLowerCopy(left) == toLowerCopy(right);
+}
+
+static bool startsWith(const std::string& value, const std::string& prefix)
+{
+	return value.size() >= prefix.size() && value.compare(0, prefix.size(), prefix) == 0;
+}
+
+static std::vector<std::string> splitWords(const std::string& line)
+{
+	std::vector<std::string> result;
+
+	std::istringstream lineStream(line);
+	std::string word;
+	while (lineStream >> word)
+		result.push_back(word);
+
+	return result;
+}
+
+static bool toUInt16(const std::string& value, uint16_t& result)
+{
+	if (value.empty())
+		return false;
+
+	for (const auto& c: value)
+	{
+		if (std::isdigit(static_cast<unsigned char>(c)) == 0)
+			return false;
+	}
+
+	unsigned long parsed = std::stoul(value);
+	if (parsed > 0xFFFF)
+		return false;
+
+	result = static_cast<uint16_t>(parsed);
+
+	return true;
+}
 
 // QTAC Script
 AlpacaScript::AlpacaScript()
@@ -21,50 +83,51 @@ AlpacaScript::AlpacaScript()
 
 }
 
-QByteArray AlpacaScript::defaultScript(DebugBoardType boardType)
+std::string AlpacaScript::defaultScript(DebugBoardType boardType)
 {
-	QByteArray result;
-	QString scriptPath;
+	std::string result;
 
 	Q_UNUSED(boardType);
 
-	scriptPath = tacConfigRoot() + "DefaultScript.txt";
+	std::string scriptPath = tacConfigRoot() + "DefaultScript.txt";
 
-	QFile file(scriptPath);
-	if (file.open(QIODevice::ReadOnly) == true)
+	std::ifstream file(scriptPath, std::ios::binary);
+	if (file.is_open() == true)
 	{
-		result = file.readAll();
-		file.close();
+		std::ostringstream fileContents;
+		fileContents << file.rdbuf();
+		result = fileContents.str();
 	}
 
 	return result;
 }
 
-bool AlpacaScript::parseScript(const QByteArray& alpacaScript, const ScriptVariables& scriptVariables, const TACCommands& tacCommands)
+bool AlpacaScript::parseScript(const std::string& alpacaScript, const ScriptVariables& scriptVariables, const TACCommands& tacCommands)
 {
 	bool result{true};
 
-	QTextStream alpacaScriptStream(alpacaScript);
+	std::istringstream alpacaScriptStream(alpacaScript);
 
 	ScriptCommand scriptCommand;
 
-	while (alpacaScriptStream.atEnd() == false)
+	std::string lineText;
+	while (std::getline(alpacaScriptStream, lineText))
 	{
-		QString line = alpacaScriptStream.readLine().trimmed();
-		QStringList words = line.split(' ', Qt::SkipEmptyParts);
-		if (words.count() >= 2)
+		std::string line = trimCopy(lineText);
+		std::vector<std::string> words = splitWords(line);
+		if (words.size() >= 2)
 		{
-			if (words.at(0).toLower() == "def")
+			if (toLowerCopy(words.at(0)) == "def")
 			{
 				scriptCommand = ScriptCommand(new _ScriptCommand);
 
-				scriptCommand->_command = createBaseCommandString(words.at(1)).toLatin1();
+				scriptCommand->_command = createBaseCommandString(words.at(1));
 
 				_scriptCommands[scriptCommand->_command] = scriptCommand;
 			}
 			else if (TACCommand::contains(words.at(0), tacCommands))
 			{
-				QString command{words.at(0)};
+				std::string command{words.at(0)};
 
 				TACCommand tacCommand = TACCommand::find(command, tacCommands);
 
@@ -72,28 +135,33 @@ bool AlpacaScript::parseScript(const QByteArray& alpacaScript, const ScriptVaria
 
 				commandEntry->_commandAction = _CommandEntry::eSetPin;
 				commandEntry->_pinID = tacCommand._pin;
-				commandEntry->_action = command.toLatin1();
+				commandEntry->_action = command;
 				commandEntry->_arguement = (words.at(1) == "1") ? true : false;
 
 				scriptCommand->_subCommands.push_back(commandEntry);
 			}
-			else if (words.at(0).compare("logcomment", Qt::CaseInsensitive) == 0)
+			else if (equalsCaseInsensitive(words.at(0), "logcomment"))
 			{
 				CommandEntry commandEntry = CommandEntry(new _CommandEntry);
 
 				commandEntry->_commandAction = _CommandEntry::eLog;
-				commandEntry->_action = words.at(0).toLatin1();
-				commandEntry->_arguement = line.replace("logcomment ", "", Qt::CaseInsensitive).toLatin1();
+				commandEntry->_action = words.at(0);
+
+				std::string comment = line;
+				size_t commentPos = toLowerCopy(comment).find("logcomment ");
+				if (commentPos != std::string::npos)
+					comment.erase(commentPos, std::string("logcomment ").size());
+
+				commandEntry->_arguement = comment;
 
 				scriptCommand->_subCommands.push_back(commandEntry);
 
 			}
 			else if (words.at(0) == "delay")
 			{
-				bool isNumber{false};
-
-				QString delayValueString = words.at(1);
-				ushort delayValue =  delayValueString.toLatin1().toUShort(&isNumber);
+				std::string delayValueString = words.at(1);
+				uint16_t delayValue{0};
+				bool isNumber = toUInt16(delayValueString, delayValue);
 				if (isNumber)
 				{
 					if (delayValue > 0 && delayValue < 15000)
@@ -101,17 +169,14 @@ bool AlpacaScript::parseScript(const QByteArray& alpacaScript, const ScriptVaria
 						CommandEntry commandEntry = CommandEntry(new _CommandEntry);
 
 						commandEntry->_commandAction = _CommandEntry::eDelay;
-						commandEntry->_action = words.at(0).toLatin1();
-						commandEntry->_arguement = delayValue;
+						commandEntry->_action = words.at(0);
+						commandEntry->_arguement = static_cast<uint32_t>(delayValue);
 
 						scriptCommand->_subCommands.push_back(commandEntry);
 					}
 					else
 					{
-						QString message;
-
-						message = QString("Delay argument '%1' is invalid").arg(words.at(1));
-						AppCore::writeToApplicationLogLine(message);
+						AppCore::writeToApplicationLogLine("Delay argument '" + words.at(1) + "' is invalid");
 
 						result = false;
 					}
@@ -123,42 +188,36 @@ bool AlpacaScript::parseScript(const QByteArray& alpacaScript, const ScriptVaria
 					CommandEntry commandEntry = CommandEntry(new _CommandEntry);
 
 					commandEntry->_commandAction = _CommandEntry::eDelay;
-					commandEntry->_action = words.at(0).toLatin1();
+					commandEntry->_action = words.at(0);
 					commandEntry->_arguement = delayValueString;
 
 					scriptCommand->_subCommands.push_back(commandEntry);
 				}
 				else
 				{
-					QString message;
-
-					message = QString("Delay argument '%1' is invalid").arg(words.at(1));
-					AppCore::writeToApplicationLogLine(message);
+					AppCore::writeToApplicationLogLine("Delay argument '" + words.at(1) + "' is invalid");
 
 					result = false;
 				}
 			}
 			else
 			{
-				if (words.at(0).startsWith("//") == false) // ignore comments
+				if (startsWith(words.at(0), "//") == false) // ignore comments
 				{
-					QString message;
-
-					message = QString("Unhandled Command: %1").arg(words.at(0));
-					AppCore::writeToApplicationLogLine(message);
+					AppCore::writeToApplicationLogLine("Unhandled Command: " + words.at(0));
 
 					result = false;
 				}
 			}
 		}
-		else if (words.count() == 1)
+		else if (words.size() == 1)
 		{
-			if (scriptCommand.isNull() == false)
+			if (scriptCommand != nullptr)
 			{
 				CommandEntry commandEntry = CommandEntry(new _CommandEntry);
 
 				commandEntry->_commandAction = _CommandEntry::eBaseCommand;
-				commandEntry->_action = words.at(0).toLatin1();
+				commandEntry->_action = words.at(0);
 
 				scriptCommand->_subCommands.push_back(commandEntry);
 			}
@@ -187,32 +246,39 @@ CommandEntries AlpacaScript::replaceTokens(const ScriptVariables scriptVariables
 	{
 		if (cmdEntry->_commandAction == _CommandEntry::eDelay)
 		{
-			QString variableString = cmdEntry->_arguement.toString();
-			if (isScriptVariable(scriptVariables, variableString))
+			if (std::holds_alternative<std::string>(cmdEntry->_arguement))
 			{
-				variableString = variableString.replace("$", "");
-				if (scriptVariables.contains(variableString))
+				std::string variableString = std::get<std::string>(cmdEntry->_arguement);
+				if (isScriptVariable(scriptVariables, variableString))
 				{
-					cmdEntry->_arguement = scriptVariables[variableString]._defaultValue;
+					variableString.erase(std::remove(variableString.begin(), variableString.end(), '$'), variableString.end());
+					auto variableIterator = scriptVariables.find(variableString);
+					if (variableIterator != scriptVariables.end())
+					{
+						cmdEntry->_arguement = std::get<uint32_t>(variableIterator->second._defaultValue);
+					}
 				}
 			}
 		}
 		else if (cmdEntry->_commandAction == _CommandEntry::eLog)
 		{
-			QString formattedLogMessage{""};
-			QString commentString = cmdEntry->_arguement.toString();
-			QStringList commentTokens = commentString.split(" ", Qt::SkipEmptyParts);
+			std::string commentString = std::get<std::string>(cmdEntry->_arguement);
 
+			std::vector<std::string> commentTokens = splitWords(commentString);
+
+			std::string formattedLogMessage;
 			for (auto& cmdToken : commentTokens)
 			{
 				if (isScriptVariable(scriptVariables, cmdToken))
 				{
-					commentString = cmdToken.replace("$", "");
-					QString variableValue = QString::number(scriptVariables[cmdToken]._defaultValue.toUInt());
-					formattedLogMessage.push_back(QString("%1 ").arg(variableValue));
+					std::string variableName = cmdToken;
+					variableName.erase(std::remove(variableName.begin(), variableName.end(), '$'), variableName.end());
+
+					auto variableIterator = scriptVariables.find(variableName);
+					formattedLogMessage += std::to_string(std::get<uint32_t>(variableIterator->second._defaultValue)) + " ";
 				}
 				else
-					formattedLogMessage.push_back(QString("%1 ").arg(cmdToken));
+					formattedLogMessage += cmdToken + " ";
 			}
 			cmdEntry->_arguement = formattedLogMessage;
 		}
@@ -221,44 +287,46 @@ CommandEntries AlpacaScript::replaceTokens(const ScriptVariables scriptVariables
 	return result;
 }
 
-QStringList AlpacaScript::validateScript
+std::vector<std::string> AlpacaScript::validateScript
 (
-	const QByteArray &alpacaScript,
+	const std::string &alpacaScript,
 	const TACCommands& tacCommands
 )
 {
-	QStringList result;
+	std::vector<std::string> result;
 
-	QTextStream alpacaScriptStream(alpacaScript);
+	std::istringstream alpacaScriptStream(alpacaScript);
 
-	QStringList scriptCommands;
+	std::vector<std::string> scriptCommands;
 	int lineNumber{0};
 
-	while (alpacaScriptStream.atEnd() == false)
+	std::string lineText;
+	while (std::getline(alpacaScriptStream, lineText))
 	{
-		QString line = alpacaScriptStream.readLine().trimmed();
-		QStringList words = line.split(' ', Qt::SkipEmptyParts);
-		if (words.count() >= 2)
+		std::string line = trimCopy(lineText);
+		std::vector<std::string> words = splitWords(line);
+		if (words.size() >= 2)
 		{
-			if (words.at(0).toLower() == "def")
+			if (toLowerCopy(words.at(0)) == "def")
 			{
 				scriptCommands.push_back(createBaseCommandString(words.at(1)));
 			}
 		}
 	}
 
-	alpacaScriptStream.reset();
+	alpacaScriptStream.clear();
+	alpacaScriptStream.seekg(0);
 
-	while (alpacaScriptStream.atEnd() == false)
+	while (std::getline(alpacaScriptStream, lineText))
 	{
 		lineNumber++;
 
-		QString line = alpacaScriptStream.readLine().trimmed();
-		QStringList words = line.split(' ', Qt::SkipEmptyParts);
-		if (words.count() == 2)
+		std::string line = trimCopy(lineText);
+		std::vector<std::string> words = splitWords(line);
+		if (words.size() == 2)
 		{
-			QString firstParameter{words.at(0)};
-			QString secondParameter{words.at(1)};
+			std::string firstParameter{words.at(0)};
+			std::string secondParameter{words.at(1)};
 
 			if (firstParameter == "def")
 			{
@@ -266,41 +334,28 @@ QStringList AlpacaScript::validateScript
 			}
 			else if (TACCommand::contains(firstParameter, tacCommands) == false)
 			{
-				QString message;
-
-				message = QString("line number: %1 Unrecognized command %2").arg(lineNumber).arg(firstParameter);
-
-				result.push_back(message);
+				result.push_back("line number: " + std::to_string(lineNumber) + " Unrecognized command " + firstParameter);
 			}
-			else if (words.at(0).compare("logcomment", Qt::CaseInsensitive) == 0)
+			else if (equalsCaseInsensitive(words.at(0), "logcomment"))
 			{
 			}
 			else if (words.at(0) == "delay")
 			{
-				bool isNumber{false};
-
-				ushort delayValue =  secondParameter.toLatin1().toUShort(&isNumber);
+				uint16_t delayValue{0};
+				bool isNumber = toUInt16(secondParameter, delayValue);
 				if (isNumber == false || delayValue > 15000)
 				{
-					QString message;
-
-					message = QString("Line number: %1 Delay argument %2 is invalid").arg(lineNumber).arg(secondParameter);
-
-					result.push_back(message);
+					result.push_back("Line number: " + std::to_string(lineNumber) + " Delay argument " + secondParameter + " is invalid");
 				}
 			}
 		}
 		else
 		{
-			if (words.at(0).startsWith("//") == false) // ignore comments
+			if (startsWith(words.at(0), "//") == false) // ignore comments
 			{
-				if (scriptCommands.contains(words.at(0)) == false)
+				if (std::find(scriptCommands.begin(), scriptCommands.end(), words.at(0)) == scriptCommands.end())
 				{
-					QString message;
-
-					message = QString("Line number: %1 Unhandled Command: %2").arg(lineNumber).arg(words.at(0));
-
-					result.push_back(message);
+					result.push_back("Line number: " + std::to_string(lineNumber) + " Unhandled Command: " + words.at(0));
 				}
 			}
 		}
@@ -311,103 +366,80 @@ QStringList AlpacaScript::validateScript
 
 bool AlpacaScript::hasCommand
 (
-	const QByteArray& command
+	const std::string& command
 )
 {
-	bool result{false};
-
-	for (const auto& scriptCommand: std::as_const(_scriptCommands))
-	{
-		if (scriptCommand->_command == command)
-		{
-			result = true;
-			break;
-		}
-	}
-
-	return result;
+	return _scriptCommands.find(command) != _scriptCommands.end();
 }
 
-QStringList AlpacaScript::availableCommands()
+std::vector<std::string> AlpacaScript::availableCommands()
 {
-	QStringList result;
+	std::vector<std::string> result;
 
-	for (const auto& scriptCommand: std::as_const(_scriptCommands))
-		result.push_back(scriptCommand->_command);
+	for (const auto& entry: _scriptCommands)
+		result.push_back(entry.first);
 
-	auto sortLambda = [] (const QString& s1, const QString& s2) -> bool
-	{
-		return s1 < s2;
-	};
-
-	std::stable_sort(result.begin(), result.end(), sortLambda);
+	std::sort(result.begin(), result.end());
 
 	return result;
 }
 
-ScriptCommand AlpacaScript::getCommand(const QByteArray &command)
+ScriptCommand AlpacaScript::getCommand(const std::string &command)
 {
 	ScriptCommand result;
 
-	for (const auto& scriptCommand: std::as_const(_scriptCommands))
-	{
-		if (scriptCommand->_command == command)
-		{
-			result = scriptCommand;
-			break;
-		}
-	}
+	auto scriptCommandIterator = _scriptCommands.find(command);
+	if (scriptCommandIterator != _scriptCommands.end())
+		result = scriptCommandIterator->second;
 
 	return result;
 }
 
-CommandEntries AlpacaScript::getCommandEntries(const QByteArray &command)
+CommandEntries AlpacaScript::getCommandEntries(const std::string &command)
 {
 	CommandEntries result;
 
-	if (_scriptCommands.find(command) != _scriptCommands.end())
+	auto scriptCommandIterator = _scriptCommands.find(command);
+	if (scriptCommandIterator != _scriptCommands.end())
 	{
-		ScriptCommand scriptCommand = _scriptCommands[command];
-
-		processCommandEntries(scriptCommand, result, 1);
+		processCommandEntries(scriptCommandIterator->second, result, 1);
 	}
 
 	return result;
 }
 
-bool AlpacaScript::isScriptVariable(const ScriptVariables &scriptVariables, const QString &scriptVariable)
+bool AlpacaScript::isScriptVariable(const ScriptVariables &scriptVariables, const std::string &scriptVariable)
 {
 	bool result{false};
 
-	if (scriptVariable.isEmpty() == false && scriptVariable.startsWith("$") == true)
+	if (scriptVariable.empty() == false && startsWith(scriptVariable, "$") == true)
 	{
-		int scriptVariableLen = scriptVariable.size();
+		size_t scriptVariableLen = scriptVariable.size();
 		if (scriptVariableLen >= 2)
 		{
-			QString token = scriptVariable.sliced(1, scriptVariableLen-1);
+			std::string token = scriptVariable.substr(1, scriptVariableLen - 1);
 
-			if (scriptVariables.contains(token))
+			if (scriptVariables.find(token) != scriptVariables.end())
 				result = true;
 			else
 			{
-				QString message = QString("Script variable '%1' is not defined. Check script variables table for definition").arg(scriptVariable);
-				AppCore::writeToApplicationLogLine(message);
+				AppCore::writeToApplicationLogLine("Script variable '" + scriptVariable + "' is not defined. Check script variables table for definition");
 			}
 		}
 	}
 	return result;
 }
 
-QString AlpacaScript::createBaseCommandString
+std::string AlpacaScript::createBaseCommandString
 (
-	const QString& baseCommandString
+	const std::string& baseCommandString
 )
 {
-	QString result{baseCommandString};
+	std::string result{baseCommandString};
 
-	result = result.replace("(","");
-	result = result.replace(")","");
-	result = result.trimmed();
+	result.erase(std::remove(result.begin(), result.end(), '('), result.end());
+	result.erase(std::remove(result.begin(), result.end(), ')'), result.end());
+	result = trimCopy(result);
 
 	return result;
 }
@@ -421,7 +453,7 @@ bool AlpacaScript::processCommandEntries
 {
 	bool result{true};
 
-	for (const auto& commandEntry: std::as_const(scriptCommand->_subCommands))
+	for (const auto& commandEntry: scriptCommand->_subCommands)
 	{
 		switch (commandEntry->_commandAction)
 		{
@@ -442,10 +474,7 @@ bool AlpacaScript::processCommandEntries
 				}
 				else
 				{
-					QString message;
-
-					message = QString("Recursive Level == 0").arg(commandEntry->_action.data());
-					AppCore::writeToApplicationLogLine(message);
+					AppCore::writeToApplicationLogLine("Recursive Level == 0");
 
 					result = false;
 				}

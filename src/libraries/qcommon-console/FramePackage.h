@@ -6,12 +6,14 @@
 // QCommon
 class ReceiveInterface;
 #include "QCommonConsoleGlobal.h"
+#include "SendInterface.h"
 
 // Qt
 #include <QByteArray>
 #include <QList>
 #include <QSharedPointer>
-#include <QVariant>
+
+#include <cstdint>
 
 class QCOMMONCONSOLE_EXPORT _FramePackage
 {
@@ -19,12 +21,12 @@ public:
 	_FramePackage() = default;
 	~_FramePackage() = default;
 
-	QVariant getArgument(quint32 index)
+	Argument getArgument(uint32_t index)
 	{
-		QVariant result;
+		Argument result;
 
-		if (_arguments.count() > static_cast<int>(index))
-			result = _arguments.at(index).toByteArray();
+		if (_arguments.size() > index)
+			result = _arguments.at(index);
 
 		return result;
 	}
@@ -32,11 +34,11 @@ public:
 	QByteArray                  _lastError;
 	QByteArray					_request;
 	uint						_requestHash{0};
-	QList<QVariant>				_arguments;
+	Arguments					_arguments;
 	QByteArray					_synonym;
 	QByteArray					_codedRequest;
 	QList<QByteArray>			_responses;
-	quint32						_packetID{0};
+	uint32_t					_packetID{0};
 	QByteArray					_comment;
 
 	bool						_endTransaction{false};
@@ -44,8 +46,8 @@ public:
 	bool						_console{false};
 	bool						_shouldStore{false};
 	ReceiveInterface*			_recieveInterface{Q_NULLPTR};
-	quint64						_tickcount{0};
-	quint32						_delayInMilliSeconds{0};
+	uint64_t					_tickcount{0};
+	uint32_t					_delayInMilliSeconds{0};
 
 private:
 	Q_DISABLE_COPY(_FramePackage)

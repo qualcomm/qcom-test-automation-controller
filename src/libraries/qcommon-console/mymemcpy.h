@@ -5,8 +5,8 @@
 
 #include "QCommonConsoleGlobal.h"
 
-#include <QByteArray>
+#include <cstddef>
 
-void QCOMMONCONSOLE_EXPORT my_memcpy(void* destination, quint64 destinationSize, const void* source, quint64 copyBytes);
+void QCOMMONCONSOLE_EXPORT my_memcpy(void* destination, size_t destinationSize, const void* source, size_t copyBytes);
 
 #endif

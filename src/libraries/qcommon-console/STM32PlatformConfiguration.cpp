@@ -48,8 +48,8 @@ _STM32PlatformConfiguration::_STM32PlatformConfiguration()
 	deviceInfoTab._ordinal = 1;
 	deviceInfoTab._userTab = false;
 
-	_tabs.append(generalTab);
-	_tabs.append(deviceInfoTab);
+	_tabs.push_back(generalTab);
+	_tabs.push_back(deviceInfoTab);
 
 	initialize();
 }
@@ -72,7 +72,7 @@ void _STM32PlatformConfiguration::initialize()
 	pinData._pinTooltip = "Boot mode select. High = USB / EDL boot, Low = Normal boot";
 	pinData._commandGroup = eSwitchGroup;
 	pinData._tabName = "General";
-	pinData._cellLocation = QPoint(0,0);
+	pinData._cellLocation = std::make_pair(0, 0);
 
 	_pinEntries[pinData._hash] = pinData;
 
@@ -85,7 +85,7 @@ void _STM32PlatformConfiguration::initialize()
 	pinData._pinTooltip = "Disable power supply";
 	pinData._commandGroup = eConnectionGroup;
 	pinData._tabName = "General";
-	pinData._cellLocation = QPoint(1,0);
+	pinData._cellLocation = std::make_pair(1, 0);
 
 	_pinEntries[pinData._hash] = pinData;
 
@@ -98,7 +98,7 @@ void _STM32PlatformConfiguration::initialize()
 	pinData._pinTooltip = "Volume down / USB-C host mode select button state";
 	pinData._commandGroup = eSwitchGroup;
 	pinData._tabName = "General";
-	pinData._cellLocation = QPoint(2,0);
+	pinData._cellLocation = std::make_pair(2, 0);
 
 	_pinEntries[pinData._hash] = pinData;
 
@@ -108,7 +108,7 @@ void _STM32PlatformConfiguration::initialize()
 
 	button._label = "Power On";
 	button._tab = "General";
-	button._cellLocation = QPoint(0, 0);
+	button._cellLocation = std::make_pair(0, 0);
 	button._commandGroup = eQuickSettingsGroup;
 	button._toolTip = "Power cycle to normal boot mode";
 	button._command = "powerOn";
@@ -118,7 +118,7 @@ void _STM32PlatformConfiguration::initialize()
 
 	button._label = "Power Off";
 	button._tab = "General";
-	button._cellLocation = QPoint(1, 0);
+	button._cellLocation = std::make_pair(1, 0);
 	button._commandGroup = eQuickSettingsGroup;
 	button._toolTip = "Power off the device";
 	button._command = "powerOff";
@@ -128,7 +128,7 @@ void _STM32PlatformConfiguration::initialize()
 
 	button._label = "Reset";
 	button._tab = "General";
-	button._cellLocation = QPoint(2, 0);
+	button._cellLocation = std::make_pair(2, 0);
 	button._commandGroup = eQuickSettingsGroup;
 	button._toolTip = "MPU reset pulse";
 	button._command = "reset";
@@ -138,7 +138,7 @@ void _STM32PlatformConfiguration::initialize()
 
 	button._label = "Boot to EDL";
 	button._tab = "General";
-	button._cellLocation = QPoint(0, 1);
+	button._cellLocation = std::make_pair(0, 1);
 	button._commandGroup = eQuickSettingsGroup;
 	button._toolTip = "Power cycle to USB / EDL boot mode";
 	button._command = "bootToEDL";
@@ -148,7 +148,7 @@ void _STM32PlatformConfiguration::initialize()
 
 	button._label = "Force USB-C Host Mode";
 	button._tab = "General";
-	button._cellLocation = QPoint(1, 1);
+	button._cellLocation = std::make_pair(1, 1);
 	button._commandGroup = eQuickSettingsGroup;
 	button._toolTip = "Force the device into USB-C host mode";
 	button._command = "forceUsbcHostMode";
@@ -200,18 +200,18 @@ void _STM32PlatformConfiguration::initialize()
 	variable._tooltip = "Configurable Boot to EDL timing in milliseconds";
 	variable._type = eIntegerType;
 	variable._defaultValue = 100;
-	variable._cellLocation = QPoint(0,0);
+	variable._cellLocation = {0,0};
 
-	_scriptVariables.insert(variable._name, variable);
+	_scriptVariables.insert({variable._name, variable});
 
 	variable._name = "pon";
 	variable._label = "Power on delay (ms)";
 	variable._tooltip = "Configurable power on delay in milliseconds";
 	variable._type = eIntegerType;
 	variable._defaultValue = 500;
-	variable._cellLocation = QPoint(1,0);
+	variable._cellLocation = {1,0};
 
-	_scriptVariables.insert(variable._name, variable);
+	_scriptVariables.insert({variable._name, variable});
 
 }
 
@@ -238,9 +238,9 @@ STM32PinList _STM32PlatformConfiguration::getAllPins() const
 {
 	STM32PinList result;
 
-	for (const auto& pinEntry : std::as_const(_pinEntries))
+	for (const auto& entry : _pinEntries)
 	{
-		result.append(pinEntry);
+		result.push_back(entry.second);
 	}
 
 	auto sortLambda = [] (STM32PinData& p1, STM32PinData& p2) -> bool
@@ -257,10 +257,10 @@ STM32PinList _STM32PlatformConfiguration::getActivePins() const
 {
 	STM32PinList result;
 
-	for (const auto& pinEntry : std::as_const(_pinEntries))
+	for (const auto& entry : _pinEntries)
 	{
-		if (pinEntry._enabled == true)
-			result.append(pinEntry);
+		if (entry.second._enabled == true)
+			result.push_back(entry.second);
 	}
 
 	auto sortLambda = [] (STM32PinData& p1, STM32PinData& p2) -> bool
@@ -379,21 +379,21 @@ void _STM32PlatformConfiguration::setPinInvertedState(HashType hash, bool newSta
 	}
 }
 
-QString _STM32PlatformConfiguration::getPinLabel(const PinID pin) const
+std::string _STM32PlatformConfiguration::getPinLabel(const PinID pin) const
 {
-	QString result;
+	std::string result;
 
 	HashType hash = STM32PinData::makeSTM32Hash(pin);
 
 	if (_pinEntries.find(hash) != _pinEntries.end())
 	{
-		const auto pinData = _pinEntries[hash];
+		const auto pinData = _pinEntries.at(hash);
 		result = pinData._pinLabel;
 	}
 	return result;
 }
 
-void _STM32PlatformConfiguration::setPinLabel(HashType hash, const QString& pinLabel)
+void _STM32PlatformConfiguration::setPinLabel(HashType hash, const std::string& pinLabel)
 {
 	if (_pinEntries.find(hash) != _pinEntries.end())
 	{
@@ -406,22 +406,22 @@ void _STM32PlatformConfiguration::setPinLabel(HashType hash, const QString& pinL
 	}
 }
 
-QString _STM32PlatformConfiguration::getPinTooltip(const PinID pin) const
+std::string _STM32PlatformConfiguration::getPinTooltip(const PinID pin) const
 {
-	QString result;
+	std::string result;
 
 	HashType hash = STM32PinData::makeSTM32Hash(pin);
 
 	if (_pinEntries.find(hash) != _pinEntries.end())
 	{
-		const auto pinData = _pinEntries[hash];
+		const auto pinData = _pinEntries.at(hash);
 		result = pinData._pinTooltip;
 	}
 
 	return result;
 }
 
-void _STM32PlatformConfiguration::setPinTooltip(HashType hash, const QString& pinTooltip)
+void _STM32PlatformConfiguration::setPinTooltip(HashType hash, const std::string& pinTooltip)
 {
 	if (_pinEntries.find(hash) != _pinEntries.end())
 	{
@@ -434,22 +434,22 @@ void _STM32PlatformConfiguration::setPinTooltip(HashType hash, const QString& pi
 	}
 }
 
-QString _STM32PlatformConfiguration::getPinCommand(const PinID pin) const
+std::string _STM32PlatformConfiguration::getPinCommand(const PinID pin) const
 {
-	QString result;
+	std::string result;
 
 	HashType hash = STM32PinData::makeSTM32Hash(pin);
 
 	if (_pinEntries.find(hash) != _pinEntries.end())
 	{
-		const auto pinData = _pinEntries[hash];
+		const auto pinData = _pinEntries.at(hash);
 		result = pinData._pinCommand;
 	}
 
 	return result;
 }
 
-void _STM32PlatformConfiguration::setPinCommand(HashType hash, const QString& pinCommand)
+void _STM32PlatformConfiguration::setPinCommand(HashType hash, const std::string& pinCommand)
 {
 	if (_pinEntries.find(hash) != _pinEntries.end())
 	{
@@ -499,22 +499,22 @@ void _STM32PlatformConfiguration::setPinGroup(HashType hash, const CommandGroups
 	}
 }
 
-QString _STM32PlatformConfiguration::getTabName(const PinID pin) const
+std::string _STM32PlatformConfiguration::getTabName(const PinID pin) const
 {
-	QString result;
+	std::string result;
 
 	HashType hash = STM32PinData::makeSTM32Hash(pin);
 
 	if (_pinEntries.find(hash) != _pinEntries.end())
 	{
-		const auto pinData = _pinEntries[hash];
+		const auto pinData = _pinEntries.at(hash);
 		result = pinData._tabName;
 	}
 
 	return result;
 }
 
-void _STM32PlatformConfiguration::setTabName(HashType hash, const QString& tabName)
+void _STM32PlatformConfiguration::setTabName(HashType hash, const std::string& tabName)
 {
 	if (_pinEntries.find(hash) != _pinEntries.end())
 	{
@@ -532,22 +532,22 @@ void _STM32PlatformConfiguration::setTabName(HashType hash, const QString& tabNa
 	}
 }
 
-QPoint _STM32PlatformConfiguration::getPinCellLocation(const PinID pin) const
+std::pair<int, int> _STM32PlatformConfiguration::getPinCellLocation(const PinID pin) const
 {
-	QPoint result(-1,-1);
+	std::pair<int, int> result(-1, -1);
 
 	HashType hash = STM32PinData::makeSTM32Hash(pin);
 
 	if (_pinEntries.find(hash) != _pinEntries.end())
 	{
-		const auto pinData = _pinEntries[hash];
+		const auto pinData = _pinEntries.at(hash);
 		result = pinData._cellLocation;
 	}
 
 	return result;
 }
 
-void _STM32PlatformConfiguration::setPinCellLocation(HashType hash, const QPoint& cellLocation)
+void _STM32PlatformConfiguration::setPinCellLocation(HashType hash, const std::pair<int, int>& cellLocation)
 {
 	if (_pinEntries.find(hash) != _pinEntries.end())
 	{
@@ -564,29 +564,29 @@ void _STM32PlatformConfiguration::setPinCellLocation(HashType hash, const QPoint
 	}
 }
 
-void _STM32PlatformConfiguration::cascadeTabDelete(const QString &deleteMe)
+void _STM32PlatformConfiguration::cascadeTabDelete(const std::string &deleteMe)
 {
-	for (int idx=0; idx<_tabs.length(); idx++)
+	for (auto idx = _tabs.begin(); idx != _tabs.end(); )
 	{
-		if (_tabs.at(idx)._name == deleteMe)
-		{
-			_tabs.removeAt(idx);
-		}
+		if (idx->_name == deleteMe)
+			idx = _tabs.erase(idx);
+		else
+			++idx;
 	}
 
 	for (auto& pinEntry: _pinEntries)
 	{
-		if (pinEntry._tabName == deleteMe)
-			pinEntry._tabName = QString();
+		if (pinEntry.second._tabName == deleteMe)
+			pinEntry.second._tabName.clear();
 	}
 }
 
-void _STM32PlatformConfiguration::cascadeTabRename(const QString& oldName, const QString& newName)
+void _STM32PlatformConfiguration::cascadeTabRename(const std::string& oldName, const std::string& newName)
 {
 	for (auto& pinEntry: _pinEntries)
 	{
-		if (pinEntry._tabName == oldName)
-			pinEntry._tabName = newName;
+		if (pinEntry.second._tabName == oldName)
+			pinEntry.second._tabName = newName;
 	}
 }
 
@@ -618,34 +618,34 @@ bool _STM32PlatformConfiguration::read(QJsonObject& parentLevel)
 					pinData._enabled = pinEntry[kEnabled].toBool();
 
 				if (pinEntry.contains(kName))
-					pinData._pinLabel = pinEntry[kName].toString();
+					pinData._pinLabel = pinEntry[kName].toString().toStdString();
 
 				if (pinEntry.contains(kToolTip))
-					pinData._pinTooltip = pinEntry[kToolTip].toString();
+					pinData._pinTooltip = pinEntry[kToolTip].toString().toStdString();
 
 				if (pinEntry.contains(kInverted))
 					pinData._inverted = pinEntry[kInverted].toBool();
 
 				if (pinEntry.contains(kCommand))
-					pinData._pinCommand = pinEntry[kCommand].toString();
+					pinData._pinCommand = pinEntry[kCommand].toString().toStdString();
 
 				if (pinEntry.contains(kCommandGroup))
 					pinData._commandGroup = static_cast<CommandGroups>(pinEntry[kCommandGroup].toInt());
 
 				if (pinEntry.contains(kRunPriority))
 				{
-					pinData._cellLocation = QPoint(-1, -1);
+					pinData._cellLocation = std::make_pair(-1, -1);
 					QString pointString = pinEntry[kRunPriority].toString();
 					if (pointString.size() > 0)
 					{
-						QPoint point = toQPoint(pointString);
-						if (point.x() >= 0 && point.y() >= 0)
+						std::pair<int, int> point = toQPoint(pointString.toStdString());
+						if (point.first >= 0 && point.second >= 0)
 							pinData._cellLocation = point;
 					}
 				}
 
 				if (pinEntry.contains(kTabName))
-					pinData._tabName = pinEntry[kTabName].toString();
+					pinData._tabName = pinEntry[kTabName].toString().toStdString();
 
 				_pinEntries[pinData._hash] = pinData;
 			}
@@ -661,20 +661,21 @@ void _STM32PlatformConfiguration::write(QJsonObject& parentLevel)
 
 	QJsonArray pinsArray;
 
-	for (auto& pinEntry : _pinEntries)
+	for (auto& entry : _pinEntries)
 	{
+		const STM32PinData& pinEntry = entry.second;
 		QJsonObject pinData;
 
 		pinData[kPin] = QString::number(pinEntry._pin);
 		pinData[kEnabled] = pinEntry._enabled;
-		pinData[kName] = pinEntry._pinLabel;
-		pinData[kToolTip] = pinEntry._pinTooltip;
+		pinData[kName] = QString::fromStdString(pinEntry._pinLabel);
+		pinData[kToolTip] = QString::fromStdString(pinEntry._pinTooltip);
 		pinData[kInverted] = pinEntry._inverted;
-		pinData[kCommand] = pinEntry._pinCommand;
+		pinData[kCommand] = QString::fromStdString(pinEntry._pinCommand);
 		pinData[kCommandGroup] = pinEntry._commandGroup;
-		pinData[kRunPriority] = fromQPoint(pinEntry._cellLocation);
+		pinData[kRunPriority] = QString::fromStdString(fromQPoint(pinEntry._cellLocation));
 
-		pinData[kTabName] = pinEntry._tabName;
+		pinData[kTabName] = QString::fromStdString(pinEntry._tabName);
 
 		pinsArray.append(pinData);
 	}

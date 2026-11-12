@@ -11,7 +11,8 @@ class ReceiveInterface;
 
 // Qt
 #include <QByteArray>
-#include <QVariant>
+
+#include <cstdint>
 
 class QCOMMONCONSOLE_EXPORT TACLiteCommand
 {
@@ -23,7 +24,7 @@ public:
 	void name();
 	void uuid();
 
-	virtual void setPinState(quint16 pin, bool state);
+	virtual void setPinState(uint16_t pin, bool state);
 
 	void battery(bool state);
 	void usb0(bool state);
@@ -40,11 +41,11 @@ public:
 	void getResetCount();
 	void clearResetCount();
 
-	void i2CReadRegister(quint32 addr, quint32 reg);
-	void i2CWriteRegister(quint32 addr, quint32 reg, quint32 data);
+	void i2CReadRegister(uint32_t addr, uint32_t reg);
+	void i2CWriteRegister(uint32_t addr, uint32_t reg, uint32_t data);
 
 	void send(const QByteArray& command, const Arguments& arguments, bool console, bool store = true);
-	void addDelay(quint32 delayInMilliSeconds);
+	void addDelay(uint32_t delayInMilliSeconds);
 	void addLogComment(const QByteArray& comment);
 	void addEndTransaction();
 

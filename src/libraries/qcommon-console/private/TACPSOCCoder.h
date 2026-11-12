@@ -11,7 +11,6 @@
 
 // Qt
 #include <QByteArray>
-#include <QVariant>
 
 const QByteArray kCommand("CMD >> ");
 const QByteArray kCommandNotRecognized("CMD: Command not recognized.");

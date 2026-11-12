@@ -5,9 +5,9 @@
 
 #include "QCommonConsoleGlobal.h"
 
-#include <QString>
+#include <string>
 
-bool QCOMMONCONSOLE_EXPORT isProcessRunning(const QString& applicationName);
-bool QCOMMONCONSOLE_EXPORT startProcess(const QString& applicationName);
+bool QCOMMONCONSOLE_EXPORT isProcessRunning(const std::string& applicationName);
+bool QCOMMONCONSOLE_EXPORT startProcess(const std::string& applicationName);
 
 #endif // PROCESSUTILITIES_H

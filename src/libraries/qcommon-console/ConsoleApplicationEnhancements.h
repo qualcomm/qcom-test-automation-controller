@@ -8,30 +8,31 @@
 
 // QT
 #include <QSettings>
-#include <QString>
 
-QString QCOMMONCONSOLE_EXPORT applicationBinPath();
-QString QCOMMONCONSOLE_EXPORT applicationDataPath();
-QString QCOMMONCONSOLE_EXPORT documentsDataPath(const QString& append);
-QString QCOMMONCONSOLE_EXPORT defaultGlobalLoggingPath();
-QString QCOMMONCONSOLE_EXPORT defaultLoggingPath(const QString& appName);
+#include <string>
 
-QString QCOMMONCONSOLE_EXPORT killOneDrive(const QString& testPath, const QString& revertPath);
+std::string QCOMMONCONSOLE_EXPORT applicationBinPath();
+std::string QCOMMONCONSOLE_EXPORT applicationDataPath();
+std::string QCOMMONCONSOLE_EXPORT documentsDataPath(const std::string& append);
+std::string QCOMMONCONSOLE_EXPORT defaultGlobalLoggingPath();
+std::string QCOMMONCONSOLE_EXPORT defaultLoggingPath(const std::string& appName);
 
-QString QCOMMONCONSOLE_EXPORT createFilenameTimeStamp();
+std::string QCOMMONCONSOLE_EXPORT killOneDrive(const std::string& testPath, const std::string& revertPath);
 
-bool QCOMMONCONSOLE_EXPORT isNewInstall(QSettings& settings, const QString& currentInstallGuuid);
-void QCOMMONCONSOLE_EXPORT renewInstallRegistry(QSettings& settings, const QString& newInstallGuid);
+std::string QCOMMONCONSOLE_EXPORT createFilenameTimeStamp();
 
-QString QCOMMONCONSOLE_EXPORT getModuleFilePath(const QString& moduleFileName);
-QString QCOMMONCONSOLE_EXPORT expandPath(const QString& filePath);
+bool QCOMMONCONSOLE_EXPORT isNewInstall(QSettings& settings, const std::string& currentInstallGuuid);
+void QCOMMONCONSOLE_EXPORT renewInstallRegistry(QSettings& settings, const std::string& newInstallGuid);
 
-QString QCOMMONCONSOLE_EXPORT tacConfigRoot();
+std::string QCOMMONCONSOLE_EXPORT getModuleFilePath(const std::string& moduleFileName);
+std::string QCOMMONCONSOLE_EXPORT expandPath(const std::string& filePath);
 
-void cleanIt(const QString& pathToClean);
+std::string QCOMMONCONSOLE_EXPORT tacConfigRoot();
+
+void cleanIt(const std::string& pathToClean);
 
 bool QCOMMONCONSOLE_EXPORT isUserPrivileged();
-bool QCOMMONCONSOLE_EXPORT executeBinaryAsAdministrator(const QString &binary, const QString &cmdArgs);
+bool QCOMMONCONSOLE_EXPORT executeBinaryAsAdministrator(const std::string &binary, const std::string &cmdArgs);
 
 #endif
 

@@ -45,7 +45,7 @@ bool FTDIDevice::programDevice
 (
 	AlpacaDevice alpacaDevice,
 	PlatformID platformID,
-	QByteArray& errorMessage
+	std::string& errorMessage
 )
 {
 	bool result{false};
@@ -56,14 +56,14 @@ bool FTDIDevice::programDevice
 		FT_STATUS ftStatus;
 		FT_HANDLE ftHandle{Q_NULLPTR};
 
-		QByteArray serialNumber = alpacaDevice->serialNumber() + "A";
-		QByteArray usbDescriptor = tacPlatformEntry._platformEntry->_usbDescriptor;
+		QByteArray serialNumber = QByteArray::fromStdString(alpacaDevice->serialNumber()) + "A";
+		std::string usbDescriptor = tacPlatformEntry._platformEntry->_usbDescriptor;
 
 		// For FT232H devices, no need to append bus info in serial number
 		if (tacPlatformEntry._platformEntry->_boardtype == eFT232H)
-			serialNumber = alpacaDevice->serialNumber();
+			serialNumber = QByteArray::fromStdString(alpacaDevice->serialNumber());
 
-		if (usbDescriptor.isEmpty())
+		if (usbDescriptor.empty())
 		{
 			if (tacPlatformEntry._platformEntry->_boardtype == eFTDI)
 				usbDescriptor = "ALPACA-LITE MTP DEBUG BOARD";
@@ -94,7 +94,7 @@ bool FTDIDevice::programDevice
 			ftStatus = FT_EE_Read(ftHandle, &ftData);
 			if (ftStatus == FT_OK)
 			{
-				my_memcpy(descriptionBuf, sizeof(descriptionBuf), usbDescriptor, usbDescriptor.size());
+				my_memcpy(descriptionBuf, sizeof(descriptionBuf), usbDescriptor.data(), usbDescriptor.size());
 
 				bool temp;
 
@@ -119,26 +119,26 @@ bool FTDIDevice::programDevice
 				else
 				{
 
-					errorMessage = QString("FT_EE_Program failed Error Code: %1").arg(_FTDIChipset::ftidStatusToString(ftStatus)).toLatin1();
+					errorMessage = "FT_EE_Program failed Error Code: " + _FTDIChipset::ftidStatusToString(ftStatus);
 				}
 			}
 			else
 			{
-				errorMessage = QString("FT_EE_ReadEx failed Error Code: %1").arg(_FTDIChipset::ftidStatusToString(ftStatus)).toLatin1();
+				errorMessage = "FT_EE_ReadEx failed Error Code: " + _FTDIChipset::ftidStatusToString(ftStatus);
 			}
 
 			FT_Close(ftHandle);
 		}
 		else
 		{
-			errorMessage = QString("FT_OpenEx failed Error Code: %1").arg(_FTDIChipset::ftidStatusToString(ftStatus)).toLatin1();
+			errorMessage = "FT_OpenEx failed Error Code: " + _FTDIChipset::ftidStatusToString(ftStatus);
 		}
 	}
 
 	return result;
 }
 
-quint32 FTDIDevice::updateAlpacaDevices()
+uint32_t FTDIDevice::updateAlpacaDevices()
 {
 	int deviceCount = _FTDIChipset::getDeviceCount();
 	for (auto deviceIndex : range(deviceCount))
@@ -153,15 +153,15 @@ quint32 FTDIDevice::updateAlpacaDevices()
 			FTDIDevice* ftdiDevice = new FTDIDevice;
 
 			ftdiDevice->_active = true;
-			ftdiDevice->_portName = ftdiChipset->portName();
+			ftdiDevice->_portName = ftdiChipset->portName().toStdString();
 			ftdiDevice->_hash = hash;
 			ftdiDevice->_chipVersion = 10000;
-			ftdiDevice->_usbDescriptor = ftdiChipset->usbDescriptor();
-			ftdiDevice->_serialNumber = ftdiChipset->serialNumber();
+			ftdiDevice->_usbDescriptor = ftdiChipset->usbDescriptor().toStdString();
+			ftdiDevice->_serialNumber = ftdiChipset->serialNumber().toStdString();
 			ftdiDevice->_platformID = ftdiChipset->platformID();
 
 			TACPlatformEntry platformEntry = _PlatformConfiguration::getEntry(ftdiDevice->_platformID);
-			ftdiDevice->_description = platformEntry._platformEntry->_description.toLatin1();
+			ftdiDevice->_description = platformEntry._platformEntry->_description;
 			ftdiDevice->_platformConfiguration = platformEntry.getConfiguration();
 			ftdiDevice->_boardType = platformEntry._platformEntry->_boardtype;
 
@@ -206,11 +206,11 @@ bool FTDIDevice::open()
 			{
 				driveThread->setPinSets(_ft232hPlatformConfiguration->getPinSet(0));
 
-				quint8 invertMask = 0;
+				uint8_t invertMask = 0;
 				for (const auto& pin : _ft232hPlatformConfiguration->getActivePins())
 				{
 					if (pin._inverted)
-						invertMask |= static_cast<quint8>(1 << (pin._setPin % 8));
+						invertMask |= static_cast<uint8_t>(1 << (pin._setPin % 8));
 				}
 				driveThread->setInvertMask(invertMask);
 			}
@@ -240,10 +240,10 @@ bool FTDIDevice::open()
 				for (const auto& pin: pins)
 				{
 					if (pin._initialValue == true)
-						initialPins.append(pin);
+						initialPins.push_back(pin);
 				}
 
-				if (initialPins.count() > 0)
+				if (initialPins.size() > 0)
 				{
 					auto sortLambda = [] (PinEntry& p1, PinEntry& p2) -> bool
 					{
@@ -258,7 +258,7 @@ bool FTDIDevice::open()
 
 						if (AppCore::getAppCore()->appLoggingActive())
 						{
-							QString message = QString("LiteDevice::open() Initialize Pin: %1\n").arg(initializationPin._pin);
+							std::string message = "LiteDevice::open() Initialize Pin: " + std::to_string(initializationPin._pin) + "\n";
 							AppCore::writeToApplicationLog(message);
 						}
 					}
@@ -283,7 +283,7 @@ void FTDIDevice::buildMapping()
 
 void FTDIDevice::buildCommandList()
 {
-	if (_commands.isEmpty() == true)
+	if (_commands.empty() == true)
 	{
 		if (_platformConfiguration != Q_NULLPTR)
 		{
@@ -303,11 +303,9 @@ void FTDIDevice::buildCommandList()
 				tacCommand._helpText = ftdiPin._pinTooltip;
 				tacCommand._currentState = ftdiPin._initialValue;
 				tacCommand._isInverted = ftdiPin._inverted;
-				tacCommand._tabName = ftdiPin._tabName.toLatin1();
-				tacCommand._groupName = CommandGroup::toString(ftdiPin._commandGroup).toLatin1();
-
-				QByteArray cellLocation = QString::number(ftdiPin._cellLocation.x()).toLatin1() + "," + QString::number(ftdiPin._cellLocation.y()).toLatin1();
-				tacCommand._cellLocation = cellLocation;
+				tacCommand._tabName = ftdiPin._tabName;
+				tacCommand._groupName = CommandGroup::toString(ftdiPin._commandGroup);
+				tacCommand._cellLocation = fromQPoint(ftdiPin._cellLocation);
 
 				_commands[tacCommand._command] = tacCommand;
 			}

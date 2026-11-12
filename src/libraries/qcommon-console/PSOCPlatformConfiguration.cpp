@@ -20,7 +20,7 @@ const QString kTabOrderData(QStringLiteral("tabs"));
 const bool kDefaultInitialPinValue(false);
 const bool kDefaultPinInvertedState(false);
 const CommandGroups kDefaultCommandGroup{eUnknownCommandGroup};
-const QPoint kDefaultCellLocation(QPoint(-1,-1));
+const std::pair<int, int> kDefaultCellLocation(-1,-1);
 
 const QString kRunPriority(QStringLiteral("run_priority"));
 const QString kPinNumber(QStringLiteral("pin_number"));
@@ -92,15 +92,15 @@ _PSOCPlatformConfiguration::_PSOCPlatformConfiguration(PSOCVariant psocVariant)
 	fusionTab._ordinal = 2;
 	fusionTab._userTab = true;
 
-	_tabs.append(generalTab);
-	_tabs.append(deviceInfoTab);
+	_tabs.push_back(generalTab);
+	_tabs.push_back(deviceInfoTab);
 
 	if (psocVariant == ePSOCGPIOIIC)
 	{
 		refreshSlaveConfig();
 	}
 
-	_tabs.append(fusionTab);
+	_tabs.push_back(fusionTab);
 
 	if (psocVariant == ePSOCGPIOIIC)
 	{
@@ -302,7 +302,7 @@ void _PSOCPlatformConfiguration::setInitialPinValue(const PinID pinId, bool newS
 	}
 }
 
-quint64 _PSOCPlatformConfiguration::getPinInitializationPriority(const PinID pinId) const
+uint64_t _PSOCPlatformConfiguration::getPinInitializationPriority(const PinID pinId) const
 {
 	PinID result{pinId};
 
@@ -330,9 +330,9 @@ void _PSOCPlatformConfiguration::setPinInitializationPriority(const PinID pinId,
 	}
 }
 
-QString _PSOCPlatformConfiguration::getPinLabel(const PinID pinId) const
+std::string _PSOCPlatformConfiguration::getPinLabel(const PinID pinId) const
 {
-	QString result;
+	std::string result;
 
 	if (_pinEntries.find(pinId) != _pinEntries.end())
 		result = _pinEntries[pinId]._pinLabel;
@@ -340,7 +340,7 @@ QString _PSOCPlatformConfiguration::getPinLabel(const PinID pinId) const
 	return result;
 }
 
-void _PSOCPlatformConfiguration::setPinLabel(const PinID pinId, const QString& pinLabel)
+void _PSOCPlatformConfiguration::setPinLabel(const PinID pinId, const std::string& pinLabel)
 {
 	if (_pinEntries.find(pinId) != _pinEntries.end())
 	{
@@ -352,9 +352,9 @@ void _PSOCPlatformConfiguration::setPinLabel(const PinID pinId, const QString& p
 	}
 }
 
-QString _PSOCPlatformConfiguration::getPinTooltip(const PinID pinId) const
+std::string _PSOCPlatformConfiguration::getPinTooltip(const PinID pinId) const
 {
-	QString result;
+	std::string result;
 
 	if (_pinEntries.find(pinId) != _pinEntries.end())
 		result = _pinEntries[pinId]._pinTooltip;
@@ -362,7 +362,7 @@ QString _PSOCPlatformConfiguration::getPinTooltip(const PinID pinId) const
 	return result;
 }
 
-void _PSOCPlatformConfiguration::setPinTooltip(const PinID pinId, const QString& pinTooltip)
+void _PSOCPlatformConfiguration::setPinTooltip(const PinID pinId, const std::string& pinTooltip)
 {
 	if (_pinEntries.find(pinId) != _pinEntries.end())
 	{
@@ -396,9 +396,9 @@ void _PSOCPlatformConfiguration::setPinInvertedState(const PinID pinId, bool new
 	}
 }
 
-QString _PSOCPlatformConfiguration::getPinCommand(const PinID pinId) const
+std::string _PSOCPlatformConfiguration::getPinCommand(const PinID pinId) const
 {
-	QString result;
+	std::string result;
 
 	if (_pinEntries.find(pinId) != _pinEntries.end())
 		result = _pinEntries[pinId]._pinCommand;
@@ -406,7 +406,7 @@ QString _PSOCPlatformConfiguration::getPinCommand(const PinID pinId) const
 	return result;
 }
 
-void _PSOCPlatformConfiguration::setPinCommand(const PinID pinId, const QString& pinCommand)
+void _PSOCPlatformConfiguration::setPinCommand(const PinID pinId, const std::string& pinCommand)
 {
 	if (_pinEntries.find(pinId) != _pinEntries.end())
 	{
@@ -444,9 +444,9 @@ void _PSOCPlatformConfiguration::setPinGroup
 	}
 }
 
-QString _PSOCPlatformConfiguration::getClassicAction(const PinID pinId) const
+std::string _PSOCPlatformConfiguration::getClassicAction(const PinID pinId) const
 {
-	QString result;
+	std::string result;
 
 	if (_pinEntries.find(pinId) != _pinEntries.end())
 		result = _pinEntries[pinId]._classicAction;
@@ -454,7 +454,7 @@ QString _PSOCPlatformConfiguration::getClassicAction(const PinID pinId) const
 	return result;
 }
 
-void _PSOCPlatformConfiguration::setClassicAction(const PinID pinId, const QString& classicAction)
+void _PSOCPlatformConfiguration::setClassicAction(const PinID pinId, const std::string& classicAction)
 {
 	if (_pinEntries.find(pinId) != _pinEntries.end())
 	{
@@ -466,9 +466,9 @@ void _PSOCPlatformConfiguration::setClassicAction(const PinID pinId, const QStri
 	}
 }
 
-QPoint _PSOCPlatformConfiguration::getPinCellLocation(const PinID pinId) const
+std::pair<int, int> _PSOCPlatformConfiguration::getPinCellLocation(const PinID pinId) const
 {
-	QPoint result{kDefaultCellLocation};
+	std::pair<int, int> result{kDefaultCellLocation};
 
 	if (_pinEntries.find(pinId) != _pinEntries.end())
 	{
@@ -478,7 +478,7 @@ QPoint _PSOCPlatformConfiguration::getPinCellLocation(const PinID pinId) const
 	return result;
 }
 
-void _PSOCPlatformConfiguration::setPinCellLocation(const PinID pinId, const QPoint& cellLocation)
+void _PSOCPlatformConfiguration::setPinCellLocation(const PinID pinId, const std::pair<int, int>& cellLocation)
 {
 	if (_pinEntries.find(pinId) != _pinEntries.end())
 	{
@@ -537,9 +537,9 @@ void _PSOCPlatformConfiguration::removeSlaveConfig(PinID slaveAddress)
 	}
 }
 
-QString _PSOCPlatformConfiguration::i2cSlaveTabName(const PSOCI2CSlave& slave)
+std::string _PSOCPlatformConfiguration::i2cSlaveTabName(const PSOCI2CSlave& slave)
 {
-	return QString("%1 (0x%2)").arg(psocSlaveToString(slave._variant)).arg(slave._slaveAddress, 2, 16, QChar('0'));
+	return psocSlaveToString(slave._variant) + " (0x" + QString("%1").arg(slave._slaveAddress, 2, 16, QChar('0')).toStdString() + ")";
 }
 
 void _PSOCPlatformConfiguration::refreshSlaveConfig()
@@ -567,26 +567,26 @@ void _PSOCPlatformConfiguration::refreshSlaveConfig()
 	rebuildI2CTabs();
 }
 
+static bool isI2CTab(const std::string& tabName)
+{
+	static const std::string kKnownVariants[] = {psocSlaveToString(eKTS1622EUAATR), psocSlaveToString(eTCA9534APWR)};
+
+	for (const auto& variant : kKnownVariants)
+	{
+		std::string prefix = variant + " (0x";
+		if (tabName.size() >= prefix.size() && tabName.compare(0, prefix.size(), prefix) == 0 && tabName.back() == ')')
+			return true;
+	}
+
+	return false;
+}
+
 void _PSOCPlatformConfiguration::rebuildI2CTabs()
 {
-	QStringList knownVariants;
-	knownVariants << psocSlaveToString(eKTS1622EUAATR) << psocSlaveToString(eTCA9534APWR);
-
-	auto isI2CTab = [&knownVariants] (const QString& tabName) -> bool
-	{
-		for (const auto& variant : std::as_const(knownVariants))
-		{
-			if (tabName.startsWith(variant + " (0x") && tabName.endsWith(')'))
-				return true;
-		}
-
-		return false;
-	};
-
-	for (int idx = _tabs.size() - 1; idx >= 0; --idx)
+	for (int idx = static_cast<int>(_tabs.size()) - 1; idx >= 0; --idx)
 	{
 		if (isI2CTab(_tabs.at(idx)._name))
-			_tabs.removeAt(idx);
+			_tabs.erase(_tabs.begin() + idx);
 	}
 
 	int ordinal = 2;
@@ -601,7 +601,7 @@ void _PSOCPlatformConfiguration::rebuildI2CTabs()
 		i2cTab._ordinal = ordinal++;
 		i2cTab._userTab = true;
 
-		_tabs.append(i2cTab);
+		_tabs.push_back(i2cTab);
 	}
 }
 
@@ -623,7 +623,7 @@ PSOCI2CEntries _PSOCPlatformConfiguration::getActiveI2CEntries() const
 
 QList<PSOCI2CData> _PSOCPlatformConfiguration::getI2CEntriesForSlave(const PSOCI2CSlave& slave) const
 {
-	QString tabName = i2cSlaveTabName(slave);
+	std::string tabName = i2cSlaveTabName(slave);
 
 	QList<PSOCI2CData> result;
 	for (const auto& i2cData : std::as_const(_i2cEntries))
@@ -714,9 +714,9 @@ void _PSOCPlatformConfiguration::setI2CPinInvertedState(const HashType hash, boo
 	}
 }
 
-QString _PSOCPlatformConfiguration::getI2CPinLabel(const HashType hash) const
+std::string _PSOCPlatformConfiguration::getI2CPinLabel(const HashType hash) const
 {
-	QString result;
+	std::string result;
 
 	if (_i2cEntries.find(hash) != _i2cEntries.end())
 		result = _i2cEntries[hash]._pinLabel;
@@ -724,7 +724,7 @@ QString _PSOCPlatformConfiguration::getI2CPinLabel(const HashType hash) const
 	return result;
 }
 
-void _PSOCPlatformConfiguration::setI2CPinLabel(const HashType hash, const QString& pinLabel)
+void _PSOCPlatformConfiguration::setI2CPinLabel(const HashType hash, const std::string& pinLabel)
 {
 	if (_i2cEntries.find(hash) != _i2cEntries.end())
 	{
@@ -736,9 +736,9 @@ void _PSOCPlatformConfiguration::setI2CPinLabel(const HashType hash, const QStri
 	}
 }
 
-QString _PSOCPlatformConfiguration::getI2CPinTooltip(const HashType hash) const
+std::string _PSOCPlatformConfiguration::getI2CPinTooltip(const HashType hash) const
 {
-	QString result;
+	std::string result;
 
 	if (_i2cEntries.find(hash) != _i2cEntries.end())
 		result = _i2cEntries[hash]._pinTooltip;
@@ -746,7 +746,7 @@ QString _PSOCPlatformConfiguration::getI2CPinTooltip(const HashType hash) const
 	return result;
 }
 
-void _PSOCPlatformConfiguration::setI2CPinTooltip(const HashType hash, const QString& pinTooltip)
+void _PSOCPlatformConfiguration::setI2CPinTooltip(const HashType hash, const std::string& pinTooltip)
 {
 	if (_i2cEntries.find(hash) != _i2cEntries.end())
 	{
@@ -758,9 +758,9 @@ void _PSOCPlatformConfiguration::setI2CPinTooltip(const HashType hash, const QSt
 	}
 }
 
-QString _PSOCPlatformConfiguration::getI2CPinCommand(const HashType hash) const
+std::string _PSOCPlatformConfiguration::getI2CPinCommand(const HashType hash) const
 {
-	QString result;
+	std::string result;
 
 	if (_i2cEntries.find(hash) != _i2cEntries.end())
 		result = _i2cEntries[hash]._pinCommand;
@@ -768,7 +768,7 @@ QString _PSOCPlatformConfiguration::getI2CPinCommand(const HashType hash) const
 	return result;
 }
 
-void _PSOCPlatformConfiguration::setI2CPinCommand(const HashType hash, const QString& pinCommand)
+void _PSOCPlatformConfiguration::setI2CPinCommand(const HashType hash, const std::string& pinCommand)
 {
 	if (_i2cEntries.find(hash) != _i2cEntries.end())
 	{
@@ -802,9 +802,9 @@ void _PSOCPlatformConfiguration::setI2CPinGroup(const HashType hash, const Comma
 	}
 }
 
-QString _PSOCPlatformConfiguration::getI2CTabName(const HashType hash) const
+std::string _PSOCPlatformConfiguration::getI2CTabName(const HashType hash) const
 {
-	QString result;
+	std::string result;
 
 	if (_i2cEntries.find(hash) != _i2cEntries.end())
 	{
@@ -814,7 +814,7 @@ QString _PSOCPlatformConfiguration::getI2CTabName(const HashType hash) const
 	return result;
 }
 
-void _PSOCPlatformConfiguration::setI2CTabName(const HashType hash, const QString& tabName)
+void _PSOCPlatformConfiguration::setI2CTabName(const HashType hash, const std::string& tabName)
 {
 	if (_i2cEntries.find(hash) != _i2cEntries.end())
 	{
@@ -826,9 +826,9 @@ void _PSOCPlatformConfiguration::setI2CTabName(const HashType hash, const QStrin
 	}
 }
 
-QPoint _PSOCPlatformConfiguration::getI2CPinCellLocation(const HashType hash) const
+std::pair<int, int> _PSOCPlatformConfiguration::getI2CPinCellLocation(const HashType hash) const
 {
-	QPoint result{kDefaultCellLocation};
+	std::pair<int, int> result{kDefaultCellLocation};
 
 	if (_i2cEntries.find(hash) != _i2cEntries.end())
 	{
@@ -838,7 +838,7 @@ QPoint _PSOCPlatformConfiguration::getI2CPinCellLocation(const HashType hash) co
 	return result;
 }
 
-void _PSOCPlatformConfiguration::setI2CPinCellLocation(const HashType hash, const QPoint& cellLocation)
+void _PSOCPlatformConfiguration::setI2CPinCellLocation(const HashType hash, const std::pair<int, int>& cellLocation)
 {
 	if (_i2cEntries.find(hash) != _i2cEntries.end())
 	{
@@ -850,27 +850,27 @@ void _PSOCPlatformConfiguration::setI2CPinCellLocation(const HashType hash, cons
 	}
 }
 
-void _PSOCPlatformConfiguration::cascadeTabDelete(const QString &deleteMe)
+void _PSOCPlatformConfiguration::cascadeTabDelete(const std::string &deleteMe)
 {
-	for (int idx=0; idx<_tabs.length(); idx++)
+	for (auto idx = _tabs.begin(); idx != _tabs.end(); )
 	{
-		if (_tabs.at(idx)._name == deleteMe)
-		{
-			_tabs.removeAt(idx);
-		}
+		if (idx->_name == deleteMe)
+			idx = _tabs.erase(idx);
+		else
+			++idx;
 	}
 
 	for (auto& pinEntry: _pinEntries)
 	{
 		if (pinEntry._tabName == deleteMe)
-			pinEntry._tabName = QString();
+			pinEntry._tabName.clear();
 	}
 }
 
 void _PSOCPlatformConfiguration::cascadeTabRename
 (
-	const QString& oldName,
-	const QString& newName
+	const std::string& oldName,
+	const std::string& newName
 )
 {
 	for (auto& pinEntry: _pinEntries)
@@ -880,9 +880,9 @@ void _PSOCPlatformConfiguration::cascadeTabRename
 	}
 }
 
-QString _PSOCPlatformConfiguration::getTabName(const PinID pinId) const
+std::string _PSOCPlatformConfiguration::getTabName(const PinID pinId) const
 {
-	QString result;
+	std::string result;
 
 	if (_pinEntries.find(pinId) != _pinEntries.end())
 	{
@@ -892,7 +892,7 @@ QString _PSOCPlatformConfiguration::getTabName(const PinID pinId) const
 	return result;
 }
 
-void _PSOCPlatformConfiguration::setTabName(const PinID pinId, const QString pinTab)
+void _PSOCPlatformConfiguration::setTabName(const PinID pinId, const std::string pinTab)
 {
 	if (_pinEntries.find(pinId) != _pinEntries.end())
 	{
@@ -924,7 +924,7 @@ bool _PSOCPlatformConfiguration::read(QJsonObject &parentLevel)
 		if (jsonValue.isArray() == true)
 		{
 			for (auto fwVer : jsonValue.toArray())
-				_supportedFirmwareVer.append(static_cast<quint32>(fwVer.toInt()));
+				_supportedFirmwareVer.append(static_cast<uint32_t>(fwVer.toInt()));
 		}
 
 		if (_supportedFirmwareVer.size() == 0)
@@ -963,25 +963,27 @@ bool _PSOCPlatformConfiguration::read(QJsonObject &parentLevel)
 			pinData._inverted = pinEntry.value(kInverted).toBool();
 
 		if (pinEntry.contains(kName))
-			pinData._pinLabel = pinEntry.value(kName).toString();
+			pinData._pinLabel = pinEntry.value(kName).toString().toStdString();
 
 		if (pinEntry.contains(kToolTip))
-			pinData._pinTooltip = pinEntry.value(kToolTip).toString();
+			pinData._pinTooltip = pinEntry.value(kToolTip).toString().toStdString();
 
 		if (pinEntry.contains(kCommand))
-			pinData._pinCommand = pinEntry.value(kCommand).toString();
+			pinData._pinCommand = pinEntry.value(kCommand).toString().toStdString();
 
 		if (pinEntry.contains(kCommmandGroup))
 			pinData._commandGroup = CommandGroups(pinEntry.value(kCommmandGroup).toInt());
 
 		if (pinEntry.contains(kClassicAction))
-			pinData._classicAction = pinEntry.value(kClassicAction).toString();
+			pinData._classicAction = pinEntry.value(kClassicAction).toString().toStdString();
 
 		if (pinEntry.contains(kTabName))
-			pinData._tabName = pinEntry.value(kTabName).toString();
+			pinData._tabName = pinEntry.value(kTabName).toString().toStdString();
 
 		if (pinEntry.contains(kRunPriority))
-			pinData._cellLocation = toQPoint(pinEntry.value(kRunPriority).toString());
+		{
+			pinData._cellLocation = toQPoint(pinEntry.value(kRunPriority).toString().toStdString());
+		}
 
 		_pinEntries.insert(pinData._pin, pinData);
 	}
@@ -1024,19 +1026,21 @@ bool _PSOCPlatformConfiguration::read(QJsonObject &parentLevel)
 			if (i2cData.contains(kEnabled))
 				i2cEntry._enabled = i2cData.value(kEnabled).toBool();
 			if (i2cData.contains(kName))
-				i2cEntry._pinLabel = i2cData.value(kName).toString();
+				i2cEntry._pinLabel = i2cData.value(kName).toString().toStdString();
 			if (i2cData.contains(kToolTip))
-				i2cEntry._pinTooltip = i2cData.value(kToolTip).toString();
+				i2cEntry._pinTooltip = i2cData.value(kToolTip).toString().toStdString();
 			if (i2cData.contains(kCommand))
-				i2cEntry._pinCommand = i2cData.value(kCommand).toString();
+				i2cEntry._pinCommand = i2cData.value(kCommand).toString().toStdString();
 			if (i2cData.contains(kCommmandGroup))
 				i2cEntry._commandGroup = CommandGroups(i2cData.value(kCommmandGroup).toInt());
 			if (i2cData.contains(kClassicAction))
-				i2cEntry._classicAction = i2cData.value(kClassicAction).toString();
+				i2cEntry._classicAction = i2cData.value(kClassicAction).toString().toStdString();
 			if (i2cData.contains(kTabName))
-				i2cEntry._tabName = i2cData.value(kTabName).toString();
+				i2cEntry._tabName = i2cData.value(kTabName).toString().toStdString();
 			if (i2cData.contains(kRunPriority))
-				i2cEntry._cellLocation = toQPoint(i2cData.value(kRunPriority).toString());
+			{
+				i2cEntry._cellLocation = toQPoint(i2cData.value(kRunPriority).toString().toStdString());
+			}
 			if (i2cData.contains(kInverted))
 				i2cEntry._inverted = i2cData.value(kInverted).toBool();
 
@@ -1089,14 +1093,14 @@ void _PSOCPlatformConfiguration::write(QJsonObject &parentLevel)
 		psocPinData.insert(kIntialValue, pinData._initialValue);
 		psocPinData.insert(kPriority, pinData._initializationPriority);
 		psocPinData.insert(kInverted, pinData._inverted);
-		psocPinData.insert(kName, pinData._pinLabel);
-		psocPinData.insert(kToolTip, pinData._pinTooltip);
-		psocPinData.insert(kCommand, pinData._pinCommand);
+		psocPinData.insert(kName, QString::fromStdString(pinData._pinLabel));
+		psocPinData.insert(kToolTip, QString::fromStdString(pinData._pinTooltip));
+		psocPinData.insert(kCommand, QString::fromStdString(pinData._pinCommand));
 		psocPinData.insert(kCommmandGroup, pinData._commandGroup);
-		psocPinData.insert(kClassicAction, pinData._classicAction);
+		psocPinData.insert(kClassicAction, QString::fromStdString(pinData._classicAction));
 		// run_prority indicates cell_location (the location of the PinLED within TAC)
-		psocPinData[kRunPriority] = fromQPoint(pinData._cellLocation);
-		psocPinData.insert(kTabName, pinData._tabName);
+		psocPinData[kRunPriority] = QString::fromStdString(fromQPoint(pinData._cellLocation));
+		psocPinData.insert(kTabName, QString::fromStdString(pinData._tabName));
 
 		jsonPlatformPinData.append(psocPinData);
 	}
@@ -1127,13 +1131,13 @@ void _PSOCPlatformConfiguration::write(QJsonObject &parentLevel)
 			i2cData.insert(kSlaveAddress, static_cast<int>(i2cEntry._slaveAddress));
 			i2cData.insert(kWriteAddress, static_cast<int>(i2cEntry._writeAddress));
 			i2cData.insert(kEnabled, i2cEntry._enabled);
-			i2cData.insert(kName, i2cEntry._pinLabel);
-			i2cData.insert(kToolTip, i2cEntry._pinTooltip);
-			i2cData.insert(kCommand, i2cEntry._pinCommand);
+			i2cData.insert(kName, QString::fromStdString(i2cEntry._pinLabel));
+			i2cData.insert(kToolTip, QString::fromStdString(i2cEntry._pinTooltip));
+			i2cData.insert(kCommand, QString::fromStdString(i2cEntry._pinCommand));
 			i2cData.insert(kCommmandGroup, i2cEntry._commandGroup);
-			i2cData.insert(kClassicAction, i2cEntry._classicAction);
-			i2cData.insert(kTabName, i2cEntry._tabName);
-			i2cData.insert(kRunPriority, fromQPoint(i2cEntry._cellLocation));
+			i2cData.insert(kClassicAction, QString::fromStdString(i2cEntry._classicAction));
+			i2cData.insert(kTabName, QString::fromStdString(i2cEntry._tabName));
+			i2cData.insert(kRunPriority, QString::fromStdString(fromQPoint(i2cEntry._cellLocation)));
 			i2cData.insert(kInverted, i2cEntry._inverted);
 			jsonI2CData.append(i2cData);
 		}
@@ -1156,7 +1160,7 @@ void _PSOCPlatformConfiguration ::initialize(PSOCVariant psocVariant)
 	pinData._commandGroup = eConnectionGroup;
 	pinData._enabled = true;
 	pinData._classicAction = "TAC_POWER_OFF";
-	pinData._cellLocation = QPoint(0, 0);
+	pinData._cellLocation = std::make_pair(0, 0);
 	pinData._initialValue = false;
 	pinData._inverted = true;
 
@@ -1173,7 +1177,7 @@ void _PSOCPlatformConfiguration ::initialize(PSOCVariant psocVariant)
 	pinData._commandGroup = eConnectionGroup;
 	pinData._enabled = true;
 	pinData._classicAction = "TAC_USB0_DIS";
-	pinData._cellLocation = QPoint(1, 0);
+	pinData._cellLocation = std::make_pair(1, 0);
 	pinData._initialValue = false;
 	pinData._inverted = true;
 
@@ -1190,7 +1194,7 @@ void _PSOCPlatformConfiguration ::initialize(PSOCVariant psocVariant)
 	pinData._commandGroup = eConnectionGroup;
 	pinData._enabled = true;
 	pinData._classicAction = "TAC_USB1_DIS";
-	pinData._cellLocation = QPoint(2, 0);
+	pinData._cellLocation = std::make_pair(2, 0);
 	pinData._initialValue = false;
 	pinData._inverted = true;
 
@@ -1207,7 +1211,7 @@ void _PSOCPlatformConfiguration ::initialize(PSOCVariant psocVariant)
 	pinData._commandGroup = eButtonGroup;
 	pinData._enabled = true;
 	pinData._classicAction = "TAC_TC_START";
-	pinData._cellLocation = QPoint(0, 0);
+	pinData._cellLocation = std::make_pair(0, 0);
 	pinData._initialValue = false;
 	pinData._inverted = false;
 
@@ -1224,7 +1228,7 @@ void _PSOCPlatformConfiguration ::initialize(PSOCVariant psocVariant)
 	pinData._commandGroup = eButtonGroup;
 	pinData._enabled = true;
 	pinData._classicAction = "TAC_VOL_UP";
-	pinData._cellLocation = QPoint(0, 1);
+	pinData._cellLocation = std::make_pair(0, 1);
 	pinData._initialValue = false;
 	pinData._inverted = false;
 
@@ -1241,7 +1245,7 @@ void _PSOCPlatformConfiguration ::initialize(PSOCVariant psocVariant)
 	pinData._commandGroup = eButtonGroup;
 	pinData._enabled = true;
 	pinData._classicAction = "TAC_RESET_PRI";
-	pinData._cellLocation = QPoint(0, 2);
+	pinData._cellLocation = std::make_pair(0, 2);
 	pinData._initialValue = false;
 	pinData._inverted = false;
 
@@ -1258,7 +1262,7 @@ void _PSOCPlatformConfiguration ::initialize(PSOCVariant psocVariant)
 	pinData._commandGroup = eSwitchGroup;
 	pinData._enabled = true;
 	pinData._classicAction = "TAC_UIM1_DIS";
-	pinData._cellLocation = QPoint(0, 0);
+	pinData._cellLocation = std::make_pair(0, 0);
 	pinData._initialValue = false;
 	pinData._inverted = false;
 
@@ -1275,7 +1279,7 @@ void _PSOCPlatformConfiguration ::initialize(PSOCVariant psocVariant)
 	pinData._commandGroup = eSwitchGroup;
 	pinData._enabled = true;
 	pinData._classicAction = "TAC_UIM2_DIS";
-	pinData._cellLocation = QPoint(1, 0);
+	pinData._cellLocation = std::make_pair(1, 0);
 	pinData._initialValue = false;
 	pinData._inverted = false;
 
@@ -1292,7 +1296,7 @@ void _PSOCPlatformConfiguration ::initialize(PSOCVariant psocVariant)
 	pinData._commandGroup = eSwitchGroup;
 	pinData._enabled = true;
 	pinData._classicAction = "TAC_SW_DWNLD_PRI";
-	pinData._cellLocation = QPoint(0, 1);
+	pinData._cellLocation = std::make_pair(0, 1);
 	pinData._initialValue = false;
 	pinData._inverted = false;
 
@@ -1309,7 +1313,7 @@ void _PSOCPlatformConfiguration ::initialize(PSOCVariant psocVariant)
 	pinData._commandGroup = eSwitchGroup;
 	pinData._enabled = true;
 	pinData._classicAction = "TAC_FORCE_PS_HOLD";
-	pinData._cellLocation = QPoint(0, 2);
+	pinData._cellLocation = std::make_pair(0, 2);
 	pinData._initialValue = false;
 	pinData._inverted = false;
 
@@ -1326,7 +1330,7 @@ void _PSOCPlatformConfiguration ::initialize(PSOCVariant psocVariant)
 	pinData._commandGroup = eSwitchGroup;
 	pinData._enabled = true;
 	pinData._classicAction = "TAC_SDCARD_DISC";
-	pinData._cellLocation = QPoint(0, 3);
+	pinData._cellLocation = std::make_pair(0, 3);
 	pinData._initialValue = false;
 	pinData._inverted = false;
 
@@ -1343,7 +1347,7 @@ void _PSOCPlatformConfiguration ::initialize(PSOCVariant psocVariant)
 	pinData._commandGroup = eSwitchGroup;
 	pinData._enabled = true;
 	pinData._classicAction = "TC_EUD_EARLY_BOOT_EN";
-	pinData._cellLocation = QPoint(0, 4);
+	pinData._cellLocation = std::make_pair(0, 4);
 	pinData._initialValue = false;
 	pinData._inverted = false;
 
@@ -1360,7 +1364,7 @@ void _PSOCPlatformConfiguration ::initialize(PSOCVariant psocVariant)
 	pinData._commandGroup = eSwitchGroup;
 	pinData._enabled = true;
 	pinData._classicAction = "TAC_HEADSET_DIS";
-	pinData._cellLocation = QPoint(0, 5);
+	pinData._cellLocation = std::make_pair(0, 5);
 	pinData._initialValue = false;
 	pinData._inverted = false;
 
@@ -1377,7 +1381,7 @@ void _PSOCPlatformConfiguration ::initialize(PSOCVariant psocVariant)
 	pinData._commandGroup = eSwitchGroup;
 	pinData._enabled = true;
 	pinData._classicAction = "TAC_FORCE_USB_BOOT_SEC";
-	pinData._cellLocation = QPoint(0, 0);
+	pinData._cellLocation = std::make_pair(0, 0);
 	pinData._initialValue = false;
 	pinData._inverted = false;
 
@@ -1394,7 +1398,7 @@ void _PSOCPlatformConfiguration ::initialize(PSOCVariant psocVariant)
 	pinData._commandGroup = eSwitchGroup;
 	pinData._enabled = true;
 	pinData._classicAction = "TAC_RESET_SEC";
-	pinData._cellLocation = QPoint(0, 1);
+	pinData._cellLocation = std::make_pair(0, 1);
 	pinData._initialValue = false;
 	pinData._inverted = false;
 
@@ -1468,7 +1472,7 @@ void _PSOCPlatformConfiguration ::initialize(PSOCVariant psocVariant)
 	pinData._commandGroup = eUnknownCommandGroup;
 	pinData._enabled = false;
 	pinData._classicAction = "TAC_SOFT_RESET";
-	pinData._cellLocation = QPoint(-1,-1);
+	pinData._cellLocation = std::make_pair(-1, -1);
 	pinData._initialValue = false;
 	pinData._inverted = false;
 
@@ -1493,7 +1497,7 @@ void _PSOCPlatformConfiguration ::initialize(PSOCVariant psocVariant)
 		i2cData._commandGroup = eSwitchGroup;
 		i2cData._tabName = "KTS1622EUAATR";
 		i2cData._inverted = false;
-		i2cData._cellLocation = QPoint(0, 0);
+		i2cData._cellLocation = std::make_pair(0, 0);
 		_PSOCPlatformConfiguration::_classicI2CActions[i2cData._pin] = i2cData;
 
 		i2cData.clear();
@@ -1509,7 +1513,7 @@ void _PSOCPlatformConfiguration ::initialize(PSOCVariant psocVariant)
 		i2cData._commandGroup = eSwitchGroup;
 		i2cData._tabName = "KTS1622EUAATR";
 		i2cData._inverted = false;
-		i2cData._cellLocation = QPoint(1, 0);
+		i2cData._cellLocation = std::make_pair(1, 0);
 		_PSOCPlatformConfiguration::_classicI2CActions[i2cData._pin] = i2cData;
 
 		i2cData.clear();
@@ -1525,7 +1529,7 @@ void _PSOCPlatformConfiguration ::initialize(PSOCVariant psocVariant)
 		i2cData._commandGroup = eSwitchGroup;
 		i2cData._tabName = "KTS1622EUAATR";
 		i2cData._inverted = false;
-		i2cData._cellLocation = QPoint(0, 1);
+		i2cData._cellLocation = std::make_pair(0, 1);
 		_PSOCPlatformConfiguration::_classicI2CActions[i2cData._pin] = i2cData;
 
 		i2cData.clear();
@@ -1541,7 +1545,7 @@ void _PSOCPlatformConfiguration ::initialize(PSOCVariant psocVariant)
 		i2cData._commandGroup = eSwitchGroup;
 		i2cData._tabName = "KTS1622EUAATR";
 		i2cData._inverted = false;
-		i2cData._cellLocation = QPoint(1, 1);
+		i2cData._cellLocation = std::make_pair(1, 1);
 		_PSOCPlatformConfiguration::_classicI2CActions[i2cData._pin] = i2cData;
 
 		i2cData.clear();
@@ -1557,7 +1561,7 @@ void _PSOCPlatformConfiguration ::initialize(PSOCVariant psocVariant)
 		i2cData._commandGroup = eSwitchGroup;
 		i2cData._tabName = "KTS1622EUAATR";
 		i2cData._inverted = false;
-		i2cData._cellLocation = QPoint(0, 2);
+		i2cData._cellLocation = std::make_pair(0, 2);
 		_PSOCPlatformConfiguration::_classicI2CActions[i2cData._pin] = i2cData;
 
 		i2cData.clear();
@@ -1573,7 +1577,7 @@ void _PSOCPlatformConfiguration ::initialize(PSOCVariant psocVariant)
 		i2cData._commandGroup = eSwitchGroup;
 		i2cData._tabName = "KTS1622EUAATR";
 		i2cData._inverted = false;
-		i2cData._cellLocation = QPoint(1, 2);
+		i2cData._cellLocation = std::make_pair(1, 2);
 		_PSOCPlatformConfiguration::_classicI2CActions[i2cData._pin] = i2cData;
 
 		i2cData.clear();
@@ -1589,7 +1593,7 @@ void _PSOCPlatformConfiguration ::initialize(PSOCVariant psocVariant)
 		i2cData._commandGroup = eSwitchGroup;
 		i2cData._tabName = "KTS1622EUAATR";
 		i2cData._inverted = false;
-		i2cData._cellLocation = QPoint(0, 3);
+		i2cData._cellLocation = std::make_pair(0, 3);
 		_PSOCPlatformConfiguration::_classicI2CActions[i2cData._pin] = i2cData;
 
 		i2cData.clear();
@@ -1605,7 +1609,7 @@ void _PSOCPlatformConfiguration ::initialize(PSOCVariant psocVariant)
 		i2cData._commandGroup = eSwitchGroup;
 		i2cData._tabName = "KTS1622EUAATR";
 		i2cData._inverted = false;
-		i2cData._cellLocation = QPoint(1, 3);
+		i2cData._cellLocation = std::make_pair(1, 3);
 		_PSOCPlatformConfiguration::_classicI2CActions[i2cData._pin] = i2cData;
 
 		i2cData.clear();
@@ -1621,7 +1625,7 @@ void _PSOCPlatformConfiguration ::initialize(PSOCVariant psocVariant)
 		i2cData._commandGroup = eSwitchGroup;
 		i2cData._tabName = "KTS1622EUAATR";
 		i2cData._inverted = false;
-		i2cData._cellLocation = QPoint(0, 4);
+		i2cData._cellLocation = std::make_pair(0, 4);
 		_PSOCPlatformConfiguration::_classicI2CActions[i2cData._pin] = i2cData;
 
 		i2cData.clear();
@@ -1637,7 +1641,7 @@ void _PSOCPlatformConfiguration ::initialize(PSOCVariant psocVariant)
 		i2cData._commandGroup = eSwitchGroup;
 		i2cData._tabName = "KTS1622EUAATR";
 		i2cData._inverted = false;
-		i2cData._cellLocation = QPoint(1, 4);
+		i2cData._cellLocation = std::make_pair(1, 4);
 		_PSOCPlatformConfiguration::_classicI2CActions[i2cData._pin] = i2cData;
 
 		i2cData.clear();
@@ -1653,7 +1657,7 @@ void _PSOCPlatformConfiguration ::initialize(PSOCVariant psocVariant)
 		i2cData._commandGroup = eSwitchGroup;
 		i2cData._tabName = "KTS1622EUAATR";
 		i2cData._inverted = false;
-		i2cData._cellLocation = QPoint(0, 5);
+		i2cData._cellLocation = std::make_pair(0, 5);
 		_PSOCPlatformConfiguration::_classicI2CActions[i2cData._pin] = i2cData;
 
 		i2cData.clear();
@@ -1680,7 +1684,7 @@ void _PSOCPlatformConfiguration ::initialize(PSOCVariant psocVariant)
 		i2cData._commandGroup = eSwitchGroup;
 		i2cData._tabName = "KTS1622EUAATR";
 		i2cData._inverted = false;
-		i2cData._cellLocation = QPoint(1, 5);
+		i2cData._cellLocation = std::make_pair(1, 5);
 		_PSOCPlatformConfiguration::_classicI2CActions[i2cData._pin] = i2cData;
 
 		i2cData.clear();
@@ -1696,7 +1700,7 @@ void _PSOCPlatformConfiguration ::initialize(PSOCVariant psocVariant)
 		i2cData._commandGroup = eSwitchGroup;
 		i2cData._tabName = "KTS1622EUAATR";
 		i2cData._inverted = false;
-		i2cData._cellLocation = QPoint(0, 6);
+		i2cData._cellLocation = std::make_pair(0, 6);
 		_PSOCPlatformConfiguration::_classicI2CActions[i2cData._pin] = i2cData;
 
 		i2cData.clear();
@@ -1712,7 +1716,7 @@ void _PSOCPlatformConfiguration ::initialize(PSOCVariant psocVariant)
 		i2cData._commandGroup = eSwitchGroup;
 		i2cData._tabName = "KTS1622EUAATR";
 		i2cData._inverted = false;
-		i2cData._cellLocation = QPoint(1, 6);
+		i2cData._cellLocation = std::make_pair(1, 6);
 		_PSOCPlatformConfiguration::_classicI2CActions[i2cData._pin] = i2cData;
 
 		i2cData.clear();
@@ -1739,7 +1743,7 @@ void _PSOCPlatformConfiguration ::initialize(PSOCVariant psocVariant)
 		i2cData._commandGroup = eSwitchGroup;
 		i2cData._tabName = "TCA9534APWR";
 		i2cData._inverted = false;
-		i2cData._cellLocation = QPoint(0, 0);
+		i2cData._cellLocation = std::make_pair(0, 0);
 		_PSOCPlatformConfiguration::_classicI2CActions[i2cData._pin] = i2cData;
 
 		i2cData.clear();
@@ -1755,7 +1759,7 @@ void _PSOCPlatformConfiguration ::initialize(PSOCVariant psocVariant)
 		i2cData._commandGroup = eSwitchGroup;
 		i2cData._tabName = "TCA9534APWR";
 		i2cData._inverted = false;
-		i2cData._cellLocation = QPoint(1, 0);
+		i2cData._cellLocation = std::make_pair(1, 0);
 		_PSOCPlatformConfiguration::_classicI2CActions[i2cData._pin] = i2cData;
 
 		i2cData.clear();
@@ -1771,7 +1775,7 @@ void _PSOCPlatformConfiguration ::initialize(PSOCVariant psocVariant)
 		i2cData._commandGroup = eSwitchGroup;
 		i2cData._tabName = "TCA9534APWR";
 		i2cData._inverted = false;
-		i2cData._cellLocation = QPoint(0, 1);
+		i2cData._cellLocation = std::make_pair(0, 1);
 		_PSOCPlatformConfiguration::_classicI2CActions[i2cData._pin] = i2cData;
 
 		i2cData.clear();
@@ -1787,7 +1791,7 @@ void _PSOCPlatformConfiguration ::initialize(PSOCVariant psocVariant)
 		i2cData._commandGroup = eSwitchGroup;
 		i2cData._tabName = "TCA9534APWR";
 		i2cData._inverted = false;
-		i2cData._cellLocation = QPoint(1, 1);
+		i2cData._cellLocation = std::make_pair(1, 1);
 		_PSOCPlatformConfiguration::_classicI2CActions[i2cData._pin] = i2cData;
 
 		for (int p = 20; p < 24; ++p)

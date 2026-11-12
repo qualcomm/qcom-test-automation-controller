@@ -42,7 +42,7 @@ void TACPIC32CXCommand::uuid()
 	send(kGetUUIDCommand, Arguments(), false, false);
 }
 
-void TACPIC32CXCommand::setPinState(quint16 pin, bool state)
+void TACPIC32CXCommand::setPinState(uint16_t pin, bool state)
 {
 	Arguments args;
 
@@ -56,7 +56,7 @@ void TACPIC32CXCommand::setName(const QByteArray& newName)
 {
 	Arguments args;
 
-	args.push_back(newName);
+	args.push_back(newName.toStdString());
 
 	send(kSetNameCommand, args, false, false);
 }
@@ -66,7 +66,7 @@ void TACPIC32CXCommand::send(const QByteArray& command, const Arguments& argumen
 	_sender->send(command, arguments, console, _receiver, store);
 }
 
-void TACPIC32CXCommand::addDelay(quint32 delayInMilliSeconds)
+void TACPIC32CXCommand::addDelay(uint32_t delayInMilliSeconds)
 {
 	_sender->addDelay(delayInMilliSeconds, _receiver);
 }

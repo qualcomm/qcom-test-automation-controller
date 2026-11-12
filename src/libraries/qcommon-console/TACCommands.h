@@ -9,6 +9,8 @@
 #include <QByteArray>
 #include <QVariant>
 
+#include <string>
+
 const QByteArray kVersionCommand{QByteArrayLiteral("Version")};
 
 const QByteArray kSetPinCommand{QByteArrayLiteral("SetPin")};
@@ -104,18 +106,18 @@ struct oldCommandEntry
 	oldCommandEntry& operator=(const oldCommandEntry& assignMe) = default;
 	~oldCommandEntry() = default;
 
-	QByteArray			_longCommand;
-	QByteArray			_compressedCommand;
+	std::string			_longCommand;
+	std::string			_compressedCommand;
 	HashType			_hash{0};
-	QByteArray			_alias;
-	QByteArray			_helpText;
+	std::string			_alias;
+	std::string			_helpText;
 	bool				_setter{false};
 	QMetaType::Type		_argType{QMetaType::UnknownType};
 };
 
-HashType AddCommandToEntries(const QByteArray& commandToAdd, const QByteArray& alias, const QByteArray& helpText);
+HashType AddCommandToEntries(const std::string& commandToAdd, const std::string& alias, const std::string& helpText);
 
-HashType CommandStringToHash(const QByteArray& commandString);
+HashType CommandStringToHash(const std::string& commandString);
 oldCommandEntry CommandHashToCommandEntry(HashType commandHash);
 
 void AddHelpTextEntry(QString &helpText, HashType commandHash);

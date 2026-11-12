@@ -7,9 +7,11 @@
 #include "QCommonConsoleGlobal.h"
 
 // Qt
-#include <QString>
 #include <QTextStream>
 
-void QCOMMONCONSOLE_EXPORT writeCSVLine(QTextStream& textStream, const QStringList& values);
+#include <string>
+#include <vector>
+
+void QCOMMONCONSOLE_EXPORT writeCSVLine(QTextStream& textStream, const std::vector<std::string>& values);
 
 #endif // CSV_H

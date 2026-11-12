@@ -4,33 +4,62 @@
 #include "CommandLineParser.h"
 
 // c++
+#include <cctype>
 #include <utility>
+
+static std::string toLowerCase(const std::string& value)
+{
+	std::string result{value};
+
+	for (char& c: result)
+		c = static_cast<char>(std::tolower(static_cast<unsigned char>(c)));
+
+	return result;
+}
+
+static std::vector<std::string> splitOnEquals(const std::string& value)
+{
+	std::vector<std::string> result;
+
+	size_t equalsPos = value.find('=');
+	if (equalsPos == std::string::npos)
+	{
+		result.push_back(value);
+	}
+	else
+	{
+		result.push_back(value.substr(0, equalsPos));
+		result.push_back(value.substr(equalsPos + 1));
+	}
+
+	return result;
+}
 
 CommandLineParser::CommandLineParser
 (
-	const QStringList &args
+	const std::vector<std::string> &args
 ) :
 	_args(args)
 {
-	for (const QString& arg: std::as_const(_args))
+	for (const std::string& arg: _args)
 	{
-		QStringList argElements = arg.split("=");
-		if (argElements.isEmpty() == false)
+		std::vector<std::string> argElements = splitOnEquals(arg);
+		if (argElements.empty() == false)
 		{
-			if (argElements.count() == 1)
-				_values[argElements.at(0).toLower()] = "true";
+			if (argElements.size() == 1)
+				_values[toLowerCase(argElements.at(0))] = "true";
 			else
-				_values[argElements.at(0).toLower()] = argElements.at(1);
+				_values[toLowerCase(argElements.at(0))] = argElements.at(1);
 		}
 	}
 
-	_helpRequested = isSet(QStringList() << "-h" << "help" << "-help" << "--help" << "/help" << "/?");
-	_versionRequested = isSet(QStringList() << "-v" << "version");
+	_helpRequested = isSet({"-h", "help", "-help", "--help", "/help", "/?"});
+	_versionRequested = isSet({"-v", "version"});
 }
 
 void CommandLineParser::setVersion
 (
-	const QByteArray& version
+	const std::string& version
 )
 {
 	_version = version;
@@ -43,20 +72,20 @@ bool CommandLineParser::helpRequested()
 
 bool CommandLineParser::versionRequested()
 {
-	if (_version.isEmpty() == false)
+	if (_version.empty() == false)
 		return _versionRequested;
 
 	return false;
 }
 
-QByteArray CommandLineParser::version()
+std::string CommandLineParser::version()
 {
 	return _version;
 }
 
 void CommandLineParser::addHelpLine
 (
-	const QString& helpText
+	const std::string& helpText
 )
 {
 	_helpText += helpText + "\n";
@@ -68,21 +97,21 @@ void CommandLineParser::addHelpLine()
 	addHelpLine("   -v, version                      -- Displays Application Version");
 }
 
-const QString CommandLineParser::helpText()
+const std::string CommandLineParser::helpText()
 {
 	return _helpText;
 }
 
 bool CommandLineParser::isSet
 (
-	const QStringList& keys
+	const std::vector<std::string>& keys
 )
 {
 	bool result{false};
 
-	for (const auto& key: std::as_const(keys))
+	for (const auto& key: keys)
 	{
-		auto keyInLowerCase = key.toLower();
+		auto keyInLowerCase = toLowerCase(key);
 		if (_values.find(keyInLowerCase) != _values.end())
 		{
 			result = true;
@@ -93,14 +122,14 @@ bool CommandLineParser::isSet
 	return result;
 }
 
-QString CommandLineParser::value
+std::string CommandLineParser::value
 (
-	const QString& key
+	const std::string& key
 )
 {
-	QString result;
+	std::string result;
 
-	QString keyInLowerCase{key.toLower()};
+	std::string keyInLowerCase{toLowerCase(key)};
 	if (_values.find(keyInLowerCase) != _values.end())
 	{
 		result = _values[keyInLowerCase];

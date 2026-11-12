@@ -6,7 +6,9 @@
 #include "QCommonConsoleGlobal.h"
 
 #include <QStandardPaths>
-#include <QString>
+
+#include <cstdint>
+#include <string>
 
 // QCommonConsole
 #include "PreferencesBase.h"
@@ -17,7 +19,7 @@ class QCOMMONCONSOLE_EXPORT TACPreferences :
 public:
 	TACPreferences() = default;
 
-	virtual void setAppName(const QByteArray& appName, const QByteArray& appVersion);
+	virtual void setAppName(const std::string& appName, const std::string& appVersion);
 
 	int defaultPowerDelay();
 	int powerDelay();
@@ -34,32 +36,32 @@ public:
 	void setAutoShutdownActive(bool shutdownActive);
 	void saveAutoShutdownActive(bool shutdownActive);
 
-	qreal defaultAutoShutdownDelay();
-	qreal autoShutdownDelay();
-	void setAutoShutdownDelay(qreal delayInHours);
-	void saveAutoShutdownDelay(qreal delayInHours);
-	qint64 autoShutdownDelayInMSecs();
+	double defaultAutoShutdownDelay();
+	double autoShutdownDelay();
+	void setAutoShutdownDelay(double delayInHours);
+	void saveAutoShutdownDelay(double delayInHours);
+	int64_t autoShutdownDelayInMSecs();
 
 	bool defaultOpenLastStart();
 	bool openLastStart();
 	void setOpenLastStart(bool openLastOnStart);
 	void saveOpenLastStart(bool openLastOnStart);
 
-	QString lastDevice();
-	void saveLastDevice(const QString& lastDevice);
+	std::string lastDevice();
+	void saveLastDevice(const std::string& lastDevice);
 
-	QString defaultTACEditorConfigLocation();
-	QString tacEditorConfigLocation();
-	void setTACEditorConfigLocation(const QString& tacConfigLocation);
-	void saveTACEditorConfigLocation(const QString& saveLocation);
+	std::string defaultTACEditorConfigLocation();
+	std::string tacEditorConfigLocation();
+	void setTACEditorConfigLocation(const std::string& tacConfigLocation);
+	void saveTACEditorConfigLocation(const std::string& saveLocation);
 
 private:
 	int							_powerDelay{0};
 	int							_buttonAssertTime{0};
 	bool						_autoShutdown{false};
-	qreal						_autoShutdownDelay{0.};
+	double						_autoShutdownDelay{0.};
 	bool						_openLast{false};
-	QString                     _tacEditorConfigLocation;
+	std::string                  _tacEditorConfigLocation;
 };
 
 #endif // TACPREFERENCES_H

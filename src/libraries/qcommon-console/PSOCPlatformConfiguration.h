@@ -7,6 +7,9 @@
 #include "PlatformConfiguration.h"
 #include "CommandGroup.h"
 
+#include <string>
+#include <utility>
+
 const PlatformID kMaxPSOCPlatformId(255);
 
 struct PSOCPinData
@@ -29,16 +32,16 @@ struct PSOCPinData
 	PinID						_pin{0};
 	HashType					_hash{0};
 	bool						_enabled{true};
-	QString						_pinLabel;
-	QString						_pinTooltip;
+	std::string					_pinLabel;
+	std::string					_pinTooltip;
 	bool						_initialValue{false};
 	int							_initializationPriority{0};
 	bool						_inverted{false};
-	QString						_pinCommand;
+	std::string					_pinCommand;
 	CommandGroups				_commandGroup{eUnknownCommandGroup};
-	QString						_classicAction;
-	QPoint						_cellLocation{QPoint(-1,-1)};
-	QString						_tabName;
+	std::string					_classicAction;
+	std::pair<int, int>			_cellLocation{-1, -1};
+	std::string					_tabName;
 };
 
 struct PSOCI2CSlave
@@ -83,14 +86,14 @@ struct PSOCI2CData
 	PinID						_writeAddress{0};
 	HashType					_hash{0};
 	bool						_enabled{false};
-	QString						_pinLabel;
-	QString						_pinTooltip;
+	std::string					_pinLabel;
+	std::string					_pinTooltip;
 	bool						_inverted{false};
-	QString						_pinCommand;
+	std::string					_pinCommand;
 	CommandGroups				_commandGroup{eUnknownCommandGroup};
-	QString						_classicAction;
-	QPoint						_cellLocation{QPoint(-1,-1)};
-	QString						_tabName;
+	std::string					_classicAction;
+	std::pair<int, int>			_cellLocation{-1, -1};
+	std::string					_tabName;
 };
 
 typedef QMap<PinID, PSOCPinData> PSOCPinEntries;
@@ -123,32 +126,32 @@ public:
 	bool getInitialPinValue(const PinID pinId) const;
 	void setInitialPinValue(const PinID pinId, bool newState);
 
-	quint64 getPinInitializationPriority(const PinID pinId) const;
+	uint64_t getPinInitializationPriority(const PinID pinId) const;
 	void setPinInitializationPriority(const PinID pinId, const int priority);
 
 	bool getPinInvertedState(const PinID pinId) const;
 	void setPinInvertedState(const PinID pinId, bool newState);
 
-	QString getPinLabel(const PinID pinId) const;
-	void setPinLabel(const PinID pinId, const QString& pinLabel);
+	std::string getPinLabel(const PinID pinId) const;
+	void setPinLabel(const PinID pinId, const std::string& pinLabel);
 
-	QString getPinTooltip(const PinID pinId) const;
-	void setPinTooltip(const PinID pinId, const QString& pinTooltip);
+	std::string getPinTooltip(const PinID pinId) const;
+	void setPinTooltip(const PinID pinId, const std::string& pinTooltip);
 
-	QString getPinCommand(const PinID pinId) const;
-	void setPinCommand(const PinID pinId, const QString& pinCommand);
+	std::string getPinCommand(const PinID pinId) const;
+	void setPinCommand(const PinID pinId, const std::string& pinCommand);
 
 	CommandGroups getPinGroup(const PinID pinId) const;
 	void setPinGroup(const PinID pinId, const CommandGroups commandGroup);
 
-	QString getTabName(const PinID pinId) const;
-	void setTabName(const PinID pinId, const QString tabName);
+	std::string getTabName(const PinID pinId) const;
+	void setTabName(const PinID pinId, const std::string tabName);
 
-	QString getClassicAction(const PinID pinId) const;
-	void setClassicAction(const PinID pinId, const QString& classicAction);
+	std::string getClassicAction(const PinID pinId) const;
+	void setClassicAction(const PinID pinId, const std::string& classicAction);
 
-	QPoint getPinCellLocation(const PinID pinId) const;
-	void setPinCellLocation(const PinID pinId, const QPoint& cellLocation);
+	std::pair<int, int> getPinCellLocation(const PinID pinId) const;
+	void setPinCellLocation(const PinID pinId, const std::pair<int, int>& cellLocation);
 
 	PSOCI2CSlaves getSlaveConfigs() const;
 	void setSlaveConfigs(PSOCI2CSlaves& slaves);
@@ -156,7 +159,7 @@ public:
 	void addSlaveConfig(const PSOCI2CSlave& slave);
 	void removeSlaveConfig(PinID slaveAddress);
 
-	static QString i2cSlaveTabName(const PSOCI2CSlave& slave);
+	static std::string i2cSlaveTabName(const PSOCI2CSlave& slave);
 
 	PSOCI2CEntries getI2CEntries() const;
 	PSOCI2CEntries getActiveI2CEntries() const;
@@ -171,27 +174,27 @@ public:
 	bool getI2CPinInvertedState(const HashType hash) const;
 	void setI2CPinInvertedState(const HashType hash, bool newState);
 
-	QString getI2CPinLabel(const HashType hash) const;
-	void setI2CPinLabel(const HashType hash, const QString& pinLabel);
+	std::string getI2CPinLabel(const HashType hash) const;
+	void setI2CPinLabel(const HashType hash, const std::string& pinLabel);
 
-	QString getI2CPinTooltip(const HashType hash) const;
-	void setI2CPinTooltip(const HashType hash, const QString& pinTooltip);
+	std::string getI2CPinTooltip(const HashType hash) const;
+	void setI2CPinTooltip(const HashType hash, const std::string& pinTooltip);
 
-	QString getI2CPinCommand(const HashType hash) const;
-	void setI2CPinCommand(const HashType hash, const QString& pinCommand);
+	std::string getI2CPinCommand(const HashType hash) const;
+	void setI2CPinCommand(const HashType hash, const std::string& pinCommand);
 
 	CommandGroups getI2CPinGroup(const HashType hash) const;
 	void setI2CPinGroup(const HashType hash, const CommandGroups commandGroup);
 
-	QString getI2CTabName(const HashType hash) const;
-	void setI2CTabName(const HashType hash, const QString& tabName);
+	std::string getI2CTabName(const HashType hash) const;
+	void setI2CTabName(const HashType hash, const std::string& tabName);
 
-	QPoint getI2CPinCellLocation(const HashType hash) const;
-	void setI2CPinCellLocation(const HashType hash, const QPoint& cellLocation);
+	std::pair<int, int> getI2CPinCellLocation(const HashType hash) const;
+	void setI2CPinCellLocation(const HashType hash, const std::pair<int, int>& cellLocation);
 
 protected:
-	virtual void cascadeTabDelete(const QString& deleteMe);
-	virtual void cascadeTabRename(const QString& oldName, const QString& newName);
+	virtual void cascadeTabDelete(const std::string& deleteMe);
+	virtual void cascadeTabRename(const std::string& oldName, const std::string& newName);
 
 	virtual bool read(QJsonObject& parentLevel);
 	virtual void write(QJsonObject& parentLevel);

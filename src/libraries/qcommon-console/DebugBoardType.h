@@ -6,7 +6,7 @@
 
 #include "QCommonConsoleGlobal.h"
 
-#include <QString>
+#include <string>
 
 enum DebugBoardType
 {
@@ -33,12 +33,12 @@ enum PSOCIICVariant
 	eTCA9534APWR,
 };
 
-QString QCOMMONCONSOLE_EXPORT debugBoardTypeToString(DebugBoardType);
-DebugBoardType QCOMMONCONSOLE_EXPORT debugBoardTypeFromString(const QString& boardString);
+std::string QCOMMONCONSOLE_EXPORT debugBoardTypeToString(DebugBoardType);
+DebugBoardType QCOMMONCONSOLE_EXPORT debugBoardTypeFromString(const std::string& boardString);
 
-QString QCOMMONCONSOLE_EXPORT psocVariantToString(PSOCVariant psocVariant);
-PSOCVariant QCOMMONCONSOLE_EXPORT psocVariantFromString(const QString& psocVariantString);
+std::string QCOMMONCONSOLE_EXPORT psocVariantToString(PSOCVariant psocVariant);
+PSOCVariant QCOMMONCONSOLE_EXPORT psocVariantFromString(const std::string& psocVariantString);
 
-QString QCOMMONCONSOLE_EXPORT psocSlaveToString(const PSOCIICVariant slave);
+std::string QCOMMONCONSOLE_EXPORT psocSlaveToString(const PSOCIICVariant slave);
 
 #endif // DEBUGBOARDTYPE_H

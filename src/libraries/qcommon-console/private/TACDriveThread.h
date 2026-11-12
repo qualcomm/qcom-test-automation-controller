@@ -32,7 +32,7 @@ public:
 
 	bool resetLogging();
 
-	static TACDriveThread* openPort(const QByteArray& portName);
+	static TACDriveThread* openPort(const std::string& portName);
 
 	HashType hash();
 
@@ -47,26 +47,26 @@ public:
 	virtual void sendCommand(const QByteArray& command, bool console = false,
 		ReceiveInterface* receiveInterface = Q_NULLPTR, bool shouldStore = true) = 0;
 
-	virtual void setPinState(quint16 pin, bool state) = 0;
-	virtual void setAddressPinState(const QString& i2cAddress, quint16 pin, bool state) {}
+	virtual void setPinState(uint16_t pin, bool state) = 0;
+	virtual void setAddressPinState(const std::string& i2cAddress, uint16_t pin, bool state) {}
 	virtual void sendCommandSequence(CommandEntries& commandEntries) = 0;
 
 	virtual int getResetCount() = 0;
 	virtual void clearResetCount() = 0;
 
-	virtual void i2CReadRegister(quint32 addr, quint32 reg) = 0;
-	virtual void i2CWriteRegister(quint32 addr, quint32 reg, quint32 data) = 0;
+	virtual void i2CReadRegister(uint32_t addr, uint32_t reg) = 0;
+	virtual void i2CWriteRegister(uint32_t addr, uint32_t reg, uint32_t data) = 0;
 
 	// properties
 	DebugBoardType debugBoardType();
-	QString debugBoardTypeString();
+	std::string debugBoardTypeString();
 
 	PlatformID platformID();
-	virtual QString hardwareVersionString();
+	virtual std::string hardwareVersionString();
 
 	// firmware properties
 	bool oldFirmware();
-	QString firmwareVersion();
+	std::string firmwareVersion();
 	uint majorVersion();
 	uint chipVersion();
 	uint minorVersion();
@@ -78,18 +78,18 @@ public:
 	QByteArray portName() const;
 	void setPortName(const QByteArray& portName);
 
-	QString description() const;
-	void setDescription(const QString& description);
+	std::string description() const;
+	void setDescription(const std::string& description);
 
 	QString serialNumber() const;
 	void setSerialNumber(QString serialNumber);
 
 	QString uuid();
 
-	QByteArray macAddress();
+	std::string macAddress();
 
 	// Send Interface
-	virtual quint32 send(const QByteArray& sendMe, const Arguments& arguments, bool console, ReceiveInterface* recieveInterface, bool store = true) = 0;
+	virtual uint32_t send(const QByteArray& sendMe, const Arguments& arguments, bool console, ReceiveInterface* recieveInterface, bool store = true) = 0;
 	virtual bool ready() = 0;
 
 	// Receive Interface
@@ -133,17 +133,17 @@ protected:
 	DebugBoardType				_hardwareType{eUnknownDebugBoard};
 	PlatformID					_platformID{MICRO_EPM_BOARD_ID_UNKNOWN};
 	QByteArray					_versionString;
-	QByteArray					_firmwareString;
+	std::string					_firmwareString;
 	uint						_firmwareMajor{0};
 	uint						_firmwareChip{0};
 	uint						_firmwareMinor{0};
 	uint						_firmwareRevision{0};
 	QByteArray					_name;
-	QByteArray                  _macAddress;
-	QString						_description;
+	std::string                 _macAddress;
+	std::string					_description;
 	QString						_uuid;
 	QString						_serialNumber;
-	QString                     _mcnNumber;
+	std::string                 _mcnNumber;
 	QString						_helpText;
 
 	int							_resetCount{0};

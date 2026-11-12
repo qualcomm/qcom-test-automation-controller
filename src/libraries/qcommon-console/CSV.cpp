@@ -5,21 +5,21 @@
 
 #include "CSV.h"
 
-#include <QStringList>
+#include <QString>
 
 void writeCSVLine
 (
    QTextStream& textStream,
-   const QStringList& values
+   const std::vector<std::string>& values
 )
 {
    bool first(true);
 
-   QStringList::const_iterator value = values.constBegin();
-   while (value != values.constEnd())
+   auto value = values.cbegin();
+   while (value != values.cend())
    {
-      QString writeValue(*value);
-      
+      QString writeValue(QString::fromStdString(*value));
+
       writeValue.replace(",", "%x2C");
       writeValue.replace("\r", "%x0D");
       writeValue.replace("\n", "%x0A");
@@ -31,10 +31,10 @@ void writeCSVLine
          textStream << " , ";
 
       textStream << "\"" << writeValue << "\"";
-      
+
       value++;
    }
 
-   if (values.isEmpty() == false)
+   if (values.empty() == false)
       textStream << "\r\n";
 }

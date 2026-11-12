@@ -6,20 +6,19 @@
 // QCommon
 #include "version.h"
 
-// QT
-#include <QString>
+#include <string>
 
-const QString kAppName(QStringLiteral("TAC"));
-const QString kAppVersion(QStringLiteral(QTAC_VERSION));
+const std::string kAppName("TAC");
+const std::string kAppVersion(QTAC_VERSION);
 
-const QString kTACConfigEditorApp(QStringLiteral("TAC Configuration Editor"));
-const QString kTACConfigEditorVersion(QStringLiteral(TAC_CONFIG_VERSION));
+const std::string kTACConfigEditorApp("TAC Configuration Editor");
+const std::string kTACConfigEditorVersion(TAC_CONFIG_VERSION);
 
-const QString kFTDICheckApp(QStringLiteral("FTDI Check"));
-const QString kFTDICheckVersion(QStringLiteral(FTDI_CHECK_VERSION));
+const std::string kFTDICheckApp("FTDI Check");
+const std::string kFTDICheckVersion(FTDI_CHECK_VERSION);
 
-const QString kInitialString(kAppName + ", version " + kAppVersion);
+const std::string kInitialString(kAppName + ", version " + kAppVersion);
 
-const QString kTACConfigurationGroup(kAppName);
+const std::string kTACConfigurationGroup(kAppName);
 
 #endif // TACDEFINES_H

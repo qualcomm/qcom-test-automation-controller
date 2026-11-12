@@ -9,9 +9,9 @@
 void my_memcpy
 (
 	void* destination,
-	quint64 destinationSize,
+	size_t destinationSize,
 	const void* source,
-	quint64 copyBytes
+	size_t copyBytes
 )
 {
 	memset(destination, 0, destinationSize);

@@ -16,10 +16,12 @@
 // hidapi
 #include <hidapi.h>
 
-const quint16 kSTM32VendorID{0x2341};
-const quint16 kSTM32ProductID{0xB001};
-const quint16 kSTM32UsagePage{0xFF60};
-const quint16 kSTM32Usage{0x0061};
+#include <cstdint>
+
+const uint16_t kSTM32VendorID{0x2341};
+const uint16_t kSTM32ProductID{0xB001};
+const uint16_t kSTM32UsagePage{0xFF60};
+const uint16_t kSTM32Usage{0x0061};
 
 static bool hidapiInitialized{false};
 
@@ -34,7 +36,7 @@ STM32Device::~STM32Device()
 
 }
 
-bool STM32Device::programDevice(AlpacaDevice alpacaDevice, PlatformID platformID, QByteArray& errorMessage)
+bool STM32Device::programDevice(AlpacaDevice alpacaDevice, PlatformID platformID, std::string& errorMessage)
 {
 	Q_UNUSED(alpacaDevice)
 	Q_UNUSED(platformID)
@@ -63,15 +65,15 @@ STM32HIDDeviceInfoList STM32Device::enumerateHIDDevices()
 
 		STM32HIDDeviceInfo deviceInfo;
 
-		QByteArray devicePath = QByteArray(current->path);
+		std::string devicePath{current->path};
 		QString serialNumber = QString::fromWCharArray(current->serial_number);
 
-		if (devicePath.isEmpty() == false && serialNumber.isEmpty() == false)
+		if (devicePath.empty() == false && serialNumber.isEmpty() == false)
 		{
 			deviceInfo._devicePath = devicePath;
-			deviceInfo._serialNumber = serialNumber.toLatin1();
+			deviceInfo._serialNumber = serialNumber.toStdString();
 
-			QByteArray hashSource = deviceInfo._serialNumber.isEmpty() == false ? deviceInfo._serialNumber : deviceInfo._devicePath;
+			const std::string& hashSource = deviceInfo._serialNumber.empty() == false ? deviceInfo._serialNumber : deviceInfo._devicePath;
 			deviceInfo._hash = ::arrayHash(hashSource);
 
 			result.append(deviceInfo);
@@ -116,7 +118,7 @@ QByteArray STM32Device::vtpPortName
 	return result;
 }
 
-quint32 STM32Device::updateAlpacaDevices()
+uint32_t STM32Device::updateAlpacaDevices()
 {
 	STM32HIDDeviceInfoList deviceInfoList = enumerateHIDDevices();
 
@@ -128,7 +130,7 @@ quint32 STM32Device::updateAlpacaDevices()
 			STM32Device* stm32Device = new STM32Device;
 
 			stm32Device->_active = true;
-			stm32Device->_portName = vtpPortName(deviceInfo._serialNumber);
+			stm32Device->_portName = vtpPortName(QByteArray::fromStdString(deviceInfo._serialNumber)).toStdString();
 			stm32Device->_hash = deviceInfo._hash;
 			stm32Device->_chipVersion = 2;
 			stm32Device->_serialNumber = deviceInfo._serialNumber;
@@ -136,7 +138,7 @@ quint32 STM32Device::updateAlpacaDevices()
 			stm32Device->_devicePath = deviceInfo._devicePath;
 
 			TACPlatformEntry platformEntry = _PlatformConfiguration::getEntry(stm32Device->_platformID);
-			stm32Device->_description = platformEntry._platformEntry->_description.toLatin1();
+			stm32Device->_description = platformEntry._platformEntry->_description;
 			stm32Device->_boardType = platformEntry._platformEntry->_boardtype;
 
 			stm32Device->_platformConfiguration = platformEntry.getConfiguration();
@@ -204,7 +206,7 @@ void STM32Device::buildMapping()
 
 void STM32Device::buildCommandList()
 {
-	if (_commands.isEmpty() == true)
+	if (_commands.empty() == true)
 	{
 		if (_stm32PlatformConfiguration != Q_NULLPTR)
 		{
@@ -218,11 +220,9 @@ void STM32Device::buildCommandList()
 				tacCommand._command = stm32Pin._pinCommand;
 				tacCommand._helpText = stm32Pin._pinTooltip;
 				tacCommand._isInverted = stm32Pin._inverted;
-				tacCommand._tabName = stm32Pin._tabName.toLatin1();
-				tacCommand._groupName = CommandGroup::toString(stm32Pin._commandGroup).toLatin1();
-
-				QByteArray cellLocation = QString::number(stm32Pin._cellLocation.x()).toLatin1() + "," + QString::number(stm32Pin._cellLocation.y()).toLatin1();
-				tacCommand._cellLocation = cellLocation;
+				tacCommand._tabName = stm32Pin._tabName;
+				tacCommand._groupName = CommandGroup::toString(stm32Pin._commandGroup);
+				tacCommand._cellLocation = fromQPoint(stm32Pin._cellLocation);
 
 				_commands[tacCommand._command] = tacCommand;
 			}
@@ -234,15 +234,15 @@ bool STM32Device::openTransport()
 {
 	bool result{false};
 
-	if (_devicePath.isEmpty() == false)
+	if (_devicePath.empty() == false)
 	{
 		if (_hidHandle == Q_NULLPTR)
 		{
-			_hidHandle = hid_open_path(_devicePath.constData());
+			_hidHandle = hid_open_path(_devicePath.c_str());
 
 			if (_hidHandle != Q_NULLPTR)
 			{
-				AppCore::writeToApplicationLogLine(QString("Opened Arduino BugHopper V2 device %1\n").arg(_devicePath.data()));
+				AppCore::writeToApplicationLogLine("Opened Arduino BugHopper V2 device " + _devicePath + "\n");
 
 				result = true;
 			}

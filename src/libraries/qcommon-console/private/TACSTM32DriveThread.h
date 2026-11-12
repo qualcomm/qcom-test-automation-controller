@@ -30,20 +30,20 @@ public:
 	virtual void sendCommand(const QByteArray& command, bool console = false,
 		ReceiveInterface* receiveInterface = Q_NULLPTR, bool shouldStore = true);
 
-	virtual void setPinState(quint16 pin, bool state);
+	virtual void setPinState(uint16_t pin, bool state);
 	virtual void sendCommandSequence(CommandEntries& commandEntries);
 
 	virtual int getResetCount();
 	virtual void clearResetCount();
 
-	virtual void i2CReadRegister(quint32 addr, quint32 reg);
-	virtual void i2CWriteRegister(quint32 addr, quint32 reg, quint32 data);
+	virtual void i2CReadRegister(uint32_t addr, uint32_t reg);
+	virtual void i2CWriteRegister(uint32_t addr, uint32_t reg, uint32_t data);
 
 	// properties
 	virtual void setName(const QByteArray& newName);
 
 	// Send Interface
-	virtual quint32 send(const QByteArray& sendMe, const Arguments& arguments, bool console, ReceiveInterface* recieveInterface, bool store = true);
+	virtual uint32_t send(const QByteArray& sendMe, const Arguments& arguments, bool console, ReceiveInterface* recieveInterface, bool store = true);
 	virtual bool ready();
 
 	// Receive Interface

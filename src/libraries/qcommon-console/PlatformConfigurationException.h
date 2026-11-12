@@ -8,14 +8,13 @@
 
 #include <QException>
 
-/**
- * @brief The PlatformConfigurationException class - Custom exception class to throw exceptions on invalid API usage.
- */
+#include <string>
+
 class QCOMMONCONSOLE_EXPORT PlatformConfigurationException :
 	public QException
 {
 public:
-    PlatformConfigurationException(QString const& message);
+    PlatformConfigurationException(std::string const& message);
     ~PlatformConfigurationException();
 
     void raise() const
@@ -28,10 +27,10 @@ public:
         return new PlatformConfigurationException(*this);
     }
 
-    QString getMessage() const;
+    std::string getMessage() const;
 
 private:
-    QString                 _message;
+    std::string              _message;
 };
 
 #endif // PLATFORMCONFIGURATIONEXCEPTION_H

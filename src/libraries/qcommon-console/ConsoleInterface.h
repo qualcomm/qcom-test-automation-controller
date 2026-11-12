@@ -7,12 +7,14 @@
 #include "FramePackage.h"
 #include "QCommonConsoleGlobal.h"
 
+#include <string>
+
 class QCOMMONCONSOLE_EXPORT ConsoleInterface
 {
 public:
 	virtual ~ConsoleInterface() {}
 
-	virtual void addConsoleText(const QByteArray& consoleText) = 0;
+	virtual void addConsoleText(const std::string& consoleText) = 0;
 	virtual void handleConsoleResponse(const FramePackage& framePackage) = 0;
 };
 

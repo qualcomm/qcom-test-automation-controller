@@ -8,13 +8,12 @@
 // QCommon
 #include "StringUtilities.h"
 
-// Qt
-#include <QList>
-#include <QString>
+#include <string>
+#include <vector>
 
 struct Tab;
 
-typedef QList<Tab> Tabs;
+typedef std::vector<Tab> Tabs;
 
 struct QCOMMONCONSOLE_EXPORT Tab
 {
@@ -27,23 +26,22 @@ struct QCOMMONCONSOLE_EXPORT Tab
 	static Tab find(HashType hash, Tabs& tabs);
 	static void addTab(Tab& tab, Tabs& tabs);
 	static void removeTab(HashType hash, Tabs& tabs);
-	static void updateTabName(HashType hash, QString& name, Tabs& tabs);
+	static void updateTabName(HashType hash, std::string& name, Tabs& tabs);
 	static void setTabVisible(HashType hash, bool visible, Tabs& tabs);
 
-	static QStringList toStringList(Tabs& tabs, bool configurableTabs = true);
+	static std::vector<std::string> toStringList(Tabs& tabs, bool configurableTabs = true);
 
-	QString						_name;
+	std::string					_name;
 	bool						_userTab{false};
 	bool						_moveable{false};
 	bool						_configurable{false};
 	bool						_visible{true};
 	int							_ordinal{0};
 
-	// this for editing data
 	HashType					_hash{0};
 	bool						_deleted{false};
 	bool						_added{false};
-	QString						_newText;
+	std::string					_newText;
 };
 
 #endif // TABS_H

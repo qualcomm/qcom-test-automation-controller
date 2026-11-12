@@ -11,9 +11,11 @@
 
 #include <QMap>
 #include <QSharedPointer>
-#include <QString>
 
-typedef quint32 PlatformID;
+#include <cstdint>
+#include <string>
+
+typedef uint32_t PlatformID;
 
 const PlatformID MICRO_EPM_BOARD_ID_UNKNOWN{0};
 const PlatformID ALPACA_LITE_ID{13};
@@ -29,14 +31,14 @@ struct _PlatformEntry
 		for (int i{0}; i < kMaxPinSetCount; i++)
 			_pinSets[i] = NoOptions;
 	}
-	_PlatformEntry(PlatformID platformID, DebugBoardType boardType, const QString& description, const QString& path = QString(), const QByteArray& usbDescriptor = QByteArray());
+	_PlatformEntry(PlatformID platformID, DebugBoardType boardType, const std::string& description, const std::string& path = std::string(), const std::string& usbDescriptor = std::string());
 	~_PlatformEntry() = default;
 
 	PlatformID					_platformID{0};
 	DebugBoardType				_boardtype{eUnknownDebugBoard};
-	QString						_description;
-	QByteArray					_usbDescriptor;
-	QString						_path;
+	std::string					_description;
+	std::string					_usbDescriptor;
+	std::string					_path;
 	FTDIPinSets					_pinSets[kMaxPinSetCount];
 };
 
@@ -56,9 +58,9 @@ public:
 	static PlatformIDList getEntries();
 	static void addEntry(PlatformEntry platformEntry);
 
-	static QString toString(PlatformID platformID);
+	static std::string toString(PlatformID platformID);
 
-	static PlatformID fromUSBDescriptor(const QByteArray& usbDescriptor);
+	static PlatformID fromUSBDescriptor(const std::string& usbDescriptor);
 
 	static DebugBoardType getDebugBoardType(PlatformID platformID);
 	static PlatformIDList getDebugBoards();

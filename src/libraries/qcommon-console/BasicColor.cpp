@@ -3,12 +3,24 @@
 
 #include "BasicColor.h"
 
+#include <cstdio>
+#include <cstdlib>
+
+static std::string toHexByte(uint16_t value)
+{
+	char buffer[3];
+
+	std::snprintf(buffer, sizeof(buffer), "%02x", value);
+
+	return std::string(buffer);
+}
+
 BasicColor::BasicColor
 (
-	quint16 red,
-	quint16 green,
-	quint16 blue,
-	quint16 alpha
+	uint16_t red,
+	uint16_t green,
+	uint16_t blue,
+	uint16_t alpha
 )
 {
 	_valid = true;
@@ -18,20 +30,20 @@ BasicColor::BasicColor
 	_alpha = alpha;
 }
 
-QString BasicColor::name() const
+std::string BasicColor::name() const
 {
-	QString result("#");
+	std::string result("#");
 
-    result +=  QString("%1").arg(_red, 2, 16, QLatin1Char('0'));
-    result +=  QString("%1").arg(_green, 2, 16, QLatin1Char('0'));
-    result +=  QString("%1").arg(_blue, 2, 16, QLatin1Char('0'));
+	result += toHexByte(_red);
+	result += toHexByte(_green);
+	result += toHexByte(_blue);
 
 	return  result;
 }
 
 void BasicColor::setNamedColor
 (
-	const QString& namedColor
+	const std::string& namedColor
 )
 {
 	_valid = false;
@@ -40,26 +52,26 @@ void BasicColor::setNamedColor
 	{
 		if (namedColor.length() >= 7)
 		{
-			QString redString = namedColor.mid(1, 2);
-			QString greenString = namedColor.mid(3, 2);
-			QString blueString = namedColor.mid(5, 2);
+			std::string redString = namedColor.substr(1, 2);
+			std::string greenString = namedColor.substr(3, 2);
+			std::string blueString = namedColor.substr(5, 2);
 
-			_red = redString.toUShort(Q_NULLPTR, 16);
-			_green = greenString.toUShort(Q_NULLPTR, 16);
-			_blue = blueString.toUShort(Q_NULLPTR, 16);
+			_red = static_cast<uint16_t>(std::strtoul(redString.c_str(), Q_NULLPTR, 16));
+			_green = static_cast<uint16_t>(std::strtoul(greenString.c_str(), Q_NULLPTR, 16));
+			_blue = static_cast<uint16_t>(std::strtoul(blueString.c_str(), Q_NULLPTR, 16));
 
 			_valid = true;
 		}
 	}
 }
 
-BasicColor BasicColor::lighter(quint16 scale)
+BasicColor BasicColor::lighter(uint16_t scale)
 {
 	BasicColor result(_red, _green, _blue);
 
 	if (scale > 100 && scale < 151)
 	{
-		qreal factor = scale / 100.0;
+		double factor = scale / 100.0;
 		if (factor)
 		{
 			result._red = _red * factor;

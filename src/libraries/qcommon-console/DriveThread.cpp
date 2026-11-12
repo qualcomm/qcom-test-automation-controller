@@ -33,7 +33,7 @@ void DriveThread::shutDown()
 
 void DriveThread::addDelay
 (
-	quint32 delayInMilliSeconds,
+	uint32_t delayInMilliSeconds,
 	ReceiveInterface* recieveInterface
 )
 {

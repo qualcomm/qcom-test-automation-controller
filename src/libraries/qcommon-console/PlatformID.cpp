@@ -9,6 +9,16 @@
 #include "RangedContainer.h"
 #include "USBDescriptors.h"
 
+#include <cctype>
+
+static std::string toLowerCopy(const std::string& value)
+{
+	std::string result{value};
+	for (char& c: result)
+		c = static_cast<char>(std::tolower(static_cast<unsigned char>(c)));
+	return result;
+}
+
 const PlatformID MICRO_EPM_BOARD_ID_SPMV4{1};
 const PlatformID MICRO_EPM_BOARD_ID_EPMV4{2};
 const PlatformID MICRO_EPM_BOARD_ID_ALPACA{3};
@@ -28,9 +38,9 @@ _PlatformEntry::_PlatformEntry
 (
 	PlatformID platformID,
 	DebugBoardType boardType,
-	const QString& description,
-	const QString& path,
-	const QByteArray& usbDescriptor
+	const std::string& description,
+	const std::string& path,
+	const std::string& usbDescriptor
 ) :
 	_platformID(platformID),
 	_boardtype(boardType),
@@ -97,7 +107,7 @@ void PlatformContainer::initializeDynamic()
 {
 	USBDescriptors usbDescriptors;
 
-	QString loadPath;
+	std::string loadPath;
 
 	loadPath = tacConfigRoot() + kUSBDescriptorFileName;
 
@@ -134,7 +144,7 @@ void PlatformContainer::initializeDynamic()
 	{
 		for (const auto& platformId: std::as_const(_platformIds))
 		{
-			AppCore::writeToApplicationLog("   " + QString::number(platformId->_platformID) + " " + platformId->_description + "\n");
+			AppCore::writeToApplicationLog("   " + std::to_string(platformId->_platformID) + " " + platformId->_description + "\n");
 		}
 	}
 }
@@ -147,9 +157,9 @@ void PlatformContainer::addEntry
 	_platformIds[platformEntry->_platformID] = platformEntry;
 }
 
-QString PlatformContainer::toString(PlatformID platformID)
+std::string PlatformContainer::toString(PlatformID platformID)
 {
-	QString result{QString("Unknown Board ID: %1").arg(platformID)};
+	std::string result{"Unknown Board ID: " + std::to_string(platformID)};
 
 	if (_platformIds.find(platformID) != _platformIds.end())
 		result = (*_platformIds[platformID])._description;
@@ -159,15 +169,15 @@ QString PlatformContainer::toString(PlatformID platformID)
 
 PlatformID PlatformContainer::fromUSBDescriptor
 (
-	const QByteArray& usbDescriptor
+	const std::string& usbDescriptor
 )
 {
 	PlatformID result{MICRO_EPM_BOARD_ID_UNKNOWN};
-	QByteArray descriptor{usbDescriptor.toLower()};
+	std::string descriptor{toLowerCopy(usbDescriptor)};
 
 	for (const auto& platformEntry: RangedContainer(_platformIds))
 	{
-		QByteArray candidate = platformEntry.second->_usbDescriptor.toLower();
+		std::string candidate = toLowerCopy(platformEntry.second->_usbDescriptor);
 		if (candidate == descriptor)
 		{
 			result = platformEntry.second->_platformID;

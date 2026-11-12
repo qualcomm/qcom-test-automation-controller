@@ -3,10 +3,10 @@
 // Copyright (c) Qualcomm Technologies, Inc. and/or its subsidiaries.
 // SPDX-License-Identifier: BSD-3-Clause
 
-#include <QPointF>
-#include <QVector>
+#include <utility>
+#include <vector>
 
-typedef QVector<qreal> GraphDataVector;
-typedef QVector<QPointF> GraphDataPoints;
+typedef std::vector<double> GraphDataVector;
+typedef std::vector<std::pair<double, double>> GraphDataPoints;
 
 #endif // DATAPOINTS_H

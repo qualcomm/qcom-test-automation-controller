@@ -15,9 +15,9 @@ public:
 	PIC32CXDevice() = default;
 	virtual ~PIC32CXDevice();
 
-	static bool programDevice(AlpacaDevice alpacaDevice, PlatformID platformID, QByteArray& errorMessage);
+	static bool programDevice(AlpacaDevice alpacaDevice, PlatformID platformID, std::string& errorMessage);
 
-	static quint32 updateAlpacaDevices();
+	static uint32_t updateAlpacaDevices();
 
 	virtual bool open();
 

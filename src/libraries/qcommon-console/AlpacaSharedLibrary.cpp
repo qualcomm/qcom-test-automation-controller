@@ -34,8 +34,8 @@ AppCore* AlpacaSharedLibrary::getAppCore()
 
 bool AlpacaSharedLibrary::initialize
 (
-	const QByteArray &appName,
-	const QByteArray &appVersion,
+	const std::string &appName,
+	const std::string &appVersion,
 	PreferencesBase* preferencesBase
 )
 {

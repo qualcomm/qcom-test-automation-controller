@@ -6,7 +6,8 @@
 #include "QCommonConsoleGlobal.h"
 
 #include <QEvent>
-#include <QString>
+
+#include <string>
 
 const QEvent::Type kDateCheckFailEvent(static_cast<QEvent::Type>(QEvent::User + 1062));
 
@@ -14,11 +15,11 @@ class QCOMMONCONSOLE_EXPORT DateCheckFailEvent :
 	public QEvent
 {
 public:
-	DateCheckFailEvent(const QString& why) :
+	DateCheckFailEvent(const std::string& why) :
 		QEvent(kDateCheckFailEvent),
 		_why(why) {}
 
-	QString						_why;
+	std::string					_why;
 };
 
 #endif // DATECHECKFAILEVENT_H

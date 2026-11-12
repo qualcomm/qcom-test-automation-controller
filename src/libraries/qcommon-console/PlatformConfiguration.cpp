@@ -27,6 +27,22 @@
 #include <QJsonObject>
 #include <QTime>
 
+#include <cctype>
+
+static bool equalsCaseInsensitive(const std::string& left, const std::string& right)
+{
+	if (left.size() != right.size())
+		return false;
+
+	for (size_t index = 0; index < left.size(); index++)
+	{
+		if (std::tolower(static_cast<unsigned char>(left[index])) != std::tolower(static_cast<unsigned char>(right[index])))
+			return false;
+	}
+
+	return true;
+}
+
 // Parameters in the JSON TAC Configuration
 const QString kName(QStringLiteral("name"));
 const QString kAuthor(QStringLiteral("author"));
@@ -70,14 +86,14 @@ const QString kDefaultScriptDefaultValue(QStringLiteral("default_value"));
 
 const QString kScript(QStringLiteral("script"));
 
-const QString kDefaultLabel(QStringLiteral("<type a label name>"));
-const QString kDefaultTooltip(QStringLiteral("<add a tooltip>"));
-const QString kDefaultCommand(QStringLiteral("<type a command>"));
+const std::string kDefaultLabel("<type a label name>");
+const std::string kDefaultTooltip("<add a tooltip>");
+const std::string kDefaultCommand("<type a command>");
 const QString kDefaultGroup(QStringLiteral("<Select Pin Group>"));
-const QString kDefaultTab(QStringLiteral("General"));
-const QPoint kDefaultCellLocation(-1,-1);
+const std::string kDefaultTab("General");
+const std::pair<int, int> kDefaultCellLocation(-1,-1);
 
-const QString kNoVariableValue(QStringLiteral("<no value>"));
+const std::string kNoVariableValue{"<no value>"};
 
 QString _PlatformConfiguration::_lastError;
 Buttons _PlatformConfiguration::_classicButtons;
@@ -249,7 +265,7 @@ bool _PlatformConfiguration::parseConfigName
 			if (fileNameParts.at(0) == "tac")
 			{
 				QString chip = fileNameParts.at(1);
-				debugBoardType = debugBoardTypeFromString(chip);
+				debugBoardType = debugBoardTypeFromString(chip.toStdString());
 				platformID = fileNameParts.at(2).toLong();
 
 				result = true;
@@ -268,7 +284,7 @@ PlatformID _PlatformConfiguration::getUSBDescriptor(const QByteArray& usbDescrip
 
 	for (const auto& tacEntry: std::as_const(_tacPlatformEntries))
 	{
-		QString candidate = tacEntry._platformEntry->_usbDescriptor.toLower();
+		QString candidate = QString::fromStdString(tacEntry._platformEntry->_usbDescriptor).toLower();
 		if (candidate == test)
 		{
 			result = tacEntry._platformEntry->_platformID;
@@ -298,7 +314,7 @@ bool _PlatformConfiguration::containsUSBDescriptor
 
 	for (const auto& tacEntry: std::as_const(_tacPlatformEntries))
 	{
-		QString candidate = tacEntry._platformEntry->_usbDescriptor.toLower();
+		QString candidate = QString::fromStdString(tacEntry._platformEntry->_usbDescriptor).toLower();
 		if (candidate == test)
 		{
 			result = true;
@@ -383,7 +399,7 @@ void _PlatformConfiguration::updateTabs
 	{
 		if (tab._userTab == true)
 		{
-			if (tab._newText.isEmpty() == false && tab._newText != tab._name)
+			if (tab._newText.empty() == false && tab._newText != tab._name)
 				cascadeTabRename(tab._name, tab._newText);
 		}
 	}
@@ -393,7 +409,7 @@ void _PlatformConfiguration::updateTabs
 	{
 		if (tab._deleted == false)
 		{
-			_tabs.append(tab);
+			_tabs.push_back(tab);
 		}
 	}
 
@@ -425,14 +441,14 @@ QString _PlatformConfiguration::getFileVersion()
 	return QString::number(_fileVersion);
 }
 
-quint32 _PlatformConfiguration::fileVersion()
+uint32_t _PlatformConfiguration::fileVersion()
 {
 	return _fileVersion;
 }
 
 QString _PlatformConfiguration::getPlatformString()
 {
-	return debugBoardTypeToString(_platform);
+	return QString::fromStdString(debugBoardTypeToString(_platform));
 }
 
 void _PlatformConfiguration::setPlatformID(PlatformID platformId)
@@ -452,7 +468,7 @@ QStringList _PlatformConfiguration::getAllTabs()
 
 	for (auto& tab: _tabs)
 	{
-		result.append(tab._name);
+		result.append(QString::fromStdString(tab._name));
 	}
 
 	return result;
@@ -465,7 +481,7 @@ QStringList _PlatformConfiguration::getVisibleTabs()
 	for (auto& tab: _tabs)
 	{
 		if (tab._visible)
-			result.append(tab._name);
+			result.append(QString::fromStdString(tab._name));
 	}
 
 	return result;
@@ -473,8 +489,8 @@ QStringList _PlatformConfiguration::getVisibleTabs()
 
 void _PlatformConfiguration::renameTab
 (
-	const QString& oldName,
-	const QString& newName
+	const std::string& oldName,
+	const std::string& newName
 )
 {
 	for (auto& tab: _tabs)
@@ -491,7 +507,7 @@ void _PlatformConfiguration::renameTab
 
 void _PlatformConfiguration::setTabVisible
 (
-	const QString &tabName,
+	const std::string &tabName,
 	bool visible
 )
 {
@@ -516,7 +532,8 @@ ButtonList _PlatformConfiguration::getButtons()
 {
 	ButtonList result;
 
-	result = _buttons.values();
+	for (const auto& entry: _buttons)
+		result.push_back(entry.second);
 
 	auto sortLambda = [] (Button& p1, Button& p2) -> bool
 	{
@@ -549,16 +566,16 @@ ScriptVariables _PlatformConfiguration::getVariables()
 	return result;
 }
 
-bool _PlatformConfiguration::setVariableName(const QString &variableName)
+bool _PlatformConfiguration::setVariableName(const std::string &variableName)
 {
 	bool result{false};
-	if (variableName.compare(kDefaultVariableName, Qt::CaseInsensitive) != 0)
+	if (equalsCaseInsensitive(variableName, kDefaultVariableName) == false)
 	{
-		if (_scriptVariables.contains(variableName) == false)
+		if (_scriptVariables.find(variableName) == _scriptVariables.end())
 		{
 			ScriptVariable scriptVariable;
 			scriptVariable._name = variableName;
-			_scriptVariables.insert(variableName, scriptVariable);
+			_scriptVariables.insert({variableName, scriptVariable});
 		}
 
 		result = true;
@@ -566,30 +583,29 @@ bool _PlatformConfiguration::setVariableName(const QString &variableName)
 	return result;
 }
 
-void _PlatformConfiguration::setVariableLabel(const QString &variableName, const QString &variableLabel)
+void _PlatformConfiguration::setVariableLabel(const std::string &variableName, const std::string &variableLabel)
 {
 	if (setVariableName(variableName))
 		_scriptVariables[variableName]._label = variableLabel;
 }
 
-void _PlatformConfiguration::setVariableTooltip(const QString &variableName, const QString &variableTooltip)
+void _PlatformConfiguration::setVariableTooltip(const std::string &variableName, const std::string &variableTooltip)
 {
 	if (setVariableName(variableName))
 		_scriptVariables[variableName]._tooltip = variableTooltip;
 }
 
-void _PlatformConfiguration::setVariableType(const QString &variableName, const VariableType variableType)
+void _PlatformConfiguration::setVariableType(const std::string &variableName, const VariableType variableType)
 {
 	if (setVariableName(variableName))
 		_scriptVariables[variableName]._type = variableType;
 }
 
-bool _PlatformConfiguration::setVariableDefaultValue(const QString &variableName, const QVariant &variableDefaultValue)
+bool _PlatformConfiguration::setVariableDefaultValue(const std::string &variableName, const std::string &variableDefaultValue)
 {
 	bool result{true};
 
-	QString defaultValue = variableDefaultValue.toString();
-	if (defaultValue.compare(kNoVariableValue, Qt::CaseInsensitive) != 0)
+	if (equalsCaseInsensitive(variableDefaultValue, kNoVariableValue) == false)
 	{
 		if (setVariableName(variableName))
 			_scriptVariables[variableName]._defaultValue = variableDefaultValue;
@@ -600,17 +616,17 @@ bool _PlatformConfiguration::setVariableDefaultValue(const QString &variableName
 	return result;
 }
 
-void _PlatformConfiguration::setVariableCellLocation(const QString &variableName, const QPoint &variableCellLocation)
+void _PlatformConfiguration::setVariableCellLocation(const std::string &variableName, const std::pair<int, int> &variableCellLocation)
 {
 	if (setVariableName(variableName))
 		_scriptVariables[variableName]._cellLocation = variableCellLocation;
 }
 
-void _PlatformConfiguration::deleteVariable(const QString &variableName)
+void _PlatformConfiguration::deleteVariable(const std::string &variableName)
 {
 	if (_scriptVariables.find(variableName) != _scriptVariables.end())
 	{
-		_scriptVariables.remove(variableName);
+		_scriptVariables.erase(variableName);
 	}
 }
 
@@ -618,11 +634,11 @@ void _PlatformConfiguration::deleteButton(HashType hash)
 {
 	if (_buttons.find(hash) != _buttons.end())
 	{
-		_buttons.remove(hash);
+		_buttons.erase(hash);
 	}
 }
 
-HashType _PlatformConfiguration::addButtonLabel(const QString &buttonLabel, const QString& tabName)
+HashType _PlatformConfiguration::addButtonLabel(const std::string &buttonLabel, const std::string& tabName)
 {
 	HashType hash{0};
 
@@ -637,11 +653,11 @@ HashType _PlatformConfiguration::addButtonLabel(const QString &buttonLabel, cons
 
 		// After calculating the proper hash, re-check if a partial entry exists in memory.
 		// If yes, update the existing button object instead inserting a new one in its place.
-		for (auto& btn : _buttons)
+		for (auto& entry : _buttons)
 		{
-			if (btn._hash == hash)
+			if (entry.second._hash == hash)
 			{
-				button = btn;
+				button = entry.second;
 				hashExists = true;
 				break;
 			}
@@ -651,21 +667,21 @@ HashType _PlatformConfiguration::addButtonLabel(const QString &buttonLabel, cons
 			button._hash = hash;
 		}
 
-		_buttons.insert(button._hash, button);
+		_buttons[button._hash] = button;
 	}
 
 	return hash;
 }
 
-bool _PlatformConfiguration::setButtonLabel(HashType hash, const QString &buttonLabel)
+bool _PlatformConfiguration::setButtonLabel(HashType hash, const std::string &buttonLabel)
 {
 	bool result{false};
-	for (auto& button: _buttons)
+	for (auto& entry: _buttons)
 	{
-		if (button._hash == hash)
+		if (entry.second._hash == hash)
 		{
-			button._label = buttonLabel;
-			button._hash = Button::makeHash(button);
+			entry.second._label = buttonLabel;
+			entry.second._hash = Button::makeHash(entry.second);
 			result = true;
 
 			break;
@@ -674,7 +690,7 @@ bool _PlatformConfiguration::setButtonLabel(HashType hash, const QString &button
 	return result;
 }
 
-HashType _PlatformConfiguration::addButtonTooltip(const QString &labelName, const QString &tabName, const QString &toolTip)
+HashType _PlatformConfiguration::addButtonTooltip(const std::string &labelName, const std::string &tabName, const std::string &toolTip)
 {
 	HashType hash{0};
 
@@ -689,11 +705,11 @@ HashType _PlatformConfiguration::addButtonTooltip(const QString &labelName, cons
 
 		// After calculating the proper hash, re-check if a partial entry exists in memory.
 		// If yes, update the existing button object instead inserting a new one in its place.
-		for (auto& btn : _buttons)
+		for (auto& entry : _buttons)
 		{
-			if (btn._hash == hash)
+			if (entry.second._hash == hash)
 			{
-				button = btn;
+				button = entry.second;
 				hashExists = true;
 				break;
 			}
@@ -704,20 +720,20 @@ HashType _PlatformConfiguration::addButtonTooltip(const QString &labelName, cons
 		}
 
 		button._toolTip = toolTip;
-		_buttons.insert(button._hash, button);
+		_buttons[button._hash] = button;
 	}
 
 	return hash;
 }
 
-bool _PlatformConfiguration::setButtonTooltip(HashType hash, const QString &toolTip)
+bool _PlatformConfiguration::setButtonTooltip(HashType hash, const std::string &toolTip)
 {
 	bool result{false};
-	for (auto& button: _buttons)
+	for (auto& entry: _buttons)
 	{
-		if (button._hash == hash)
+		if (entry.second._hash == hash)
 		{
-			button._toolTip = toolTip;
+			entry.second._toolTip = toolTip;
 			result = true;
 
 			break;
@@ -726,7 +742,7 @@ bool _PlatformConfiguration::setButtonTooltip(HashType hash, const QString &tool
 	return result;
 }
 
-HashType _PlatformConfiguration::addButtonCommand(const QString& labelName, const QString& tabName, const QString &command)
+HashType _PlatformConfiguration::addButtonCommand(const std::string& labelName, const std::string& tabName, const std::string &command)
 {
 	HashType hash{0};
 
@@ -741,11 +757,11 @@ HashType _PlatformConfiguration::addButtonCommand(const QString& labelName, cons
 
 		// After calculating the proper hash, re-check if a partial entry exists in memory.
 		// If yes, update the existing button object instead inserting a new one in its place.
-		for (auto& btn : _buttons)
+		for (auto& entry : _buttons)
 		{
-			if (btn._hash == hash)
+			if (entry.second._hash == hash)
 			{
-				button = btn;
+				button = entry.second;
 				hashExists = true;
 				break;
 			}
@@ -756,20 +772,20 @@ HashType _PlatformConfiguration::addButtonCommand(const QString& labelName, cons
 		}
 
 		button._command = command;
-		_buttons.insert(button._hash, button);
+		_buttons[button._hash] = button;
 	}
 
 	return hash;
 }
 
-bool _PlatformConfiguration::setButtonCommand(HashType hash, const QString &command)
+bool _PlatformConfiguration::setButtonCommand(HashType hash, const std::string &command)
 {
 	bool result{false};
-	for (auto& button: _buttons)
+	for (auto& entry: _buttons)
 	{
-		if (button._hash == hash)
+		if (entry.second._hash == hash)
 		{
-			button._command = command;
+			entry.second._command = command;
 			result = true;
 
 			break;
@@ -778,7 +794,7 @@ bool _PlatformConfiguration::setButtonCommand(HashType hash, const QString &comm
 	return result;
 }
 
-HashType _PlatformConfiguration::addButtonCommandGroup(const QString& labelName, const QString& tabName, const CommandGroups &commandGroup)
+HashType _PlatformConfiguration::addButtonCommandGroup(const std::string& labelName, const std::string& tabName, const CommandGroups &commandGroup)
 {
 	HashType hash{0};
 
@@ -793,11 +809,11 @@ HashType _PlatformConfiguration::addButtonCommandGroup(const QString& labelName,
 
 		// After calculating the proper hash, re-check if a partial entry exists in memory.
 		// If yes, update the existing button object instead inserting a new one in its place.
-		for (auto& btn : _buttons)
+		for (auto& entry : _buttons)
 		{
-			if (btn._hash == hash)
+			if (entry.second._hash == hash)
 			{
-				button = btn;
+				button = entry.second;
 				hashExists = true;
 				break;
 			}
@@ -808,7 +824,7 @@ HashType _PlatformConfiguration::addButtonCommandGroup(const QString& labelName,
 		}
 
 		button._commandGroup = commandGroup;
-		_buttons.insert(button._hash, button);
+		_buttons[button._hash] = button;
 	}
 
 	return hash;
@@ -817,11 +833,11 @@ HashType _PlatformConfiguration::addButtonCommandGroup(const QString& labelName,
 bool _PlatformConfiguration::setButtonCommandGroup(HashType hash, const CommandGroups& commandGroup)
 {
 	bool result{false};
-	for (auto& button: _buttons)
+	for (auto& entry: _buttons)
 	{
-		if (button._hash == hash)
+		if (entry.second._hash == hash)
 		{
-			button._commandGroup = commandGroup;
+			entry.second._commandGroup = commandGroup;
 			result = true;
 
 			break;
@@ -830,7 +846,7 @@ bool _PlatformConfiguration::setButtonCommandGroup(HashType hash, const CommandG
 	return result;
 }
 
-HashType _PlatformConfiguration::addButtonTab(const QString &labelName, const QString &tabName)
+HashType _PlatformConfiguration::addButtonTab(const std::string &labelName, const std::string &tabName)
 {
 	HashType hash{0};
 
@@ -845,11 +861,11 @@ HashType _PlatformConfiguration::addButtonTab(const QString &labelName, const QS
 
 		// After calculating the proper hash, re-check if a partial entry exists in memory.
 		// If yes, update the existing button object instead inserting a new one in its place.
-		for (auto& btn : _buttons)
+		for (auto& entry : _buttons)
 		{
-			if (btn._hash == hash)
+			if (entry.second._hash == hash)
 			{
-				button = btn;
+				button = entry.second;
 				hashExists = true;
 				break;
 			}
@@ -859,21 +875,21 @@ HashType _PlatformConfiguration::addButtonTab(const QString &labelName, const QS
 			button._hash = hash;
 		}
 
-		_buttons.insert(button._hash, button);
+		_buttons[button._hash] = button;
 	}
 
 	return hash;
 }
 
-bool _PlatformConfiguration::setButtonTab(HashType hash, const QString &tabName)
+bool _PlatformConfiguration::setButtonTab(HashType hash, const std::string &tabName)
 {
 	bool result{false};
-	for (auto& button: _buttons)
+	for (auto& entry: _buttons)
 	{
-		if (button._hash == hash)
+		if (entry.second._hash == hash)
 		{
-			button._tab = tabName;
-			button._hash = Button::makeHash(button);
+			entry.second._tab = tabName;
+			entry.second._hash = Button::makeHash(entry.second);
 			result = true;
 
 			break;
@@ -882,7 +898,7 @@ bool _PlatformConfiguration::setButtonTab(HashType hash, const QString &tabName)
 	return result;
 }
 
-HashType _PlatformConfiguration::addButtonCellLocation(const QString& labelName, const QString& tabName, const QPoint &cellLocation)
+HashType _PlatformConfiguration::addButtonCellLocation(const std::string& labelName, const std::string& tabName, const std::pair<int, int> &cellLocation)
 {
 	HashType hash{0};
 
@@ -897,11 +913,11 @@ HashType _PlatformConfiguration::addButtonCellLocation(const QString& labelName,
 
 		// After calculating the proper hash, re-check if a partial entry exists in memory.
 		// If yes, update the existing button object instead inserting a new one in its place.
-		for (auto& btn : _buttons)
+		for (auto& entry : _buttons)
 		{
-			if (btn._hash == hash)
+			if (entry.second._hash == hash)
 			{
-				button = btn;
+				button = entry.second;
 				hashExists = true;
 				break;
 			}
@@ -912,20 +928,20 @@ HashType _PlatformConfiguration::addButtonCellLocation(const QString& labelName,
 		}
 
 		button._cellLocation = cellLocation;
-		_buttons.insert(button._hash, button);
+		_buttons[button._hash] = button;
 	}
 
 	return hash;
 }
 
-bool _PlatformConfiguration::setButtonCellLocation(HashType hash, const QPoint &cellLocation)
+bool _PlatformConfiguration::setButtonCellLocation(HashType hash, const std::pair<int, int> &cellLocation)
 {
 	bool result{false};
-	for (auto& button: _buttons)
+	for (auto& entry: _buttons)
 	{
-		if (button._hash == hash)
+		if (entry.second._hash == hash)
 		{
-			button._cellLocation = cellLocation;
+			entry.second._cellLocation = cellLocation;
 			result = true;
 
 			break;
@@ -973,14 +989,14 @@ QByteArray _PlatformConfiguration::getUSBDescriptor()
 	return _usbDescriptor;
 }
 
-const QByteArray& _PlatformConfiguration::getAlpacaScript()
+const std::string& _PlatformConfiguration::getAlpacaScript()
 {
 	return _alpacaScript;
 }
 
 void _PlatformConfiguration::setAlpacaScript
 (
-	const QByteArray& alpacaScript
+	const std::string& alpacaScript
 )
 {
 	_alpacaScript = alpacaScript;
@@ -993,12 +1009,12 @@ QString _PlatformConfiguration::filePath()
 	return QDir::cleanPath(_platformPath + QDir::separator() + _platformFile);
 }
 
-void _PlatformConfiguration::setSupportedFirmwareVer(const QList<quint32> &firmwareList)
+void _PlatformConfiguration::setSupportedFirmwareVer(const QList<uint32_t> &firmwareList)
 {
 	_supportedFirmwareVer = firmwareList;
 }
 
-QList<quint32> _PlatformConfiguration::supportedFirmwareVer()
+QList<uint32_t> _PlatformConfiguration::supportedFirmwareVer()
 {
 	return _supportedFirmwareVer;
 }
@@ -1011,12 +1027,12 @@ void _PlatformConfiguration::setFilePath(const QString &filePath)
 	{
 		if (_platform == ePSOC && _platformId < 255)
 		{
-			_platformPath = documentsDataPath("TAC Configurations");
+			_platformPath = QString::fromStdString(documentsDataPath("TAC Configurations"));
 			_platformFile = fileInfo.fileName();
 		}
 		else if (_platform == eFTDI && _platformId < 90000)
 		{
-			_platformPath = documentsDataPath("TAC Configurations");
+			_platformPath = QString::fromStdString(documentsDataPath("TAC Configurations"));
 			_platformFile = fileInfo.fileName();
 		}
 	}
@@ -1090,16 +1106,16 @@ void _PlatformConfiguration::save()
 		if (_platform == ePSOC)
 		{
 			if (_platformId < 255)
-				_platformPath = documentsDataPath("TAC Configurations");
+				_platformPath = QString::fromStdString(documentsDataPath("TAC Configurations"));
 			else
-				_platformPath = tacConfigRoot();
+				_platformPath = QString::fromStdString(tacConfigRoot());
 		}
 		else
 		{
 			if (_platformId < 90000)
-				_platformPath = documentsDataPath("TAC Configurations");
+				_platformPath = QString::fromStdString(documentsDataPath("TAC Configurations"));
 			else
-				_platformPath = tacConfigRoot();
+				_platformPath = QString::fromStdString(tacConfigRoot());
 		}
 	}
 
@@ -1159,7 +1175,7 @@ bool _PlatformConfiguration::read(QJsonObject& parentLevel)
 	jsonValue = parentLevel.value(kPlatformId);
 	if (jsonValue.isNull() == false)
 	{
-		_platformId = static_cast<quint32>(jsonValue.toInt());
+		_platformId = static_cast<uint32_t>(jsonValue.toInt());
 		result = true;
 	}
 
@@ -1173,7 +1189,7 @@ bool _PlatformConfiguration::read(QJsonObject& parentLevel)
 	jsonValue = parentLevel.value(kFileVersion);
 	if (jsonValue.isNull() == false)
 	{
-		_fileVersion = static_cast<quint32>(jsonValue.toInt());
+		_fileVersion = static_cast<uint32_t>(jsonValue.toInt());
 	}
 
 	jsonValue = parentLevel.value(kCreationDate);
@@ -1222,7 +1238,7 @@ bool _PlatformConfiguration::read(QJsonObject& parentLevel)
 			QJsonObject tabData = tabs.at(tabIndex).toObject();
 			if (tabData.isEmpty() == false)
 			{
-				tab._name = tabData[kName].toString();
+				tab._name = tabData[kName].toString().toStdString();
 				tab._userTab = tabData[kUserTab].toBool();
 				tab._moveable = tabData[kMoveable].toBool();
 				tab._visible = tabData[kVisible].toBool();
@@ -1231,7 +1247,7 @@ bool _PlatformConfiguration::read(QJsonObject& parentLevel)
 
 				tab._hash = Tab::makeHash(tab);
 
-				_tabs.append(tab);
+				_tabs.push_back(tab);
 			}
 		}
 	}
@@ -1249,12 +1265,12 @@ bool _PlatformConfiguration::read(QJsonObject& parentLevel)
 			QJsonObject buttonData = buttons.at(buttonIndex).toObject();
 			if (buttonData.isEmpty() == false)
 			{
-				button._label = buttonData[kName].toString();
-				button._command = buttonData[kCommand].toString();
+				button._label = buttonData[kName].toString().toStdString();
+				button._command = buttonData[kCommand].toString().toStdString();
 				button._commandGroup = CommandGroups(buttonData.value(kCommandGroup).toInt());
-				button._tab = buttonData[kTab].toString();
-				button._cellLocation = toQPoint(buttonData[kCellLocation].toString());
-				button._toolTip = buttonData[kTooltip].toString();
+				button._tab = buttonData[kTab].toString().toStdString();
+				button._cellLocation = toQPoint(buttonData[kCellLocation].toString().toStdString());
+				button._toolTip = buttonData[kTooltip].toString().toStdString();
 
 				button._hash = Button::makeHash(button);
 
@@ -1277,12 +1293,12 @@ bool _PlatformConfiguration::read(QJsonObject& parentLevel)
 			if (scriptVarData.isEmpty() == false)
 			{
 				// TODO: Use inbuilt functions to populate the variable
-				scriptVariable._name = scriptVarData[kName].toString();
-				scriptVariable._label = scriptVarData[kDefaultScriptVarLabel].toString();
-				scriptVariable._tooltip = scriptVarData[kTooltip].toString();
+				scriptVariable._name = scriptVarData[kName].toString().toStdString();
+				scriptVariable._label = scriptVarData[kDefaultScriptVarLabel].toString().toStdString();
+				scriptVariable._tooltip = scriptVarData[kTooltip].toString().toStdString();
 				scriptVariable._type = VariableType(scriptVarData[kDefaultScriptVarType].toInt());
-				scriptVariable._defaultValue = scriptVarData[kDefaultScriptDefaultValue].toString();
-				scriptVariable._cellLocation = toQPoint(scriptVarData[kCellLocation].toString());
+				scriptVariable._defaultValue = scriptVarData[kDefaultScriptDefaultValue].toString().toStdString();
+				scriptVariable._cellLocation = toQPoint(scriptVarData[kCellLocation].toString().toStdString());
 
 				_scriptVariables[scriptVariable._name] = scriptVariable;
 			}
@@ -1295,7 +1311,7 @@ bool _PlatformConfiguration::read(QJsonObject& parentLevel)
 
 	if (jsonValue.isNull() == false)
 	{
-		_alpacaScript = jsonValue.toVariant().toByteArray();
+		_alpacaScript = jsonValue.toVariant().toByteArray().toStdString();
 	}
 
 	_dirty = false;
@@ -1312,10 +1328,10 @@ void _PlatformConfiguration::write(QJsonObject& parentLevel)
 	parentLevel[kFileVersion] = static_cast<int>(++_fileVersion);
 	parentLevel[kCreationDate] = _creationDate;
 	parentLevel[kModifyDate] = _modifyDate;
-	parentLevel[kPlatformType] = debugBoardTypeToString(_platform);
+	parentLevel[kPlatformType] = QString::fromStdString(debugBoardTypeToString(_platform));
 	parentLevel[kUSBDescriptor] = QString(_usbDescriptor);
 	parentLevel[kResetEnabled] = _resetEnabled;
-	parentLevel[kScript] = _alpacaScript.data();
+	parentLevel[kScript] = QString::fromStdString(_alpacaScript);
 
 	if (_formDimension.isValid() && _formDimension != kClassicDimension)
 		parentLevel[kFormDimension] = QString("%1,%2").arg(_formDimension.width()).arg(_formDimension.height());
@@ -1326,7 +1342,7 @@ void _PlatformConfiguration::write(QJsonObject& parentLevel)
 	{
 		QJsonObject element;
 
-		element[kName] = tab._name;
+		element[kName] = QString::fromStdString(tab._name);
 		element[kUserTab] = tab._userTab;
 		element[kMoveable] = tab._moveable;
 		element[kVisible] = tab._visible;
@@ -1340,16 +1356,17 @@ void _PlatformConfiguration::write(QJsonObject& parentLevel)
 
 	QJsonArray buttonList;
 
-	for (const auto& button: std::as_const(_buttons))
+	for (const auto& entry: std::as_const(_buttons))
 	{
+		const Button& button = entry.second;
 		QJsonObject element;
 
-		element[kName] = button._label;
-		element[kCommand] = button._command;
+		element[kName] = QString::fromStdString(button._label);
+		element[kCommand] = QString::fromStdString(button._command);
 		element[kCommandGroup] = button._commandGroup;
-		element[kTab] = button._tab;
-		element[kCellLocation] = fromQPoint(button._cellLocation);
-		element[kTooltip] = button._toolTip;
+		element[kTab] = QString::fromStdString(button._tab);
+		element[kCellLocation] = QString::fromStdString(fromQPoint(button._cellLocation));
+		element[kTooltip] = QString::fromStdString(button._toolTip);
 
 		buttonList.append(element);
 	}
@@ -1358,16 +1375,25 @@ void _PlatformConfiguration::write(QJsonObject& parentLevel)
 
 	QJsonArray scriptVarList;
 
-	for (const auto& scriptVar: std::as_const(_scriptVariables))
+	for (const auto& entry: _scriptVariables)
 	{
+		const ScriptVariable& scriptVar = entry.second;
 		QJsonObject element;
 
-		element[kName] = scriptVar._name;
-		element[kDefaultScriptVarLabel] = scriptVar._label;
-		element[kTooltip] = scriptVar._tooltip;
+		std::string defaultValueString;
+		if (std::holds_alternative<bool>(scriptVar._defaultValue))
+			defaultValueString = std::get<bool>(scriptVar._defaultValue) ? "true" : "false";
+		else if (std::holds_alternative<uint32_t>(scriptVar._defaultValue))
+			defaultValueString = std::to_string(std::get<uint32_t>(scriptVar._defaultValue));
+		else if (std::holds_alternative<std::string>(scriptVar._defaultValue))
+			defaultValueString = std::get<std::string>(scriptVar._defaultValue);
+
+		element[kName] = QString::fromStdString(scriptVar._name);
+		element[kDefaultScriptVarLabel] = QString::fromStdString(scriptVar._label);
+		element[kTooltip] = QString::fromStdString(scriptVar._tooltip);
 		element[kDefaultScriptVarType] = scriptVar._type;
-		element[kDefaultScriptDefaultValue] = scriptVar._defaultValue.toString();
-		element[kCellLocation] = fromQPoint(scriptVar._cellLocation);
+		element[kDefaultScriptDefaultValue] = QString::fromStdString(defaultValueString);
+		element[kCellLocation] = QString::fromStdString(fromQPoint(scriptVar._cellLocation));
 
 		scriptVarList.append(element);
 	}
@@ -1380,13 +1406,13 @@ void _PlatformConfiguration::initialize()
 {
 	initializeDynamicPlatform();
 
-	if (_classicButtons.isEmpty())
+	if (_classicButtons.empty())
 	{
 		Button button;
 
 		button._label = "Power On";
 		button._tab = "General";
-		button._cellLocation = QPoint(0, 0);
+		button._cellLocation = std::make_pair(0, 0);
 		button._commandGroup = eQuickSettingsGroup;
 		button._toolTip = "Powers on the MTP/Device";
 		button._command = "powerOn";
@@ -1396,7 +1422,7 @@ void _PlatformConfiguration::initialize()
 
 		button._label = "Power Off";
 		button._tab = "General";
-		button._cellLocation = QPoint(1, 0);
+		button._cellLocation = std::make_pair(1, 0);
 		button._commandGroup = eQuickSettingsGroup;
 		button._toolTip = "Powers off the MTP/Device";
 		button._command = "powerOff";
@@ -1406,7 +1432,7 @@ void _PlatformConfiguration::initialize()
 
 		button._label = "Boot to EDL";
 		button._tab = "General";
-		button._cellLocation = QPoint(2, 0);
+		button._cellLocation = std::make_pair(2, 0);
 		button._commandGroup = eQuickSettingsGroup;
 		button._toolTip = "Boots the device to emergency download";
 		button._command = "bootToEDL";
@@ -1416,7 +1442,7 @@ void _PlatformConfiguration::initialize()
 
 		button._label = "Boot to Fastboot";
 		button._tab = "General";
-		button._cellLocation = QPoint(0, 1);
+		button._cellLocation = std::make_pair(0, 1);
 		button._commandGroup = eQuickSettingsGroup;
 		button._toolTip = "Boots the device to fastboot";
 		button._command = "bootToFastboot";
@@ -1426,7 +1452,7 @@ void _PlatformConfiguration::initialize()
 
 		button._label = "Boot to UEFI";
 		button._tab = "General";
-		button._cellLocation = QPoint(1, 1);
+		button._cellLocation = std::make_pair(1, 1);
 		button._commandGroup = eQuickSettingsGroup;
 		button._toolTip = "Boots the device to UEFI Menu";
 		button._command = "bootToUEFI";
@@ -1436,7 +1462,7 @@ void _PlatformConfiguration::initialize()
 
 		button._label = "Boot to Secondary EDL";
 		button._tab = "General";
-		button._cellLocation = QPoint(2, 1);
+		button._cellLocation = std::make_pair(2, 1);
 		button._commandGroup = eQuickSettingsGroup;
 		button._toolTip = "Boots the device to secondary emergency download";
 		button._command = "bootToSecondaryEDL";
@@ -1453,7 +1479,7 @@ void _PlatformConfiguration::defaultAlpacaScript()
 
 void _PlatformConfiguration::defaultScriptVariables()
 {
-	if (_scriptVariables.isEmpty())
+	if (_scriptVariables.empty())
 	{
 		ScriptVariable variable;
 
@@ -1462,27 +1488,27 @@ void _PlatformConfiguration::defaultScriptVariables()
 		variable._tooltip = "Configurable Boot to EDL timing in milliseconds";
 		variable._type = eIntegerType;
 		variable._defaultValue = 1300;
-		variable._cellLocation = QPoint(0,0);
+		variable._cellLocation = {0,0};
 
-		_scriptVariables.insert(variable._name, variable);
+		_scriptVariables.insert({variable._name, variable});
 
 		variable._name = "uefi";
 		variable._label = "UEFI timing (ms)";
 		variable._tooltip = "Configurable Boot to UEFI timing in milliseconds";
 		variable._type = eIntegerType;
 		variable._defaultValue = 8000;
-		variable._cellLocation = QPoint(0,1);
+		variable._cellLocation = {0,1};
 
-		_scriptVariables.insert(variable._name, variable);
+		_scriptVariables.insert({variable._name, variable});
 
 		variable._name = "fastboot";
 		variable._label = "Fastboot timing (ms)";
 		variable._tooltip = "Configurable Boot to fastboot timing in milliseconds";
 		variable._type = eIntegerType;
 		variable._defaultValue = 8000;
-		variable._cellLocation = QPoint(1,0);
+		variable._cellLocation = {1,0};
 
-		_scriptVariables.insert(variable._name, variable);
+		_scriptVariables.insert({variable._name, variable});
 	}
 }
 
@@ -1492,11 +1518,11 @@ PlatformConfiguration TACPlatformEntry::getConfiguration()
 	{
 		if (_platformEntry.isNull() == false)
 		{
-			QString platformPath = _platformEntry->_path;
+			const std::string& platformPath = _platformEntry->_path;
 
-			if (platformPath.isEmpty() == false)
+			if (platformPath.empty() == false)
 			{
-				_platformConfiguration = _PlatformConfiguration::openPlatformConfiguration(platformPath);
+				_platformConfiguration = _PlatformConfiguration::openPlatformConfiguration(QString::fromStdString(platformPath));
 				if (_platformConfiguration.isNull() == false)
 				{
 					AppCore::writeToApplicationLog("TACPlatformEntry::getConfiguration() Platform " + platformPath + " loaded\n");
@@ -1524,14 +1550,14 @@ PlatformConfiguration TACPlatformEntry::getConfiguration()
 	return _platformConfiguration;
 }
 
-void _PlatformConfiguration::cascadeTabDelete(const QString &deleteMe)
+void _PlatformConfiguration::cascadeTabDelete(const std::string &deleteMe)
 {
 	Q_UNUSED(deleteMe)
 
 	Q_ASSERT("This should never be executed");
 }
 
-void _PlatformConfiguration::cascadeTabRename(const QString &oldName, const QString &newName)
+void _PlatformConfiguration::cascadeTabRename(const std::string &oldName, const std::string &newName)
 {
 	Q_UNUSED(oldName)
 	Q_UNUSED(newName)

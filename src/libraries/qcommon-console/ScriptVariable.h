@@ -7,15 +7,14 @@
 #include "QCommonConsoleGlobal.h"
 #include "StringUtilities.h"
 
-// Qt
-#include <QList>
-#include <QPoint>
-#include <QString>
-#include <QVariant>
+#include <map>
+#include <string>
+#include <utility>
+#include <variant>
 
-const QString kDefaultVariableName(QStringLiteral("<variable name>"));
-const QString kDefaultVariableLabel(QStringLiteral("<label for the variable>"));
-const QString kDefaultVariableTooltip(QStringLiteral("<tooltip for the variable>"));
+const std::string kDefaultVariableName{"<variable name>"};
+const std::string kDefaultVariableLabel{"<label for the variable>"};
+const std::string kDefaultVariableTooltip{"<tooltip for the variable>"};
 
 enum VariableType
 {
@@ -25,6 +24,8 @@ enum VariableType
 	eFloatType
 };
 
+typedef std::variant<std::monostate, bool, uint32_t, std::string> ScriptVariableValue;
+
 struct QCOMMONCONSOLE_EXPORT ScriptVariable
 {
 public:
@@ -32,17 +33,17 @@ public:
 	~ScriptVariable() = default;
 	ScriptVariable(const ScriptVariable& copyMe) = default;
 
-	QString                     _name{kDefaultVariableName};
-	QString						_label{kDefaultVariableLabel};
-	QString						_tooltip{kDefaultVariableTooltip};
+	std::string					_name{kDefaultVariableName};
+	std::string					_label{kDefaultVariableLabel};
+	std::string					_tooltip{kDefaultVariableTooltip};
 	VariableType				_type{eUnknownVariableType};
-	QVariant                	_defaultValue{0};
-	QPoint						_cellLocation{QPoint(-1,-1)};
+	ScriptVariableValue			_defaultValue{static_cast<uint32_t>(0)};
+	std::pair<int, int>			_cellLocation{-1,-1};
 };
 
-typedef QMap<QString,ScriptVariable> ScriptVariables;
+typedef std::map<std::string, ScriptVariable> ScriptVariables;
 
-QString QCOMMONCONSOLE_EXPORT variableTypeToString(VariableType variableType);
-VariableType QCOMMONCONSOLE_EXPORT variableTypeFromString(const QString& typeString);
+std::string QCOMMONCONSOLE_EXPORT variableTypeToString(VariableType variableType);
+VariableType QCOMMONCONSOLE_EXPORT variableTypeFromString(const std::string& typeString);
 
 #endif // SCRIPTVARIABLE_H

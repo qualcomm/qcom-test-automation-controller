@@ -10,11 +10,14 @@
 #include "ScriptVariable.h"
 #include "TACCommand.h"
 
-// Qt
-#include <QByteArray>
-#include <QList>
-#include <QSharedPointer>
-#include <QVariant>
+#include <cstdint>
+#include <map>
+#include <memory>
+#include <string>
+#include <variant>
+#include <vector>
+
+typedef std::variant<std::monostate, bool, uint32_t, std::string> CommandArgument;
 
 struct _CommandEntry
 {
@@ -29,21 +32,21 @@ struct _CommandEntry
 
 	CommandAction				_commandAction;
 	PinID						_pinID{static_cast<PinID>(-1)};
-	QByteArray					_action;
-	QVariant					_arguement;
+	std::string					_action;
+	CommandArgument				_arguement;
 };
 
-typedef QSharedPointer<_CommandEntry> CommandEntry;
-typedef QList<CommandEntry> CommandEntries;
+typedef std::shared_ptr<_CommandEntry> CommandEntry;
+typedef std::vector<CommandEntry> CommandEntries;
 
 struct _ScriptCommand
 {
 	bool isEmpty()
 	{
-		if (_command.isEmpty())
+		if (_command.empty())
 			return true;
 
-		if (_subCommands.count() == 0)
+		if (_subCommands.size() == 0)
 			return true;
 
 		return false;
@@ -55,41 +58,41 @@ struct _ScriptCommand
 		_subCommands.clear();
 	}
 
-	QByteArray					_command;
+	std::string					_command;
 	CommandEntries				_subCommands;
 };
 
-typedef QSharedPointer<_ScriptCommand> ScriptCommand;
-typedef QMap<QString, ScriptCommand> ScriptCommands;
+typedef std::shared_ptr<_ScriptCommand> ScriptCommand;
+typedef std::map<std::string, ScriptCommand> ScriptCommands;
 
 class QCOMMONCONSOLE_EXPORT AlpacaScript
 {
 public:
 	AlpacaScript();
 
-	quint32 count()
+	uint32_t count()
 	{
-		return _scriptCommands.count();
+		return static_cast<uint32_t>(_scriptCommands.size());
 	}
 
-	static QByteArray defaultScript(DebugBoardType boardType = eFTDI);
+	static std::string defaultScript(DebugBoardType boardType = eFTDI);
 
-	bool parseScript(const QByteArray& alpacaScript, const ScriptVariables& scriptVariables, const TACCommands& tacCommands);
+	bool parseScript(const std::string& alpacaScript, const ScriptVariables& scriptVariables, const TACCommands& tacCommands);
 	CommandEntries replaceTokens(const ScriptVariables scriptVariables, const CommandEntries commandEntries);
-	QStringList validateScript(const QByteArray& alpacaScript, const TACCommands& tacCommands);
+	std::vector<std::string> validateScript(const std::string& alpacaScript, const TACCommands& tacCommands);
 
-	bool hasCommand(const QByteArray& command);
-	QStringList availableCommands();
+	bool hasCommand(const std::string& command);
+	std::vector<std::string> availableCommands();
 
-	ScriptCommand getCommand(const QByteArray& command);
-	CommandEntries getCommandEntries(const QByteArray& command);
+	ScriptCommand getCommand(const std::string& command);
+	CommandEntries getCommandEntries(const std::string& command);
 
-	void setVariableValue(const QString& variableName, int variableValue);
-	void setVariableValue(const QString& variableName, float variableValue);
+	void setVariableValue(const std::string& variableName, int variableValue);
+	void setVariableValue(const std::string& variableName, float variableValue);
 
 private:
-	bool isScriptVariable(const ScriptVariables& scriptVariables, const QString &scriptVariable);
-	QString createBaseCommandString(const QString& baseCommandString);
+	bool isScriptVariable(const ScriptVariables& scriptVariables, const std::string& scriptVariable);
+	std::string createBaseCommandString(const std::string& baseCommandString);
 	bool processCommandEntries(ScriptCommand scriptCommand, CommandEntries& commandEntries, int level = 0);
 
 	ScriptCommands				_scriptCommands;

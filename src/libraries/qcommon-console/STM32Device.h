@@ -13,8 +13,8 @@ class _STM32PlatformConfiguration;
 struct STM32HIDDeviceInfo
 {
 	HashType		_hash{0};
-	QByteArray		_devicePath;
-	QByteArray		_serialNumber;
+	std::string		_devicePath;
+	std::string		_serialNumber;
 };
 
 typedef QList<STM32HIDDeviceInfo> STM32HIDDeviceInfoList;
@@ -26,9 +26,9 @@ public:
 	STM32Device() = default;
 	~STM32Device();
 
-	static bool programDevice(AlpacaDevice alpacaDevice, PlatformID platformID, QByteArray& errorMessage);
+	static bool programDevice(AlpacaDevice alpacaDevice, PlatformID platformID, std::string& errorMessage);
 
-	static quint32 updateAlpacaDevices();
+	static uint32_t updateAlpacaDevices();
 
 	static STM32HIDDeviceInfoList enumerateHIDDevices();
 	static QByteArray vtpPortName(const QByteArray& serialNumber);
@@ -46,7 +46,7 @@ public:
 private:
 	_STM32PlatformConfiguration*					_stm32PlatformConfiguration{Q_NULLPTR};
 
-	QByteArray										_devicePath;
+	std::string										_devicePath;
 	void*											_hidHandle{Q_NULLPTR};
 };
 

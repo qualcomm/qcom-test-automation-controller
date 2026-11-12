@@ -59,18 +59,20 @@ QByteArray TACPIC32CXCoder::encode(const QByteArray& encodeMe, const Arguments &
 {
 	QByteArray result(encodeMe);
 
-	switch (CommandStringToHash(encodeMe))
+	switch (CommandStringToHash(encodeMe.toStdString()))
 	{
 	case kPIC32CXSetPinCommandHash:
-		if (arguments.count() == 2)
+		if (arguments.size() == 2)
 		{
-			QByteArray argumentStr = arguments.at(1).toByteArray();
+			QByteArray argumentStr = QByteArray::fromStdString(std::to_string(std::get<uint32_t>(arguments.at(1))));
 
 			// Prepend a '0' to the pin to comply with pic32cx firmware if 'port 0' pins are triggered
 			if (argumentStr.size() < 3)
 				argumentStr = "0" + argumentStr;
 
-			result = kPIC32CXSetPinCommand + " " + variantToBoolString(arguments.at(0)) + " (@" + argumentStr + ")";
+			bool pinState = std::get<bool>(arguments.at(0));
+
+			result = kPIC32CXSetPinCommand + " " + QByteArray(pinState ? "1" : "0") + " (@" + argumentStr + ")";
 		}
 		break;
 

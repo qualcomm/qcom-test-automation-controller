@@ -4,7 +4,7 @@
 // Copyright (c) Qualcomm Technologies, Inc. and/or its subsidiaries.
 // SPDX-License-Identifier: BSD-3-Clause
 
-#include <QString>
+#include <string>
 
 #ifdef Q_OS_WIN
 #include <windows.h>
@@ -25,7 +25,7 @@ class SystemUsername
 {
 public:
 	SystemUsername();
-	QString userName();
+	std::string userName();
 private:
 	void getUserNameWin();
 	void getUserNameLinux();
@@ -34,7 +34,7 @@ private:
 	DWORD fetchLatestEvent(EVT_HANDLE hResults);
 	DWORD parseEvent(EVT_HANDLE hEvent);
 #endif
-	QString                     _userName;
+	std::string                 _userName;
 };
 
 #endif // SYSTEMUSERNAME_H

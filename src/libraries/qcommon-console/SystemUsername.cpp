@@ -24,7 +24,7 @@ SystemUsername::SystemUsername()
 #endif
 }
 
-QString SystemUsername::userName()
+std::string SystemUsername::userName()
 {
 	return _userName;
 }
@@ -37,7 +37,7 @@ void SystemUsername::getUserNameLinux()
 	result = getlogin_r(buffer, 1024);
 #endif
 	if (result == 0)
-		_userName = QString(buffer);
+		_userName = std::string(buffer);
 }
 
 void SystemUsername::getUserNameWin()
@@ -58,7 +58,7 @@ void SystemUsername::getUserNameWin()
 			char username[UNLEN+1];
 			DWORD username_len = UNLEN+1;
 			GetUserNameA(username, &username_len);
-			_userName = QString(username);
+			_userName = std::string(username);
 		}
 		else if (ERROR_EVT_INVALID_QUERY == status)
 			wprintf(L"The query is not valid.\n");
@@ -104,7 +104,7 @@ DWORD SystemUsername::parseEvent(EVT_HANDLE hEvent)
 			// If we have some string
 			if (chunkedStr.length() > 0)
 				// It must be the username
-				_userName = chunkedStr[0];
+				_userName = chunkedStr[0].toStdString();
 		}
 	}
 

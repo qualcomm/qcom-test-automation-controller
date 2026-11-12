@@ -9,14 +9,14 @@
 #include "AppCore.h"
 #include "Range.h"
 
-const QByteArray kPIC32CXDescription{"ALPACA PIC32CX Debug Board"};
+const std::string kPIC32CXDescription{"ALPACA PIC32CX Debug Board"};
 PIC32CXSerialTableModel* gPIC32CXTACSerialTableModel{Q_NULLPTR};
 
 PIC32CXDevice::~PIC32CXDevice()
 {
 }
 
-quint32 PIC32CXDevice::updateAlpacaDevices()
+uint32_t PIC32CXDevice::updateAlpacaDevices()
 {
 	if (gPIC32CXTACSerialTableModel == Q_NULLPTR)
 		gPIC32CXTACSerialTableModel = new PIC32CXSerialTableModel;
@@ -31,7 +31,7 @@ quint32 PIC32CXDevice::updateAlpacaDevices()
 	{
 		AlpacaDevice alpacaDevice;
 
-		QByteArray portName = gPIC32CXTACSerialTableModel->rowData(deviceIndex, kPortNameCol).toLatin1();
+		std::string portName = gPIC32CXTACSerialTableModel->rowData(deviceIndex, kPortNameCol).toLatin1().toStdString();
 		HashType hash = ::arrayHash(portName);
 
 		alpacaDevice = _AlpacaDevice::findAlpacaDevice(hash);
@@ -46,22 +46,24 @@ quint32 PIC32CXDevice::updateAlpacaDevices()
 			pic32cxDevice->_boardType = ePIC32CXAuto;
 			pic32cxDevice->_platformID = ALPACA_PIC32CX_ID;
 			pic32cxDevice->_description = kPIC32CXDescription;
-			pic32cxDevice->_serialNumber = gPIC32CXTACSerialTableModel->rowData(deviceIndex, kSerialNumberCol).toLatin1();
 
-			// Mimic part of serial number as USB descriptor for platform identification
-			QStringList serialNumberList = gPIC32CXTACSerialTableModel->rowData(deviceIndex, kSerialNumberCol).split("XX");
+			QString serialNumber = gPIC32CXTACSerialTableModel->rowData(deviceIndex, kSerialNumberCol);
+			pic32cxDevice->_serialNumber = serialNumber.toLatin1().toStdString();
+
+			QStringList serialNumberList = serialNumber.split("XX");
 
 			if (serialNumberList.size() > 1)
 			{
-				pic32cxDevice->_usbDescriptor = serialNumberList.at(0).toLatin1();
+				pic32cxDevice->_usbDescriptor = serialNumberList.at(0).toLatin1().toStdString();
 
-				if (_PlatformConfiguration::containsUSBDescriptor(pic32cxDevice->_usbDescriptor) == true)
-					pic32cxDevice->_platformID = _PlatformConfiguration::getUSBDescriptor(pic32cxDevice->_usbDescriptor);
+				QByteArray usbDescriptorBytes = QByteArray::fromStdString(pic32cxDevice->_usbDescriptor);
+				if (_PlatformConfiguration::containsUSBDescriptor(usbDescriptorBytes) == true)
+					pic32cxDevice->_platformID = _PlatformConfiguration::getUSBDescriptor(usbDescriptorBytes);
 			}
 
 			TACPlatformEntry platformEntry = _PlatformConfiguration::getEntry(pic32cxDevice->_platformID);
 
-			pic32cxDevice->_description = platformEntry._platformEntry->_description.toLatin1();
+			pic32cxDevice->_description = platformEntry._platformEntry->_description;
 			pic32cxDevice->_platformConfiguration = platformEntry.getConfiguration();
 
 			_AlpacaDevice::_alpacaDevices.push_back(AlpacaDevice(pic32cxDevice));
@@ -127,14 +129,13 @@ void PIC32CXDevice::buildMapping()
 			tacCommand._pin = pin._pin;
 			tacCommand._command = pin._pinCommand;
 			tacCommand._helpText = pin._pinTooltip;
-			tacCommand._tabName = pin._tabName.toLatin1();
-			tacCommand._groupName = CommandGroup::toString(pin._commandGroup).toLatin1();
+			tacCommand._tabName = pin._tabName;
+			tacCommand._groupName = CommandGroup::toString(pin._commandGroup);
 
-			QByteArray cellLocation = QString::number(pin._cellLocation.x()).toLatin1() + "," + QString::number(pin._cellLocation.y()).toLatin1();
-			tacCommand._cellLocation = cellLocation;
+			tacCommand._cellLocation = fromQPoint(pin._cellLocation);
 
 			_commands[tacCommand._command] = tacCommand;
-			_commandList.append(tacCommand);
+			_commandList.push_back(tacCommand);
 		}
 	}
 

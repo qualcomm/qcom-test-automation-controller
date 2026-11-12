@@ -8,6 +8,11 @@
 #include "PinID.h"
 #include "StringUtilities.h"
 
+#include <map>
+#include <string>
+#include <utility>
+#include <vector>
+
 const int kMaxSTM32GpioIndex{3};
 
 struct STM32PinData
@@ -27,13 +32,7 @@ struct STM32PinData
 
 	static HashType makeSTM32Hash(PinID gpioIndex)
 	{
-		HashType result{0};
-
-		QString gpioStr = QString::number(gpioIndex);
-
-		result = strHash(gpioStr);
-
-		return result;
+		return strHash(std::to_string(gpioIndex));
 	}
 
 	HashType					_hash{0};
@@ -41,16 +40,16 @@ struct STM32PinData
 	PinID						_pin{static_cast<PinID>(-1)};
 	bool						_enabled{false};
 	bool						_inverted{false};
-	QString						_pinLabel;
-	QString						_pinTooltip;
-	QString						_pinCommand;
+	std::string					_pinLabel;
+	std::string					_pinTooltip;
+	std::string					_pinCommand;
 	CommandGroups				_commandGroup{eUnknownCommandGroup};
-	QPoint						_cellLocation{QPoint(-1,-1)};
-	QString						_tabName{"General"};
+	std::pair<int, int>			_cellLocation{-1, -1};
+	std::string					_tabName{"General"};
 };
 
-typedef QMap<HashType, STM32PinData> STM32PinEntries;
-typedef QList<STM32PinData> STM32PinList;
+typedef std::map<HashType, STM32PinData> STM32PinEntries;
+typedef std::vector<STM32PinData> STM32PinList;
 
 
 #endif // STM32PINDATA_H

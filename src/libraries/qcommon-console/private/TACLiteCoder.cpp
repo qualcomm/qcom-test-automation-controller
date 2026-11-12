@@ -5,7 +5,9 @@
 #include "TACCommands.h"
 #include "TACCommandHashes.h"
 
-static quint32 designToPin(quint32 designPin)
+#include <cstdint>
+
+static uint32_t designToPin(uint32_t designPin)
 {
 	switch (designPin)
 	{
@@ -85,10 +87,10 @@ QByteArray TACLiteCoder::encode
 
 	QByteArray result(encodeMe);
 
-	switch (CommandStringToHash(encodeMe))
+	switch (CommandStringToHash(encodeMe.toStdString()))
 	{
 	case kSetPinCommandHash:
-		result = QByteArray::number(arguments.at(1).toUInt());
+		result = QByteArray::number(std::get<uint32_t>(arguments.at(1)));
 		break;
 
 	default:

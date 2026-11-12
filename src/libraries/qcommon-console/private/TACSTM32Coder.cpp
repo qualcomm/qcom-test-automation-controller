@@ -6,9 +6,11 @@
 #include "TACCommandHashes.h"
 #include "TACCommands.h"
 
+#include <cstdint>
+
 namespace
 {
-	const quint8 kCommandGpioSet{0x01};
+	const uint8_t kCommandGpioSet{0x01};
 	const int kReportPayloadSize{32};
 }
 
@@ -46,14 +48,14 @@ QByteArray TACSTM32Coder::encode
 {
 	QByteArray result;
 
-	switch (CommandStringToHash(encodeMe))
+	switch (CommandStringToHash(encodeMe.toStdString()))
 	{
 	case kSetPinCommandHash:
-		if (arguments.count() >= 2)
+		if (arguments.size() >= 2)
 		{
-			bool state = arguments.at(0).toBool();
-			quint16 pin = static_cast<quint16>(arguments.at(1).toUInt());
-			quint8 pinBit = static_cast<quint8>(1 << pin);
+			bool state = std::get<bool>(arguments.at(0));
+			uint16_t pin = static_cast<uint16_t>(std::get<uint32_t>(arguments.at(1)));
+			uint8_t pinBit = static_cast<uint8_t>(1 << pin);
 
 			_gpioState = state ? (_gpioState | pinBit) : (_gpioState & ~pinBit);
 

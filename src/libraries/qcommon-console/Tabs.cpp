@@ -46,7 +46,7 @@ void Tab::removeTab(HashType hash, Tabs& tabs)
 	}
 }
 
-void Tab::updateTabName(HashType hash, QString &name, Tabs& tabs)
+void Tab::updateTabName(HashType hash, std::string &name, Tabs& tabs)
 {
 	for (auto &tab: tabs)
 	{
@@ -70,9 +70,9 @@ void Tab::setTabVisible(HashType hash, bool visible, Tabs &tabs)
 	}
 }
 
-QStringList Tab::toStringList(Tabs &tabs, bool configurableTabs)
+std::vector<std::string> Tab::toStringList(Tabs &tabs, bool configurableTabs)
 {
-	QStringList result;
+	std::vector<std::string> result;
 
 	if (configurableTabs)
 		result.push_back("<select a group>");
@@ -82,11 +82,11 @@ QStringList Tab::toStringList(Tabs &tabs, bool configurableTabs)
 		if (configurableTabs)
 		{
 			if (tab._configurable)
-				result.push_back(tab._newText.isEmpty() ? tab._name : tab._newText);
+				result.push_back(tab._newText.empty() ? tab._name : tab._newText);
 		}
 		else
 		{
-			result.push_back(tab._newText.isEmpty() ? tab._name : tab._newText);
+			result.push_back(tab._newText.empty() ? tab._name : tab._newText);
 		}
 	}
 	return result;

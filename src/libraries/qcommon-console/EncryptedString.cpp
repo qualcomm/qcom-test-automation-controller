@@ -3,14 +3,47 @@
 
 #include "EncryptedString.h"
 
-QByteArray EncryptedString::_key;
+#include <cassert>
+#include <cstdio>
+#include <cstdlib>
+
+std::string EncryptedString::_key;
+
+static std::string hexDecode(const std::string& hexString)
+{
+	std::string result;
+
+	for (size_t index = 0; index + 1 < hexString.size(); index += 2)
+	{
+		std::string byteString = hexString.substr(index, 2);
+		result.push_back(static_cast<char>(std::strtoul(byteString.c_str(), nullptr, 16)));
+	}
+
+	return result;
+}
+
+static std::string hexEncode(const std::string& rawString)
+{
+	std::string result;
+
+	for (const auto& rawChar: rawString)
+	{
+		char buffer[3];
+
+		std::snprintf(buffer, sizeof(buffer), "%02x", static_cast<unsigned char>(rawChar));
+
+		result += buffer;
+	}
+
+	return result;
+}
 
 EncryptedString::EncryptedString
 (
-	const QByteArray& encryptedString
+	const std::string& encryptedString
 )
 {
-	_encryptedString = QByteArray::fromHex(encryptedString);
+	_encryptedString = hexDecode(encryptedString);
 }
 
 EncryptedString::EncryptedString(const EncryptedString &copyMe)
@@ -20,42 +53,42 @@ EncryptedString::EncryptedString(const EncryptedString &copyMe)
 
 void EncryptedString::setKey
 (
-	const QByteArray& key
+	const std::string& key
 )
 {
 	_key = key;
 }
 
-QByteArray EncryptedString::encode
+std::string EncryptedString::encode
 (
-	const QByteArray& encodeMe
+	const std::string& encodeMe
 )
 {
-	Q_ASSERT(_key.isEmpty() == false);
+	assert(_key.empty() == false);
 
-	QByteArray result;
-	int encoderIndex{0};
+	std::string result;
+	size_t encoderIndex{0};
 
 	for (const auto& encodeMeChar: encodeMe)
 	{
-		result += encodeMeChar ^ _key[encoderIndex++];
+		result.push_back(static_cast<char>(encodeMeChar ^ _key[encoderIndex++]));
 		if (encoderIndex >= _key.length())
 			encoderIndex = 0;
 	}
 
-	return result.toHex();
+	return hexEncode(result);
 }
 
-QByteArray EncryptedString::decode() const
+std::string EncryptedString::decode() const
 {
-	Q_ASSERT(_key.isEmpty() == false);
+	assert(_key.empty() == false);
 
-	QByteArray result;
-	int encoderIndex{0};
+	std::string result;
+	size_t encoderIndex{0};
 
-	for (const auto& decodeMeChar: std::as_const(_encryptedString))
+	for (const auto& decodeMeChar: _encryptedString)
 	{
-		result += decodeMeChar ^ _key[encoderIndex++];
+		result.push_back(static_cast<char>(decodeMeChar ^ _key[encoderIndex++]));
 		if (encoderIndex >= _key.length())
 			encoderIndex = 0;
 	}

@@ -30,7 +30,7 @@ QString toCamelCase
 
 bool isAlphaNumeric
 (
-	const QByteArray &testMe
+	const std::string &testMe
 )
 {
 	bool result{true};
@@ -48,21 +48,21 @@ bool isAlphaNumeric
 	return result;
 }
 
-HashType strHash(const QString& hashMe)
+HashType strHash(const std::string& hashMe)
 {
-	return ::arrayHash(hashMe.toLatin1());
+	return ::arrayHash(hashMe);
 }
 
 HashType arrayHash
 (
-	const QByteArray& hashMe
+	const std::string& hashMe
 )
 {
-	quint64 result{0};
+	uint64_t result{0};
 
-	const quint64 p = 257;
-	const quint64 m = 1e9 + 9;
-	quint64 p_pow = 1;
+	const uint64_t p = 257;
+	const uint64_t m = 1e9 + 9;
+	uint64_t p_pow = 1;
 	for (const auto c: hashMe)
 	{
 		result = (result + (c - 'a' + 1) * p_pow) % m;
@@ -72,34 +72,26 @@ HashType arrayHash
 	return result;
 }
 
-QString fromBool(bool value)
+std::string fromBool(bool value)
 {
-	QString result;
-
-	result = value ? QString("true") : QString("false");
-
-	return result;
+	return value ? "true" : "false";
 }
 
-QString fromQPoint(const QPoint& value)
+std::string fromQPoint(const std::pair<int, int>& value)
 {
-	QString result = QString("%1,%2").arg(value.x()).arg(value.y());
-
-	return result;
+	return std::to_string(value.first) + "," + std::to_string(value.second);
 }
 
-QPoint toQPoint(const QString& value)
+std::pair<int, int> toQPoint(const std::string& value)
 {
-	QPoint result;
+	std::pair<int, int> result{0, 0};
 
-	QStringList temp = value.split(",");
+	size_t commaPos = value.find(',');
 
-	if (temp.size() >= 2)
+	if (commaPos != std::string::npos)
 	{
-		int x = temp[0].toInt();
-		int y = temp[1].toInt();
-
-		result = QPoint(x,y);
+		result.first = std::stoi(value.substr(0, commaPos));
+		result.second = std::stoi(value.substr(commaPos + 1));
 	}
 
 	return result;

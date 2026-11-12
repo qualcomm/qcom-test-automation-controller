@@ -12,6 +12,8 @@ class TACDriveThread;
 #include "ProtocolInterface.h"
 #include "ReceiveInterface.h"
 
+#include <cstdint>
+
 class QCOMMONCONSOLE_EXPORT TACPSOCProtocol :
 	public QObject,
 	public ProtocolInterface,
@@ -27,7 +29,7 @@ public:
 
 	void setTACDriveTrain(TACDriveThread* tacDriveTrain);
 
-	quint32 sendCommand(const QByteArray& command, const Arguments& arguments, bool console = false,
+	uint32_t sendCommand(const QByteArray& command, const Arguments& arguments, bool console = false,
 		ReceiveInterface* receiveInterface = Q_NULLPTR, bool shouldStore = true);
 	void endTransaction(ReceiveInterface* receiveInterface = Q_NULLPTR);
 	void sendHelpCommand();
@@ -44,7 +46,7 @@ protected:
 
 private:
 	TACDriveThread*				_tacDriveTrain;
-	quint64						_tickCount;
+	uint64_t					_tickCount;
 	QByteArray					_currentCommand;
 
 	void triggerElapsed();

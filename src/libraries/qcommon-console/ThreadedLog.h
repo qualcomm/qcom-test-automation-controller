@@ -9,7 +9,6 @@ class _ThreadedLog;
 
 // Qt
 #include <QFile>
-#include <QRecursiveMutex>
 #include <QSharedPointer>
 #include <QString>
 #include <QStringList>
@@ -17,6 +16,7 @@ class _ThreadedLog;
 
 // C++
 #include <atomic>
+#include <mutex>
 
 typedef QSharedPointer<_ThreadedLog>  ThreadedLog;
 
@@ -45,7 +45,7 @@ public:
 protected:
 	std::atomic<bool>			_running{false};
 	std::atomic<bool>			_starting{false};
-	QRecursiveMutex				_mutex;
+	std::recursive_mutex		_mutex;
 	QStringList					_logEntries;
 	QString						_currentLogPath;
 	QFile						_logFile;

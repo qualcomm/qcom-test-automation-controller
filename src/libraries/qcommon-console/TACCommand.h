@@ -7,13 +7,14 @@
 
 #include "PinID.h"
 
-// Qt
-#include <QList>
+#include <map>
+#include <string>
+#include <vector>
 
 class TACCommand;
 
-typedef QList<TACCommand> TACCommands;
-typedef QMap<QString, TACCommand> TACCommandMap;
+typedef std::vector<TACCommand> TACCommands;
+typedef std::map<std::string, TACCommand> TACCommandMap;
 
 class QCOMMONCONSOLE_EXPORT TACCommand
 {
@@ -27,20 +28,20 @@ public:
 	TACCommand& operator=(const TACCommand&) = default;
 	TACCommand& operator=(TACCommand&&) = default;
 
-	QString command();
+	std::string command();
 
-	static bool contains(const QString& command, const TACCommands& tacCommands);
-	static TACCommand find(const QString& command, const TACCommands& tacCommands);
+	static bool contains(const std::string& command, const TACCommands& tacCommands);
+	static TACCommand find(const std::string& command, const TACCommands& tacCommands);
 	static TACCommand find(PinID pin, const TACCommands& tacCommands);
 
 	PinID						_pin{static_cast<PinID>(-1)};
-	QString						_command;
-	QString						_helpText;
+	std::string					_command;
+	std::string					_helpText;
 	bool						_currentState{false};
 	bool						_isInverted{false};
-	QByteArray					_tabName;
-	QByteArray					_groupName;
-	QByteArray					_cellLocation;
+	std::string					_tabName;
+	std::string					_groupName;
+	std::string					_cellLocation;
 };
 
 #endif // TACCOMMAND_H

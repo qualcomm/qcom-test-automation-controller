@@ -33,7 +33,7 @@ TACSTM32Command::~TACSTM32Command()
 
 void TACSTM32Command::setPinState
 (
-	quint16 pin,
+	uint16_t pin,
 	bool state
 )
 {
@@ -56,7 +56,7 @@ void TACSTM32Command::send
 	_sender->send(command, arguments, console, _receiver, store);
 }
 
-void TACSTM32Command::addDelay(quint32 delayInMilliSeconds)
+void TACSTM32Command::addDelay(uint32_t delayInMilliSeconds)
 {
 	_sender->addDelay(delayInMilliSeconds, _receiver);
 }

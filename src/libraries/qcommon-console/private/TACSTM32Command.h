@@ -11,7 +11,8 @@ class ReceiveInterface;
 
 // Qt
 #include <QByteArray>
-#include <QVariant>
+
+#include <cstdint>
 
 class QCOMMONCONSOLE_EXPORT TACSTM32Command
 {
@@ -19,10 +20,10 @@ public:
 	TACSTM32Command(SendInterface* sender, ReceiveInterface* receiver);
 	~TACSTM32Command();
 
-	virtual void setPinState(quint16 pin, bool state);
+	virtual void setPinState(uint16_t pin, bool state);
 
 	void send(const QByteArray& command, const Arguments& arguments, bool console, bool store = true);
-	void addDelay(quint32 delayInMilliSeconds);
+	void addDelay(uint32_t delayInMilliSeconds);
 	void addLogComment(const QByteArray& comment);
 	void addEndTransaction();
 

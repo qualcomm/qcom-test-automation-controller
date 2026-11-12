@@ -12,11 +12,12 @@
 
 // Qt
 #include <QByteArray>
-#include <QVariant>
+
+#include <cstdint>
 
 const QByteArray kPIC32CXCommandError("Error!!! port >");
 const QByteArray kPIC32CXCommandNotRecognized("*** Command Processor: unknown command. ***");
-const quint8 kValidPIC32CXResponseSize(40);
+const uint8_t kValidPIC32CXResponseSize(40);
 
 class QCOMMONCONSOLE_EXPORT TACPIC32CXCoder :
 	public FrameCoder

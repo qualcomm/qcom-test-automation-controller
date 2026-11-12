@@ -12,12 +12,15 @@
 #include "AppCore.h"
 #include "StringUtilities.h"
 
-const QByteArray kSendCommandError("sendCommand error: Attempted operation on inactive device");
-const QByteArray kSetPinError("setPinState error: Attempted operation on inactive device");
-const QByteArray kQuickCommandError("quickCommand error: Attempted operation on inactive device");
-const QByteArray kCommandStatusError("commandQueueStatus error: Attempted operation on inactive device");
+#include <cctype>
+#include <iterator>
 
-QMutex _AlpacaDevice::_mutex;
+const std::string kSendCommandError("sendCommand error: Attempted operation on inactive device");
+const std::string kSetPinError("setPinState error: Attempted operation on inactive device");
+const std::string kQuickCommandError("quickCommand error: Attempted operation on inactive device");
+const std::string kCommandStatusError("commandQueueStatus error: Attempted operation on inactive device");
+
+std::mutex _AlpacaDevice::_mutex;
 AlpacaDevices _AlpacaDevice::_alpacaDevices;
 
 _AlpacaDevice::~_AlpacaDevice()
@@ -34,7 +37,7 @@ void _AlpacaDevice::getAlpacaDevices
 {
 	alpacaDevices.clear();
 
-	QMutexLocker lock(&_mutex);
+	std::lock_guard<std::mutex> lock(_mutex);
 
 	for (auto& alpacaDevice: _AlpacaDevice::_alpacaDevices)
 	{
@@ -48,11 +51,11 @@ void _AlpacaDevice::getAlpacaDevices
 	}
 }
 
-quint32 _AlpacaDevice::updateAlpacaDevices()
+uint32_t _AlpacaDevice::updateAlpacaDevices()
 {
 	_AlpacaDevice::_alpacaDevices.clear();
 
-	QMutexLocker lock(&_mutex);
+	std::lock_guard<std::mutex> lock(_mutex);
 
 	PSOCDevice::updateAlpacaDevices();
 	FTDIDevice::updateAlpacaDevices();
@@ -76,19 +79,34 @@ AlpacaDevice _AlpacaDevice::findAlpacaDevice
 	return AlpacaDevice(Q_NULLPTR);
 }
 
+static std::string toLowerCopy(const std::string& value)
+{
+	std::string result{value};
+
+	for (char& c: result)
+		c = static_cast<char>(std::tolower(static_cast<unsigned char>(c)));
+
+	return result;
+}
+
+static bool equalsCaseInsensitive(const std::string& left, const std::string& right)
+{
+	return toLowerCopy(left) == toLowerCopy(right);
+}
+
 AlpacaDevice _AlpacaDevice::findAlpacaDevice
 (
-	const QByteArray& portName
+	const std::string& portName
 )
 {
-	QByteArray searchTerm{portName.toLower()};
+	std::string searchTerm{toLowerCopy(portName)};
 
 	for (const auto& alpacaDevice: _AlpacaDevice::_alpacaDevices)
 	{
-		if (alpacaDevice->_portName.toLower().contains(searchTerm))
+		if (toLowerCopy(alpacaDevice->_portName).find(searchTerm) != std::string::npos)
 			return alpacaDevice;
 
-		if (alpacaDevice->_serialNumber.toLower().contains(searchTerm))
+		if (toLowerCopy(alpacaDevice->_serialNumber).find(searchTerm) != std::string::npos)
 			return alpacaDevice;
 	}
 
@@ -97,23 +115,24 @@ AlpacaDevice _AlpacaDevice::findAlpacaDevice
 
 AlpacaDevice _AlpacaDevice::findAlpacaDeviceBySerialNumber
 (
-	const QByteArray& serialNumber,
+	const std::string& serialNumber,
 	bool usePartial
 )
 {
+	std::string testSerial{toLowerCopy(serialNumber)};
+
 	for (const auto& alpacaDevice: _AlpacaDevice::_alpacaDevices)
 	{
-		QByteArray testSerial{serialNumber.toLower()};
-		QByteArray serialNumber{alpacaDevice->_serialNumber.toLower()};
+		std::string candidateSerial{toLowerCopy(alpacaDevice->_serialNumber)};
 
 		if (usePartial)
 		{
-			if (testSerial.contains(serialNumber))
+			if (testSerial.find(candidateSerial) != std::string::npos)
 				return alpacaDevice;
 		}
 		else
 		{
-			if (testSerial == serialNumber)
+			if (testSerial == candidateSerial)
 				return alpacaDevice;
 		}
 	}
@@ -123,18 +142,19 @@ AlpacaDevice _AlpacaDevice::findAlpacaDeviceBySerialNumber
 
 AlpacaDevice _AlpacaDevice::findAlpacaDeviceByDescription
 (
-	const QByteArray &description,
+	const std::string &description,
 	bool usePartial // = true
 )
 {
+	std::string testDescription{toLowerCopy(description)};
+
 	for (const auto& tacDevice: _AlpacaDevice::_alpacaDevices)
 	{
-		QByteArray testDescription{description.toLower()};
-		QByteArray deviceDescription{tacDevice->description().toLower()};
+		std::string deviceDescription{toLowerCopy(tacDevice->description())};
 
 		if (usePartial)
 		{
-			if (testDescription.contains(deviceDescription))
+			if (testDescription.find(deviceDescription) != std::string::npos)
 				return tacDevice;
 		}
 		else
@@ -149,18 +169,19 @@ AlpacaDevice _AlpacaDevice::findAlpacaDeviceByDescription
 
 AlpacaDevice _AlpacaDevice::findAlpacaDeviceByUSBDescriptor
 (
-	const QByteArray &descriptor,
+	const std::string &descriptor,
 	bool usePartial
 )
 {
-	for (const auto& alpacaDevice: std::as_const(_AlpacaDevice::_alpacaDevices))
+	std::string testDescriptor{toLowerCopy(descriptor)};
+
+	for (const auto& alpacaDevice: _AlpacaDevice::_alpacaDevices)
 	{
-		QByteArray testDescriptor{descriptor.toLower()};
-		QByteArray deviceDescriptor{alpacaDevice->_usbDescriptor.toLower()};
+		std::string deviceDescriptor{toLowerCopy(alpacaDevice->_usbDescriptor)};
 
 		if (usePartial)
 		{
-			if (testDescriptor.contains(deviceDescriptor))
+			if (testDescriptor.find(deviceDescriptor) != std::string::npos)
 				return alpacaDevice;
 		}
 		else
@@ -173,9 +194,9 @@ AlpacaDevice _AlpacaDevice::findAlpacaDeviceByUSBDescriptor
 	return AlpacaDevice(Q_NULLPTR);
 }
 
-QByteArray _AlpacaDevice::getLastError()
+std::string _AlpacaDevice::getLastError()
 {
-	QByteArray temp = _lastError;
+	std::string temp = _lastError;
 	_lastError.clear();
 	return temp;
 }
@@ -202,7 +223,7 @@ void _AlpacaDevice::buildQuickSettings()
 {
 	if (_alpacaScript.count() == 0)
 	{
-		QByteArray alpacaScript = _platformConfiguration->getAlpacaScript();
+		std::string alpacaScript = _platformConfiguration->getAlpacaScript();
 		ScriptVariables scriptVariables = _platformConfiguration->getVariables();
 		if (_alpacaScript.parseScript(alpacaScript, scriptVariables, commandList()) == false)
 		{
@@ -211,21 +232,21 @@ void _AlpacaDevice::buildQuickSettings()
 	}
 }
 
-quint32 _AlpacaDevice::commandCount()
+uint32_t _AlpacaDevice::commandCount()
 {
 	commandList();
 
-	return _commandList.count();
+	return static_cast<uint32_t>(_commandList.size());
 }
 
 TACCommand _AlpacaDevice::commandEntry
 (
-	quint32 commandIndex
+	uint32_t commandIndex
 )
 {
 	TACCommand result;
 
-	if (commandIndex < static_cast<quint32>(_commandList.size()))
+	if (commandIndex < static_cast<uint32_t>(_commandList.size()))
 	{
 		result = _commandList.at(commandIndex);
 	}
@@ -235,10 +256,10 @@ TACCommand _AlpacaDevice::commandEntry
 
 TACCommands _AlpacaDevice::commandList()
 {
-	if (_commandList.isEmpty())
+	if (_commandList.empty())
 	{
 		for (const auto& commandEntry: std::as_const(_commands))
-			_commandList.push_back(commandEntry);
+			_commandList.push_back(commandEntry.second);
 
 		auto sortLambda = [] (const TACCommand& ce1, const TACCommand& ce2) -> bool
 		{
@@ -251,100 +272,107 @@ TACCommands _AlpacaDevice::commandList()
 	return _commandList;
 }
 
-quint32 _AlpacaDevice::quickCommandCount()
+uint32_t _AlpacaDevice::quickCommandCount()
 {
-	if (_quickCommandList.isEmpty())
+	if (_quickCommandList.empty())
 	{
 		ButtonList buttons = _platformConfiguration->getButtons();
 
-		if (buttons.count() > 0)
+		if (buttons.size() > 0)
 		{
-			for (const auto& button: std::as_const(buttons))
+			for (const auto& button: buttons)
 			{
-				QByteArray quickCommand;
+				std::string quickCommand;
 
-				quickCommand = button._label.toLatin1();
-				quickCommand += ";" + button._command.toLatin1();
-				quickCommand += ";" + button._toolTip.toLatin1();
-				quickCommand += ";" + QByteArray::number(button._cellLocation.x());
-				quickCommand += "," + QByteArray::number(button._cellLocation.y());
+				quickCommand = button._label;
+				quickCommand += ";" + button._command;
+				quickCommand += ";" + button._toolTip;
+				quickCommand += ";" + std::to_string(button._cellLocation.first);
+				quickCommand += "," + std::to_string(button._cellLocation.second);
 
-				_quickCommandList.append(quickCommand);
+				_quickCommandList.push_back(quickCommand);
 			}
 		}
 	}
 
-	return _quickCommandList.count();
+	return static_cast<uint32_t>(_quickCommandList.size());
 }
 
-QByteArray _AlpacaDevice::getQuickCommand(quint32 index)
+std::string _AlpacaDevice::getQuickCommand(uint32_t index)
 {
-	QByteArray result;
+	std::string result;
 
-	if (index < static_cast<quint32>(_quickCommandList.count()))
+	if (index < static_cast<uint32_t>(_quickCommandList.size()))
 		result = _quickCommandList[index];
 
 	return result;
 }
 
-quint32 _AlpacaDevice::scriptVariableCount()
+uint32_t _AlpacaDevice::scriptVariableCount()
 {
-	return _platformConfiguration->getVariables().count();
+	return static_cast<uint32_t>(_platformConfiguration->getVariables().size());
 }
 
-QByteArray _AlpacaDevice::getScriptVariable(const quint32 index)
+std::string _AlpacaDevice::getScriptVariable(const uint32_t index)
 {
-	QByteArray scriptVariableString;
+	std::string result;
 	ScriptVariables scriptVariables = _platformConfiguration->getVariables();
-	QList<ScriptVariable> scriptVariableList;
 
-	// The variables list will be populated with the same data every time API is called.
-	// Generally the number of variables is expected to be low. Hence, the reason to keep loop instead of global variable
-	for (const auto &scriptVar : scriptVariables)
-		scriptVariableList.append(scriptVar);
-
-	if (index < scriptVariableList.count())
+	if (index < scriptVariables.size())
 	{
-		scriptVariableString = scriptVariableList[index]._name.toLatin1();
-		scriptVariableString += ";" + scriptVariableList[index]._label.toLatin1();
-		scriptVariableString += ";" + scriptVariableList[index]._tooltip.toLatin1();
-		scriptVariableString += ";" + variableTypeToString(scriptVariableList[index]._type).toLatin1();
-		scriptVariableString += ";" + scriptVariableList[index]._defaultValue.toString().toLatin1();
-		scriptVariableString += ";" + QString::number(scriptVariableList[index]._cellLocation.x()).toLatin1();
-		scriptVariableString += "," + QString::number(scriptVariableList[index]._cellLocation.y()).toLatin1();
+		auto variableIterator = scriptVariables.begin();
+		std::advance(variableIterator, index);
+		const ScriptVariable& scriptVariable = variableIterator->second;
+
+		std::string defaultValueString;
+		if (std::holds_alternative<bool>(scriptVariable._defaultValue))
+			defaultValueString = std::get<bool>(scriptVariable._defaultValue) ? "true" : "false";
+		else if (std::holds_alternative<uint32_t>(scriptVariable._defaultValue))
+			defaultValueString = std::to_string(std::get<uint32_t>(scriptVariable._defaultValue));
+		else if (std::holds_alternative<std::string>(scriptVariable._defaultValue))
+			defaultValueString = std::get<std::string>(scriptVariable._defaultValue);
+
+		result = scriptVariable._name;
+		result += ";" + scriptVariable._label;
+		result += ";" + scriptVariable._tooltip;
+		result += ";" + variableTypeToString(scriptVariable._type);
+		result += ";" + defaultValueString;
+		result += ";" + std::to_string(scriptVariable._cellLocation.first);
+		result += "," + std::to_string(scriptVariable._cellLocation.second);
 	}
-	return scriptVariableString;
+	return result;
 }
 
-bool _AlpacaDevice::updateScriptVariableValue(const QByteArray &scriptVariable, const QByteArray &value)
+bool _AlpacaDevice::updateScriptVariableValue(const std::string &scriptVariable, const std::string &value)
 {
 	bool result{false};
 	ScriptVariables scriptVariables = _platformConfiguration->getVariables();
-	if (scriptVariables.contains(scriptVariable))
+	if (scriptVariables.find(scriptVariable) != scriptVariables.end())
 	{
 		result = _platformConfiguration->setVariableDefaultValue(scriptVariable, value);
 	}
 	else
 	{
 		AppCore::writeToApplicationLogLine("[updateScriptVariableValue()]: The variable with name: '" + scriptVariable + "' was not found.");
-		throw TACException(TAC_SCRIPT_VARIABLE_NOT_FOUND, QString("Script variable %1 not Found.").arg(scriptVariable));
+		throw TACException(TAC_SCRIPT_VARIABLE_NOT_FOUND, "Script variable " + scriptVariable + " not Found.");
 	}
 	return result;
 }
 
 bool _AlpacaDevice::getCommandState
 (
-	const QByteArray& command
+	const std::string& command
 )
 {
 	bool result{false};
 
-	if (_commands.find(command) != _commands.end())
-		result = _commands[command]._currentState;
+	auto commandIterator = _commands.find(command);
+	if (commandIterator != _commands.end())
+		result = commandIterator->second._currentState;
 	else
 	{
 		AppCore::writeToApplicationLogLine("getCommandState " + command + " is not found in Alpaca Script.");
-		throw TACException(TAC_COMMAND_NOT_FOUND, QString("Command %1 not Found.").arg(command.data()));
+		throw TACException(TAC_COMMAND_NOT_FOUND, "Command " + command + " not Found.");
 	}
 
 	return result;
@@ -352,7 +380,7 @@ bool _AlpacaDevice::getCommandState
 
 bool _AlpacaDevice::sendCommand
 (
-	const QByteArray& command,
+	const std::string& command,
 	bool state
 )
 {
@@ -360,9 +388,10 @@ bool _AlpacaDevice::sendCommand
 
 	if (_driveThread != Q_NULLPTR)
 	{
-		if (_commands.find(command) != _commands.end())
+		auto commandIterator = _commands.find(command);
+		if (commandIterator != _commands.end())
 		{
-			setPinState(_commands[command]._pin, state);
+			setPinState(commandIterator->second._pin, state);
 			result = true;
 		}
 		else if (result == false)
@@ -380,13 +409,13 @@ bool _AlpacaDevice::sendCommand
 		{
 			AppCore::writeToApplicationLogLine(command + " is not found in Alpaca Script.");
 
-			throw TACException(TAC_COMMAND_NOT_FOUND, QString("sendCommand error: Command %1 not found.").arg(command.data()));
+			throw TACException(TAC_COMMAND_NOT_FOUND, "sendCommand error: Command " + command + " not found.");
 		}
 		else
 		{
 			if (active() == false)
 			{
-				AppCore::writeToApplicationLogLine(QString("_AlpacaDevice::sendCommand(%1, %2) failed. Operation on inactive device").arg(command).arg(state));
+				AppCore::writeToApplicationLogLine("_AlpacaDevice::sendCommand(" + command + ", " + fromBool(state) + ") failed. Operation on inactive device");
 				throw TACException(TAC_DEVICE_INACTIVE, kSendCommandError);
 			}
 		}
@@ -397,7 +426,7 @@ bool _AlpacaDevice::sendCommand
 
 bool _AlpacaDevice::quickCommand
 (
-	const QByteArray& command
+	const std::string& command
 )
 {
 	bool result{false};
@@ -419,7 +448,7 @@ bool _AlpacaDevice::quickCommand
 			{
 				AppCore::writeToApplicationLogLine(command + " is not found in Alpaca Script. Quick Command not executed");
 				AppCore::writeToApplicationLogLine("Available Commands");
-				QStringList availableCommands = _alpacaScript.availableCommands();
+				std::vector<std::string> availableCommands = _alpacaScript.availableCommands();
 				for (const auto& scriptCommand: availableCommands)
 					AppCore::writeToApplicationLogLine("   " + scriptCommand);
 
@@ -428,7 +457,7 @@ bool _AlpacaDevice::quickCommand
 		}
 		else
 		{
-			AppCore::writeToApplicationLogLine(QString("_AlpacaDevice::quickCommand(%1) failed. Operation on inactive device").arg(command));
+			AppCore::writeToApplicationLogLine("_AlpacaDevice::quickCommand(" + command + ") failed. Operation on inactive device");
 			throw TACException(TAC_DEVICE_INACTIVE, kQuickCommandError);
 		}
 	}
@@ -454,50 +483,46 @@ bool _AlpacaDevice::isCommandQueueClear()
 	return result;
 }
 
-QByteArray _AlpacaDevice::getHelp()
+std::string _AlpacaDevice::getHelp()
 {
-	QString result;
-
-	if (_helpText.isEmpty())
+	if (_helpText.empty())
 	{
-		const QString kEndOfLine("\n");
-		const QString kTab("\t");
+		const std::string kEndOfLine("\n");
+		const std::string kTab("\t");
 
-		// lets reserve a bit
+		std::string result;
 		result.reserve(4096);
 
-		result = "Name: " + _platformConfiguration->name() + kEndOfLine + kEndOfLine;
-		result += "Platform: " + _platformConfiguration->getPlatformString() + kEndOfLine;
-		result += "Author: " + _platformConfiguration->author() + kEndOfLine;
-		result += "Description: " + _platformConfiguration->description() + kEndOfLine;
-		result += "Modification Date: " + _platformConfiguration->modificationDate() + kEndOfLine;
+		result = "Name: " + _platformConfiguration->name().toStdString() + kEndOfLine + kEndOfLine;
+		result += "Platform: " + debugBoardTypeToString(_platformConfiguration->getPlatform()) + kEndOfLine;
+		result += "Author: " + _platformConfiguration->author().toStdString() + kEndOfLine;
+		result += "Description: " + _platformConfiguration->description().toStdString() + kEndOfLine;
+		result += "Modification Date: " + _platformConfiguration->modificationDate().toStdString() + kEndOfLine;
 
 		Pins pins = _platformConfiguration->getPins();
-		if (pins.count() > 0)
+		if (pins.size() > 0)
 		{
 			result += kEndOfLine;
 			result += "Commands" + kEndOfLine + kEndOfLine;
-			for (const auto& pin: std::as_const(pins))
+			for (const auto& pin: pins)
 			{
-				if (pin._cellLocation != QPoint(-1, -1) || pin._pinCommand.compare("TC_READY_N", Qt::CaseInsensitive) == 0)
-					result += kTab + pin._pinLabel + QString(" Command: %1(%2)").arg(pin._pinCommand).arg(pin._pin) + ", " + pin._pinTooltip + kEndOfLine;
+				if (pin._cellLocation != std::pair<int, int>(-1, -1) || equalsCaseInsensitive(pin._pinCommand, "TC_READY_N"))
+					result += kTab + pin._pinLabel + " Command: " + pin._pinCommand + "(" + std::to_string(pin._pin) + ")" + ", " + pin._pinTooltip + kEndOfLine;
 			}
 		}
 
 		ButtonList buttons = _platformConfiguration->getButtons();
-		if (buttons.count() > 0)
+		if (buttons.size() > 0)
 		{
 			result += kEndOfLine;
 			result += "Quick Commands" + kEndOfLine + kEndOfLine;
-			for (const auto& button: std::as_const(buttons))
+			for (const auto& button: buttons)
 			{
 				result += kTab + button._label + " Command: " + button._command + ", " + button._toolTip + kEndOfLine;
 			}
 		}
 
-		result.squeeze();
-
-		_helpText = result.toLatin1();
+		_helpText = result;
 	}
 
 	return _helpText;
@@ -518,12 +543,12 @@ void _AlpacaDevice::setPinState
 			{
 				TACCommand tacCommand = TACCommand::find(pin, _commandList);
 
-				AppCore::writeToApplicationLogLine("_AlpacaDevice::setPinState(" + QString::number(pin) +")  Command:" + tacCommand._command);
+				AppCore::writeToApplicationLogLine("_AlpacaDevice::setPinState(" + std::to_string(pin) + ")  Command:" + tacCommand._command);
 			}
 		}
 		else
 		{
-			AppCore::writeToApplicationLogLine(QString("_AlpacaDevice::setPinState(%1, %2) failed. Operation on inactive device").arg(QString::number(pin)).arg(state));
+			AppCore::writeToApplicationLogLine("_AlpacaDevice::setPinState(" + std::to_string(pin) + ", " + fromBool(state) + ") failed. Operation on inactive device");
 			throw TACException(TAC_DEVICE_INACTIVE, kSetPinError);
 		}
 	}
@@ -535,8 +560,8 @@ void _AlpacaDevice::setPinState
 
 void _AlpacaDevice::setAddressPinState
 (
-	const QString& i2cAddress,
-	quint16 pin,
+	const std::string& i2cAddress,
+	uint16_t pin,
 	bool state
 )
 {
@@ -547,18 +572,12 @@ void _AlpacaDevice::setAddressPinState
 			_driveThread->setAddressPinState(i2cAddress, pin, state);
 			if (AppCore::getAppCore()->appLoggingActive())
 			{
-				AppCore::writeToApplicationLogLine(
-					QString("_AlpacaDevice::setAddressPinState(addr=%1, pin=%2, state=%3)")
-						.arg(i2cAddress)
-						.arg(pin)
-						.arg(state ? "true" : "false"));
+				AppCore::writeToApplicationLogLine("_AlpacaDevice::setAddressPinState(addr=" + i2cAddress + ", pin=" + std::to_string(pin) + ", state=" + fromBool(state) + ")");
 			}
 		}
 		else
 		{
-			AppCore::writeToApplicationLogLine(
-				QString("_AlpacaDevice::setAddressPinState(%1, %2, %3) failed. Operation on inactive device")
-					.arg(i2cAddress).arg(pin).arg(state));
+			AppCore::writeToApplicationLogLine("_AlpacaDevice::setAddressPinState(" + i2cAddress + ", " + std::to_string(pin) + ", " + fromBool(state) + ") failed. Operation on inactive device");
 			throw TACException(TAC_DEVICE_INACTIVE, kSetPinError);
 		}
 	}
@@ -584,17 +603,17 @@ HashType _AlpacaDevice::hash()
 	return _hash;
 }
 
-QByteArray _AlpacaDevice::description()
+std::string _AlpacaDevice::description()
 {
 	return _description;
 }
 
-QByteArray _AlpacaDevice::usbDescriptor()
+std::string _AlpacaDevice::usbDescriptor()
 {
 	return _usbDescriptor;
 }
 
-QByteArray _AlpacaDevice::serialNumber()
+std::string _AlpacaDevice::serialNumber()
 {
 	return _serialNumber;
 }
@@ -604,12 +623,12 @@ PlatformID _AlpacaDevice::platformID()
 	return _platformID;
 }
 
-QByteArray _AlpacaDevice::macAddress()
+std::string _AlpacaDevice::macAddress()
 {
 	if (_driveThread)
 		return _driveThread->macAddress();
 
-	return QByteArray();
+	return std::string();
 }
 
 PlatformConfiguration _AlpacaDevice::platformConfiguration()
@@ -660,9 +679,9 @@ uint _AlpacaDevice::majorVersion()
 	return 0;
 }
 
-QString _AlpacaDevice::chipVersion()
+std::string _AlpacaDevice::chipVersion()
 {
-	QString result{"None"};
+	std::string result{"None"};
 
 	switch (_chipVersion)
 	{
@@ -699,9 +718,10 @@ uint _AlpacaDevice::revisionVersion()
 
 void _AlpacaDevice::externalPowerControl(bool state)
 {
-	if (_commands.find("extpower") != _commands.end())
+	auto commandIterator = _commands.find("extpower");
+	if (commandIterator != _commands.end())
 	{
-		setPinState(_commands["extpower"]._pin, state);
+		setPinState(commandIterator->second._pin, state);
 	}
 	else
 	{
@@ -709,18 +729,18 @@ void _AlpacaDevice::externalPowerControl(bool state)
 	}
 }
 
-QByteArray _AlpacaDevice::name() const
+std::string _AlpacaDevice::name() const
 {
 	if (_driveThread)
-		return _driveThread->name();
+		return _driveThread->name().toStdString();
 
 	return _serialNumber;
 }
 
-void _AlpacaDevice::setName(const QByteArray &newName)
+void _AlpacaDevice::setName(const std::string &newName)
 {
 	if (_driveThread)
-		_driveThread->setName(newName);
+		_driveThread->setName(QByteArray::fromStdString(newName));
 }
 
 QSize _AlpacaDevice::windowDimension()
@@ -730,7 +750,7 @@ QSize _AlpacaDevice::windowDimension()
 	return QSize(560, 750);
 }
 
-QByteArray _AlpacaDevice::portName() const
+std::string _AlpacaDevice::portName() const
 {
 //	if (_portName.isEmpty())
 //	{
@@ -741,23 +761,23 @@ QByteArray _AlpacaDevice::portName() const
 	return _portName;
 }
 
-void _AlpacaDevice::setPortName(const QByteArray &portName)
+void _AlpacaDevice::setPortName(const std::string &portName)
 {
 	_portName = portName;
 
 	if (_driveThread)
-		_driveThread->setPortName(portName);
+		_driveThread->setPortName(QByteArray::fromStdString(portName));
 }
 
-QString _AlpacaDevice::description() const
+std::string _AlpacaDevice::description() const
 {
 	if (_driveThread)
 		return _driveThread->description();
 
-	return QString();
+	return std::string();
 }
 
-void _AlpacaDevice::setDescription(const QString &description)
+void _AlpacaDevice::setDescription(const std::string &description)
 {
 	if (_driveThread)
 		_driveThread->setDescription(description);
@@ -773,7 +793,7 @@ QString _AlpacaDevice::serialNumber() const
 
 void _AlpacaDevice::setSerialNumber(QString serialNumber)
 {
-	_serialNumber = serialNumber.toLatin1();
+	_serialNumber = serialNumber.toLatin1().toStdString();
 
 	if (_driveThread)
 		_driveThread->setSerialNumber(serialNumber);
@@ -793,13 +813,13 @@ void _AlpacaDevice::on_pinStateChanged
 		bool state
 )
 {
-	AppCore::writeToApplicationLogLine("_AlpacaDevice::on_pinStateChanged(" + QString::number(pin) + ", " + QString::number(state) + ")");
+	AppCore::writeToApplicationLogLine("_AlpacaDevice::on_pinStateChanged(" + std::to_string(pin) + ", " + fromBool(state) + ")");
 
-	for (auto& command: _commands)
+	for (auto& entry: _commands)
 	{
-		if (command._pin == pin)
+		if (entry.second._pin == pin)
 		{
-			command._currentState = state;
+			entry.second._currentState = state;
 			break;
 		}
 	}
@@ -828,13 +848,13 @@ void _AlpacaDevice::clearResetCount()
 		_driveThread->clearResetCount();
 }
 
-void _AlpacaDevice::i2CReadRegister(quint32 addr, quint32 reg)
+void _AlpacaDevice::i2CReadRegister(uint32_t addr, uint32_t reg)
 {
 	if (_driveThread != Q_NULLPTR)
 		_driveThread->i2CReadRegister(addr, reg);
 }
 
-void _AlpacaDevice::i2CWriteRegister(quint32 addr, quint32 reg, quint32 data)
+void _AlpacaDevice::i2CWriteRegister(uint32_t addr, uint32_t reg, uint32_t data)
 {
 	if (_driveThread != Q_NULLPTR)
 		_driveThread->i2CWriteRegister(addr, reg, data);

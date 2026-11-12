@@ -13,9 +13,12 @@
 // QT
 class QJsonObject;
 #include <QList>
-#include <QString>
 
-const QString kUSBDescriptorFileName{QStringLiteral("devicelist.json")};
+#include <cstdint>
+#include <string>
+#include <vector>
+
+const std::string kUSBDescriptorFileName{"devicelist.json"};
 
 struct QCOMMONCONSOLE_EXPORT USBDescriptor
 {
@@ -27,15 +30,15 @@ struct QCOMMONCONSOLE_EXPORT USBDescriptor
 
 	PlatformID					_platformID{0};
 	DebugBoardType				_debugBoardType{eUnknownDebugBoard};
-	QString						_name;
-	QString						_description;
-	QByteArray					_usbDescriptor;
-	quint32						_revision{0};
-	QByteArray					_configurationFilePath;
+	std::string					_name;
+	std::string					_description;
+	std::string					_usbDescriptor;
+	uint32_t					_revision{0};
+	std::string					_configurationFilePath;
 	FTDIPinSets					_pinSets[kMaxPinSetCount];
 };
 
-typedef QList<USBDescriptor> DescriptorList;
+typedef std::vector<USBDescriptor> DescriptorList;
 
 class QCOMMONCONSOLE_EXPORT USBDescriptors
 {
@@ -52,21 +55,21 @@ public:
 	DescriptorList getDescriptorsByBoardType(DebugBoardType debugBoardType);
 
 	USBDescriptor getPlatformDescriptor(PlatformID platformID);
-	PlatformID getPlatformId(const QByteArray& usbDescriptor);
+	PlatformID getPlatformId(const std::string& usbDescriptor);
 
 	void addUSBDescriptor(USBDescriptor usbDescriptor);
 
-	bool load(const QString& filePath);
-	bool save(const QString& filePath);
+	bool load(const std::string& filePath);
+	bool save(const std::string& filePath);
 
-	QString getLastError();
+	std::string getLastError();
 
 private:
 	virtual bool read(QJsonObject& parentLevel);
 	virtual void write(QJsonObject& parentLevel);
 
-	QString						_lastError;
-	QString						_modifyDate;
+	std::string					_lastError;
+	std::string					_modifyDate;
 	DescriptorList				_descriptorList;
 };
 

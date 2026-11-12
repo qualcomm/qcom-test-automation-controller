@@ -51,7 +51,7 @@ void TACLiteCommand::uuid()
 
 void TACLiteCommand::setPinState
 (
-	quint16 pin,
+	uint16_t pin,
 	bool state
 )
 {
@@ -151,7 +151,7 @@ void TACLiteCommand::setName
 {
 	Arguments args;
 
-	args.push_back(newName);
+	args.push_back(newName.toStdString());
 
 	send(kSetNameCommand, args, false, _receiver);
 }
@@ -177,7 +177,7 @@ void TACLiteCommand::send
 	_sender->send(command, arguments, console, _receiver, store);
 }
 
-void TACLiteCommand::addDelay(quint32 delayInMilliSeconds)
+void TACLiteCommand::addDelay(uint32_t delayInMilliSeconds)
 {
 	_sender->addDelay(delayInMilliSeconds, _receiver);
 }

@@ -38,7 +38,7 @@ void TACPIC32CXProtocol::setTACDriveTrain
 	_tacDriveTrain = tacDriveTrain;
 }
 
-quint32 TACPIC32CXProtocol::sendCommand
+uint32_t TACPIC32CXProtocol::sendCommand
 (
 	const QByteArray& command,
 	const Arguments& arguments,
@@ -47,7 +47,7 @@ quint32 TACPIC32CXProtocol::sendCommand
 	bool shouldStore
 )
 {
-	quint32 result(kBadQueueValue);
+	uint32_t result(kBadQueueValue);
 
 	if (command.isEmpty() == false)
 	{
@@ -58,7 +58,7 @@ quint32 TACPIC32CXProtocol::sendCommand
 		framePackage->_packetID = result;
 		framePackage->_request = command;
 		framePackage->_arguments = arguments;
-		framePackage->_requestHash = CommandStringToHash(command);
+		framePackage->_requestHash = CommandStringToHash(command.toStdString());
 		framePackage->_console = console;
 		framePackage->_shouldStore = shouldStore;
 		framePackage->_recieveInterface = receiveInterface;

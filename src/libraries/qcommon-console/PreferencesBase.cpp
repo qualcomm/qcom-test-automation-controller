@@ -19,8 +19,8 @@ PreferencesBase::PreferencesBase()
 
 void PreferencesBase::setAppName
 (
-	const QByteArray& appName,
-	const QByteArray& appVersion
+	const std::string& appName,
+	const std::string& appVersion
 )
 {
 	_appName = appName;
@@ -30,18 +30,18 @@ void PreferencesBase::setAppName
 
 	settings.beginGroup(kPreferences);
 	_loggingActive = settings.value(kLoggingEnabled, defaultLoggingState()).toBool();
-	_appLoggingPath = killOneDrive(settings.value(kAppLogLocation, defaultAppLogPath()).toString(), defaultAppLogPath());
-	_runLoggingPath = killOneDrive(settings.value(kRunLogLocation, defaultRunLogPath()).toString(), defaultRunLogPath());
+	_appLoggingPath = killOneDrive(settings.value(kAppLogLocation, QString::fromStdString(defaultAppLogPath())).toString().toStdString(), defaultAppLogPath());
+	_runLoggingPath = killOneDrive(settings.value(kRunLogLocation, QString::fromStdString(defaultRunLogPath())).toString().toStdString(), defaultRunLogPath());
 	_platformConfigLocation = killOneDrive(defaultPlatformConfigLocation(), defaultPlatformConfigLocation());
 	settings.endGroup();
 }
 
-QByteArray PreferencesBase::appName()
+std::string PreferencesBase::appName()
 {
 	return _appName;
 }
 
-QByteArray PreferencesBase::appVersion()
+std::string PreferencesBase::appVersion()
 {
 	return _appVersion;
 }
@@ -75,19 +75,19 @@ void PreferencesBase::saveLoggingActive(bool loggingActive)
 	settings.endGroup();
 }
 
-QString PreferencesBase::defaultAppLogPath()
+std::string PreferencesBase::defaultAppLogPath()
 {
 	return defaultGlobalLoggingPath();
 }
 
-QString PreferencesBase::appLogPath()
+std::string PreferencesBase::appLogPath()
 {
 	return _appLoggingPath;
 }
 
 void PreferencesBase::setAppLogPath
 (
-	const QString& loggingPath
+	const std::string& loggingPath
 )
 {
 	_appLoggingPath = loggingPath;
@@ -95,7 +95,7 @@ void PreferencesBase::setAppLogPath
 
 void PreferencesBase::saveAppLogPath
 (
-	const QString& loggingPath
+	const std::string& loggingPath
 )
 {
 	setAppLogPath(loggingPath);
@@ -103,23 +103,23 @@ void PreferencesBase::saveAppLogPath
 	AlpacaSettings settings(_appName);
 
 	settings.beginGroup(kPreferences);
-	settings.setValue(kAppLogLocation, _appLoggingPath);
+	settings.setValue(kAppLogLocation, QString::fromStdString(_appLoggingPath));
 	settings.endGroup();
 }
 
-QString PreferencesBase::defaultRunLogPath()
+std::string PreferencesBase::defaultRunLogPath()
 {
 	return defaultLoggingPath(_appName);
 }
 
-QString PreferencesBase::runLogPath()
+std::string PreferencesBase::runLogPath()
 {
 	return _runLoggingPath;
 }
 
 void PreferencesBase::setRunLogPath
 (
-	const QString& loggingPath
+	const std::string& loggingPath
 )
 {
 	_runLoggingPath = loggingPath;
@@ -127,7 +127,7 @@ void PreferencesBase::setRunLogPath
 
 void PreferencesBase::saveRunLogPath
 (
-	const QString& loggingPath
+	const std::string& loggingPath
 )
 {
 	setRunLogPath(loggingPath);
@@ -135,26 +135,26 @@ void PreferencesBase::saveRunLogPath
 	AlpacaSettings settings(_appName);
 
 	settings.beginGroup(kPreferences);
-	settings.setValue(kRunLogLocation, _runLoggingPath);
+	settings.setValue(kRunLogLocation, QString::fromStdString(_runLoggingPath));
 	settings.endGroup();
 }
 
-QString PreferencesBase::defaultPlatformConfigLocation()
+std::string PreferencesBase::defaultPlatformConfigLocation()
 {
 	return tacConfigRoot();
 }
 
-QString PreferencesBase::platformConfigLocation()
+std::string PreferencesBase::platformConfigLocation()
 {
 	return _platformConfigLocation;
 }
 
-void PreferencesBase::setPlatformConfigLocation(const QString& platformConfigLocation)
+void PreferencesBase::setPlatformConfigLocation(const std::string& platformConfigLocation)
 {
 	Q_UNUSED(platformConfigLocation);
 }
 
-void PreferencesBase::savePlatformConfigLocation(const QString& saveLocation)
+void PreferencesBase::savePlatformConfigLocation(const std::string& saveLocation)
 {
 	Q_UNUSED(saveLocation);
 }

@@ -21,8 +21,8 @@ const QString kTACEditorConfigurationPath(QStringLiteral("TACEditorConfigLocatio
 
 void TACPreferences::setAppName
 (
-	const QByteArray& appName,
-	const QByteArray& appVersion
+	const std::string& appName,
+	const std::string& appVersion
 )
 {
 	PreferencesBase::setAppName(appName, appVersion);
@@ -36,7 +36,7 @@ void TACPreferences::setAppName
 	_autoShutdown = settings.value(kShutdownDelayEnable, defaultAutoShutdown()).toBool();
 	_autoShutdownDelay = settings.value(kShutdownDelay, defaultAutoShutdownDelay()).toReal();
 	_openLast = settings.value(kOpenLastDeviceOnStarup, defaultOpenLastStart()).toBool();
-	_tacEditorConfigLocation = settings.value(kTACEditorConfigurationPath, defaultTACEditorConfigLocation()).toString();
+	_tacEditorConfigLocation = settings.value(kTACEditorConfigurationPath, QString::fromStdString(defaultTACEditorConfigLocation())).toString().toStdString();
 
 	settings.endGroup();
 }
@@ -135,34 +135,34 @@ void TACPreferences::saveAutoShutdownActive
 	settings.endGroup();
 }
 
-qreal TACPreferences::defaultAutoShutdownDelay()
+double TACPreferences::defaultAutoShutdownDelay()
 {
 	return 24.0;
 }
 
-qreal TACPreferences::autoShutdownDelay()
+double TACPreferences::autoShutdownDelay()
 {
 	return _autoShutdownDelay;
 }
 
-qint64 TACPreferences::autoShutdownDelayInMSecs()
+int64_t TACPreferences::autoShutdownDelayInMSecs()
 {
-	qreal result = autoShutdownDelay();
+	double result = autoShutdownDelay();
 
 	result *= 1000. * 60. * 60.;
 
-	return static_cast<qint64>(result);
+	return static_cast<int64_t>(result);
 }
 
 void TACPreferences::setAutoShutdownDelay
 (
-	qreal delayInHours
+	double delayInHours
 )
 {
 	_autoShutdownDelay = delayInHours;
 }
 
-void TACPreferences::saveAutoShutdownDelay(qreal delayInHours)
+void TACPreferences::saveAutoShutdownDelay(double delayInHours)
 {
 	_autoShutdownDelay = delayInHours;
 
@@ -201,7 +201,7 @@ void TACPreferences::saveOpenLastStart(bool openLastOnStart)
 	settings.endGroup();
 }
 
-QString TACPreferences::lastDevice()
+std::string TACPreferences::lastDevice()
 {
 	QString result;
 
@@ -212,45 +212,45 @@ QString TACPreferences::lastDevice()
 
 	settings.endGroup();
 
-	return result;
+	return result.toStdString();
 }
 
 void TACPreferences::saveLastDevice
 (
-	const QString& lastDevice
+	const std::string& lastDevice
 )
 {
 	AlpacaSettings settings(kAppName);
 
 	settings.beginGroup(kPreferences);
-	settings.setValue(kLastDevice, lastDevice);
+	settings.setValue(kLastDevice, QString::fromStdString(lastDevice));
 
 	settings.endGroup();
 }
 
-QString TACPreferences::defaultTACEditorConfigLocation()
+std::string TACPreferences::defaultTACEditorConfigLocation()
 {
 	return documentsDataPath("TAC Configurations");
 }
 
-QString TACPreferences::tacEditorConfigLocation()
+std::string TACPreferences::tacEditorConfigLocation()
 {
 	return _tacEditorConfigLocation;
 }
 
-void TACPreferences::setTACEditorConfigLocation(const QString &tacEditorConfigLocation)
+void TACPreferences::setTACEditorConfigLocation(const std::string &tacEditorConfigLocation)
 {
 	_tacEditorConfigLocation = killOneDrive(tacEditorConfigLocation, defaultTACEditorConfigLocation());
 }
 
-void TACPreferences::saveTACEditorConfigLocation(const QString &saveLocation)
+void TACPreferences::saveTACEditorConfigLocation(const std::string &saveLocation)
 {
 	setTACEditorConfigLocation(saveLocation);
 
 	AlpacaSettings settings(kAppName);
 
 	settings.beginGroup(kPreferences);
-	settings.setValue(kTACEditorConfigurationPath, _tacEditorConfigLocation);
+	settings.setValue(kTACEditorConfigurationPath, QString::fromStdString(_tacEditorConfigLocation));
 
 	settings.endGroup();
 }

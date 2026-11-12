@@ -18,7 +18,7 @@ public:
 	PSOCDevice() = default;
 	virtual ~PSOCDevice();
 
-	static quint32 updateAlpacaDevices();
+	static uint32_t updateAlpacaDevices();
 
 	virtual bool open();
 

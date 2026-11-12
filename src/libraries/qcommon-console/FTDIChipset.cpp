@@ -12,6 +12,8 @@
 // Qt
 #include <QSettings>
 
+#include <cstdint>
+
 // FTDI
 #include "ftd2xx.h"
 
@@ -22,36 +24,36 @@ _FTDIChipset::_FTDIChipset()
 
 }
 
-QString _FTDIChipset::ftidStatusToString
+std::string _FTDIChipset::ftidStatusToString
 (
 	unsigned long status
 )
 {
-	QString numberCode{QString::number(status)};
-	QString result{QString("Status ") + numberCode + QString(" not found")};
+	std::string numberCode{std::to_string(status)};
+	std::string result{"Status " + numberCode + " not found"};
 
 	switch (status)
 	{
 	case FT_OK: result = "Status Okay"; break;
-	case FT_INVALID_HANDLE: result = QString("Invalid handle: %1").arg(numberCode); break;
-	case FT_DEVICE_NOT_FOUND: result = QString("Device not found: %1").arg(numberCode); break;
-	case FT_DEVICE_NOT_OPENED: result = QString("Device not opened: %1").arg(numberCode); break;
-	case FT_IO_ERROR: result = QString("IO error: %1").arg(numberCode); break;
-	case FT_INSUFFICIENT_RESOURCES: result = QString("Insufficient resources: %1").arg(numberCode); break;
-	case FT_INVALID_PARAMETER: result = QString("Invalid parameter: %1").arg(numberCode); break;
-	case FT_INVALID_BAUD_RATE: result = QString("Invalid baud rate: %1").arg(numberCode); break;
-	case FT_DEVICE_NOT_OPENED_FOR_ERASE: result = QString("Device not opened for erase: %1").arg(numberCode); break;
-	case FT_DEVICE_NOT_OPENED_FOR_WRITE: result = QString("Device not opened for write: %1").arg(numberCode); break;
-	case FT_FAILED_TO_WRITE_DEVICE: result = QString("Invalid Handle: %1").arg(numberCode); break;
-	case FT_EEPROM_READ_FAILED: result = QString("EEPROM read failed: %1").arg(numberCode); break;
-	case FT_EEPROM_WRITE_FAILED: result = QString("EEPROM write failed: %1").arg(numberCode); break;
-	case FT_EEPROM_ERASE_FAILED: result = QString("EEPROM erase failed: %1").arg(numberCode); break;
-	case FT_EEPROM_NOT_PRESENT: result = QString("EEPROM not present: %1").arg(numberCode); break;
-	case FT_EEPROM_NOT_PROGRAMMED: result = QString("EEPROM not programmed: %1").arg(numberCode); break;
-	case FT_INVALID_ARGS: result = QString("Invalid Arguments: %1").arg(numberCode); break;
-	case FT_NOT_SUPPORTED: result = QString("Not supported: %1").arg(numberCode); break;
-	case FT_OTHER_ERROR: result = QString("Other error: %1").arg(numberCode); break;
-	case FT_DEVICE_LIST_NOT_READY: result = QString("Device list not ready: %1").arg(numberCode); break;
+	case FT_INVALID_HANDLE: result = "Invalid handle: " + numberCode; break;
+	case FT_DEVICE_NOT_FOUND: result = "Device not found: " + numberCode; break;
+	case FT_DEVICE_NOT_OPENED: result = "Device not opened: " + numberCode; break;
+	case FT_IO_ERROR: result = "IO error: " + numberCode; break;
+	case FT_INSUFFICIENT_RESOURCES: result = "Insufficient resources: " + numberCode; break;
+	case FT_INVALID_PARAMETER: result = "Invalid parameter: " + numberCode; break;
+	case FT_INVALID_BAUD_RATE: result = "Invalid baud rate: " + numberCode; break;
+	case FT_DEVICE_NOT_OPENED_FOR_ERASE: result = "Device not opened for erase: " + numberCode; break;
+	case FT_DEVICE_NOT_OPENED_FOR_WRITE: result = "Device not opened for write: " + numberCode; break;
+	case FT_FAILED_TO_WRITE_DEVICE: result = "Invalid Handle: " + numberCode; break;
+	case FT_EEPROM_READ_FAILED: result = "EEPROM read failed: " + numberCode; break;
+	case FT_EEPROM_WRITE_FAILED: result = "EEPROM write failed: " + numberCode; break;
+	case FT_EEPROM_ERASE_FAILED: result = "EEPROM erase failed: " + numberCode; break;
+	case FT_EEPROM_NOT_PRESENT: result = "EEPROM not present: " + numberCode; break;
+	case FT_EEPROM_NOT_PROGRAMMED: result = "EEPROM not programmed: " + numberCode; break;
+	case FT_INVALID_ARGS: result = "Invalid Arguments: " + numberCode; break;
+	case FT_NOT_SUPPORTED: result = "Not supported: " + numberCode; break;
+	case FT_OTHER_ERROR: result = "Other error: " + numberCode; break;
+	case FT_DEVICE_LIST_NOT_READY: result = "Device list not ready: " + numberCode; break;
 	default: break;
 	}
 
@@ -77,7 +79,7 @@ bool _FTDIChipset::hasDevice
 	return result;
 }
 
-quint32 _FTDIChipset::getDeviceCount()
+uint32_t _FTDIChipset::getDeviceCount()
 {
 	for (auto& device: _ftdiChipsetList)
 		device->reset();
@@ -95,12 +97,12 @@ quint32 _FTDIChipset::getDeviceCount()
 
 FTDIChipset _FTDIChipset::getDevice
 (
-	quint32 deviceIndex
+	uint32_t deviceIndex
 )
 {
 	FTDIChipset result;
 
-	if (deviceIndex < static_cast<quint32>(_ftdiChipsetList.count()))
+	if (deviceIndex < static_cast<uint32_t>(_ftdiChipsetList.count()))
 		result = _ftdiChipsetList.at(deviceIndex);
 
 	return result;
@@ -140,8 +142,8 @@ QByteArray _FTDIChipset::normalizeSerialNumber(DebugBoardType boardType, const Q
 bool _FTDIChipset::open(FTDIPinSets pinsets)
 {
 	bool result{false};
-	quint8 mask;
-	quint8 mode;
+	uint8_t mask;
+	uint8_t mode;
 
 	if (_boardType == eFTDI)
 	{
@@ -156,10 +158,10 @@ bool _FTDIChipset::open(FTDIPinSets pinsets)
 
 	FT_STATUS ftStatus;
 
-	AppCore::writeToApplicationLog(QString("Bus A : ") + (pinsets.testFlag(eA) ? "true" : "false") + "\n");
-	AppCore::writeToApplicationLog(QString("Bus B : ") + (pinsets.testFlag(eB) ? "true" : "false") + "\n");
-	AppCore::writeToApplicationLog(QString("Bus C : ") + (pinsets.testFlag(eC) ? "true" : "false") + "\n");
-	AppCore::writeToApplicationLog(QString("Bus D : ") + (pinsets.testFlag(eD) ? "true" : "false") + "\n");
+	AppCore::writeToApplicationLog(std::string("Bus A : ") + (pinsets.testFlag(eA) ? "true" : "false") + "\n");
+	AppCore::writeToApplicationLog(std::string("Bus B : ") + (pinsets.testFlag(eB) ? "true" : "false") + "\n");
+	AppCore::writeToApplicationLog(std::string("Bus C : ") + (pinsets.testFlag(eC) ? "true" : "false") + "\n");
+	AppCore::writeToApplicationLog(std::string("Bus D : ") + (pinsets.testFlag(eD) ? "true" : "false") + "\n");
 
 	if (pinsets.testFlag(eA))
 	{
@@ -172,7 +174,7 @@ bool _FTDIChipset::open(FTDIPinSets pinsets)
 		else
 		{
             result = false;
-			AppCore::writeToApplicationLog(QString("FTDI Port A failure: ") + _FTDIChipset::ftidStatusToString(ftStatus) + "\n");
+			AppCore::writeToApplicationLog("FTDI Port A failure: " + _FTDIChipset::ftidStatusToString(ftStatus) + "\n");
 			_aHandle = Q_NULLPTR;
 		}
 	}
@@ -188,7 +190,7 @@ bool _FTDIChipset::open(FTDIPinSets pinsets)
 		else
 		{
             result = false;
-			AppCore::writeToApplicationLog(QString("FTDI Port B failure: ") + _FTDIChipset::ftidStatusToString(ftStatus) + "\n");
+			AppCore::writeToApplicationLog("FTDI Port B failure: " + _FTDIChipset::ftidStatusToString(ftStatus) + "\n");
 			_bHandle = Q_NULLPTR;
 		}
 	}
@@ -204,7 +206,7 @@ bool _FTDIChipset::open(FTDIPinSets pinsets)
 		else
 		{
             result = false;
-			AppCore::writeToApplicationLog(QString("FTDI Port C failure: ") + _FTDIChipset::ftidStatusToString(ftStatus) + "\n");
+			AppCore::writeToApplicationLog("FTDI Port C failure: " + _FTDIChipset::ftidStatusToString(ftStatus) + "\n");
 			_cHandle = Q_NULLPTR;
 		}
 	}
@@ -220,7 +222,7 @@ bool _FTDIChipset::open(FTDIPinSets pinsets)
 		else
 		{
             result = false;
-			AppCore::writeToApplicationLog(QString("FTDI Port D failure: ") + _FTDIChipset::ftidStatusToString(ftStatus) + "\n");
+			AppCore::writeToApplicationLog("FTDI Port D failure: " + _FTDIChipset::ftidStatusToString(ftStatus) + "\n");
 			_dHandle = Q_NULLPTR;
 		}
 	}
@@ -258,7 +260,7 @@ void _FTDIChipset::close()
 		if (ftStatus == FT_OK)
 			_aHandle = Q_NULLPTR;
 		else
-			AppCore::writeToApplicationLog(QString("FTDI Port A close failure: ") + _FTDIChipset::ftidStatusToString(ftStatus) + "\n");
+			AppCore::writeToApplicationLog("FTDI Port A close failure: " + _FTDIChipset::ftidStatusToString(ftStatus) + "\n");
 	}
 
 	if (_bHandle != Q_NULLPTR)
@@ -268,7 +270,7 @@ void _FTDIChipset::close()
 		if (ftStatus == FT_OK)
 			_bHandle = Q_NULLPTR;
 		else
-			AppCore::writeToApplicationLog(QString("FTDI Port B close failure: ") + _FTDIChipset::ftidStatusToString(ftStatus) + "\n");
+			AppCore::writeToApplicationLog("FTDI Port B close failure: " + _FTDIChipset::ftidStatusToString(ftStatus) + "\n");
 	}
 
 	if (_cHandle != Q_NULLPTR)
@@ -278,7 +280,7 @@ void _FTDIChipset::close()
 		if (ftStatus == FT_OK)
 			_cHandle = Q_NULLPTR;
 		else
-			AppCore::writeToApplicationLog(QString("FTDI Port C close failure: ") + _FTDIChipset::ftidStatusToString(ftStatus) + "\n");
+			AppCore::writeToApplicationLog("FTDI Port C close failure: " + _FTDIChipset::ftidStatusToString(ftStatus) + "\n");
 	}
 
 	if (_dHandle != Q_NULLPTR)
@@ -288,7 +290,7 @@ void _FTDIChipset::close()
 		if (ftStatus == FT_OK)
 			_dHandle = Q_NULLPTR;
 		else
-			AppCore::writeToApplicationLog(QString("FTDI Port D close failure: ") + _FTDIChipset::ftidStatusToString(ftStatus) + "\n");
+			AppCore::writeToApplicationLog("FTDI Port D close failure: " + _FTDIChipset::ftidStatusToString(ftStatus) + "\n");
 	}
 }
 
@@ -316,7 +318,7 @@ QString _FTDIChipset::versionString()
 {
 	QString result;
 
-	result = PlatformContainer::toString(_platformID) + " " + firmwareString();
+	result = QString::fromStdString(PlatformContainer::toString(_platformID)) + " " + firmwareString();
 
 	return result;
 }
@@ -407,7 +409,7 @@ void _FTDIChipset::setDSerialNumber(const QByteArray& dSerialNumber)
 
 bool _FTDIChipset::write
 (
-	quint8 pin,
+	uint8_t pin,
 	bool state
 )
 {
@@ -458,9 +460,9 @@ bool _FTDIChipset::write
 
 		if (_boardType == eFT232H)
 		{
-			quint8 logicalValue = *charBit->value();
-			quint8 writeValue = logicalValue ^ _invertMask;
-			quint8 cbusValue = (0x0F << 4) | writeValue;
+			uint8_t logicalValue = *charBit->value();
+			uint8_t writeValue = logicalValue ^ _invertMask;
+			uint8_t cbusValue = (0x0F << 4) | writeValue;
 
 			AppCore::writeToApplicationLogLine(
 				QString("FT232H W  CBUS3=%1 CBUS2=%2 CBUS1=%3 CBUS0=%4  pre=0x%5 ^inv=0x%6 hw=0x%7")
@@ -470,7 +472,7 @@ bool _FTDIChipset::write
 				.arg((logicalValue >> 0) & 1)
 				.arg(logicalValue, 2, 16, QChar('0'))
 				.arg(_invertMask, 2, 16, QChar('0'))
-				.arg(cbusValue, 2, 16, QChar('0')));
+				.arg(cbusValue, 2, 16, QChar('0')).toStdString());
 
 			status = FT_SetBitMode(handle, cbusValue, FT_BITMODE_CBUS_BITBANG);
 
@@ -483,9 +485,9 @@ bool _FTDIChipset::write
 					.arg((readBack >> 3) & 1)
 					.arg((readBack >> 2) & 1)
 					.arg((readBack >> 1) & 1)
-					.arg((readBack >> 0) & 1));
+					.arg((readBack >> 0) & 1).toStdString());
 
-				quint8 mismatch = (writeValue ^ readBack) & 0x0F;
+				uint8_t mismatch = (writeValue ^ readBack) & 0x0F;
 				if (mismatch != 0)
 				{
 					AppCore::writeToApplicationLogLine(
@@ -494,7 +496,7 @@ bool _FTDIChipset::write
 						.arg((mismatch >> 3) & 1)
 						.arg((mismatch >> 2) & 1)
 						.arg((mismatch >> 1) & 1)
-						.arg((mismatch >> 0) & 1));
+						.arg((mismatch >> 0) & 1).toStdString());
 				}
 			}
 			else
@@ -515,9 +517,9 @@ bool _FTDIChipset::write
 		}
 		else
 		{
-			QString message = "FTDI Write Failed: " + _FTDIChipset::ftidStatusToString(status)  + "\n";
+			std::string message = "FTDI Write Failed: " + _FTDIChipset::ftidStatusToString(status)  + "\n";
 			AppCore::writeToApplicationLog(message);
-			_lastError = message.toLatin1();
+			_lastError = QByteArray::fromStdString(message);
 		}
 	}
 
@@ -528,7 +530,7 @@ HashType _FTDIChipset::hash(const QByteArray &serialNumber)
 {
 	HashType result{0};
 
-	result = ::arrayHash(serialNumber);
+	result = ::arrayHash(serialNumber.toStdString());
 
 	return result;
 }
@@ -602,7 +604,7 @@ PlatformID _FTDIChipset::nameToPlatform
 	const QByteArray& deviceName
 )
 {
-	return PlatformContainer::fromUSBDescriptor(deviceName);
+	return PlatformContainer::fromUSBDescriptor(deviceName.toStdString());
 }
 
 #ifdef Q_OS_LINUX

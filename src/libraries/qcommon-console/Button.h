@@ -9,15 +9,15 @@
 #include "CommandGroup.h"
 #include "StringUtilities.h"
 
-// Qt
-#include <QList>
-#include <QMap>
-#include <QString>
+#include <map>
+#include <string>
+#include <utility>
+#include <vector>
 
 struct Button;
 
-typedef QList<Button> ButtonList;
-typedef QMap<HashType, Button> Buttons;
+typedef std::vector<Button> ButtonList;
+typedef std::map<HashType, Button> Buttons;
 
 struct QCOMMONCONSOLE_EXPORT Button
 {
@@ -29,12 +29,12 @@ public:
 	static HashType makeHash(const Button& button);
 
 	HashType					_hash;
-	QString						_label;
-	QString						_toolTip;
-	QString						_command;
+	std::string					_label;
+	std::string					_toolTip;
+	std::string					_command;
 	CommandGroups				_commandGroup{eUnknownCommandGroup};
-	QString						_tab;
-	QPoint						_cellLocation{QPoint(-1,-1)};
+	std::string					_tab;
+	std::pair<int, int>			_cellLocation{-1, -1};
 };
 
 #endif // BUTTON_H

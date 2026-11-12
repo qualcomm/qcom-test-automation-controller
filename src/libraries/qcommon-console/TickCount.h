@@ -6,13 +6,11 @@
 #include "QCommonConsoleGlobal.h"
 
 // C++
+#include <cstdint>
 #include <functional>
 
-// Qt
-#include <QtGlobal>
+uint64_t QCOMMONCONSOLE_EXPORT tickCount();
 
-quint64 QCOMMONCONSOLE_EXPORT tickCount();
-
-bool QCOMMONCONSOLE_EXPORT sleepUntil(std::function<bool(void)> test, quint64 milliseconds);
+bool QCOMMONCONSOLE_EXPORT sleepUntil(std::function<bool(void)> test, uint64_t milliseconds);
 
 #endif // TICKCOUNT_H

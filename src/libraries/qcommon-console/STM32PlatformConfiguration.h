@@ -31,27 +31,27 @@ public:
 	bool getPinInvertedState(const PinID pin) const;
 	void setPinInvertedState(HashType hash, bool newState);
 
-	QString getPinLabel(const PinID pin) const;
-	void setPinLabel(HashType hash, const QString& pinLabel);
+	std::string getPinLabel(const PinID pin) const;
+	void setPinLabel(HashType hash, const std::string& pinLabel);
 
-	QString getPinTooltip(const PinID pin) const;
-	void setPinTooltip(HashType hash, const QString& pinTooltip);
+	std::string getPinTooltip(const PinID pin) const;
+	void setPinTooltip(HashType hash, const std::string& pinTooltip);
 
-	QString getPinCommand(const PinID pin) const;
-	void setPinCommand(HashType hash, const QString& pinCommand);
+	std::string getPinCommand(const PinID pin) const;
+	void setPinCommand(HashType hash, const std::string& pinCommand);
 
 	CommandGroups getPinGroup(const PinID pin) const;
 	void setPinGroup(HashType hash, const CommandGroups pinGroup);
 
-	QString getTabName(const PinID pin) const;
-	void setTabName(HashType hash, const QString& tabName);
+	std::string getTabName(const PinID pin) const;
+	void setTabName(HashType hash, const std::string& tabName);
 
-	QPoint getPinCellLocation(const PinID pin) const;
-	void setPinCellLocation(HashType hash, const QPoint& cellLocation);
+	std::pair<int, int> getPinCellLocation(const PinID pin) const;
+	void setPinCellLocation(HashType hash, const std::pair<int, int>& cellLocation);
 
 protected:
-	virtual void cascadeTabDelete(const QString& deleteMe);
-	virtual void cascadeTabRename(const QString& oldName, const QString& newName);
+	virtual void cascadeTabDelete(const std::string& deleteMe);
+	virtual void cascadeTabRename(const std::string& oldName, const std::string& newName);
 
 	virtual bool read(QJsonObject& parentLevel);
 	virtual void write(QJsonObject& parentLevel);

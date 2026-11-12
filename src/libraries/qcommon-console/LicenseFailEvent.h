@@ -6,7 +6,8 @@
 #include "QCommonConsoleGlobal.h"
 
 #include <QEvent>
-#include <QString>
+
+#include <string>
 
 const QEvent::Type kLicenseFailEvent(static_cast<QEvent::Type>(QEvent::User + 1000));
 
@@ -14,9 +15,9 @@ class QCOMMONCONSOLE_EXPORT LicenseFailEvent :
 	public QEvent
 {
 public:
-	LicenseFailEvent(const QString& why);
+	LicenseFailEvent(const std::string& why);
 
-	QString						_why;
+	std::string					_why;
 };
 
 #endif // LICENSEFAILEVENT_H

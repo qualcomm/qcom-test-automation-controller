@@ -10,6 +10,8 @@
 #include <QDateTime>
 #include <QString>
 
+#include <cstdint>
+
 enum QCOMMONCONSOLE_EXPORT NotificationLevel
 {
     eDebugNotification = 0,
@@ -19,15 +21,15 @@ enum QCOMMONCONSOLE_EXPORT NotificationLevel
 };
 
 // Could not find a sane way to manage these variables
-const quint8 kProgressActive(0);
-const quint8 kProgressMax(100);
-const quint32 kNotificationLabelWidth(320);
-const quint32 kNotificationLabelHeight(80);
+const uint8_t kProgressActive(0);
+const uint8_t kProgressMax(100);
+const uint32_t kNotificationLabelWidth(320);
+const uint32_t kNotificationLabelHeight(80);
 
 class QCOMMONCONSOLE_EXPORT Notification
 {
 public:
-    Notification(const QString& message, const NotificationLevel level, const quint64 id = 0)
+    Notification(const QString& message, const NotificationLevel level, const uint64_t id = 0)
     {
         _message = message;
         _level = level;
@@ -46,7 +48,7 @@ public:
         return _level;
     }
 
-    quint64 getId() const
+    uint64_t getId() const
     {
         return _id;
     }
@@ -56,7 +58,7 @@ public:
         return _timestamp;
     }
 
-    quint32 getOccurrenceCount() const
+    uint32_t getOccurrenceCount() const
     {
         return _occurrenceCount;
     }
@@ -70,9 +72,9 @@ public:
 private:
     QString                     _message;
     NotificationLevel           _level;
-    quint64                      _id;
+    uint64_t                     _id;
     QDateTime                   _timestamp;
-    quint32                      _occurrenceCount;
+    uint32_t                     _occurrenceCount;
 };
 
 #endif // NOTIFICATION_H

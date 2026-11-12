@@ -5,7 +5,9 @@
 
 #include <QMetaType>
 
-typedef quint64 PinID;
+#include <cstdint>
+
+typedef uint64_t PinID;
 
  Q_DECLARE_METATYPE(PinID);
 

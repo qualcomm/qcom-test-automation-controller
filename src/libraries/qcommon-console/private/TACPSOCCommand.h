@@ -12,8 +12,9 @@ class ReceiveInterface;
 
 // Qt
 #include <QByteArray>
-#include <QString>
-#include <QVariant>
+
+#include <cstdint>
+#include <string>
 
 class QCOMMONCONSOLE_EXPORT TACPSOCCommand
 {
@@ -25,19 +26,19 @@ public:
 	void name();
 	void uuid();
 
-	virtual void setPinState(quint16 pin, bool state);
-	virtual void setAddressPinState(const QString& i2cAddress, quint16 pin, bool state);
+	virtual void setPinState(uint16_t pin, bool state);
+	virtual void setAddressPinState(const std::string& i2cAddress, uint16_t pin, bool state);
 
 	void setName(const QByteArray& newName);
 
 	void getResetCount();
 	void clearResetCount();
 
-	void i2CReadRegister(quint32 addr, quint32 reg);
-	void i2CWriteRegister(quint32 addr, quint32 reg, quint32 data);
+	void i2CReadRegister(uint32_t addr, uint32_t reg);
+	void i2CWriteRegister(uint32_t addr, uint32_t reg, uint32_t data);
 
 	void send(const QByteArray& command, const Arguments& arguments, bool console, bool store = true);
-	void addDelay(quint32 delayInMilliSeconds);
+	void addDelay(uint32_t delayInMilliSeconds);
 	void addLogComment(const QByteArray& comment);
 	void addEndTransaction();
 

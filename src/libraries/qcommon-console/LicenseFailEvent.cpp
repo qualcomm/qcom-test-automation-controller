@@ -5,7 +5,7 @@
 
 LicenseFailEvent::LicenseFailEvent
 (
-	const QString &why
+	const std::string &why
 ) :
 	QEvent(kLicenseFailEvent),
 	_why(why)

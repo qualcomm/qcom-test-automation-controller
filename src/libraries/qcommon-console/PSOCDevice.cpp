@@ -16,7 +16,7 @@ PSOCDevice::~PSOCDevice()
 {
 }
 
-quint32 PSOCDevice::updateAlpacaDevices()
+uint32_t PSOCDevice::updateAlpacaDevices()
 {
 	if (gPSOCTACSerialTableModel == Q_NULLPTR)
 		gPSOCTACSerialTableModel = new PSOCSerialTableModel;
@@ -36,7 +36,7 @@ quint32 PSOCDevice::updateAlpacaDevices()
 	{
 		AlpacaDevice alpacaDevice;
 
-		QByteArray portName = gPSOCTACSerialTableModel->rowData(deviceIndex, kPortNameCol).toLatin1();
+		std::string portName = gPSOCTACSerialTableModel->rowData(deviceIndex, kPortNameCol).toLatin1().toStdString();
 		HashType hash = ::arrayHash(portName);
 
 		alpacaDevice = _AlpacaDevice::findAlpacaDevice(hash);
@@ -50,8 +50,8 @@ quint32 PSOCDevice::updateAlpacaDevices()
 			psocDevice->_active = true;
 			psocDevice->_boardType = ePSOC;
 			psocDevice->_platformID = MICRO_EPM_BOARD_ID_UNKNOWN;
-			psocDevice->_description = gPSOCTACSerialTableModel->rowData(deviceIndex, kDescriptionCol).toLatin1();
-			psocDevice->_serialNumber = gPSOCTACSerialTableModel->rowData(deviceIndex, kSerialNumberCol).toLatin1();
+			psocDevice->_description = gPSOCTACSerialTableModel->rowData(deviceIndex, kDescriptionCol).toLatin1().toStdString();
+			psocDevice->_serialNumber = gPSOCTACSerialTableModel->rowData(deviceIndex, kSerialNumberCol).toLatin1().toStdString();
 
 			_AlpacaDevice::_alpacaDevices.push_back(AlpacaDevice(psocDevice));
 
@@ -106,7 +106,7 @@ bool PSOCDevice::open()
 				if (platformID != MICRO_EPM_BOARD_ID_UNKNOWN)
 				{
 					TACPlatformEntry platformEntry = _PlatformConfiguration::getEntry(_platformID);
-					_description = platformEntry._platformEntry->_description.toLatin1();
+					_description = platformEntry._platformEntry->_description;
 					_platformConfiguration = platformEntry.getConfiguration();
 					_psocPlatformConfiguration = static_cast<_PSOCPlatformConfiguration*>(_platformConfiguration.data());
 
@@ -133,7 +133,7 @@ bool PSOCDevice::open()
 		{
 			if (pin._initializationPriority > 0)
 			{
-				initialPins.append(pin);
+				initialPins.push_back(pin);
 			}
 		}
 
@@ -141,10 +141,10 @@ bool PSOCDevice::open()
 		for (const auto& pin: pins)
 		{
 			if (pin._initialValue == true)
-				initialPins.append(pin);
+				initialPins.push_back(pin);
 		}
 
-		if (initialPins.count() > 0)
+		if (initialPins.size() > 0)
 		{
 			auto sortLambda = [] (PinEntry& p1, PinEntry& p2) -> bool
 			{
@@ -158,7 +158,7 @@ bool PSOCDevice::open()
 				_driveThread->setPinState(initializationPin._pin, true);
 				if (AppCore::getAppCore()->appLoggingActive())
 				{
-					QString message = QString("PSOCDevice::open() Initialize Pin: %1\n").arg(initializationPin._pin);
+					std::string message = "PSOCDevice::open() Initialize Pin: " + std::to_string(initializationPin._pin) + "\n";
 					AppCore::writeToApplicationLog(message);
 				}
 			}
@@ -182,14 +182,13 @@ void PSOCDevice::buildMapping()
 			tacCommand._pin = pin._pin;
 			tacCommand._command = pin._pinCommand;
 			tacCommand._helpText = pin._pinTooltip;
-			tacCommand._tabName = pin._tabName.toLatin1();
-			tacCommand._groupName = CommandGroup::toString(pin._commandGroup).toLatin1();
+			tacCommand._tabName = pin._tabName;
+			tacCommand._groupName = CommandGroup::toString(pin._commandGroup);
 
-			QByteArray cellLocation = QString::number(pin._cellLocation.x()).toLatin1() + "," + QString::number(pin._cellLocation.y()).toLatin1();
-			tacCommand._cellLocation = cellLocation;
+			tacCommand._cellLocation = fromQPoint(pin._cellLocation);
 
 			_commands[tacCommand._command] = tacCommand;
-			_commandList.append(tacCommand);
+			_commandList.push_back(tacCommand);
 		}
 	}
 

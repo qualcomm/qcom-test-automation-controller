@@ -7,6 +7,11 @@
 #include "CommandGroup.h"
 #include "PlatformConfiguration.h"
 
+#include <map>
+#include <string>
+#include <utility>
+#include <vector>
+
 const PlatformID kMaxPIC32CXPlatformId(99999);
 
 struct PIC32CXPinData
@@ -25,30 +30,24 @@ struct PIC32CXPinData
 
 	static HashType makePIC32CXHash(PinID setPin)
 	{
-		HashType result{0};
-
-		QString pinStr = QString::number(setPin);
-
-		result = strHash(pinStr);
-
-		return result;
+		return strHash(std::to_string(setPin));
 	}
 
 	HashType					_hash{0};
 
 	PinID						_setPin{static_cast<PinID>(-1)};
 	bool						_enabled{false};
-	QString						_pinLabel;
-	QString						_pinTooltip;
+	std::string					_pinLabel;
+	std::string					_pinTooltip;
 	bool						_inverted{false};
-	QString						_pinCommand;
+	std::string					_pinCommand;
 	CommandGroups				_commandGroup{eUnknownCommandGroup};
-	QPoint						_cellLocation{QPoint(-1,-1)};
-	QString						_tabName{"General"};
+	std::pair<int, int>			_cellLocation{-1, -1};
+	std::string					_tabName{"General"};
 };
 
-typedef QMap<PinID, PIC32CXPinData> PIC32CXPinEntries;
-typedef QList<PIC32CXPinData> PIC32CXPinList;
+typedef std::map<PinID, PIC32CXPinData> PIC32CXPinEntries;
+typedef std::vector<PIC32CXPinData> PIC32CXPinList;
 
 class _PIC32CXPlatformConfiguration;
 
@@ -70,29 +69,29 @@ public:
 	bool getPinInvertedState(const PinID pinId) const;
 	void setPinInvertedState(const HashType hash, bool newState);
 
-	QString getPinLabel(const PinID pinId) const;
-	void setPinLabel(const HashType hash, const QString& pinLabel);
+	std::string getPinLabel(const PinID pinId) const;
+	void setPinLabel(const HashType hash, const std::string& pinLabel);
 
-	QString getPinTooltip(const PinID pinId) const;
-	void setPinTooltip(const HashType hash, const QString& pinTooltip);
+	std::string getPinTooltip(const PinID pinId) const;
+	void setPinTooltip(const HashType hash, const std::string& pinTooltip);
 
-	QString getPinCommand(const PinID pinId) const;
-	void setPinCommand(const HashType hash, const QString& pinCommand);
+	std::string getPinCommand(const PinID pinId) const;
+	void setPinCommand(const HashType hash, const std::string& pinCommand);
 
 	CommandGroups getPinGroup(const PinID pinId) const;
 	void setPinGroup(const HashType hash, const CommandGroups pinGroup);
 
-	QString getTabName(const PinID pinId) const;
-	void setTabName(const HashType hash, const QString& tabName);
+	std::string getTabName(const PinID pinId) const;
+	void setTabName(const HashType hash, const std::string& tabName);
 
-	QPoint getPinCellLocation(const PinID pinId) const;
-	void setPinCellLocation(const PinID pinId, const QPoint& cellLocation);
+	std::pair<int, int> getPinCellLocation(const PinID pinId) const;
+	void setPinCellLocation(const PinID pinId, const std::pair<int, int>& cellLocation);
 
 	PinID bitFromSetPin(PinID setPin);
 
 protected:
-	virtual void cascadeTabDelete(const QString& deleteMe);
-	virtual void cascadeTabRename(const QString& oldName, const QString& newName);
+	virtual void cascadeTabDelete(const std::string& deleteMe);
+	virtual void cascadeTabRename(const std::string& oldName, const std::string& newName);
 
 	virtual bool read(QJsonObject& parentLevel);
 	virtual void write(QJsonObject& parentLevel);

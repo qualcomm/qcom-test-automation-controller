@@ -12,8 +12,11 @@
 #include <QFile>
 #include <QIODevice>
 #include <QMap>
-#include <QMutex>
 #include <QThread>
+
+#include <cstdint>
+#include <mutex>
+#include <string>
 
 class QCOMMONCONSOLE_EXPORT DriveThread :
 	public QThread,
@@ -28,13 +31,13 @@ public:
 	// QThread has an isRunning, not working so adding this
 	bool weAreRunning()
 	{
-		QMutexLocker lock(&_runningMutex);
+		std::lock_guard<std::mutex> lock(_runningMutex);
 		return _running;
 	}
 
 	void shutDown();
 
-	QString name()
+	std::string name()
 	{
 		return _driveTrainName;
 	}
@@ -56,15 +59,15 @@ public:
 	virtual void run() = 0;
 
 	// Send Interface
-	virtual quint32 send(const QByteArray& sendMe, const Arguments& arguments, bool console, ReceiveInterface* recieveInterface, bool store = true) = 0;
-	virtual void addDelay(quint32 delayInMilliSeconds, ReceiveInterface* recieveInterface);
+	virtual uint32_t send(const QByteArray& sendMe, const Arguments& arguments, bool console, ReceiveInterface* recieveInterface, bool store = true) = 0;
+	virtual void addDelay(uint32_t delayInMilliSeconds, ReceiveInterface* recieveInterface);
 	virtual void addLogComment(const QByteArray& comment);
 	virtual void addEndTransaction(ReceiveInterface* receiveInterface);
 
 protected:
 	void startRunning()
 	{
-		QMutexLocker lock(&_runningMutex);
+		std::lock_guard<std::mutex> lock(_runningMutex);
 		_running = true;
 	}
 
@@ -72,7 +75,7 @@ protected:
 	{
 		bool result;
 
-		QMutexLocker lock(&_runningMutex);
+		std::lock_guard<std::mutex> lock(_runningMutex);
 		result = _running;
 		_running = false;
 
@@ -84,11 +87,11 @@ protected:
 	int							_driveTrainID{0};
 	ProtocolInterface*			_protocolInterface{Q_NULLPTR};
 	
-	QString						_driveTrainName{"<unnamed>"};
+	std::string					_driveTrainName{"<unnamed>"};
 	QByteArray                  _lastErrorMessage;
 
 private:
-	QMutex						_runningMutex;
+	std::mutex					_runningMutex;
 	bool						_running{false};
 
 };

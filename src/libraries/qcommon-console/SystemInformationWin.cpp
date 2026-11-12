@@ -8,6 +8,8 @@
 #include <QDebug>
 #include <QSettings>
 
+#include <string>
+
 #ifdef Q_OS_WIN
 // windows
 #include <windows.h>
@@ -21,54 +23,47 @@ SystemInformation::SystemInformation()
 
 }
 
-QString GetLastErrorAsString()
+std::string GetLastErrorAsString()
 {
-	QString result;
+	std::string result;
 
 #ifdef Q_OS_WIN
-	//Get the error message ID, if any.
 	DWORD errorMessageID = ::GetLastError();
 	if(errorMessageID == 0) {
-		return QString(); //No error message has been recorded
+		return result;
 	}
 
 	LPSTR messageBuffer = nullptr;
 
-	//Ask Win32 to give us the string version of that message ID.
-	//The parameters we pass in, tell Win32 to create the buffer that holds the message for us (because we don't yet know how long the message string will be).
 	size_t size = FormatMessageA(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS,
 								 NULL, errorMessageID, MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), (LPSTR)&messageBuffer, 0, NULL);
 
-	//Copy the error message into a std::string.
-	std::string message(messageBuffer, size);
+	result = std::string(messageBuffer, size);
 
-	//Free the Win32's string's buffer.
 	LocalFree(messageBuffer);
-
-	result = QString::fromStdString(message);
 #endif
 	return result;
 }
 
-QString SystemInformation::computerName()
+std::string SystemInformation::computerName()
 {
-	if (_computerName.isEmpty())
+	if (_computerName.empty())
 	{
 #ifdef Q_OS_WIN
 		char temp[CNLEN + 1];
 		DWORD tempLen = sizeof(temp);
 		GetComputerNameA(temp, &tempLen);
 
-		_computerName = QString(temp);
+		_computerName = std::string(temp);
 #endif
 	}
 
 	return _computerName;
 }
 
-QString SystemInformation::userName()
+std::string SystemInformation::userName()
 {
-	if (_userName.isEmpty())
+	if (_userName.empty())
 	{
 		SystemUsername userInfo;
 		_userName = userInfo.userName();
@@ -76,48 +71,48 @@ QString SystemInformation::userName()
 	return _userName;
 }
 
-QString SystemInformation::osName()
+std::string SystemInformation::osName()
 {
-	if (_osName.isEmpty())
+	if (_osName.empty())
 	{
 
 #ifdef Q_OS_WIN
 		QSettings settings(KVersionPath, QSettings::NativeFormat);
 
-		_osName = settings.value("ProductName", QString("unknown")).toString();
-		_osVersion = settings.value("ReleaseId").toString();
+		_osName = settings.value("ProductName", QString("unknown")).toString().toStdString();
+		_osVersion = settings.value("ReleaseId").toString().toStdString();
 #endif
 	}
 
 	return _osName;
 }
 
-QString SystemInformation::osVersion()
+std::string SystemInformation::osVersion()
 {
-	if (_osVersion.isEmpty())
+	if (_osVersion.empty())
 	{
 #ifdef Q_OS_WIN
 		QSettings settings(KVersionPath, QSettings::NativeFormat);
 
-		_osName = settings.value("ProductName", QString("unknown")).toString();
-		_osVersion = settings.value("ReleaseId").toString();
+		_osName = settings.value("ProductName", QString("unknown")).toString().toStdString();
+		_osVersion = settings.value("ReleaseId").toString().toStdString();
 #endif
 	}
 
 	return _osVersion;
 }
 
-QString SystemInformation::totalPhysicalMemory()
+std::string SystemInformation::totalPhysicalMemory()
 {
-	if (_totalPhysicalMemory.isEmpty())
+	if (_totalPhysicalMemory.empty())
 	{
 #ifdef Q_OS_WIN
 		ULONGLONG memoryInKilobytes;
 
 		if (::GetPhysicallyInstalledSystemMemory(&memoryInKilobytes) != FALSE)
 		{
-			qreal kiloBytes = (static_cast<qreal>(memoryInKilobytes) / 1024.0 / 1024.0);
-			_totalPhysicalMemory = QString::number(kiloBytes);
+			double kiloBytes = (static_cast<double>(memoryInKilobytes) / 1024.0 / 1024.0);
+			_totalPhysicalMemory = QString::number(kiloBytes).toStdString();
 		}
 		else
 		{
@@ -129,17 +124,17 @@ QString SystemInformation::totalPhysicalMemory()
 	return _totalPhysicalMemory;
 }
 
-QString SystemInformation::totalVirtualMemory()
+std::string SystemInformation::totalVirtualMemory()
 {
-	QString result("Unknown");
+	std::string result("Unknown");
 
 #ifdef Q_OS_WIN
 	ULONGLONG memoryInKilobytes;
 
 	if (::GetPhysicallyInstalledSystemMemory(&memoryInKilobytes) != FALSE)
 	{
-		qreal kiloBytes = (static_cast<qreal>(memoryInKilobytes) / 1024.0 / 1024.0);
-		result = QString::number(kiloBytes);
+		double kiloBytes = (static_cast<double>(memoryInKilobytes) / 1024.0 / 1024.0);
+		result = QString::number(kiloBytes).toStdString();
 	}
 #endif
 	return result;

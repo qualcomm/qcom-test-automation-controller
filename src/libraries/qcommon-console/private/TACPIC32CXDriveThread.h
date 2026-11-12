@@ -35,7 +35,7 @@ public:
 	void sendCommand(const QByteArray& command, bool console = false,
 							 ReceiveInterface* receiveInterface = Q_NULLPTR, bool shouldStore = true);
 
-	void setPinState(quint16 pin, bool state);
+	void setPinState(uint16_t pin, bool state);
 	void sendCommandSequence(CommandEntries& commandEntries);
 
 	int getResetCount();
@@ -45,14 +45,14 @@ public:
 	void setName(const QByteArray& newName);
 
 	// Send Interface
-	quint32 send(const QByteArray& sendMe, const Arguments& arguments, bool console, ReceiveInterface* recieveInterface, bool store = true);
+	uint32_t send(const QByteArray& sendMe, const Arguments& arguments, bool console, ReceiveInterface* recieveInterface, bool store = true);
 	bool ready();
 
 	// Receive Interface
 	void receive(FramePackage& framePackage);
 
-	void i2CReadRegister(quint32 addr, quint32 reg);
-	void i2CWriteRegister(quint32 addr, quint32 reg, quint32 data);
+	void i2CReadRegister(uint32_t addr, uint32_t reg);
+	void i2CWriteRegister(uint32_t addr, uint32_t reg, uint32_t data);
 
 	void endTransaction(ReceiveInterface *receiveInterface);
 protected:

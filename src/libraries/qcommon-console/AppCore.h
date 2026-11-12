@@ -11,6 +11,9 @@
 // QT
 #include <QString>
 
+#include <cstdint>
+#include <string>
+
 class QCOMMONCONSOLE_EXPORT AppCore
 {
 friend class AppCoreDestructor;
@@ -20,17 +23,17 @@ public:
 
 	static AppCore* getAppCore();
 
-	QByteArray appName()
+	std::string appName()
 	{
 		return _appName;
 	}
 
-	QByteArray appVersion()
+	std::string appVersion()
 	{
 		return _appVersion;
 	}
 
-	quint32 daysSinceInstall();
+	uint32_t daysSinceInstall();
 
 	PreferencesBase* getPreferences()
 	{
@@ -41,34 +44,34 @@ public:
 	void setAppLogging(bool loggingState);
 	bool appLoggingActive();
 
-	QString currentAppLog()
+	std::string currentAppLog()
 	{
-		return _appThreadedLog->currentLogPath();
+		return _appThreadedLog->currentLogPath().toStdString();
 	}
 
 	void setRunLogging(bool loggingState);
 	bool runLoggingActive();
-	QString currentRunLog()
+	std::string currentRunLog()
 	{
-		return _runThreadedLog->currentLogPath();
+		return _runThreadedLog->currentLogPath().toStdString();
 	}
 
-	QString loggingPath();
+	std::string loggingPath();
 
-	bool checkLicense(const QByteArray& productID, const QByteArray& featureID);
+	bool checkLicense(const std::string& productID, const std::string& featureID);
 	bool isLicenseManagerValid();
 
 	void postStartEvent();
 	void postAutomationEvent();
-	void postMetric(const QByteArray& metricID, double metric);
+	void postMetric(const std::string& metricID, double metric);
 
-	void writeToAppLog(const QString& writeMe);
+	void writeToAppLog(const std::string& writeMe);
 
-	static void writeToApplicationLog(const QString& writeMe);
-	static void writeToApplicationLogLine(const QString& writeMe);
+	static void writeToApplicationLog(const std::string& writeMe);
+	static void writeToApplicationLogLine(const std::string& writeMe);
 
-	void writeToRunLog(const QString& writeMe);
-	static void writeToRuntimeLog(const QString& writeMe);
+	void writeToRunLog(const std::string& writeMe);
+	static void writeToRuntimeLog(const std::string& writeMe);
 
 private:
 	AppCore();
@@ -77,8 +80,8 @@ private:
 	static AppCore*				_appCore;
 
 	bool						_internalBuild{false};
-	QByteArray					_appName;
-	QByteArray					_appVersion;
+	std::string					_appName;
+	std::string					_appVersion;
 
 	PreferencesBase*			_preferences{Q_NULLPTR};
 	ThreadedLog					_appThreadedLog;
