@@ -15,6 +15,7 @@ qt_add_library(${LIBRARY_NAME} STATIC
     AlpacaScript.cpp AlpacaScript.h
     AlpacaSettings.cpp AlpacaSettings.h
     IniSettings.cpp IniSettings.h
+    ConfigurationFile.cpp ConfigurationFile.h
     AlpacaSharedLibrary.cpp AlpacaSharedLibrary.h
     AppCore.cpp AppCore.h
     BasicColor.cpp BasicColor.h

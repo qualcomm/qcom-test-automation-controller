@@ -9,32 +9,30 @@
 #include "PlatformConfigurationException.h"
 #include "StringUtilities.h"
 
-// QT
-#include <QFile>
-#include <QJsonObject>
-#include <QJsonArray>
+#include "ConfigurationFile.h"
 
 #include <cstdint>
+#include <string>
 
-const QString kChipCount(QStringLiteral("chip_count"));
-const QString kChipIndex(QStringLiteral("chip_index"));
-const QString kBus(QStringLiteral("bus"));
-const QString kPinNumber(QStringLiteral("pin_number"));
-const QString kEnabled(QStringLiteral("enabled"));
-const QString kInput(QStringLiteral("input"));
-const QString kName(QStringLiteral("name"));
-const QString kToolTip(QStringLiteral("help_hint"));
-const QString kInitialValue(QStringLiteral("initial_value"));
-const QString kPriority(QStringLiteral("priority"));
-const QString kInverted(QStringLiteral("inverted"));
-const QString kCommand(QStringLiteral("command"));
-const QString kCommandGroup(QStringLiteral("command_group"));
-const QString kRunPriority(QStringLiteral("run_priority"));
-const QString kTabName(QStringLiteral("group"));
-const QString kBusFunction(QStringLiteral("bus_function"));
+const std::string kChipCount("chip_count");
+const std::string kChipIndex("chip_index");
+const std::string kBus("bus");
+const std::string kPinNumber("pin_number");
+const std::string kEnabled("enabled");
+const std::string kInput("input");
+const std::string kName("name");
+const std::string kToolTip("help_hint");
+const std::string kInitialValue("initial_value");
+const std::string kPriority("priority");
+const std::string kInverted("inverted");
+const std::string kCommand("command");
+const std::string kCommandGroup("command_group");
+const std::string kRunPriority("run_priority");
+const std::string kTabName("group");
+const std::string kBusFunction("bus_function");
 
-const QString kPinEntries(QStringLiteral("pins"));
-const QString kBusEntries(QStringLiteral("bus"));
+const std::string kPinEntries("pins");
+const std::string kBusEntries("bus");
 
 const int kMaximumChipCount{4};
 
@@ -1384,117 +1382,86 @@ void _FTDIPlatformConfiguration::cascadeTabRename
 	}
 }
 
-bool _FTDIPlatformConfiguration::read(QJsonObject& parentLevel)
+bool _FTDIPlatformConfiguration::readConfig(const ConfigurationFile& config)
 {
 	bool result{false};
 
-	result = _PlatformConfiguration::read(parentLevel);
+	result = _PlatformConfiguration::readConfig(config);
 	if (result == true)
 	{
-		QJsonValue jsonValue;
+		if (config.hasProperty(kChipCount))
+			_chipCount = config.getInt(kChipCount);
 
-		jsonValue = parentLevel.value(kChipCount);
-		if (jsonValue.isNull() == false)
-			_chipCount = jsonValue.toInt();
-
-		if (parentLevel.contains(kPinEntries) && parentLevel[kPinEntries].isArray())
+		const ConfigurationTable& pinsArray = config.getTable(kPinEntries);
+		if (!pinsArray.empty())
 		{
-			QJsonArray pinsArray = parentLevel[kPinEntries].toArray();
-
 			_pinEntries.clear();
 
-			for (auto pinIndex: range(pinsArray.size()))
+			for (const auto& pinEntry : pinsArray)
 			{
-				QJsonObject pinEntry = pinsArray[pinIndex].toObject();
-
-				ChipIndex chipIndex{0};
-				Bus bus;
-				PinID pinId{0};
-
-				if (pinEntry.contains(kChipIndex))
-					chipIndex = pinEntry[kChipIndex].toInt();
-
-				if (pinEntry.contains(kBus))
-				{
-					QString busStr = pinEntry[kBus].toString();
-					bus = busStr.isEmpty() ? '\0' : busStr.at(0).toLatin1();
-				}
-
-				if (pinEntry.contains(kPinNumber))
-					pinId = pinEntry[kPinNumber].toString().toInt();
+				ChipIndex chipIndex = ConfigurationFile::getRecordInt(pinEntry, kChipIndex);
+				std::string busStr = ConfigurationFile::getRecordString(pinEntry, kBus);
+				Bus bus = busStr.empty() ? '\0' : busStr[0];
+				PinID pinId = ConfigurationFile::getRecordInt(pinEntry, kPinNumber);
 
 				FTDIPinData pinData(chipIndex, bus, pinId);
 
 				pinData._setPin = getSetPinIndex(chipIndex, bus, pinId);
 
-				if (pinEntry.contains(kEnabled))
-					pinData._enabled = pinEntry[kEnabled].toBool();
+				if (pinEntry.find(kEnabled) != pinEntry.end())
+					pinData._enabled = ConfigurationFile::getRecordBool(pinEntry, kEnabled);
 
-				if (pinEntry.contains(kName))
-					pinData._pinLabel = pinEntry[kName].toString().toStdString();
+				if (pinEntry.find(kName) != pinEntry.end())
+					pinData._pinLabel = ConfigurationFile::getRecordString(pinEntry, kName);
 
-				if (pinEntry.contains(kToolTip))
-					pinData._pinTooltip = pinEntry[kToolTip].toString().toStdString();
+				if (pinEntry.find(kToolTip) != pinEntry.end())
+					pinData._pinTooltip = ConfigurationFile::getRecordString(pinEntry, kToolTip);
 
-				if (pinEntry.contains(kInitialValue))
-					pinData._initialValue = pinEntry[kInitialValue].toBool();
+				if (pinEntry.find(kInitialValue) != pinEntry.end())
+					pinData._initialValue = ConfigurationFile::getRecordBool(pinEntry, kInitialValue);
 
-				if (pinEntry.contains(kPriority))
-					pinData._initializationPriority = pinEntry[kPriority].toInt();
+				if (pinEntry.find(kPriority) != pinEntry.end())
+					pinData._initializationPriority = ConfigurationFile::getRecordInt(pinEntry, kPriority);
 
-				if (pinEntry.contains(kInverted))
-					pinData._inverted = pinEntry[kInverted].toBool();
+				if (pinEntry.find(kInverted) != pinEntry.end())
+					pinData._inverted = ConfigurationFile::getRecordBool(pinEntry, kInverted);
 
-				if (pinEntry.contains(kCommand))
-					pinData._pinCommand = pinEntry[kCommand].toString().toStdString();
+				if (pinEntry.find(kCommand) != pinEntry.end())
+					pinData._pinCommand = ConfigurationFile::getRecordString(pinEntry, kCommand);
 
-				if (pinEntry.contains(kCommandGroup))
-					pinData._commandGroup = static_cast<CommandGroups>(pinEntry[kCommandGroup].toInt());
+				if (pinEntry.find(kCommandGroup) != pinEntry.end())
+					pinData._commandGroup = static_cast<CommandGroups>(ConfigurationFile::getRecordInt(pinEntry, kCommandGroup));
 
-				if (pinEntry.contains(kRunPriority))
+				if (pinEntry.find(kRunPriority) != pinEntry.end())
 				{
 					pinData._cellLocation = std::make_pair(-1, -1);
-					QString pointString = pinEntry[kRunPriority].toString();
+					std::string pointString = ConfigurationFile::getRecordString(pinEntry, kRunPriority);
 					if (pointString.size() > 0)
 					{
-						std::pair<int, int> point = toQPoint(pointString.toStdString());
+						std::pair<int, int> point = toQPoint(pointString);
 						if (point.first >= 0 && point.second >= 0)
 							pinData._cellLocation = point;
 					}
 				}
 
-				if (pinEntry.contains(kTabName))
-					pinData._tabName = pinEntry[kTabName].toString().toStdString();
+				if (pinEntry.find(kTabName) != pinEntry.end())
+					pinData._tabName = ConfigurationFile::getRecordString(pinEntry, kTabName);
 
 				_pinEntries[pinData._hash] = pinData;
 			}
 		}
 
-		if (parentLevel.contains(kBusEntries) && parentLevel[kBusEntries].isArray())
+		const ConfigurationTable& busArray = config.getTable(kBusEntries);
+		if (!busArray.empty())
 		{
-			QJsonArray busArray = parentLevel[kBusEntries].toArray();
-
 			_busFunctions.clear();
 
-			for (auto pinIndex: range(busArray.size()))
+			for (const auto& busEntry : busArray)
 			{
-				QJsonObject busEntry = busArray[pinIndex].toObject();
-
-				ChipIndex chipIndex{0};
-				Bus bus{'\0'};
-				FTDIBusFunction busFunction{eBusFunctionUnknown};
-
-				if (busEntry.contains(kChipIndex))
-					chipIndex = busEntry[kChipIndex].toInt();
-
-				if (busEntry.contains(kBus))
-				{
-					QString busStr = busEntry[kBus].toString();
-					bus = busStr.isEmpty() ? '\0' : busStr.at(0).toLatin1();
-				}
-
-				if (busEntry.contains(kBusFunction))
-					busFunction = FTDIBusFunction(busEntry[kBusFunction].toInt());
+				ChipIndex chipIndex = ConfigurationFile::getRecordInt(busEntry, kChipIndex);
+				std::string busStr = ConfigurationFile::getRecordString(busEntry, kBus);
+				Bus bus = busStr.empty() ? '\0' : busStr[0];
+				FTDIBusFunction busFunction = static_cast<FTDIBusFunction>(ConfigurationFile::getRecordInt(busEntry, kBusFunction));
 
 				FTDIBusData busData(chipIndex, bus, busFunction);
 
@@ -1506,55 +1473,54 @@ bool _FTDIPlatformConfiguration::read(QJsonObject& parentLevel)
 	return result;
 }
 
-void _FTDIPlatformConfiguration::write(QJsonObject& parentLevel)
+void _FTDIPlatformConfiguration::writeConfig(ConfigurationFile& config)
 {
-	_PlatformConfiguration::write(parentLevel);
+	_PlatformConfiguration::writeConfig(config);
 
-	parentLevel[kChipCount] = _chipCount;
+	config.setInt(kChipCount, _chipCount);
 
-	QJsonArray pinsArray;
+	ConfigurationTable pinsArray;
 
-	for (auto& entry : _pinEntries)
+	for (const auto& entry : _pinEntries)
 	{
 		const FTDIPinData& pinEntry = entry.second;
-		QJsonObject pinData;
+		ConfigurationRecord pinData;
 
-		pinData[kChipIndex] = pinEntry._chipIndex;
-		pinData[kBus] = QString(pinEntry._bus);
-		pinData[kPinNumber] = QString::number(pinEntry._chipPin);
-		pinData[kEnabled] = pinEntry._enabled;
-		pinData[kInput] = pinEntry._input;
-		pinData[kName] = QString::fromStdString(pinEntry._pinLabel);
-		pinData[kToolTip] = QString::fromStdString(pinEntry._pinTooltip);
-		pinData[kInitialValue] = pinEntry._initialValue;
-		pinData[kPriority] = pinEntry._initializationPriority;
-		pinData[kInverted] = pinEntry._inverted;
-		pinData[kCommand] = QString::fromStdString(pinEntry._pinCommand);
-		pinData[kCommandGroup] = pinEntry._commandGroup;
-		pinData[kRunPriority] = QString::fromStdString(fromQPoint(pinEntry._cellLocation));
+		pinData[kChipIndex] = std::to_string(pinEntry._chipIndex);
+		pinData[kBus] = std::string(1, pinEntry._bus);
+		pinData[kPinNumber] = std::to_string(pinEntry._chipPin);
+		pinData[kEnabled] = pinEntry._enabled ? "true" : "false";
+		pinData[kInput] = pinEntry._input ? "true" : "false";
+		pinData[kName] = pinEntry._pinLabel;
+		pinData[kToolTip] = pinEntry._pinTooltip;
+		pinData[kInitialValue] = pinEntry._initialValue ? "true" : "false";
+		pinData[kPriority] = std::to_string(pinEntry._initializationPriority);
+		pinData[kInverted] = pinEntry._inverted ? "true" : "false";
+		pinData[kCommand] = pinEntry._pinCommand;
+		pinData[kCommandGroup] = std::to_string(static_cast<int>(pinEntry._commandGroup));
+		pinData[kRunPriority] = fromQPoint(pinEntry._cellLocation);
+		pinData[kTabName] = pinEntry._tabName;
 
-		pinData[kTabName] = QString::fromStdString(pinEntry._tabName);
-
-		pinsArray.append(pinData);
+		pinsArray.push_back(pinData);
 	}
 
-	parentLevel[kPinEntries] = pinsArray;
+	config.setTable(kPinEntries, pinsArray);
 
-	QJsonArray busArray;
+	ConfigurationTable busArray;
 
 	for (const auto& entry : _busFunctions)
 	{
 		const FTDIBusData& busFunction = entry.second;
-		QJsonObject busData;
+		ConfigurationRecord busData;
 
-		busData[kChipIndex] = busFunction._chipIndex;
-		busData[kBus] = QString(busFunction._bus);
-		busData[kBusFunction] = busFunction._busFunction;
+		busData[kChipIndex] = std::to_string(busFunction._chipIndex);
+		busData[kBus] = std::string(1, busFunction._bus);
+		busData[kBusFunction] = std::to_string(static_cast<int>(busFunction._busFunction));
 
-		busArray.append(busData);
+		busArray.push_back(busData);
 	}
 
-	parentLevel[kBusEntries] = busArray;
+	config.setTable(kBusEntries, busArray);
 }
 
 PinID _FTDIPlatformConfiguration::getSetPinIndex

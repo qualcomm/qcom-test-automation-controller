@@ -8,13 +8,6 @@
 #include "Range.h"
 #include "StringUtilities.h"
 
-// QT
-#include <QFile>
-#include <QFileInfo>
-#include <QJsonArray>
-#include <QJsonDocument>
-#include <QJsonObject>
-
 #include <cctype>
 
 static std::string toLowerCopy(const std::string& value)
@@ -28,23 +21,35 @@ static std::string toLowerCopy(const std::string& value)
 }
 
 // Parameters in the JSON TAC Configuration
-const QString kModifyDate(QStringLiteral("modification_date"));
-const QString kUSBCatalog(QStringLiteral("catalog"));
-const QString kDebugBoardType(QStringLiteral("debugBoardType"));
-const QString kPlatformId(QStringLiteral("platform_id"));
-const QString kName(QStringLiteral("name"));
-const QString kDescription(QStringLiteral("description"));
-const QString kUSBDescriptor(QStringLiteral("usb_descriptor"));
-const QString kRevisionNumber(QStringLiteral("revision"));
-const QString kConfigFilePath(QStringLiteral("configPath"));
-const QString kChip1BusSet(QStringLiteral("chip1BusSet"));
-const QString kChip2BusSet(QStringLiteral("chip2BusSet"));
-const QString kChip3BusSet(QStringLiteral("chip3BusSet"));
-const QString kChip4BusSet(QStringLiteral("chip4BusSet"));
+const std::string kModifyDate("modification_date");
+const std::string kUSBCatalog("catalog");
+const std::string kDebugBoardType("debugBoardType");
+const std::string kPlatformId("platform_id");
+const std::string kName("name");
+const std::string kDescription("description");
+const std::string kUSBDescriptor("usb_descriptor");
+const std::string kRevisionNumber("revision");
+const std::string kConfigFilePath("configPath");
+const std::string kChip1BusSet("chip1BusSet");
+const std::string kChip2BusSet("chip2BusSet");
+const std::string kChip3BusSet("chip3BusSet");
+const std::string kChip4BusSet("chip4BusSet");
 
 USBDescriptors::USBDescriptors()
 {
 	_modifyDate = currentDateTimeString();
+}
+
+std::vector<PlatformID> USBDescriptors::getPlatforms()
+{
+	std::vector<PlatformID> result;
+
+	for (const auto& entry: _descriptorList)
+	{
+		result.push_back(entry._platformID);
+	}
+
+	return result;
 }
 
 DescriptorList USBDescriptors::getDescriptors()
@@ -52,34 +57,28 @@ DescriptorList USBDescriptors::getDescriptors()
 	return _descriptorList;
 }
 
-DescriptorList USBDescriptors::getDescriptorsByBoardType
-(
-	DebugBoardType debugBoardType
-)
+DescriptorList USBDescriptors::getDescriptorsByBoardType(DebugBoardType debugBoardType)
 {
 	DescriptorList result;
 
-	for (const auto& descriptor: std::as_const(_descriptorList))
+	for (const auto& entry: _descriptorList)
 	{
-		if (descriptor._debugBoardType == debugBoardType)
-			result.push_back(descriptor);
+		if (entry._debugBoardType == debugBoardType)
+			result.push_back(entry);
 	}
 
 	return result;
 }
 
-USBDescriptor USBDescriptors::getPlatformDescriptor
-(
-	PlatformID platformID
-)
+USBDescriptor USBDescriptors::getPlatformDescriptor(PlatformID platformID)
 {
 	USBDescriptor result;
 
-	for (const auto& usbDescriptor: std::as_const(_descriptorList))
+	for (const auto& entry: _descriptorList)
 	{
-		if (usbDescriptor._platformID == platformID)
+		if (entry._platformID == platformID)
 		{
-			result = usbDescriptor;
+			result = entry;
 			break;
 		}
 	}
@@ -87,20 +86,17 @@ USBDescriptor USBDescriptors::getPlatformDescriptor
 	return result;
 }
 
-PlatformID USBDescriptors::getPlatformId
-(
-	const std::string& usbDescriptor
-)
+PlatformID USBDescriptors::getPlatformId(const std::string& usbDescriptor)
 {
 	PlatformID result{0};
 
-	std::string targetUsbDescriptor = toLowerCopy(usbDescriptor);
+	std::string lowerUsbDescriptor = toLowerCopy(usbDescriptor);
 
-	for (const auto& usbDescriptorEntry: _descriptorList)
+	for (const auto& entry: _descriptorList)
 	{
-		if (toLowerCopy(usbDescriptorEntry._usbDescriptor) == targetUsbDescriptor)
+		if (lowerUsbDescriptor.find(toLowerCopy(entry._usbDescriptor)) != std::string::npos)
 		{
-			result = usbDescriptorEntry._platformID;
+			result = entry._platformID;
 			break;
 		}
 	}
@@ -113,196 +109,125 @@ void USBDescriptors::addUSBDescriptor(USBDescriptor usbDescriptor)
 	_descriptorList.push_back(usbDescriptor);
 }
 
-bool USBDescriptors::load
-(
-	const std::string& filePath
-)
-{
-	bool result(false);
-
-	QJsonDocument document;
-	QFile jsonFile(QString::fromStdString(filePath));
-
-	if (jsonFile.open(QIODevice::ReadOnly))
-	{
-		QByteArray jsonFileContents = jsonFile.readAll();
-		if (jsonFileContents.isEmpty() == false)
-		{
-			QJsonParseError parserError;
-
-			document = QJsonDocument::fromJson(jsonFileContents, &parserError);
-			if (parserError.error == QJsonParseError::NoError)
-			{
-				if (document.isNull() == false)
-				{
-					result = true;
-
-					QJsonObject rootLevel = document.object();
-					read(rootLevel);
-				}
-				else
-				{
-					_lastError = QObject::tr("JSON Document is NULL").toStdString();
-				}
-			}
-			else
-			{
-				_lastError = (QObject::tr("Error parsing configuration file") + parserError.errorString()).toStdString();
-			}
-		}
-	}
-	else
-	{
-		_lastError = QObject::tr("Unable to open platform configuration file ").toStdString() + filePath;
-	}
-
-	return result;
-}
-
-bool USBDescriptors::save
-(
-	const std::string &filePath
-)
-{
-	bool result{false};
-
-	QFile targetFile(QString::fromStdString(filePath));
-	if (targetFile.open(QIODevice::WriteOnly) == true)
-	{
-		QJsonObject rootLevel;
-		QJsonDocument document;
-
-		write(rootLevel);
-
-		document = QJsonDocument(rootLevel);
-
-		if (document.isNull() == false)
-		{
-			QByteArray jsonDocument = document.toJson(QJsonDocument::Indented);
-			if (jsonDocument.isEmpty() == false)
-			{
-				QFile jsonFile(QString::fromStdString(filePath));
-
-				if (jsonFile.open(QIODevice::WriteOnly) == true)
-				{
-					jsonFile.write(jsonDocument);
-					jsonFile.close();
-
-					result = true;
-				}
-			}
-		}
-	}
-
-	return result;
-}
-
 std::string USBDescriptors::getLastError()
 {
 	return _lastError;
 }
 
-bool USBDescriptors::read(QJsonObject& parentLevel)
+bool USBDescriptors::load(const std::string& filePath)
+{
+	ConfigurationFile config;
+	if (!config.load(filePath))
+	{
+		_lastError = "Unable to open platform configuration file " + filePath;
+		return false;
+	}
+
+	readConfig(config);
+	return true;
+}
+
+bool USBDescriptors::save(const std::string &filePath)
+{
+	ConfigurationFile config;
+	writeConfig(config);
+	return config.save(filePath, true);
+}
+
+bool USBDescriptors::readConfig(const ConfigurationFile& config)
 {
 	bool result{false};
-	QJsonValue jsonValue;
 
-	jsonValue = parentLevel.value(kModifyDate);
-	if (jsonValue.isNull() == false)
-		_modifyDate = jsonValue.toString().toStdString();
+	if (config.hasProperty(kModifyDate))
+		_modifyDate = config.getProperty(kModifyDate);
 
-	QJsonArray usbCatalog = parentLevel.value(kUSBCatalog).toArray();
-	if (usbCatalog.count() > 0)
+	const ConfigurationTable& usbCatalog = config.getTable(kUSBCatalog);
+	if (!usbCatalog.empty())
 	{
 		_descriptorList.clear();
 
-		for (auto catalogIndex: range(usbCatalog.count()))
+		for (const auto& catalogData : usbCatalog)
 		{
 			USBDescriptor usbDescriptor;
 
-			QJsonObject catalogData = usbCatalog.at(catalogIndex).toObject();
-			if (catalogData.isEmpty() == false)
+			if (catalogData.find(kPlatformId) != catalogData.end())
 			{
+				usbDescriptor._platformID = ConfigurationFile::getRecordInt(catalogData, kPlatformId);
 
-				if (catalogData.contains(kPlatformId))
-				{
-					usbDescriptor._platformID = catalogData[kPlatformId].toInt();
+				if (catalogData.find(kDebugBoardType) != catalogData.end())
+					usbDescriptor._debugBoardType = static_cast<DebugBoardType>(ConfigurationFile::getRecordInt(catalogData, kDebugBoardType));
 
-					if (catalogData.contains(kDebugBoardType))
-						usbDescriptor._debugBoardType = static_cast<DebugBoardType>(catalogData[kDebugBoardType].toInt());
+				if (catalogData.find(kUSBDescriptor) != catalogData.end())
+					usbDescriptor._usbDescriptor = ConfigurationFile::getRecordString(catalogData, kUSBDescriptor);
 
-					if (catalogData.contains(kUSBDescriptor) && catalogData[kUSBDescriptor].isString())
-						usbDescriptor._usbDescriptor = catalogData[kUSBDescriptor].toString().toStdString();
+				if (catalogData.find(kName) != catalogData.end())
+					usbDescriptor._name = ConfigurationFile::getRecordString(catalogData, kName);
 
-					if (catalogData.contains(kName) && catalogData[kName].isString())
-						usbDescriptor._name = catalogData[kName].toString().toStdString();
+				if (catalogData.find(kDescription) != catalogData.end())
+					usbDescriptor._description = ConfigurationFile::getRecordString(catalogData, kDescription);
 
-					if (catalogData.contains(kDescription) && catalogData[kDescription].isString())
-						usbDescriptor._description = catalogData[kDescription].toString().toStdString();
+				if (catalogData.find(kRevisionNumber) != catalogData.end())
+					usbDescriptor._revision = ConfigurationFile::getRecordUInt(catalogData, kRevisionNumber);
 
-					if (catalogData.contains(kRevisionNumber))
-						usbDescriptor._revision = static_cast<uint32_t>(catalogData[kRevisionNumber].toInt());
+				if (catalogData.find(kConfigFilePath) != catalogData.end())
+					usbDescriptor._configurationFilePath = ConfigurationFile::getRecordString(catalogData, kConfigFilePath);
 
-					if (catalogData.contains(kConfigFilePath) && catalogData[kConfigFilePath].isString())
-						usbDescriptor._configurationFilePath = catalogData[kConfigFilePath].toString().toStdString();
-
-#ifdef Q_OS_LINUX
-					usbDescriptor._configurationFilePath = expandPath(usbDescriptor._configurationFilePath);
+#if defined(__linux__) || defined(Q_OS_LINUX)
+				usbDescriptor._configurationFilePath = expandPath(usbDescriptor._configurationFilePath);
 #endif
 
-					if (usbDescriptor._debugBoardType == eFTDI)
-					{
-						if (catalogData.contains(kChip1BusSet))
-							usbDescriptor._pinSets[0] = static_cast<FTDIPinSet>(catalogData[kChip1BusSet].toInt());
+				if (usbDescriptor._debugBoardType == eFTDI)
+				{
+					if (catalogData.find(kChip1BusSet) != catalogData.end())
+						usbDescriptor._pinSets[0] = static_cast<FTDIPinSet>(ConfigurationFile::getRecordInt(catalogData, kChip1BusSet));
 
-						if (catalogData.contains(kChip2BusSet))
-							usbDescriptor._pinSets[1] = static_cast<FTDIPinSet>(catalogData[kChip2BusSet].toInt());
+					if (catalogData.find(kChip2BusSet) != catalogData.end())
+						usbDescriptor._pinSets[1] = static_cast<FTDIPinSet>(ConfigurationFile::getRecordInt(catalogData, kChip2BusSet));
 
-						if (catalogData.contains(kChip3BusSet))
-							usbDescriptor._pinSets[2] = static_cast<FTDIPinSet>(catalogData[kChip3BusSet].toInt());
+					if (catalogData.find(kChip3BusSet) != catalogData.end())
+						usbDescriptor._pinSets[2] = static_cast<FTDIPinSet>(ConfigurationFile::getRecordInt(catalogData, kChip3BusSet));
 
-						if (catalogData.contains(kChip4BusSet))
-							usbDescriptor._pinSets[3] = static_cast<FTDIPinSet>(catalogData[kChip4BusSet].toInt());
-					}
-
-					_descriptorList.push_back(usbDescriptor);
+					if (catalogData.find(kChip4BusSet) != catalogData.end())
+						usbDescriptor._pinSets[3] = static_cast<FTDIPinSet>(ConfigurationFile::getRecordInt(catalogData, kChip4BusSet));
 				}
+
+				_descriptorList.push_back(usbDescriptor);
 			}
 		}
+		result = true;
 	}
 
 	return result;
 }
 
-void USBDescriptors::write(QJsonObject& parentLevel)
+void USBDescriptors::writeConfig(ConfigurationFile& config)
 {
-	parentLevel[kModifyDate] = QString::fromStdString(_modifyDate);
+	config.setProperty(kModifyDate, _modifyDate);
 
-	QJsonArray catalog;
+	ConfigurationTable catalog;
 
-	for (const auto& usbDescriptor : std::as_const(_descriptorList))
+	for (const auto& usbDescriptor : _descriptorList)
 	{
-		QJsonObject usbDescriptorObject;
+		ConfigurationRecord usbDescriptorObject;
 
-		usbDescriptorObject[kPlatformId] = static_cast<int>(usbDescriptor._platformID);
-		usbDescriptorObject[kDebugBoardType] = static_cast<int>(usbDescriptor._debugBoardType);
-		usbDescriptorObject[kUSBDescriptor] = QString::fromStdString(usbDescriptor._usbDescriptor);
-		usbDescriptorObject[kName] = QString::fromStdString(usbDescriptor._name);
-		usbDescriptorObject[kDescription] = QString::fromStdString(usbDescriptor._description);
-		usbDescriptorObject[kRevisionNumber] = static_cast<int>(usbDescriptor._revision);
-		usbDescriptorObject[kConfigFilePath] = QString::fromStdString(usbDescriptor._configurationFilePath);
+		usbDescriptorObject[kPlatformId] = std::to_string(static_cast<int>(usbDescriptor._platformID));
+		usbDescriptorObject[kDebugBoardType] = std::to_string(static_cast<int>(usbDescriptor._debugBoardType));
+		usbDescriptorObject[kUSBDescriptor] = usbDescriptor._usbDescriptor;
+		usbDescriptorObject[kName] = usbDescriptor._name;
+		usbDescriptorObject[kDescription] = usbDescriptor._description;
+		usbDescriptorObject[kRevisionNumber] = std::to_string(static_cast<int>(usbDescriptor._revision));
+		usbDescriptorObject[kConfigFilePath] = usbDescriptor._configurationFilePath;
 
 		if (usbDescriptor._debugBoardType == eFTDI)
 		{
-			usbDescriptorObject[kChip1BusSet] = static_cast<int>(usbDescriptor._pinSets[0]);
-			usbDescriptorObject[kChip2BusSet] = static_cast<int>(usbDescriptor._pinSets[1]);
-			usbDescriptorObject[kChip3BusSet] = static_cast<int>(usbDescriptor._pinSets[2]);
-			usbDescriptorObject[kChip4BusSet] = static_cast<int>(usbDescriptor._pinSets[3]);
+			usbDescriptorObject[kChip1BusSet] = std::to_string(static_cast<int>(usbDescriptor._pinSets[0]));
+			usbDescriptorObject[kChip2BusSet] = std::to_string(static_cast<int>(usbDescriptor._pinSets[1]));
+			usbDescriptorObject[kChip3BusSet] = std::to_string(static_cast<int>(usbDescriptor._pinSets[2]));
+			usbDescriptorObject[kChip4BusSet] = std::to_string(static_cast<int>(usbDescriptor._pinSets[3]));
 		}
 
-		catalog.append(usbDescriptorObject);
+		catalog.push_back(usbDescriptorObject);
 	}
 
-	parentLevel.insert(kUSBCatalog, catalog);
+	config.setTable(kUSBCatalog, catalog);
 }
-

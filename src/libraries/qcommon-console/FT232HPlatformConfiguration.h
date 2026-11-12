@@ -81,8 +81,8 @@ protected:
 	virtual void cascadeTabDelete(const std::string& deleteMe);
 	virtual void cascadeTabRename(const std::string& oldName, const std::string& newName);
 
-	virtual bool read(QJsonObject& parentLevel);
-	virtual void write(QJsonObject& parentLevel);
+	virtual bool readConfig(const ConfigurationFile& config) override;
+	virtual void writeConfig(ConfigurationFile& config) override;
 
 private:
 

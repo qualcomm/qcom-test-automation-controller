@@ -8,10 +8,8 @@
 // Common
 #include "DebugBoardType.h"
 #include "FTDIPinSet.h"
+#include "ConfigurationFile.h"
 #include "PlatformID.h"
-
-// QT
-class QJsonObject;
 
 #include <cstdint>
 #include <string>
@@ -64,8 +62,8 @@ public:
 	std::string getLastError();
 
 private:
-	virtual bool read(QJsonObject& parentLevel);
-	virtual void write(QJsonObject& parentLevel);
+	virtual bool readConfig(const ConfigurationFile& config);
+	virtual void writeConfig(ConfigurationFile& config);
 
 	std::string					_lastError;
 	std::string					_modifyDate;

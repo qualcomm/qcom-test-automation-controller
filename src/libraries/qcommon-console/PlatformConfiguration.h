@@ -14,8 +14,7 @@
 #include "Tabs.h"
 #include "USBDescriptors.h"
 
-// Qt
-#include <QJsonDocument>
+#include "ConfigurationFile.h"
 
 #include <cstdint>
 #include <map>
@@ -184,8 +183,8 @@ protected:
 	virtual void cascadeTabDelete(const std::string& deleteMe);
 	virtual void cascadeTabRename(const std::string& oldName, const std::string& newName);
 
-	virtual bool read(QJsonObject& parentLevel);
-	virtual void write(QJsonObject& parentLevel);
+	virtual bool readConfig(const ConfigurationFile& config);
+	virtual void writeConfig(ConfigurationFile& config);
 
 	void defaultAlpacaScript();
 	void defaultScriptVariables();

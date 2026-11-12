@@ -9,23 +9,22 @@
 #include "PlatformConfigurationException.h"
 #include "StringUtilities.h"
 
-// QT
-#include <QFile>
-#include <QJsonObject>
-#include <QJsonArray>
+#include "ConfigurationFile.h"
 
-const QString kPin(QStringLiteral("pin"));
-const QString kEnabled(QStringLiteral("enabled"));
-const QString kInput(QStringLiteral("input"));
-const QString kName(QStringLiteral("name"));
-const QString kToolTip(QStringLiteral("help_hint"));
-const QString kInverted(QStringLiteral("inverted"));
-const QString kCommand(QStringLiteral("command"));
-const QString kCommandGroup(QStringLiteral("command_group"));
-const QString kRunPriority(QStringLiteral("run_priority"));
-const QString kTabName(QStringLiteral("group"));
+#include <string>
 
-const QString kPinEntries(QStringLiteral("pins"));
+const std::string kPin("pin");
+const std::string kEnabled("enabled");
+const std::string kInput("input");
+const std::string kName("name");
+const std::string kToolTip("help_hint");
+const std::string kInverted("inverted");
+const std::string kCommand("command");
+const std::string kCommandGroup("command_group");
+const std::string kRunPriority("run_priority");
+const std::string kTabName("group");
+
+const std::string kPinEntries("pins");
 
 
 _STM32PlatformConfiguration::_STM32PlatformConfiguration()
@@ -590,62 +589,59 @@ void _STM32PlatformConfiguration::cascadeTabRename(const std::string& oldName, c
 	}
 }
 
-bool _STM32PlatformConfiguration::read(QJsonObject& parentLevel)
+bool _STM32PlatformConfiguration::readConfig(const ConfigurationFile& config)
 {
 	bool result{false};
 
-	result = _PlatformConfiguration::read(parentLevel);
+	result = _PlatformConfiguration::readConfig(config);
 	if (result == true)
 	{
-		if (parentLevel.contains(kPinEntries) && parentLevel[kPinEntries].isArray())
+		const ConfigurationTable& pinsArray = config.getTable(kPinEntries);
+		if (!pinsArray.empty())
 		{
-			QJsonArray pinsArray = parentLevel[kPinEntries].toArray();
-
 			_pinEntries.clear();
 
-			for (auto pinIndex: range(pinsArray.size()))
+			for (const auto& pinEntry : pinsArray)
 			{
-				QJsonObject pinEntry = pinsArray[pinIndex].toObject();
-
 				PinID pin{0};
 
-				if (pinEntry.contains(kPin))
-					pin = pinEntry[kPin].toString().toULongLong();
+				if (pinEntry.find(kPin) != pinEntry.end())
+					pin = ConfigurationFile::getRecordUInt64(pinEntry, kPin);
 
 				STM32PinData pinData(pin);
 
-				if (pinEntry.contains(kEnabled))
-					pinData._enabled = pinEntry[kEnabled].toBool();
+				if (pinEntry.find(kEnabled) != pinEntry.end())
+					pinData._enabled = ConfigurationFile::getRecordBool(pinEntry, kEnabled);
 
-				if (pinEntry.contains(kName))
-					pinData._pinLabel = pinEntry[kName].toString().toStdString();
+				if (pinEntry.find(kName) != pinEntry.end())
+					pinData._pinLabel = ConfigurationFile::getRecordString(pinEntry, kName);
 
-				if (pinEntry.contains(kToolTip))
-					pinData._pinTooltip = pinEntry[kToolTip].toString().toStdString();
+				if (pinEntry.find(kToolTip) != pinEntry.end())
+					pinData._pinTooltip = ConfigurationFile::getRecordString(pinEntry, kToolTip);
 
-				if (pinEntry.contains(kInverted))
-					pinData._inverted = pinEntry[kInverted].toBool();
+				if (pinEntry.find(kInverted) != pinEntry.end())
+					pinData._inverted = ConfigurationFile::getRecordBool(pinEntry, kInverted);
 
-				if (pinEntry.contains(kCommand))
-					pinData._pinCommand = pinEntry[kCommand].toString().toStdString();
+				if (pinEntry.find(kCommand) != pinEntry.end())
+					pinData._pinCommand = ConfigurationFile::getRecordString(pinEntry, kCommand);
 
-				if (pinEntry.contains(kCommandGroup))
-					pinData._commandGroup = static_cast<CommandGroups>(pinEntry[kCommandGroup].toInt());
+				if (pinEntry.find(kCommandGroup) != pinEntry.end())
+					pinData._commandGroup = static_cast<CommandGroups>(ConfigurationFile::getRecordInt(pinEntry, kCommandGroup));
 
-				if (pinEntry.contains(kRunPriority))
+				if (pinEntry.find(kRunPriority) != pinEntry.end())
 				{
 					pinData._cellLocation = std::make_pair(-1, -1);
-					QString pointString = pinEntry[kRunPriority].toString();
+					std::string pointString = ConfigurationFile::getRecordString(pinEntry, kRunPriority);
 					if (pointString.size() > 0)
 					{
-						std::pair<int, int> point = toQPoint(pointString.toStdString());
+						std::pair<int, int> point = toQPoint(pointString);
 						if (point.first >= 0 && point.second >= 0)
 							pinData._cellLocation = point;
 					}
 				}
 
-				if (pinEntry.contains(kTabName))
-					pinData._tabName = pinEntry[kTabName].toString().toStdString();
+				if (pinEntry.find(kTabName) != pinEntry.end())
+					pinData._tabName = ConfigurationFile::getRecordString(pinEntry, kTabName);
 
 				_pinEntries[pinData._hash] = pinData;
 			}
@@ -655,30 +651,29 @@ bool _STM32PlatformConfiguration::read(QJsonObject& parentLevel)
 	return result;
 }
 
-void _STM32PlatformConfiguration::write(QJsonObject& parentLevel)
+void _STM32PlatformConfiguration::writeConfig(ConfigurationFile& config)
 {
-	_PlatformConfiguration::write(parentLevel);
+	_PlatformConfiguration::writeConfig(config);
 
-	QJsonArray pinsArray;
+	ConfigurationTable pinsArray;
 
-	for (auto& entry : _pinEntries)
+	for (const auto& entry : _pinEntries)
 	{
 		const STM32PinData& pinEntry = entry.second;
-		QJsonObject pinData;
+		ConfigurationRecord pinData;
 
-		pinData[kPin] = QString::number(pinEntry._pin);
-		pinData[kEnabled] = pinEntry._enabled;
-		pinData[kName] = QString::fromStdString(pinEntry._pinLabel);
-		pinData[kToolTip] = QString::fromStdString(pinEntry._pinTooltip);
-		pinData[kInverted] = pinEntry._inverted;
-		pinData[kCommand] = QString::fromStdString(pinEntry._pinCommand);
-		pinData[kCommandGroup] = pinEntry._commandGroup;
-		pinData[kRunPriority] = QString::fromStdString(fromQPoint(pinEntry._cellLocation));
+		pinData[kPin] = std::to_string(pinEntry._pin);
+		pinData[kEnabled] = pinEntry._enabled ? "true" : "false";
+		pinData[kName] = pinEntry._pinLabel;
+		pinData[kToolTip] = pinEntry._pinTooltip;
+		pinData[kInverted] = pinEntry._inverted ? "true" : "false";
+		pinData[kCommand] = pinEntry._pinCommand;
+		pinData[kCommandGroup] = std::to_string(static_cast<int>(pinEntry._commandGroup));
+		pinData[kRunPriority] = fromQPoint(pinEntry._cellLocation);
+		pinData[kTabName] = pinEntry._tabName;
 
-		pinData[kTabName] = QString::fromStdString(pinEntry._tabName);
-
-		pinsArray.append(pinData);
+		pinsArray.push_back(pinData);
 	}
 
-	parentLevel[kPinEntries] = pinsArray;
+	config.setTable(kPinEntries, pinsArray);
 }

@@ -7,28 +7,27 @@
 
 #include "Range.h"
 
-#include <QJsonArray>
-#include <QJsonObject>
+#include "ConfigurationFile.h"
 
-const QString kPlatformEntries(QStringLiteral("pins"));
-const QString kTabOrderData(QStringLiteral("tabs"));
+const std::string kPlatformEntries("pins");
+const std::string kTabOrderData("tabs");
 
 const bool kDefaultInitialPinValue(false);
 const bool kDefaultPinInvertedState(false);
 const CommandGroups kDefaultCommandGroup{eUnknownCommandGroup};
 const std::pair<int, int> kDefaultCellLocation{-1, -1};
 
-const QString kRunPriority(QStringLiteral("run_priority"));
-const QString kPinNumber(QStringLiteral("pin_number"));
-const QString kEnabled(QStringLiteral("enabled"));
-const QString kIntialValue(QStringLiteral("initial_value"));
-const QString kInverted(QStringLiteral("inverted"));
-const QString kName(QStringLiteral("name"));
-const QString kToolTip(QStringLiteral("help_hint"));
-const QString kCommand(QStringLiteral("command"));
-const QString kCommmandGroup(QStringLiteral("command_group"));
-const QString kClassicAction(QStringLiteral("classic_action"));
-const QString kTabName(QStringLiteral("tab_name"));
+const std::string kRunPriority("run_priority");
+const std::string kPinNumber("pin_number");
+const std::string kEnabled("enabled");
+const std::string kIntialValue("initial_value");
+const std::string kInverted("inverted");
+const std::string kName("name");
+const std::string kToolTip("help_hint");
+const std::string kCommand("command");
+const std::string kCommmandGroup("command_group");
+const std::string kClassicAction("classic_action");
+const std::string kTabName("tab_name");
 
 _PIC32CXPlatformConfiguration::_PIC32CXPlatformConfiguration()
 {
@@ -419,50 +418,47 @@ void _PIC32CXPlatformConfiguration::cascadeTabRename
 	}
 }
 
-bool _PIC32CXPlatformConfiguration::read(QJsonObject &parentLevel)
+bool _PIC32CXPlatformConfiguration::readConfig(const ConfigurationFile &config)
 {
 	bool result{false};
-	QJsonValue jsonValue;
 
-	result = _PlatformConfiguration::read(parentLevel);
+	result = _PlatformConfiguration::readConfig(config);
 
-	QJsonArray pinDataArray = parentLevel.value(kPlatformEntries).toArray();
+	const ConfigurationTable& pinDataArray = config.getTable(kPlatformEntries);
 
-	for (auto pinIndex: range(pinDataArray.count()))
+	for (const auto& pinEntry : pinDataArray)
 	{
-		QJsonObject pinEntry = pinDataArray.at(pinIndex).toObject();
-
 		PIC32CXPinData pinData;
 
-		if (pinEntry.contains(kPinNumber))
+		if (pinEntry.find(kPinNumber) != pinEntry.end())
 		{
-			pinData._setPin = pinEntry.value(kPinNumber).toInt();
+			pinData._setPin = ConfigurationFile::getRecordInt(pinEntry, kPinNumber);
 			pinData._hash = PIC32CXPinData::makePIC32CXHash(pinData._setPin);
 		}
 
-		if (pinEntry.contains(kEnabled))
-			pinData._enabled = pinEntry.value(kEnabled).toBool();
+		if (pinEntry.find(kEnabled) != pinEntry.end())
+			pinData._enabled = ConfigurationFile::getRecordBool(pinEntry, kEnabled);
 
-		if (pinEntry.contains(kInverted))
-			pinData._inverted = pinEntry.value(kInverted).toBool();
+		if (pinEntry.find(kInverted) != pinEntry.end())
+			pinData._inverted = ConfigurationFile::getRecordBool(pinEntry, kInverted);
 
-		if (pinEntry.contains(kName))
-			pinData._pinLabel = pinEntry.value(kName).toString().toStdString();
+		if (pinEntry.find(kName) != pinEntry.end())
+			pinData._pinLabel = ConfigurationFile::getRecordString(pinEntry, kName);
 
-		if (pinEntry.contains(kToolTip))
-			pinData._pinTooltip = pinEntry.value(kToolTip).toString().toStdString();
+		if (pinEntry.find(kToolTip) != pinEntry.end())
+			pinData._pinTooltip = ConfigurationFile::getRecordString(pinEntry, kToolTip);
 
-		if (pinEntry.contains(kCommand))
-			pinData._pinCommand = pinEntry.value(kCommand).toString().toStdString();
+		if (pinEntry.find(kCommand) != pinEntry.end())
+			pinData._pinCommand = ConfigurationFile::getRecordString(pinEntry, kCommand);
 
-		if (pinEntry.contains(kCommmandGroup))
-			pinData._commandGroup = CommandGroups(pinEntry.value(kCommmandGroup).toInt());
+		if (pinEntry.find(kCommmandGroup) != pinEntry.end())
+			pinData._commandGroup = CommandGroups(ConfigurationFile::getRecordInt(pinEntry, kCommmandGroup));
 
-		if (pinEntry.contains(kTabName))
-			pinData._tabName = pinEntry.value(kTabName).toString().toStdString();
+		if (pinEntry.find(kTabName) != pinEntry.end())
+			pinData._tabName = ConfigurationFile::getRecordString(pinEntry, kTabName);
 
-		if (pinEntry.contains(kRunPriority))
-			pinData._cellLocation = toQPoint(pinEntry.value(kRunPriority).toString().toStdString());
+		if (pinEntry.find(kRunPriority) != pinEntry.end())
+			pinData._cellLocation = toQPoint(ConfigurationFile::getRecordString(pinEntry, kRunPriority));
 
 		_pinEntries[pinData._hash] = pinData;
 	}
@@ -470,33 +466,33 @@ bool _PIC32CXPlatformConfiguration::read(QJsonObject &parentLevel)
 	return result;
 }
 
-void _PIC32CXPlatformConfiguration::write(QJsonObject &parentLevel)
+void _PIC32CXPlatformConfiguration::writeConfig(ConfigurationFile &config)
 {
-	_PlatformConfiguration::write(parentLevel);
+	_PlatformConfiguration::writeConfig(config);
 
 	// Writing platform configuration mapping
-	QJsonArray jsonPlatformPinData;
+	ConfigurationTable jsonPlatformPinData;
 
 	for (const auto& entry : _pinEntries)
 	{
 		const PIC32CXPinData& pinData = entry.second;
-		QJsonObject pic32cxPinData;
+		ConfigurationRecord pic32cxPinData;
 
-		pic32cxPinData.insert(kPinNumber, static_cast<int>(pinData._setPin));
-		pic32cxPinData.insert(kEnabled, pinData._enabled);
-		pic32cxPinData.insert(kInverted, pinData._inverted);
-		pic32cxPinData.insert(kName, QString::fromStdString(pinData._pinLabel));
-		pic32cxPinData.insert(kToolTip, QString::fromStdString(pinData._pinTooltip));
-		pic32cxPinData.insert(kCommand, QString::fromStdString(pinData._pinCommand));
-		pic32cxPinData.insert(kCommmandGroup, pinData._commandGroup);
+		pic32cxPinData[kPinNumber] = std::to_string(static_cast<int>(pinData._setPin));
+		pic32cxPinData[kEnabled] = pinData._enabled ? "true" : "false";
+		pic32cxPinData[kInverted] = pinData._inverted ? "true" : "false";
+		pic32cxPinData[kName] = pinData._pinLabel;
+		pic32cxPinData[kToolTip] = pinData._pinTooltip;
+		pic32cxPinData[kCommand] = pinData._pinCommand;
+		pic32cxPinData[kCommmandGroup] = std::to_string(static_cast<int>(pinData._commandGroup));
 		// run_prority indicates cell_location (the location of the PinLED within TAC)
-		pic32cxPinData[kRunPriority] = QString::fromStdString(fromQPoint(pinData._cellLocation));
-		pic32cxPinData.insert(kTabName, QString::fromStdString(pinData._tabName));
+		pic32cxPinData[kRunPriority] = fromQPoint(pinData._cellLocation);
+		pic32cxPinData[kTabName] = pinData._tabName;
 
-		jsonPlatformPinData.append(pic32cxPinData);
+		jsonPlatformPinData.push_back(pic32cxPinData);
 	}
 
-	parentLevel[kPlatformEntries] = jsonPlatformPinData;
+	config.setTable(kPlatformEntries, jsonPlatformPinData);
 }
 
 void _PIC32CXPlatformConfiguration ::initialize()
