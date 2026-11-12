@@ -10,8 +10,8 @@
 #include "AppCore.h"
 #include "STM32PlatformConfiguration.h"
 
-// Qt
-#include <QThread>
+#include <chrono>
+#include <thread>
 
 // hidapi
 #include <hidapi.h>
@@ -204,7 +204,7 @@ bool STM32Device::open()
 			int count = 0;
 			while (count < maxInterations)
 			{
-				QThread::msleep(20);
+				std::this_thread::sleep_for(std::chrono::milliseconds(20));
 
 				result = _driveThread->weAreRunning();
 				if (result == true)

@@ -8,25 +8,35 @@
 #include "SendInterface.h"
 #include "QCommonConsoleGlobal.h"
 
-// QT
-#include <QThread>
+// Qt
+#include <QObject>
 
+// Standard C++
+#include <atomic>
+#include <chrono>
 #include <cstdint>
 #include <map>
 #include <mutex>
 #include <string>
+#include <thread>
 
 class QCOMMONCONSOLE_EXPORT DriveThread :
-	public QThread,
+	public QObject,
 	public SendInterface
 {
 Q_OBJECT
 
 public:
 	DriveThread();
-	~DriveThread();
-	
-	// QThread has an isRunning, not working so adding this
+	virtual ~DriveThread();
+
+	void start();
+	void wait();
+	bool isRunning()
+	{
+		return weAreRunning();
+	}
+
 	bool weAreRunning()
 	{
 		std::lock_guard<std::mutex> lock(_runningMutex);
@@ -84,14 +94,14 @@ protected:
 
 	int							_driveTrainID{0};
 	ProtocolInterface*			_protocolInterface{nullptr};
-	
+
 	std::string					_driveTrainName{"<unnamed>"};
 	std::string                 _lastErrorMessage;
 
 private:
+	std::thread					_workerThread;
 	std::mutex					_runningMutex;
 	bool						_running{false};
-
 };
 
 typedef std::map<int, DriveThread*> DriveTrains;

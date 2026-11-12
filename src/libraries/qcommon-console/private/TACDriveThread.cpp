@@ -15,8 +15,10 @@
 #include "TACPIC32CXDriveThread.h"
 
 #include <cctype>
+#include <chrono>
 #include <cstdint>
 #include <string>
+#include <thread>
 
 TACDriveThread::TACDriveThread
 (
@@ -76,7 +78,7 @@ void TACDriveThread::waitForCompletion()
 
 	while (_waitForCompletion)
 	{
-		QThread::msleep(100);				// Give our high priority time to process
+		std::this_thread::sleep_for(std::chrono::milliseconds(100));				// Give our high priority time to process
 		QCoreApplication::processEvents();  // Give the UI a timeslice to update
 
 		if (count++ > 50)

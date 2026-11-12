@@ -58,7 +58,7 @@ protected:
 	bool openSerialDevice();
 
 protected slots:
-	void handleError(QSerialPort::SerialPortError error);
+	void handleError(SerialPortError error);
 	void on_readyRead();
 
 private:

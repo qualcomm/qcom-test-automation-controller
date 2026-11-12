@@ -23,6 +23,7 @@ qt_add_library(${LIBRARY_NAME} STATIC
     CharBit.cpp CharBit.h
     CommandGroup.h
     CommandLineParser.cpp CommandLineParser.h
+    CommDevice.cpp CommDevice.h
     ConsoleApplicationEnhancements.cpp ConsoleApplicationEnhancements.h
     DateCheckFailEvent.h
     DebugBoardType.cpp DebugBoardType.h
@@ -37,6 +38,10 @@ qt_add_library(${LIBRARY_NAME} STATIC
     FT232HPlatformConfiguration.cpp FT232HPlatformConfiguration.h
     FrameCoder.cpp FrameCoder.h
     FramePackage.h
+    ISerialPort.cpp ISerialPort.h
+    SerialPortSettings.h
+    SerialPortWin32.cpp SerialPortWin32.h
+    SerialPortLinux.cpp SerialPortLinux.h
     Notification.h
     PinID.h
     PlatformConfiguration.cpp PlatformConfiguration.h
@@ -59,7 +64,6 @@ qt_add_library(${LIBRARY_NAME} STATIC
     RangedContainer.h
     ReceiveInterface.h
     RecentFiles.cpp RecentFiles.h
-    SMTPClient.cpp SMTPClient.h
     ScriptVariable.cpp ScriptVariable.h
     SendInterface.h
     SerialPort.cpp SerialPort.h
@@ -119,11 +123,6 @@ target_compile_definitions(${LIBRARY_NAME} PUBLIC
 )
 
 target_link_libraries(${LIBRARY_NAME} PUBLIC
-    Qt6::Concurrent
-    Qt6::Core
-    Qt6::Network
-    Qt6::SerialPort
-    Qt6::Xml
     ftd2xx
     hidapi::hidapi
 )

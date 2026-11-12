@@ -15,8 +15,7 @@
 #include <string>
 
 CommDevice::CommDevice() :
-	QObject(nullptr),
-	_serialPort(nullptr)
+	QObject(nullptr)
 {
 
 }
@@ -28,10 +27,7 @@ CommDevice::~CommDevice()
 
 bool CommDevice::IsOpen()
 {
-	if (_serialPort != nullptr)
-		return _serialPort->isOpen();
-
-	return false;
+	return _serialPort && _serialPort->isOpen();
 }
 
 bool CommDevice::Open()
@@ -41,14 +37,21 @@ bool CommDevice::Open()
 
 	if (_serialPort == nullptr)
 	{
-		_serialPort = new QSerialPort(this);
+		_serialPort = ISerialPort::create();
 
-		_serialPort->setPort(_serialPortInfo);
-		_serialPort->setBaudRate(QSerialPort::Baud115200, QSerialPort::AllDirections);
-		_serialPort->setDataBits(QSerialPort::Data8);
-		_serialPort->setParity(QSerialPort::NoParity);
-		_serialPort->setStopBits(QSerialPort::OneStop);
-		_serialPort->setFlowControl(QSerialPort::NoFlowControl);
+		std::string name = _portName;
+		if (name.empty() && !_serialPortInfo.isNull())
+			name = _serialPortInfo.portName().toStdString();
+
+		_serialPort->setPortName(name);
+
+		SerialPortSettings portSettings;
+		portSettings._baudRate = static_cast<int32_t>(SerialBaudRate::Baud115200);
+		portSettings._dataBits = SerialDataBits::Data8;
+		portSettings._parity = SerialParity::NoParity;
+		portSettings._stopBits = SerialStopBits::OneStop;
+		portSettings._flowControl = SerialFlowControl::NoFlowControl;
+		_serialPort->setSerialPortSettings(portSettings);
 
 		settings.beginGroup(kComSettingsGroup);
 		_logSerialData = settings.value(kDumpComPortData, false).toBool();
@@ -66,9 +69,9 @@ bool CommDevice::Open()
 				path = (std::filesystem::path(path) / ("Serial_" + formatDateTime("%m%d_%H%M%S") + ".ssn")).string();
 				_logSerialPath = path;
 
-				_logFile.setFileName(QString::fromStdString(path));
+				_logFile.open(path, std::ios::out | std::ios::binary);
 
-				if (_logFile.open(QIODevice::WriteOnly) == false)
+				if (!_logFile.is_open())
 				{
 					qDebug() << "Not able to open serial log file " << path.c_str() << " turning logging off";
 					_logSerialData = false;
@@ -76,27 +79,11 @@ bool CommDevice::Open()
 			}
 		}
 
-		result = _serialPort->open(QIODevice::ReadWrite);
-
-		if (result == true)
-		{
-			connect(_serialPort, SIGNAL(readyRead()), this, SLOT(on_ReadyRead()));
-
-			connect(_serialPort, SIGNAL(parityChanged(QSerialPort::Parity)), this, SLOT(on_parityChanged(QSerialPort::Parity)));
-			connect(_serialPort, SIGNAL(baudRateChanged(qint32, QSerialPort::Directions)), this, SLOT(on_baudRateChanged(qint32, QSerialPort::Directions)));
-			connect(_serialPort, SIGNAL(dataBitsChanged(QSerialPort::DataBits)), this, SLOT(on_dataBitsChanged(QSerialPort::DataBits)));
-			connect(_serialPort, SIGNAL(stopBitsChanged(QSerialPort::StopBits)), this, SLOT(on_stopBitsChanged(QSerialPort::StopBits)));
-			connect(_serialPort, SIGNAL(dataErrorPolicyChanged(QSerialPort::DataErrorPolicy)), this, SLOT(on_dataErrorPolicyChanged(QSerialPort::DataErrorPolicy)));
-
-			connect(_serialPort, SIGNAL(error(QSerialPort::SerialPortError)), this, SLOT(on_error(QSerialPort::SerialPortError)));
-			connect(_serialPort, SIGNAL(dataTerminalReadyChanged(bool)), this, SLOT(on_dataTerminalReadyChanged(bool)));
-			connect(_serialPort, SIGNAL(flowControlChanged(QSerialPort::FlowControl)), this, SLOT(on_flowControlChanged(QSerialPort::FlowControl)));
-			connect(_serialPort, SIGNAL(requestToSendChanged(bool)), this, SLOT(on_requestToSendChanged(bool)));
-		}
+		result = _serialPort->open();
 	}
 	else
 	{
-
+		result = _serialPort->open();
 	}
 
 	return result;
@@ -104,7 +91,7 @@ bool CommDevice::Open()
 
 void CommDevice::Close()
 {
-	if (_logFile.isOpen())
+	if (_logFile.is_open())
 		_logFile.close();
 
 	if (_serialPort != nullptr)
@@ -112,12 +99,9 @@ void CommDevice::Close()
 		if (_serialPort->isOpen())
 		{
 			_serialPort->close();
-
-			disconnect(_serialPort, 0, 0, 0);
 		}
 
-		delete _serialPort;
-		_serialPort = nullptr;
+		_serialPort.reset();
 	}
 }
 
@@ -126,14 +110,12 @@ bool CommDevice::Send
 	const std::string& sendData
 )
 {
-	(void)sendData;
-
 	bool result(false);
 
 	if (_serialPort != nullptr && _serialPort->isOpen())
 	{
-		uint64_t bytesSent = _serialPort->write(sendData.data(), sendData.size());
-		result = (bytesSent == sendData.size());
+		int64_t bytesSent = _serialPort->write(sendData);
+		result = (bytesSent == static_cast<int64_t>(sendData.size()));
 	}
 
 	return result;
@@ -148,68 +130,25 @@ uint64_t CommDevice::Read
 
 	const uint64_t kMaxToRead(0xFFFFF);
 
-	if (_serialPort->isReadable())
+	if (_serialPort != nullptr && _serialPort->isOpen())
 	{
-		bytesAvailable = _serialPort->bytesAvailable();
-		bytesAvailable = bytesAvailable > kMaxToRead ? kMaxToRead : bytesAvailable;
+		int64_t avail = _serialPort->bytesAvailable();
+		if (avail > 0)
+		{
+			bytesAvailable = static_cast<uint64_t>(avail) > kMaxToRead ? kMaxToRead : static_cast<uint64_t>(avail);
 
-		QByteArray readData;
+			std::string readData = _serialPort->read(static_cast<size_t>(bytesAvailable));
 
-		readData = _serialPort->read(bytesAvailable);
+			incomingBytes.append(readData);
 
-		incomingBytes.append(readData.constData(), readData.size()); // Don't presume the buffer is empty
-
-		if (_logSerialData == true && _logFile.isOpen())
-			_logFile.write(readData);
+			if (_logSerialData == true && _logFile.is_open())
+				_logFile.write(readData.data(), readData.size());
+		}
 	}
 
 	return bytesAvailable;
 }
 
-void CommDevice::on_error
-(
-	QSerialPort::SerialPortError serialPortError
-)
+void CommDevice::on_ReadyRead()
 {
-	qDebug() << "on_error: " << serialPortError;
-}
-
-void CommDevice::on_dataTerminalReadyChanged(bool set)
-{
-	qDebug() << "on_dataTerminalReadyChanged: " << set;
-}
-
-void CommDevice::on_flowControlChanged(QSerialPort::FlowControl flow)
-{
-	qDebug() << "on_flowControlChanged: " << flow;
-}
-
-void CommDevice::on_parityChanged(QSerialPort::Parity parity)
-{
-	qDebug() << "on_parityChanged: " << parity;
-}
-
-void CommDevice::on_requestToSendChanged(bool set)
-{
-	qDebug() << "on_dataTerminalReadyChanged: " << set;
-}
-
-void CommDevice::on_baudRateChanged(qint32 baudRate, QSerialPort::Directions directions)
-{
-	qDebug() << "on_baudRateChanged: " << baudRate << ":" << directions;
-}
-
-void CommDevice::on_dataBitsChanged(QSerialPort::DataBits dataBits)
-{
-	qDebug() << "on_dataBitsChanged: " << dataBits;
-}
-
-void CommDevice::on_stopBitsChanged(QSerialPort::StopBits stopBits)
-{
-	qDebug() << "on_stopBitsChanged: " << stopBits;
-}
-
-void CommDevice::on_dataErrorPolicyChanged(QSerialPort::DataErrorPolicy policy)
-{
-	qDebug() << "on_dataErrorPolicyChanged: " << policy;
 }

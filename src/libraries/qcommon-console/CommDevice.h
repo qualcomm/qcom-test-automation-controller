@@ -3,14 +3,16 @@
 // Copyright (c) Qualcomm Technologies, Inc. and/or its subsidiaries.
 // SPDX-License-Identifier: BSD-3-Clause
 
-// Qt
-#include <QFile>
-#include <QObject>
-#include <QtSerialPort/QSerialPortInfo>
-#include <QtSerialPort/QSerialPort>
+#include "ISerialPort.h"
 
 #include <cstdint>
+#include <fstream>
+#include <memory>
 #include <string>
+
+// Qt
+#include <QObject>
+#include <QtSerialPort/QSerialPortInfo>
 
 class CommDevice :
 	public QObject
@@ -28,6 +30,22 @@ public:
 	{
 		_serialPortInfo = serialPortInfo;
 		_comPort = _serialPortInfo.portName().remove("com", Qt::CaseInsensitive).toInt();
+		_portName = _serialPortInfo.portName().toStdString();
+	}
+
+	void SetPortName(const std::string& portName)
+	{
+		_portName = portName;
+	}
+
+	void SetSerialPort(SerialPortPtr serialPort)
+	{
+		_serialPort = serialPort;
+	}
+
+	SerialPortPtr GetSerialPort() const
+	{
+		return _serialPort;
 	}
 
 	virtual bool Send(const std::string& sendData);
@@ -35,27 +53,18 @@ public:
 
 public slots:
 	bool IsOpen();
-	
 	void on_ReadyRead();
-
-	void on_parityChanged(QSerialPort::Parity parity);
-	void on_baudRateChanged(qint32 baudRate, QSerialPort::Directions directions);
-	void on_dataBitsChanged(QSerialPort::DataBits dataBits);
-	void on_stopBitsChanged(QSerialPort::StopBits stopBits);
-	void on_error(QSerialPort::SerialPortError serialPortError);
-	void on_dataTerminalReadyChanged(bool set);
-	void on_flowControlChanged(QSerialPort::FlowControl flow);
-	void on_requestToSendChanged(bool set);
 
 protected:
 	QSerialPortInfo				_serialPortInfo;
-	int							_comPort;
-	QSerialPort*				_serialPort;
-	bool						_frameCoderOwned;
+	int							_comPort{0};
+	std::string					_portName;
+	SerialPortPtr				_serialPort{nullptr};
+	bool						_frameCoderOwned{false};
 	
-	bool						_logSerialData;
+	bool						_logSerialData{false};
 	std::string					_logSerialPath;
-	QFile						_logFile;
+	std::ofstream				_logFile;
 };
 
 #endif // COMMDEVICE_H

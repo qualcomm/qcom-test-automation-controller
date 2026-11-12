@@ -7,24 +7,23 @@ class _ThreadedLog;
 
 #include "QCommonConsoleGlobal.h"
 
-// Qt
-#include <QFile>
-#include <QThread>
-
-// C++
+// Standard C++
 #include <atomic>
+#include <condition_variable>
+#include <fstream>
 #include <memory>
 #include <mutex>
 #include <string>
+#include <thread>
 #include <vector>
 
 typedef std::shared_ptr<_ThreadedLog> ThreadedLog;
 
-class QCOMMONCONSOLE_EXPORT _ThreadedLog :
-	public QThread
+class QCOMMONCONSOLE_EXPORT _ThreadedLog
 {
 public:
-	_ThreadedLog() = default;
+	_ThreadedLog();
+	~_ThreadedLog();
 
 	static ThreadedLog createThreadedLog();
 	static std::string createLogName(const std::string& prefix);
@@ -40,15 +39,16 @@ public:
 
 	void addLogEntry(const std::string& logEntry);
 
-	virtual void run() override;
-
 protected:
+	void workerLoop();
+
 	std::atomic<bool>			_running{false};
-	std::atomic<bool>			_starting{false};
-	std::recursive_mutex		_mutex;
+	std::thread					_workerThread;
+	std::mutex					_mutex;
+	std::condition_variable		_cv;
 	std::vector<std::string>	_logEntries;
 	std::string					_currentLogPath;
-	QFile						_logFile;
+	std::ofstream				_logFile;
 };
 
 #endif // THREADEDLOG_H

@@ -6,24 +6,41 @@
 
 int DriveThread::_driveTrainIDs(1);
 
-DriveThread::DriveThread()
+DriveThread::DriveThread() :
+	QObject(nullptr)
 {
 	_driveTrainID = _driveTrainIDs++;
 }
 
 DriveThread::~DriveThread()
 {
+	shutDown();
+}
 
+void DriveThread::start()
+{
+	startRunning();
+	if (_workerThread.joinable())
+		_workerThread.join();
+
+	_workerThread = std::thread([this]() {
+		run();
+		stopRunning();
+	});
+}
+
+void DriveThread::wait()
+{
+	if (_workerThread.joinable())
+		_workerThread.join();
 }
 
 void DriveThread::shutDown()
 {
 	if (stopRunning() == true)
 	{
-		while (isRunning() == true)
-		{
-			QThread::sleep(1);
-		}
+		if (_workerThread.joinable())
+			_workerThread.join();
 	}
 }
 

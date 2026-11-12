@@ -5,9 +5,9 @@
 #include "ProtocolInterface.h"
 #include "TickCount.h"
 
-// QT
+#include <chrono>
 #include <mutex>
-#include <QThread>
+#include <thread>
 
 #include <cstdint>
 
@@ -137,7 +137,7 @@ FramePackage ProtocolInterface::getNextFramePackage()
 
 			if (framePackage->_delayInMilliSeconds != 0)
 			{
-				QThread::currentThread()->msleep(framePackage->_delayInMilliSeconds);
+				std::this_thread::sleep_for(std::chrono::milliseconds(framePackage->_delayInMilliSeconds));
 				result = framePackage;
 			}
 			else if (framePackage->_endTransaction)

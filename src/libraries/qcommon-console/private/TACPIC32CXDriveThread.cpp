@@ -63,10 +63,10 @@ bool TACPIC32CXDriveThread::openSerialDevice()
 	{
 		SerialPortSettings serialSettings;
 
-		_serialPort = new SerialPort(_tacPortInfo);
+		_serialPort = new SerialPort(_tacPortInfo.portName().toStdString());
 
 		serialSettings = _serialPort->getSerialPortSettings();
-		serialSettings._baudRate = QSerialPort::Baud115200;
+		serialSettings._baudRate = static_cast<int32_t>(SerialBaudRate::Baud115200);
 		serialSettings._timeout = 500;
 
 		_serialPort->setSerialPortSettings(serialSettings);
@@ -190,49 +190,49 @@ std::string TACPIC32CXDriveThread::serialPortError()
 	{
 		switch (_serialPort->error())
 		{
-		case QSerialPort::NoError:
+		case SerialPortError::NoError:
 			result = "No error occurred.";
 			break;
 
-		case QSerialPort::DeviceNotFoundError:
+		case SerialPortError::DeviceNotFoundError:
 			result = "Device is non-existant.";
 			break;
 
-		case QSerialPort::PermissionError:
+		case SerialPortError::PermissionError:
 			result = "The device is already open in another process or the user does not have sufficient security credentials.";
 			break;
 
-		case QSerialPort::OpenError:
+		case SerialPortError::OpenError:
 			result = "This object already has an open device..";
 			break;
 
-		case QSerialPort::NotOpenError:
+		case SerialPortError::NotOpenError:
 			result = "This error occurs when an operation is executed that can only be successfully performed if the device is open.";
 			break;
 
-		case QSerialPort::WriteError:
+		case SerialPortError::WriteError:
 			result = "An I/O error occurred while writing the data.";
 			break;
 
-		case QSerialPort::ReadError:
+		case SerialPortError::ReadError:
 			result = "An I/O error occurred while reading the data.";
 			break;
 
-		case QSerialPort::ResourceError:
+		case SerialPortError::ResourceError:
 			result = "An I/O error occurred when a resource becomes unavailable, e.g. when the device is unexpectedly removed from the system.";
 			break;
 
-		case QSerialPort::UnsupportedOperationError:
+		case SerialPortError::UnsupportedOperationError:
 			result = "The requested device operation is not supported or prohibited by the running operating system.";
 			break;
 
-		case QSerialPort::TimeoutError:
+		case SerialPortError::TimeoutError:
 			result = "A timeout error occurred.";
 			break;
 
-		case QSerialPort::UnknownError:
+		case SerialPortError::UnknownError:
 		default:
-			result = "An unidentified serial port error " + std::to_string(_serialPort->error()) + " has occurred.";
+			result = "An unidentified serial port error " + std::to_string(static_cast<int>(_serialPort->error())) + " has occurred.";
 			break;
 		}
 	}
@@ -240,41 +240,41 @@ std::string TACPIC32CXDriveThread::serialPortError()
 	return result;
 }
 
-void TACPIC32CXDriveThread::handleError(QSerialPort::SerialPortError error)
+void TACPIC32CXDriveThread::handleError(SerialPortError error)
 {
 	switch(error)
 	{
-	case QSerialPort::DeviceNotFoundError:
+	case SerialPortError::DeviceNotFoundError:
 		_lastErrorMessage = "Device Not Found.";
 		break;
-	case QSerialPort::PermissionError:
+	case SerialPortError::PermissionError:
 		_lastErrorMessage = "Permission Error.";
 		break;
-	case QSerialPort::OpenError:
+	case SerialPortError::OpenError:
 		_lastErrorMessage = "Open Error.";
 		break;
-	case QSerialPort::WriteError:
+	case SerialPortError::WriteError:
 		_lastErrorMessage = "Write Error.";
 		break;
-	case QSerialPort::ReadError:
+	case SerialPortError::ReadError:
 		_lastErrorMessage = "Read Error.";
 		break;
-	case QSerialPort::ResourceError:
+	case SerialPortError::ResourceError:
 		_lastErrorMessage = "Resource Error.";
 		break;
-	case QSerialPort::UnsupportedOperationError:
+	case SerialPortError::UnsupportedOperationError:
 		_lastErrorMessage = "Unsupported Operation Error.";
 		break;
-	case QSerialPort::UnknownError:
+	case SerialPortError::UnknownError:
 		_lastErrorMessage = "Unknown Error.";
 		break;
-	case QSerialPort::TimeoutError:
+	case SerialPortError::TimeoutError:
 		_lastErrorMessage = "Timeout Error.";
 		return;
-	case QSerialPort::NotOpenError:
+	case SerialPortError::NotOpenError:
 		_lastErrorMessage = "Not Open Error.";
 		break;
-	case QSerialPort::NoError:
+	case SerialPortError::NoError:
 		break;
 
 	default:
@@ -315,7 +315,7 @@ bool TACPIC32CXDriveThread::readSerialData()
 {
 	bool result(false);
 
-	if (_readyRead == true)
+	if (_serialPort && (_readyRead || _serialPort->bytesAvailable() > 0))
 	{
 		_readyRead = false;
 
@@ -414,9 +414,6 @@ void TACPIC32CXDriveThread::run()
 	{
 		emit deviceOpen();
 
-		connect(_serialPort, &QSerialPort::errorOccurred, this, &TACPIC32CXDriveThread::handleError, Qt::DirectConnection);
-		connect(_serialPort, &QSerialPort::readyRead, this, &TACPIC32CXDriveThread::on_readyRead, Qt::DirectConnection);
-
 		startRunning();
 
 		emit deviceStatusChange(tr("Starting"));
@@ -454,10 +451,9 @@ void TACPIC32CXDriveThread::run()
 						// No funny stuff in serial buffer when executing this command
 						if (framePackage->_requestHash == kPIC32CXVersionCommandHash)
 						{
-							bool status = _serialPort->clear(QSerialPort::AllDirections);
+							_serialPort->clearBuffers();
 
-							if (status)
-								AppCore::writeToApplicationLogLine("Buffer cleared before identifying PIC32CX board");
+							AppCore::writeToApplicationLogLine("Buffer cleared before identifying PIC32CX board");
 						}
 
 						int64_t bytesWritten = _serialPort->write(framePackage->_codedRequest.data(), framePackage->_codedRequest.size());

@@ -9,7 +9,9 @@
 #include "AppCore.h"
 #include "Range.h"
 
+#include <chrono>
 #include <string>
+#include <thread>
 
 const std::string kPIC32CXDescription{"ALPACA PIC32CX Debug Board"};
 PIC32CXSerialTableModel* gPIC32CXTACSerialTableModel{nullptr};
@@ -89,7 +91,7 @@ bool PIC32CXDevice::open()
 		_driveThread->setThreadDelay(300);
 		_driveThread->start();
 
-		QThread::msleep(100); // force DriveTrain thread to start faster
+		std::this_thread::sleep_for(std::chrono::milliseconds(100)); // force DriveTrain thread to start faster
 
 		for (int i{0}; i < 60; i++)
 		{
@@ -97,7 +99,7 @@ bool PIC32CXDevice::open()
 			if (result == true)
 				break;
 			else
-				QThread::msleep(300);
+				std::this_thread::sleep_for(std::chrono::milliseconds(300));
 		}
 	}
 

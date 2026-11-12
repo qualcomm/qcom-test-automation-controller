@@ -11,7 +11,9 @@
 #include "PSOCSerialTableModel.h"
 
 #include <algorithm>
+#include <chrono>
 #include <string>
+#include <thread>
 
 PSOCSerialTableModel* gPSOCTACSerialTableModel{nullptr};
 
@@ -78,7 +80,7 @@ bool PSOCDevice::open()
 		_driveThread = new TACPSOCDriveThread(_hash);
 		_driveThread->start();
 
-		QThread::msleep(100); // force DriveTrain thread to start faster
+		std::this_thread::sleep_for(std::chrono::milliseconds(100)); // force DriveTrain thread to start faster
 
 		for (int i{0}; i < 60; i++)
 		{
@@ -86,7 +88,7 @@ bool PSOCDevice::open()
 			if (result == true)
 				break;
 			else
-				QThread::msleep(300);
+				std::this_thread::sleep_for(std::chrono::milliseconds(300));
 		}
 
 		result = false;
@@ -96,7 +98,7 @@ bool PSOCDevice::open()
 			if (platformID == MICRO_EPM_BOARD_ID_UNKNOWN)
 			{
 				if (_driveThread->oldFirmware() == false)
-					QThread::msleep(100);
+					std::this_thread::sleep_for(std::chrono::milliseconds(100));
 				else
 				{
 					_lastError = "Firmware version is too old";
