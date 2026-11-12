@@ -116,14 +116,19 @@ public:
     // Completion-wait helpers.  The caller sets the flag before queuing a
     // command, then calls waitForCompletion() which blocks (with a timeout)
     // until the drive thread calls clearWaitForCompletion().
-    // Returns true on success, false on timeout.
-    bool waitForCompletion();
+    // expectedDurationMs: additional time (ms) to extend the timeout for long
+    // scripts. Returns true on success, false on timeout.
+    bool waitForCompletion(uint32_t expectedDurationMs = 0);
     void setWaitForCompletion();
     void clearWaitForCompletion();
     bool waitForCompletionStatus() const;
 
     // Store a description of the last command queued (used in timeout log messages).
     void setLastCommandDescription(const qtac::String& description);
+
+    // Override requestStop() to also wake waitForCompletion() so it exits
+    // promptly when the drive thread is being stopped.
+    void requestStop() override;
 
     // Request a transport reset from outside the drive thread.
     // Blocks until the reset is complete; returns true on success.

@@ -177,7 +177,10 @@ void TACLiteDriveThread::sendCommandSequence(CommandEntries& commandEntries)
             if (onProgress) onProgress(0 /*kProgressActive*/, NotificationLevel::Info);
         }
     }
-    (void)waitForCompletion();
+    // No wait here: the caller (quickCommand) arms setWaitForCompletion() and
+    // then calls waitForCompletion() with the script-delay allowance. A
+    // default-length wait here ran first and cleared the flag, making a long
+    // script look complete prematurely. receive() clears the flag at End Transaction.
 }
 
 int  TACLiteDriveThread::getResetCount()  { return 0; }
@@ -447,7 +450,7 @@ void TACLiteDriveThread::handleUUIDResponse(FramePackage& framePackage)
 {
     if (framePackage->responses.size() > 1)
     {
-        _uuid = framePackage->responses.at(1).toStdString();
+        _uuid = uuidFromResponse(framePackage->responses.at(1));
         if (onUuidUpdate) onUuidUpdate(_uuid.toStdString());
     }
 }

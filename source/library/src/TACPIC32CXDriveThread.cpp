@@ -219,7 +219,14 @@ void TACPIC32CXDriveThread::setName(const qtac::ByteArray& newName)
 {
     const std::string s = newName.toStdString();
     if (s.size() <= 32 && s != _name.toStdString() && isAlphaNumeric(newName))
+    {
+        setWaitForCompletion();
+        {
+            TACPIC32CXCommand cmd(this, this);
+            cmd.setName(newName);
+        }
         (void)waitForCompletion();
+    }
 }
 
 // -----------------------------------------------------------------------

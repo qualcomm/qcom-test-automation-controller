@@ -99,13 +99,22 @@ bool FTDIDevice::programDevice(AlpacaDevice alpacaDevice,
 	FT_STATUS ftStatus;
 	FT_HANDLE ftHandle{nullptr};
 
-	qtac::ByteArray serialNumber = alpacaDevice->serialNumber() + "A";
 	qtac::ByteArray usbDescriptor = matchedEntry->_usbDescriptor;
 
 	if (usbDescriptor.isEmpty())
 		usbDescriptor = "ALPACA-LITE MTP DEBUG BOARD";
 
-	ftStatus = FT_OpenEx(serialNumber.data(), FT_OPEN_BY_SERIAL_NUMBER, &ftHandle);
+	// Try channels A, B, C, D in order and use the first that opens.
+	static const char kChannels[] = { 'A', 'B', 'C', 'D' };
+	for (char ch : kChannels)
+	{
+		qtac::ByteArray serialNumber(alpacaDevice->serialNumber().toStdString() + ch);
+		ftStatus = FT_OpenEx(serialNumber.data(), FT_OPEN_BY_SERIAL_NUMBER, &ftHandle);
+		if (ftStatus == FT_OK)
+			break;
+		ftHandle = nullptr;
+	}
+
 	if (ftStatus == FT_OK)
 	{
 		FT_PROGRAM_DATA ftData;
@@ -394,7 +403,14 @@ void FTDIDevice::quickCommand(const qtac::ByteArray& command)
 	entries = qtac::AlpacaScript::replaceTokens(
 	    _ftdiPlatformConfiguration->getVariables(), entries);
 
+	uint32_t scriptDelayMs = 0;
+	for (const auto& entry : entries)
+		if (entry->_commandAction == qtac::_CommandEntry::eDelay)
+			scriptDelayMs += entry->_arguement.toUInt();
+
+	_driveThread->setWaitForCompletion();
 	_driveThread->sendCommandSequence(entries);
+	(void)_driveThread->waitForCompletion(scriptDelayMs);
 }
 
 void FTDIDevice::setVariableValue(const qtac::String& name, const qtac::Variant& value)
