@@ -5,8 +5,6 @@
 
 #include "QCommonConsoleGlobal.h"
 
-#include <QStandardPaths>
-
 #include <cstdint>
 #include <string>
 

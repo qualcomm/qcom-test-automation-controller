@@ -4,7 +4,6 @@
 #ifndef SERIALTABLEMODEL_H
 #define SERIALTABLEMODEL_H
 
-
 struct STMImplementation;
 
 #include "QCommonConsoleGlobal.h"
@@ -18,6 +17,8 @@ class AppCore;
 #include <QString>
 
 #include <cstdint>
+#include <string>
+#include <vector>
 
 class QCOMMONCONSOLE_EXPORT SerialTableModel :
 	public QAbstractTableModel
@@ -25,7 +26,7 @@ class QCOMMONCONSOLE_EXPORT SerialTableModel :
 Q_OBJECT
 
 public:
-	SerialTableModel(QObject* parent = Q_NULLPTR);
+	SerialTableModel(QObject* parent = nullptr);
 	~SerialTableModel() override;
 
 	void setAppCore(AppCore* appCore);
@@ -35,14 +36,14 @@ public:
 	virtual bool filterProc(uint16_t vendorID, uint16_t productID);
 
 	QVariant portData(int deviceIndex, int dataIndex);
-	QString portName(int deviceIndex);
+	std::string portName(int deviceIndex);
 
 	QSerialPortInfo getSelectedSerialPort();
-	QSerialPortInfo getSerialPortFromName(const QByteArray& portName);
-	QSerialPortInfo getSerialPortFromSerialNumber(const QByteArray& serialNumber);
+	QSerialPortInfo getSerialPortFromName(const std::string& portName);
+	QSerialPortInfo getSerialPortFromSerialNumber(const std::string& serialNumber);
 	void setSelectedSerialPort(int rowIndex);
 
-	QString rowData(int row, int column);
+	std::string rowData(int row, int column);
 
 	void refresh();
 
@@ -56,11 +57,10 @@ signals:
 	void modelUpdated();
 
 private:
-	AppCore*					_appCore{Q_NULLPTR};
-	STMImplementation*			_impl{Q_NULLPTR};
+	AppCore*					_appCore{nullptr};
+	STMImplementation*			_impl{nullptr};
 	QSerialPortInfo				_selectedSerialPort;
-	QStringList					_columnHeaders;
+	std::vector<std::string>	_columnHeaders;
 };
 
-#endif // SERIALLISTMODEL_H
-
+#endif // SERIALTABLEMODEL_H

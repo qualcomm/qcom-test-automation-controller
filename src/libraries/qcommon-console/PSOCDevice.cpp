@@ -10,7 +10,10 @@
 #include "Range.h"
 #include "PSOCSerialTableModel.h"
 
-PSOCSerialTableModel* gPSOCTACSerialTableModel{Q_NULLPTR};
+#include <algorithm>
+#include <string>
+
+PSOCSerialTableModel* gPSOCTACSerialTableModel{nullptr};
 
 PSOCDevice::~PSOCDevice()
 {
@@ -18,10 +21,10 @@ PSOCDevice::~PSOCDevice()
 
 uint32_t PSOCDevice::updateAlpacaDevices()
 {
-	if (gPSOCTACSerialTableModel == Q_NULLPTR)
+	if (gPSOCTACSerialTableModel == nullptr)
 		gPSOCTACSerialTableModel = new PSOCSerialTableModel;
 
-	if (gPSOCTACSerialTableModel == Q_NULLPTR)
+	if (gPSOCTACSerialTableModel == nullptr)
 		return 0;
 
 	for (auto& alpacaDevice: _AlpacaDevice::_alpacaDevices)
@@ -36,11 +39,11 @@ uint32_t PSOCDevice::updateAlpacaDevices()
 	{
 		AlpacaDevice alpacaDevice;
 
-		std::string portName = gPSOCTACSerialTableModel->rowData(deviceIndex, kPortNameCol).toLatin1().toStdString();
+		std::string portName = gPSOCTACSerialTableModel->rowData(deviceIndex, kPortNameCol);
 		HashType hash = ::arrayHash(portName);
 
 		alpacaDevice = _AlpacaDevice::findAlpacaDevice(hash);
-		if (alpacaDevice.isNull())
+		if (alpacaDevice == nullptr)
 		{
 			PSOCDevice* psocDevice = new PSOCDevice;
 
@@ -50,10 +53,10 @@ uint32_t PSOCDevice::updateAlpacaDevices()
 			psocDevice->_active = true;
 			psocDevice->_boardType = ePSOC;
 			psocDevice->_platformID = MICRO_EPM_BOARD_ID_UNKNOWN;
-			psocDevice->_description = gPSOCTACSerialTableModel->rowData(deviceIndex, kDescriptionCol).toLatin1().toStdString();
-			psocDevice->_serialNumber = gPSOCTACSerialTableModel->rowData(deviceIndex, kSerialNumberCol).toLatin1().toStdString();
+			psocDevice->_description = gPSOCTACSerialTableModel->rowData(deviceIndex, kDescriptionCol);
+			psocDevice->_serialNumber = gPSOCTACSerialTableModel->rowData(deviceIndex, kSerialNumberCol);
 
-			_AlpacaDevice::_alpacaDevices.push_back(AlpacaDevice(psocDevice));
+			_AlpacaDevice::_alpacaDevices.push_back(std::shared_ptr<PSOCDevice>(psocDevice));
 
 			AppCore::writeToApplicationLog("Found a PSOC device with port name: '" + portName + "'\n");
 		}
@@ -63,14 +66,14 @@ uint32_t PSOCDevice::updateAlpacaDevices()
 		}
 	}
 
-	return _AlpacaDevice::_alpacaDevices.count();
+	return static_cast<uint32_t>(_AlpacaDevice::_alpacaDevices.size());
 }
 
 bool PSOCDevice::open()
 {
 	bool result{false};
 
-	if (_driveThread == Q_NULLPTR)
+	if (_driveThread == nullptr)
 	{
 		_driveThread = new TACPSOCDriveThread(_hash);
 		_driveThread->start();
@@ -108,7 +111,7 @@ bool PSOCDevice::open()
 					TACPlatformEntry platformEntry = _PlatformConfiguration::getEntry(_platformID);
 					_description = platformEntry._platformEntry->_description;
 					_platformConfiguration = platformEntry.getConfiguration();
-					_psocPlatformConfiguration = static_cast<_PSOCPlatformConfiguration*>(_platformConfiguration.data());
+					_psocPlatformConfiguration = static_cast<_PSOCPlatformConfiguration*>(_platformConfiguration.get());
 
 					result = true;
 					break;
@@ -185,7 +188,7 @@ void PSOCDevice::buildMapping()
 			tacCommand._tabName = pin._tabName;
 			tacCommand._groupName = CommandGroup::toString(pin._commandGroup);
 
-			tacCommand._cellLocation = fromQPoint(pin._cellLocation);
+			tacCommand._cellLocation = pin._cellLocation;
 
 			_commands[tacCommand._command] = tacCommand;
 			_commandList.push_back(tacCommand);

@@ -7,8 +7,11 @@
 #include "PlatformConfiguration.h"
 #include "CommandGroup.h"
 
+#include <cstdint>
+#include <map>
 #include <string>
 #include <utility>
+#include <vector>
 
 const PlatformID kMaxPSOCPlatformId(255);
 
@@ -96,10 +99,10 @@ struct PSOCI2CData
 	std::string					_tabName;
 };
 
-typedef QMap<PinID, PSOCPinData> PSOCPinEntries;
-typedef QMap<HashType, PSOCI2CData> PSOCI2CEntries;
-typedef QList<PSOCPinData> PSOCPinList;
-typedef QList<PSOCI2CSlave> PSOCI2CSlaves;
+typedef std::map<PinID, PSOCPinData> PSOCPinEntries;
+typedef std::map<HashType, PSOCI2CData> PSOCI2CEntries;
+typedef std::vector<PSOCPinData> PSOCPinList;
+typedef std::vector<PSOCI2CSlave> PSOCI2CSlaves;
 
 class _PSOCPlatformConfiguration;
 
@@ -163,7 +166,7 @@ public:
 
 	PSOCI2CEntries getI2CEntries() const;
 	PSOCI2CEntries getActiveI2CEntries() const;
-	QList<PSOCI2CData> getI2CEntriesForSlave(const PSOCI2CSlave& slave) const;
+	std::vector<PSOCI2CData> getI2CEntriesForSlave(const PSOCI2CSlave& slave) const;
 	bool addI2CSlave(const PSOCI2CData& i2cData);
 	void removeI2CSlave(HashType hash);
 	PSOCI2CData getI2CSlave(HashType hash) const;

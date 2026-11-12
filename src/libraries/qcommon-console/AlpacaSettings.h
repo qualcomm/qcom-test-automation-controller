@@ -5,20 +5,21 @@
 
 // QCommon
 #include "QCommonConsoleGlobal.h"
-
-// Qt
-#include <QSettings>
+#include "IniSettings.h"
 
 #include <string>
 
 class QCOMMONCONSOLE_EXPORT AlpacaSettings :
-	public QSettings
+	public IniSettings
 {
-	Q_OBJECT
-
 public:
-	AlpacaSettings(const std::string& appName);
-	~AlpacaSettings();
+	AlpacaSettings();
+	explicit AlpacaSettings(const std::string& appName);
+	AlpacaSettings(const std::string& organization, const std::string& appName);
+	~AlpacaSettings() override;
+
+private:
+	bool _scopedGroup{false};
 };
 
 #endif // ALPACASETTINGS_H

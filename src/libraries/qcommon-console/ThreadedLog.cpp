@@ -2,20 +2,19 @@
 // SPDX-License-Identifier: BSD-3-Clause
 
 #include "ThreadedLog.h"
-
-// Qt
-#include <QDateTime>
+#include "StringUtilities.h"
 
 // C++
 #include <mutex>
+#include <string>
 
 void _ThreadedLog::open
 (
-	const QString& filePath
+	const std::string& filePath
 )
 {
 	_currentLogPath = filePath;
-	_logFile.setFileName(filePath);
+	_logFile.setFileName(QString::fromStdString(filePath));
 
 	_starting = true;
 
@@ -52,17 +51,17 @@ void _ThreadedLog::close()
 
 void _ThreadedLog::addLogEntry
 (
-	const QString& logEntry
+	const std::string& logEntry
 )
 {
 	std::lock_guard<std::recursive_mutex> lock(_mutex);
 
-	_logEntries.append(logEntry);
+	_logEntries.push_back(logEntry);
 }
 
 void _ThreadedLog::run()
 {
-	QString logEntry;
+	std::string logEntry;
 
 	bool opened = _logFile.open(QIODevice::WriteOnly);
 
@@ -74,15 +73,16 @@ void _ThreadedLog::run()
 		{
 			std::lock_guard<std::recursive_mutex> lock(_mutex);
 
-			if (_logEntries.empty() == false)
+			if (!_logEntries.empty())
 			{
-				logEntry = _logEntries.takeFirst();
+				logEntry = _logEntries.front();
+				_logEntries.erase(_logEntries.begin());
 			}
 		}
 
-		if (logEntry.isEmpty() == false)
+		if (!logEntry.empty())
 		{
-			_logFile.write(logEntry.toLatin1());
+			_logFile.write(logEntry.data(), logEntry.size());
 			_logFile.flush();
 			logEntry.clear();
 		}
@@ -92,12 +92,13 @@ void _ThreadedLog::run()
 		}
 	}
 
-	while (_logEntries.isEmpty() == false)
+	while (!_logEntries.empty())
 	{
 		std::lock_guard<std::recursive_mutex> lock(_mutex);
 
-		logEntry = _logEntries.takeFirst();
-		_logFile.write(logEntry.toLatin1());
+		logEntry = _logEntries.front();
+		_logEntries.erase(_logEntries.begin());
+		_logFile.write(logEntry.data(), logEntry.size());
 	}
 
 	_logFile.close();
@@ -105,10 +106,10 @@ void _ThreadedLog::run()
 
 ThreadedLog _ThreadedLog::createThreadedLog()
 {
-	return ThreadedLog(new _ThreadedLog);
+	return std::make_shared<_ThreadedLog>();
 }
 
-QString _ThreadedLog::createLogName(const QString& prefix)
+std::string _ThreadedLog::createLogName(const std::string& prefix)
 {
-	return prefix + QDateTime::currentDateTime().toString("MMdd_HHmmss") + ".log";
+	return prefix + formatDateTime("%m%d_%H%M%S") + ".log";
 }

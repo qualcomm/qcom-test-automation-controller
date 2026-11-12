@@ -4,7 +4,6 @@
 #ifndef PIC32CXDEVICE_H
 #define PIC32CXDEVICE_H
 
-
 #include "AlpacaDevice.h"
 #include "PIC32CXPlatformConfiguration.h"
 
@@ -19,13 +18,13 @@ public:
 
 	static uint32_t updateAlpacaDevices();
 
-	virtual bool open();
+	virtual bool open() override;
 
 	void buildCommandList();
-	virtual void buildMapping();
+	virtual void buildMapping() override;
 
 private:
-	_PIC32CXPlatformConfiguration* _pic32cxPlatformConfiguration{Q_NULLPTR};
+	_PIC32CXPlatformConfiguration* _pic32cxPlatformConfiguration{nullptr};
 };
 
 #endif // PIC32CXDEVICE_H

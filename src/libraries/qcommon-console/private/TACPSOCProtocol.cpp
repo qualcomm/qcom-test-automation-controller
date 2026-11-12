@@ -12,8 +12,12 @@
 // QCommon
 #include "TickCount.h"
 
+#include <cctype>
+#include <string>
+#include <vector>
+
 TACPSOCProtocol::TACPSOCProtocol() :
-	_tacDriveTrain(Q_NULLPTR),
+	_tacDriveTrain(nullptr),
 	_tickCount(0)
 {
 	setFrameCoder(new TACPSOCCoder);
@@ -21,10 +25,10 @@ TACPSOCProtocol::TACPSOCProtocol() :
 
 TACPSOCProtocol::~TACPSOCProtocol()
 {
-	if (_frameCoder != Q_NULLPTR)
+	if (_frameCoder != nullptr)
 	{
 		delete _frameCoder;
-		_frameCoder = Q_NULLPTR;
+		_frameCoder = nullptr;
 	}
 }
 
@@ -33,14 +37,14 @@ void TACPSOCProtocol::setTACDriveTrain
 	TACDriveThread* tacDriveTrain
 )
 {
-	Q_ASSERT(tacDriveTrain != Q_NULLPTR);
+	Q_ASSERT(tacDriveTrain != nullptr);
 
 	_tacDriveTrain = tacDriveTrain;
 }
 
 uint32_t TACPSOCProtocol::sendCommand
 (
-	const QByteArray& command,
+	const std::string& command,
 	const Arguments& arguments,
 	bool console,
 	ReceiveInterface* receiveInterface,
@@ -49,20 +53,20 @@ uint32_t TACPSOCProtocol::sendCommand
 {
 	uint32_t result(kBadQueueValue);
 
-	if (command.isEmpty() == false)
+	if (!command.empty())
 	{
 		result = getNextSendID();
 
-		FramePackage framePackage = FramePackage(new _FramePackage);
+		FramePackage framePackage = std::make_shared<_FramePackage>();
 
 		framePackage->_packetID = result;
 		framePackage->_request = command;
 		framePackage->_arguments = arguments;
-		framePackage->_requestHash = CommandStringToHash(command.toStdString());
+		framePackage->_requestHash = CommandStringToHash(command);
 		framePackage->_console = console;
 		framePackage->_shouldStore = shouldStore;
 		framePackage->_recieveInterface = receiveInterface;
-		if (_frameCoder == Q_NULLPTR)
+		if (_frameCoder == nullptr)
 			framePackage->_codedRequest = command;
 		else
 			framePackage->_codedRequest = _frameCoder->encode(command, arguments);
@@ -92,16 +96,33 @@ void TACPSOCProtocol::idle()
 {
 }
 
+static std::string trimString(const std::string& s)
+{
+	size_t first = s.find_first_not_of(" \t\r\n");
+	if (first == std::string::npos) return "";
+	size_t last = s.find_last_not_of(" \t\r\n");
+	return s.substr(first, last - first + 1);
+}
+
+static bool equalsIgnoreCase(const std::string& a, const std::string& b)
+{
+	if (a.size() != b.size()) return false;
+	for (size_t i = 0; i < a.size(); ++i)
+		if (std::tolower(static_cast<unsigned char>(a[i])) != std::tolower(static_cast<unsigned char>(b[i])))
+			return false;
+	return true;
+}
+
 void TACPSOCProtocol::frameComplete
 (
-	const QByteArray& completedFrame
+	const std::string& completedFrame
 )
 {
-	static QList<QByteArray> frames;
+	static std::vector<std::string> frames;
 
-	if (completedFrame != QByteArray())
+	if (!completedFrame.empty())
 	{
-		if (completedFrame.contains(kCommand) == false)
+		if (completedFrame.find(kCommand) == std::string::npos)
 		{
 			frames.push_back(completedFrame);
 		}
@@ -109,12 +130,12 @@ void TACPSOCProtocol::frameComplete
 	else
 	{
 		FramePackage& framePackage = pendingFramePackage();
-		if (framePackage.isNull() == false)
+		if (framePackage != nullptr)
 		{
 			framePackage->_responses = frames;
-			framePackage->_valid = frames.last().trimmed().compare("ok", Qt::CaseInsensitive) == 0;
+			framePackage->_valid = !frames.empty() && equalsIgnoreCase(trimString(frames.back()), "ok");
 
-			if (framePackage->_recieveInterface != Q_NULLPTR)
+			if (framePackage->_recieveInterface != nullptr)
 			{
 				framePackage->_recieveInterface->receive(framePackage);
 			}
@@ -132,10 +153,10 @@ void TACPSOCProtocol::frameComplete
 
 void TACPSOCProtocol::badFrame
 (
-	const QByteArray& completedFrame
+	const std::string& completedFrame
 )
 {
-	Q_UNUSED(completedFrame);
+	(void)completedFrame;
 }
 
 void TACPSOCProtocol::triggerElapsed()

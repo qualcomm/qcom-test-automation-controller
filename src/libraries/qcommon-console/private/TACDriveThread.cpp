@@ -14,12 +14,9 @@
 #include "TACPSOCDriveThread.h"
 #include "TACPIC32CXDriveThread.h"
 
-// Qt
-#include <QDir>
-#include <QDateTime>
-#include <QTextStream>
-
+#include <cctype>
 #include <cstdint>
+#include <string>
 
 TACDriveThread::TACDriveThread
 (
@@ -38,13 +35,13 @@ TACDriveThread* TACDriveThread::openPort
 	const std::string& portName
 )
 {
-	TACDriveThread* result{Q_NULLPTR};
+	TACDriveThread* result{nullptr};
 
 	if (_AlpacaDevice::updateAlpacaDevices() > 0)
 	{
 		AlpacaDevice alpacaDevice = _AlpacaDevice::findAlpacaDevice(portName);
 
-		if (alpacaDevice->active())
+		if (alpacaDevice && alpacaDevice->active())
 		{
 			switch (alpacaDevice->debugBoardType())
 			{
@@ -111,81 +108,122 @@ bool TACDriveThread::oldFirmware()
 	return _oldFirmware;
 }
 
-QByteArray TACDriveThread::decodeCommand
+static std::string trimString(const std::string& s)
+{
+	size_t first = s.find_first_not_of(" \t\r\n");
+	if (first == std::string::npos) return "";
+	size_t last = s.find_last_not_of(" \t\r\n");
+	return s.substr(first, (last - first + 1));
+}
+
+static std::string toLowerString(const std::string& s)
+{
+	std::string res = s;
+	for (char& c : res)
+		c = static_cast<char>(std::tolower(static_cast<unsigned char>(c)));
+	return res;
+}
+
+static bool startsWithCaseInsensitive(const std::string& str, const std::string& prefix)
+{
+	if (str.size() < prefix.size()) return false;
+	for (size_t i = 0; i < prefix.size(); ++i)
+	{
+		if (std::tolower(static_cast<unsigned char>(str[i])) != std::tolower(static_cast<unsigned char>(prefix[i])))
+			return false;
+	}
+	return true;
+}
+
+static bool endsWithCaseInsensitive(const std::string& str, const std::string& suffix)
+{
+	if (str.size() < suffix.size()) return false;
+	size_t offset = str.size() - suffix.size();
+	for (size_t i = 0; i < suffix.size(); ++i)
+	{
+		if (std::tolower(static_cast<unsigned char>(str[offset + i])) != std::tolower(static_cast<unsigned char>(suffix[i])))
+			return false;
+	}
+	return true;
+}
+
+std::string TACDriveThread::decodeCommand
 (
-	const QByteArray& command,
+	const std::string& command,
 	Arguments& args
 )
 {
-	QString result{command.toLower()};
+	std::string result = trimString(toLowerString(command));
 
-	result = result.trimmed();
-
-	if (result.endsWith(" on"))
+	if (endsWithCaseInsensitive(result, " on"))
 	{
 		args.push_back(true);
-		result.remove(" on");
+		result = result.substr(0, result.size() - 3);
 	}
-	else if (result.endsWith(" off"))
+	else if (endsWithCaseInsensitive(result, " off"))
 	{
 		args.push_back(false);
-		result.remove(" off");
+		result = result.substr(0, result.size() - 4);
 	}
-	else if (result.endsWith(" 1"))
+	else if (endsWithCaseInsensitive(result, " 1"))
 	{
 		args.push_back(true);
-		result.remove(" 1");
+		result = result.substr(0, result.size() - 2);
 	}
-	else if (result.endsWith(" 0"))
+	else if (endsWithCaseInsensitive(result, " 0"))
 	{
 		args.push_back(false);
-		result.remove(" 0");
+		result = result.substr(0, result.size() - 2);
 	}
 
-	if (result.startsWith(kSetNameCommand) || result.startsWith("setname"))
+	if (startsWithCaseInsensitive(result, kSetNameCommand) || startsWithCaseInsensitive(result, "setname"))
 	{
-		result.remove(kSetNameCommand.toLower());
-		result = result.remove("setname").trimmed();
+		size_t prefixLen = startsWithCaseInsensitive(result, kSetNameCommand) ? kSetNameCommand.size() : std::string("setname").size();
+		result = trimString(result.substr(prefixLen));
 
-		args.push_back(result.toLatin1().toStdString());
+		args.push_back(result);
 		result = kSetNameCommand;
 	}
-	else if (result.startsWith(kSetButtonAssertTime) || result.startsWith(kSetButtonAssertTimeAlias))
+	else if (startsWithCaseInsensitive(result, kSetButtonAssertTime) || startsWithCaseInsensitive(result, kSetButtonAssertTimeAlias))
 	{
-		result.remove(kSetNameCommand.toLower());
-		result = result.remove(kSetButtonAssertTimeAlias).trimmed();
+		size_t prefixLen = startsWithCaseInsensitive(result, kSetButtonAssertTime) ? kSetButtonAssertTime.size() : kSetButtonAssertTimeAlias.size();
+		result = trimString(result.substr(prefixLen));
 
-		args.push_back(static_cast<uint32_t>(result.toUInt()));
+		try {
+			args.push_back(static_cast<uint32_t>(std::stoul(result)));
+		} catch (...) {}
 		result = kSetButtonAssertTime;
 	}
-	else if (result.startsWith(kSetPowerKeyDelay) || result.startsWith(kSetPowerKeyDelayAlias))
+	else if (startsWithCaseInsensitive(result, kSetPowerKeyDelay) || startsWithCaseInsensitive(result, kSetPowerKeyDelayAlias))
 	{
-		result.remove(kSetNameCommand.toLower());
-		result = result.remove(kSetPowerKeyDelayAlias).trimmed();
+		size_t prefixLen = startsWithCaseInsensitive(result, kSetPowerKeyDelay) ? kSetPowerKeyDelay.size() : kSetPowerKeyDelayAlias.size();
+		result = trimString(result.substr(prefixLen));
 
-		args.push_back(static_cast<uint32_t>(result.toUInt()));
+		try {
+			args.push_back(static_cast<uint32_t>(std::stoul(result)));
+		} catch (...) {}
 		result = kSetPowerKeyDelay;
 	}
-	else if (result.startsWith(kSetPinCommand, Qt::CaseInsensitive))
+	else if (startsWithCaseInsensitive(result, kSetPinCommand))
 	{
-		result.remove(kSetPinCommand.toLower());
+		result = trimString(result.substr(kSetPinCommand.size()));
 
-		QStringList argList = result.split(" ", Qt::SkipEmptyParts);
-		args.push_back(static_cast<uint32_t>(result.toUInt())); // state and then pin
-
+		try {
+			args.push_back(static_cast<uint32_t>(std::stoul(result)));
+		} catch (...) {}
 		result = kSetPinCommand;
 	}
 
-	uint32_t hash = CommandStringToHash(result.toStdString());
+	uint32_t hash = CommandStringToHash(result);
 	if (hash != 0)
 	{
 		oldCommandEntry commandEntry = CommandHashToCommandEntry(hash);
-		result = QString::fromStdString(commandEntry._longCommand);
+		result = commandEntry._longCommand;
 	}
 	else
 		result.clear();
 
-	return result.toLatin1();
+	return result;
 }
 
 bool TACDriveThread::checkLocalStore
@@ -194,12 +232,11 @@ bool TACDriveThread::checkLocalStore
 )
 {
 	bool result{false};
-	QString response;
 
 	switch(framePackage->_requestHash)
 	{
 	case kVersionCommandHash:
-		if (_versionString.isEmpty() == false)
+		if (!_versionString.empty())
 		{
 			framePackage->_responses.push_back(_versionString);
 			result = true;
@@ -207,7 +244,7 @@ bool TACDriveThread::checkLocalStore
 		break;
 
 	case kGetNameCommandHash:
-		if (_name.isEmpty() == false)
+		if (!_name.empty())
 		{
 			framePackage->_responses.push_back(_name);
 			result = true;
@@ -215,9 +252,9 @@ bool TACDriveThread::checkLocalStore
 		break;
 
 	case kGetUUIDCommandHash:
-		if (_uuid.isEmpty() == false)
+		if (!_uuid.empty())
 		{
-			framePackage->_responses.push_back(_uuid.toLatin1());
+			framePackage->_responses.push_back(_uuid);
 			result = true;
 		}
 		break;
@@ -225,14 +262,14 @@ bool TACDriveThread::checkLocalStore
 	case kGetPlatformIDCommandHash:
 		if (_platformID != MICRO_EPM_BOARD_ID_UNKNOWN)
 		{
-			QString response = QString("%1(%2)").arg(QString::fromStdString(PlatformContainer::toString(_platformID))).arg(static_cast<int>(_platformID));
-			framePackage->_responses.push_back(response.toLatin1().data());
+			std::string response = PlatformContainer::toString(_platformID) + "(" + std::to_string(static_cast<int>(_platformID)) + ")";
+			framePackage->_responses.push_back(response);
 			result = true;
 		}
 		break;
 
 	case kPIC32CXVersionCommandHash:
-		if (_versionString.isEmpty() == false)
+		if (!_versionString.empty())
 		{
 			framePackage->_responses.push_back(_versionString);
 			result = true;
@@ -288,22 +325,22 @@ uint TACDriveThread::revisionVersion()
 	return _firmwareRevision;
 }
 
-QByteArray TACDriveThread::name() const
+std::string TACDriveThread::name() const
 {
 	return _name;
 }
 
-void TACDriveThread::setName(const QByteArray &newName)
+void TACDriveThread::setName(const std::string &newName)
 {
 	_name = newName;
 }
 
-QByteArray TACDriveThread::portName() const
+std::string TACDriveThread::portName() const
 {
 	return _portName;
 }
 
-void TACDriveThread::setPortName(const QByteArray &portName)
+void TACDriveThread::setPortName(const std::string &portName)
 {
 	_portName = portName;
 }
@@ -318,17 +355,17 @@ void TACDriveThread::setDescription(const std::string &description)
 	_description = description;
 }
 
-QString TACDriveThread::serialNumber() const
+std::string TACDriveThread::serialNumber() const
 {
 	return _serialNumber;
 }
 
-void TACDriveThread::setSerialNumber(QString serialNumber)
+void TACDriveThread::setSerialNumber(const std::string &serialNumber)
 {
 	_serialNumber = serialNumber;
 }
 
-QString TACDriveThread::uuid()
+std::string TACDriveThread::uuid()
 {
 	return _uuid;
 }
@@ -353,7 +390,7 @@ bool TACDriveThread::resetLogging()
 	bool result{false};
 
 	AppCore* appCore = AppCore::getAppCore();
-	if (appCore != Q_NULLPTR)
+	if (appCore != nullptr)
 	{
 		result = appCore->runLoggingActive();
 		if (result)
@@ -370,7 +407,7 @@ void TACDriveThread::log
 	FramePackage& framePackage
 )
 {
-	QString logEntry;
+	std::string logEntry;
 
 	AppCore::writeToApplicationLogLine("");
 	AppCore::writeToApplicationLogLine("Frame Package Start");
@@ -379,38 +416,35 @@ void TACDriveThread::log
 
 	if (framePackage->_delayInMilliSeconds > 0)
 	{
-		logEntry = QString(" Delay %1 in msecs").arg(framePackage->_delayInMilliSeconds);
+		logEntry = " Delay " + std::to_string(framePackage->_delayInMilliSeconds) + " in msecs";
 		timeStampLogMessage(logEntry);
-		AppCore::writeToApplicationLogLine(logEntry.toStdString());
+		AppCore::writeToApplicationLogLine(logEntry);
 	}
-	else if (framePackage->_comment.isEmpty() == false)
+	else if (!framePackage->_comment.empty())
 	{
-		logEntry = QString("%1").arg(framePackage->_comment.data());
-		AppCore::writeToApplicationLogLine(logEntry.toStdString());
+		AppCore::writeToApplicationLogLine(framePackage->_comment);
 	}
 	else
 	{
-		if (framePackage->_console == true)
-			logEntry = QString("Request from console: %1").arg(framePackage->_request.data());
+		if (framePackage->_console)
+			logEntry = "Request from console: " + framePackage->_request;
 		else
-			logEntry = QString("Request: %1").arg(framePackage->_request.data());
+			logEntry = "Request: " + framePackage->_request;
 
-		AppCore::writeToApplicationLogLine(logEntry.toStdString());
+		AppCore::writeToApplicationLogLine(logEntry);
 
-		if (framePackage->_synonym.isEmpty() == false)
+		if (!framePackage->_synonym.empty())
 		{
-			logEntry = QString("Synonym: %1").arg(framePackage->_synonym.data());
-			AppCore::writeToApplicationLogLine(logEntry.toStdString());
+			logEntry = "Synonym: " + framePackage->_synonym;
+			AppCore::writeToApplicationLogLine(logEntry);
 		}
 
 		AppCore::writeToApplicationLogLine("Responses");
 
-		auto response = framePackage->_responses.begin();
-		while (response != framePackage->_responses.end())
+		for (const auto& response : framePackage->_responses)
 		{
-			logEntry = QString("   %1").arg(response->data());
-			AppCore::writeToApplicationLogLine(logEntry.toStdString());
-			response++;
+			logEntry = "   " + response;
+			AppCore::writeToApplicationLogLine(logEntry);
 		}
 	}
 
@@ -420,7 +454,7 @@ void TACDriveThread::log
 
 void TACDriveThread::timeStampLogMessage
 (
-	QString& timeStampMe
+	std::string& timeStampMe
 )
 {
 	static uint64_t lastTimeStamp{0};
@@ -431,7 +465,7 @@ void TACDriveThread::timeStampLogMessage
 	}
 
 	uint64_t current = tickCount();
-	timeStampMe += QString("Time: %1 elapsed: %2 (ms)").arg(current).arg(current - lastTimeStamp);
+	timeStampMe += "Time: " + std::to_string(current) + " elapsed: " + std::to_string(current - lastTimeStamp) + " (ms)";
 	lastTimeStamp = current;
 }
 

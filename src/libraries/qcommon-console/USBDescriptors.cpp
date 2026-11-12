@@ -6,16 +6,14 @@
 // QCommonConsole
 #include "ConsoleApplicationEnhancements.h"
 #include "Range.h"
+#include "StringUtilities.h"
 
 // QT
-#include <QDateTime>
-#include <QDir>
 #include <QFile>
 #include <QFileInfo>
 #include <QJsonArray>
 #include <QJsonDocument>
 #include <QJsonObject>
-#include <QTime>
 
 #include <cctype>
 
@@ -46,7 +44,7 @@ const QString kChip4BusSet(QStringLiteral("chip4BusSet"));
 
 USBDescriptors::USBDescriptors()
 {
-	_modifyDate = QDateTime::currentDateTime().toString().toStdString();
+	_modifyDate = currentDateTimeString();
 }
 
 DescriptorList USBDescriptors::getDescriptors()

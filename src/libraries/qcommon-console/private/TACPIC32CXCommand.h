@@ -4,17 +4,14 @@
 #ifndef TACPIC32CXCOMMAND_H
 #define TACPIC32CXCOMMAND_H
 
-
 #include "QCommonConsoleGlobal.h"
 
 // QCommonConsole
 class ReceiveInterface;
 #include "SendInterface.h"
 
-// Qt
-#include <QByteArray>
-
 #include <cstdint>
+#include <string>
 
 class QCOMMONCONSOLE_EXPORT TACPIC32CXCommand
 {
@@ -28,11 +25,11 @@ public:
 
 	virtual void setPinState(uint16_t pin, bool state);
 
-	void setName(const QByteArray& newName);
+	void setName(const std::string& newName);
 
-	void send(const QByteArray& command, const Arguments& arguments, bool console, bool store = true);
+	void send(const std::string& command, const Arguments& arguments, bool console, bool store = true);
 	void addDelay(uint32_t delayInMilliSeconds);
-	void addLogComment(const QByteArray& comment);
+	void addLogComment(const std::string& comment);
 	void addEndTransaction();
 
 	void platformID();

@@ -10,18 +10,20 @@
 // QCommon
 #include "TickCount.h"
 
+#include <string>
+
 TACSTM32Protocol::TACSTM32Protocol() :
-	_tacDriveTrain(Q_NULLPTR)
+	_tacDriveTrain(nullptr)
 {
 	setFrameCoder(new TACSTM32Coder);
 }
 
 TACSTM32Protocol::~TACSTM32Protocol()
 {
-	if (_frameCoder != Q_NULLPTR)
+	if (_frameCoder != nullptr)
 	{
 		delete _frameCoder;
-		_frameCoder = Q_NULLPTR;
+		_frameCoder = nullptr;
 	}
 }
 
@@ -30,14 +32,14 @@ void TACSTM32Protocol::setTACDriveTrain
 	TACDriveThread* tacDriveTrain
 )
 {
-	Q_ASSERT(tacDriveTrain != Q_NULLPTR);
+	Q_ASSERT(tacDriveTrain != nullptr);
 
 	_tacDriveTrain = tacDriveTrain;
 }
 
 uint32_t TACSTM32Protocol::sendCommand
 (
-	const QByteArray& command,
+	const std::string& command,
 	const Arguments& arguments,
 	bool console,
 	ReceiveInterface* receiveInterface,
@@ -46,22 +48,22 @@ uint32_t TACSTM32Protocol::sendCommand
 {
 	uint32_t result(kBadQueueValue);
 
-	if (command.isEmpty() == false)
+	if (!command.empty())
 	{
 		result = getNextSendID();
 
-		FramePackage framePackage = FramePackage(new _FramePackage);
+		FramePackage framePackage = std::make_shared<_FramePackage>();
 
 		framePackage->_packetID = result;
 		framePackage->_request = command;
 		framePackage->_arguments = arguments;
-		framePackage->_requestHash = CommandStringToHash(command.toStdString());
+		framePackage->_requestHash = CommandStringToHash(command);
 		framePackage->_console = console;
 		framePackage->_shouldStore = shouldStore;
 		framePackage->_tickcount = tickCount();
 
 		framePackage->_recieveInterface = receiveInterface;
-		if (_frameCoder == Q_NULLPTR)
+		if (_frameCoder == nullptr)
 			framePackage->_codedRequest = command;
 		else
 			framePackage->_codedRequest = _frameCoder->encode(command, arguments);
@@ -91,18 +93,18 @@ void TACSTM32Protocol::idle()
 
 void TACSTM32Protocol::frameComplete
 (
-	const QByteArray& completedFrame
+	const std::string& completedFrame
 )
 {
-	Q_UNUSED(completedFrame)
+	(void)completedFrame;
 
 	clearPendingFrame();
 }
 
 void TACSTM32Protocol::badFrame
 (
-	const QByteArray& completedFrame
+	const std::string& completedFrame
 )
 {
-	Q_UNUSED(completedFrame);
+	(void)completedFrame;
 }

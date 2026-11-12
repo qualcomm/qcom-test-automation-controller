@@ -68,10 +68,10 @@ void _FT232HPlatformConfiguration::initialize()
 	_platform = eFT232H;
 	_platformId = ALPACA_BUGHOPPER_ID;
 
-	static QList<Bus> busList;
-	static QList<uint32_t> pinList = {0, 1, 2, 3, 4, 5, 6, 7};
+	static std::vector<Bus> busList;
+	static std::vector<uint32_t> pinList = {0, 1, 2, 3, 4, 5, 6, 7};
 
-	busList = {Bus('C'), Bus('D')};
+	busList = {'C', 'D'};
 
 	for (auto& busIndex: busList)
 	{
@@ -96,7 +96,7 @@ void _FT232HPlatformConfiguration::initialize()
 	pinData.clear();
 	busData.clear();
 
-	pinData._bus = Bus('C');
+	pinData._bus = 'C';
 	pinData._chipPin = 0;
 	pinData._setPin = getSetPinIndex(0, pinData._bus, pinData._chipPin);
 	pinData._hash = FTDIPinData::makeFTDIHash(0, pinData._bus, pinData._chipPin);
@@ -124,7 +124,7 @@ void _FT232HPlatformConfiguration::initialize()
 	pinData.clear();
 	busData.clear();
 
-	pinData._bus = Bus('C');
+	pinData._bus = 'C';
 	pinData._chipPin= 1;
 	pinData._setPin = getSetPinIndex(0, pinData._bus, pinData._chipPin);
 	pinData._hash = FTDIPinData::makeFTDIHash(0, pinData._bus, pinData._chipPin);
@@ -152,7 +152,7 @@ void _FT232HPlatformConfiguration::initialize()
 	pinData.clear();
 	busData.clear();
 
-	pinData._bus = Bus('C');
+	pinData._bus = 'C';
 	pinData._chipPin= 2;
 	pinData._setPin = getSetPinIndex(0, pinData._bus, pinData._chipPin);
 	pinData._hash = FTDIPinData::makeFTDIHash(0, pinData._bus, pinData._chipPin);
@@ -916,7 +916,10 @@ bool _FT232HPlatformConfiguration::read(QJsonObject& parentLevel)
 					chipIndex = pinEntry[kChipIndex].toInt();
 
 				if (pinEntry.contains(kBus))
-					bus = pinEntry[kBus].toString().at(0);
+				{
+					QString busStr = pinEntry[kBus].toString();
+					bus = busStr.isEmpty() ? '\0' : busStr.at(0).toLatin1();
+				}
 
 				if (pinEntry.contains(kPinNumber))
 					pinId = pinEntry[kPinNumber].toString().toInt();
@@ -979,14 +982,17 @@ bool _FT232HPlatformConfiguration::read(QJsonObject& parentLevel)
 				QJsonObject busEntry = busArray[pinIndex].toObject();
 
 				ChipIndex chipIndex{0};
-				Bus bus;
+				Bus bus{'\0'};
 				FTDIBusFunction busFunction{eBusFunctionUnknown};
 
 				if (busEntry.contains(kChipIndex))
 					chipIndex = busEntry[kChipIndex].toInt();
 
 				if (busEntry.contains(kBus))
-					bus = busEntry[kBus].toString().at(0);
+				{
+					QString busStr = busEntry[kBus].toString();
+					bus = busStr.isEmpty() ? '\0' : busStr.at(0).toLatin1();
+				}
 
 				if (busEntry.contains(kBusFunction))
 					busFunction = FTDIBusFunction(busEntry[kBusFunction].toInt());
@@ -1014,7 +1020,7 @@ void _FT232HPlatformConfiguration::write(QJsonObject& parentLevel)
 		QJsonObject pinData;
 
 		pinData[kChipIndex] = 0;
-		pinData[kBus] = QVariant(pinEntry._bus).toString();
+		pinData[kBus] = QString(pinEntry._bus);
 		pinData[kPinNumber] = QString::number(pinEntry._chipPin);
 		pinData[kEnabled] = pinEntry._enabled;
 		pinData[kInput] = pinEntry._input;
@@ -1042,7 +1048,7 @@ void _FT232HPlatformConfiguration::write(QJsonObject& parentLevel)
 		QJsonObject busData;
 
 		busData[kChipIndex] = busFunction._chipIndex;
-		busData[kBus] = QVariant(busFunction._bus).toString();
+		busData[kBus] = QString(busFunction._bus);
 		busData[kBusFunction] = busFunction._busFunction;
 
 		busArray.append(busData);
@@ -1055,7 +1061,7 @@ PinID _FT232HPlatformConfiguration::getSetPinIndex(const int chipIndex, const Bu
 {
 	int pinIndex{0};
 
-	switch (bus.toLatin1())
+	switch (bus)
 	{
 	case 'A': pinIndex = 0; break;
 	case 'B': pinIndex = 8; break;

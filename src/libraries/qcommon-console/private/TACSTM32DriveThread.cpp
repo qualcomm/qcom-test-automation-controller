@@ -11,9 +11,7 @@
 // QCommon
 #include "AppCore.h"
 
-// Qt
-#include <QDateTime>
-#include <QDir>
+#include <string>
 
 const std::string kTACSTM32DriveTrainName{"TAC STM32 Drive Train"};
 
@@ -29,22 +27,22 @@ TACSTM32DriveThread::TACSTM32DriveThread
 
 	AlpacaDevice alpacaDevice = _AlpacaDevice::findAlpacaDevice(hash);
 
-	if (alpacaDevice->active())
+	if (alpacaDevice && alpacaDevice->active())
 	{
-		_stm32Device = static_cast<STM32Device*>(alpacaDevice.data());
+		_stm32Device = static_cast<STM32Device*>(alpacaDevice.get());
 
-		_portName = QByteArray::fromStdString(alpacaDevice->portName());
+		_portName = alpacaDevice->portName();
 		_platformID = alpacaDevice->platformID();
 		_hardwareType = alpacaDevice->debugBoardType();
-		_name = QByteArray::fromStdString(alpacaDevice->serialNumber());
+		_name = alpacaDevice->serialNumber();
 		_description = "Arduino BugHopper V2 Board";
 		_uuid = "Bug Hopper V2 - No UUID";
 
-		setSerialNumber(QString::fromStdString(alpacaDevice->serialNumber()));
-		setPortName(QByteArray::fromStdString(alpacaDevice->portName()));
+		setSerialNumber(alpacaDevice->serialNumber());
+		setPortName(alpacaDevice->portName());
 
-		connect(this, &TACDriveThread::deviceDisconnected, alpacaDevice.data(), &_AlpacaDevice::onDeviceDisconnect, Qt::DirectConnection);
-		connect(this, &TACDriveThread::progress, alpacaDevice.data(), &_AlpacaDevice::progress);
+		connect(this, &TACDriveThread::deviceDisconnected, alpacaDevice.get(), &_AlpacaDevice::onDeviceDisconnect, Qt::DirectConnection);
+		connect(this, &TACDriveThread::progress, alpacaDevice.get(), &_AlpacaDevice::progress);
 	}
 }
 
@@ -56,7 +54,7 @@ bool TACSTM32DriveThread::openSTM32Device()
 {
 	bool result{false};
 
-	if (_stm32Device != Q_NULLPTR)
+	if (_stm32Device != nullptr)
 	{
 		result = _stm32Device->openTransport();
 
@@ -103,7 +101,7 @@ void TACSTM32DriveThread::sendCommandSequence
 				break;
 
 			case _CommandEntry::eLog:
-				tacCommand.addLogComment(QByteArray::fromStdString(std::get<std::string>(commandEntry->_arguement)));
+				tacCommand.addLogComment(std::get<std::string>(commandEntry->_arguement));
 				break;
 
 			case _CommandEntry::eDelay:
@@ -136,8 +134,8 @@ void TACSTM32DriveThread::i2CReadRegister
 	uint32_t reg
 )
 {
-	Q_UNUSED(addr)
-	Q_UNUSED(reg)
+	(void)addr;
+	(void)reg;
 }
 
 void TACSTM32DriveThread::i2CWriteRegister
@@ -147,40 +145,40 @@ void TACSTM32DriveThread::i2CWriteRegister
 	uint32_t data
 )
 {
-	Q_UNUSED(addr)
-	Q_UNUSED(reg)
-	Q_UNUSED(data)
+	(void)addr;
+	(void)reg;
+	(void)data;
 }
 
 void TACSTM32DriveThread::setName
 (
-	const QByteArray& newName
+	const std::string& newName
 )
 {
-	Q_UNUSED(newName)
+	(void)newName;
 }
 
 void TACSTM32DriveThread::sendCommand
 (
-	const QByteArray& command,
+	const std::string& command,
 	bool console, // = false
-	ReceiveInterface* receiveInterface, // = Q_NULLPTR
+	ReceiveInterface* receiveInterface, // = nullptr
 	bool shouldStore // = true
 )
 {
-	Q_UNUSED(console)
-	Q_UNUSED(receiveInterface)
-	Q_UNUSED(shouldStore)
+	(void)console;
+	(void)receiveInterface;
+	(void)shouldStore;
 
 	Arguments args;
-	QByteArray decodedCommand = decodeCommand(command, args);
+	std::string decodedCommand = decodeCommand(command, args);
 
 	send(decodedCommand, args, console, receiveInterface, shouldStore);
 }
 
 uint32_t TACSTM32DriveThread::send
 (
-	const QByteArray& sendMe,
+	const std::string& sendMe,
 	const Arguments& arguments,
 	bool console,
 	ReceiveInterface* recieveInterface,
@@ -216,7 +214,7 @@ void TACSTM32DriveThread::receive
 				bool state = std::get<bool>(framePackage->getArgument(0));
 				uint32_t pin = std::get<uint32_t>(framePackage->getArgument(1));
 
-				framePackage->_synonym = "Set Pin " + QByteArray::number(pin) + " " + QByteArray(state ? "true" : "false");
+				framePackage->_synonym = "Set Pin " + std::to_string(pin) + " " + (state ? "true" : "false");
 
 				emit pinStateChanged(pin, state);
 			}
@@ -230,7 +228,7 @@ void TACSTM32DriveThread::receive
 	{
 		clearWaitForCompletion();
 
-		if (framePackage->_lastError.isEmpty() == false)
+		if (!framePackage->_lastError.empty())
 			emit errorOnOpen(framePackage->_lastError);
 	}
 
@@ -277,16 +275,16 @@ void TACSTM32DriveThread::run()
 		while (!loopFinished)
 		{
 			FramePackage framePackage = _tacProtocol.getNextFramePackage();
-			if (framePackage.isNull() == false)
+			if (framePackage != nullptr)
 			{
 				if (framePackage->_delayInMilliSeconds != 0 ||
-					framePackage->_comment.isEmpty() == false ||
+					!framePackage->_comment.empty() ||
 					framePackage->_endTransaction == true ||
 					checkLocalStore(framePackage) == true)
 				{
 					receive(framePackage);
 				}
-				else if (_stm32Device != Q_NULLPTR)
+				else if (_stm32Device != nullptr)
 				{
 					if (_stm32Device->write(framePackage->_codedRequest) == true)
 					{
@@ -294,7 +292,7 @@ void TACSTM32DriveThread::run()
 					}
 					else
 					{
-						AppCore::writeToApplicationLogLine("TACSTM32DriveThread::run() write failure for request " + framePackage->_request.toStdString());
+						AppCore::writeToApplicationLogLine("TACSTM32DriveThread::run() write failure for request " + framePackage->_request);
 
 						framePackage->_valid = false;
 						framePackage->_lastError = "BugHopper V2 write failed";
@@ -326,7 +324,7 @@ void TACSTM32DriveThread::run()
 
 	AppCore::writeToApplicationLogLine("TACSTM32DriveThread::run() closeTransport()");
 
-	if (_stm32Device != Q_NULLPTR)
+	if (_stm32Device != nullptr)
 	{
 		_stm32Device->close();
 	}

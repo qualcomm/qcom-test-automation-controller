@@ -10,16 +10,17 @@
 #include "PlatformID.h"
 #include "StringUtilities.h"
 
-#include <QSharedPointer>
-#include <QMap>
-
 #include <cstdint>
+#include <map>
+#include <memory>
+#include <string>
+#include <vector>
 
 class _FTDIChipset;
 
-typedef QSharedPointer<_FTDIChipset> FTDIChipset;
-typedef QList<FTDIChipset> FTDIChipsetList;
-typedef QMap<HashType, FTDIChipset> FTDIChipsetMap;
+typedef std::shared_ptr<_FTDIChipset> FTDIChipset;
+typedef std::vector<FTDIChipset> FTDIChipsetList;
+typedef std::map<HashType, FTDIChipset> FTDIChipsetMap;
 
 #include "QCommonConsoleGlobal.h"
 
@@ -35,8 +36,8 @@ public:
 
 	static uint32_t getDeviceCount();
 	static FTDIChipset getDevice(uint32_t deviceIndex);
-	static FTDIChipset getDevice(const QByteArray& portName);
-	static QByteArray normalizeSerialNumber(DebugBoardType boardType, const QByteArray& segmentSerialNumber);
+	static FTDIChipset getDevice(const std::string& portName);
+	static std::string normalizeSerialNumber(DebugBoardType boardType, const std::string& segmentSerialNumber);
 
 	bool open(FTDIPinSets pinsets);
 	bool isOpen();
@@ -48,8 +49,8 @@ public:
 	PlatformID platformID();
 	void setPlatformID(PlatformID platformID);
 
-	QString versionString();
-	QString firmwareString();
+	std::string versionString();
+	std::string firmwareString();
 
 	void reset()
 	{
@@ -63,50 +64,50 @@ public:
 	}
 
 	HashType hash();
-	QByteArray serialNumber();
+	std::string serialNumber();
 	bool newDevice();
 
-	QByteArray portName()
+	std::string portName()
 	{
 		return _portName;
 	}
 
-	QByteArray usbDescriptor()
+	std::string usbDescriptor()
 	{
 		return _usbDescriptor;
 	}
 
-	QByteArray lastError()
+	std::string lastError()
 	{
 		return _lastError;
 	}
 
-	QByteArray aSerialNumber();
-	void setASerialNumber(const QByteArray& aSerialNumber);
+	std::string aSerialNumber();
+	void setASerialNumber(const std::string& aSerialNumber);
 
-	QByteArray bSerialNumber();
-	void setBSerialNumber(const QByteArray& bSerialNumber);
+	std::string bSerialNumber();
+	void setBSerialNumber(const std::string& bSerialNumber);
 
-	QByteArray cSerialNumber();
-	void setCSerialNumber(const QByteArray& cSerialNumber);
+	std::string cSerialNumber();
+	void setCSerialNumber(const std::string& cSerialNumber);
 
-	QByteArray dSerialNumber();
-	void setDSerialNumber(const QByteArray& dSerialNumber);
+	std::string dSerialNumber();
+	void setDSerialNumber(const std::string& dSerialNumber);
 
 	bool write(uint8_t pin, bool state);
 
 	void setInvertMask(uint8_t mask) { _invertMask = mask; }
 
 private:
-	static HashType hash(const QByteArray& serialNumber);
+	static HashType hash(const std::string& serialNumber);
 
-	void setSerialNumber(const QByteArray& serialNumber);
+	void setSerialNumber(const std::string& serialNumber);
 	static unsigned long long setCustomVIDPID();
 
 	static bool hasDevice(HashType portHash);
-	void setupHash(const QByteArray& segmentSerialNumber);
+	void setupHash(const std::string& segmentSerialNumber);
 	void setupPortName();
-	static PlatformID nameToPlatform(const QByteArray& deviceName);
+	static PlatformID nameToPlatform(const std::string& deviceName);
 
 	static void linuxTraversal();
 	static void windowsTraversal();
@@ -121,23 +122,23 @@ private:
 	CharBit				_cPins;
 	CharBit				_dPins;
 
-	QByteArray			_serialNumber;
-	QByteArray			_portName;
-	QByteArray			_usbDescriptor;
+	std::string			_serialNumber;
+	std::string			_portName;
+	std::string			_usbDescriptor;
 
-	QByteArray			_aSerialNumber;
-	void*				_aHandle{Q_NULLPTR};
+	std::string			_aSerialNumber;
+	void*				_aHandle{nullptr};
 
-	QByteArray			_bSerialNumber;
-	void*				_bHandle{Q_NULLPTR};
+	std::string			_bSerialNumber;
+	void*				_bHandle{nullptr};
 
-	QByteArray			_cSerialNumber;
-	void*				_cHandle{Q_NULLPTR};
+	std::string			_cSerialNumber;
+	void*				_cHandle{nullptr};
 
-	QByteArray			_dSerialNumber;
-	void*				_dHandle{Q_NULLPTR};
+	std::string			_dSerialNumber;
+	void*				_dHandle{nullptr};
 
-	QByteArray          _lastError;
+	std::string         _lastError;
 
 	uint8_t				_invertMask{0};
 

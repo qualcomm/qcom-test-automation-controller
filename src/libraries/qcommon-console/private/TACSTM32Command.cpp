@@ -11,6 +11,8 @@
 // Qt
 #include <QtGlobal>
 
+#include <string>
+
 TACSTM32Command::TACSTM32Command
 (
 	SendInterface* sender,
@@ -20,8 +22,8 @@ TACSTM32Command::TACSTM32Command
 	_sender(sender),
 	_ready(false)
 {
-	Q_ASSERT(_receiver != Q_NULLPTR);
-	Q_ASSERT(_sender != Q_NULLPTR);
+	Q_ASSERT(_receiver != nullptr);
+	Q_ASSERT(_sender != nullptr);
 
 	_ready = sender->ready();
 }
@@ -47,7 +49,7 @@ void TACSTM32Command::setPinState
 
 void TACSTM32Command::send
 (
-	const QByteArray& command,
+	const std::string& command,
 	const Arguments& arguments,
 	bool console,
 	bool store
@@ -63,7 +65,7 @@ void TACSTM32Command::addDelay(uint32_t delayInMilliSeconds)
 
 void TACSTM32Command::addLogComment
 (
-	const QByteArray& comment
+	const std::string& comment
 )
 {
 	_sender->addLogComment(comment);

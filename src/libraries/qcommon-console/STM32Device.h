@@ -7,6 +7,9 @@
 #include "QCommonConsoleGlobal.h"
 #include "AlpacaDevice.h"
 
+#include <string>
+#include <vector>
+
 // QCommonConsole
 class _STM32PlatformConfiguration;
 
@@ -17,7 +20,7 @@ struct STM32HIDDeviceInfo
 	std::string		_serialNumber;
 };
 
-typedef QList<STM32HIDDeviceInfo> STM32HIDDeviceInfoList;
+typedef std::vector<STM32HIDDeviceInfo> STM32HIDDeviceInfoList;
 
 class QCOMMONCONSOLE_EXPORT STM32Device :
 	public _AlpacaDevice
@@ -31,7 +34,7 @@ public:
 	static uint32_t updateAlpacaDevices();
 
 	static STM32HIDDeviceInfoList enumerateHIDDevices();
-	static QByteArray vtpPortName(const QByteArray& serialNumber);
+	static std::string vtpPortName(const std::string& serialNumber);
 
 	virtual bool open();
 
@@ -40,14 +43,14 @@ public:
 
 	// HID transport - the only place in the codebase permitted to call hidapi functions
 	bool openTransport();
-	bool write(const QByteArray& report);
+	bool write(const std::string& report);
 	void close();
 
 private:
-	_STM32PlatformConfiguration*					_stm32PlatformConfiguration{Q_NULLPTR};
+	_STM32PlatformConfiguration*					_stm32PlatformConfiguration{nullptr};
 
 	std::string										_devicePath;
-	void*											_hidHandle{Q_NULLPTR};
+	void*											_hidHandle{nullptr};
 };
 
 #endif // STM32DEVICE_H

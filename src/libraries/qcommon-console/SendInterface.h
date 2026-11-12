@@ -8,9 +8,6 @@
 #include "QCommonConsoleGlobal.h"
 #include "ReceiveInterface.h"
 
-// Qt
-#include <QByteArray>
-
 #include <cstdint>
 #include <string>
 #include <variant>
@@ -26,9 +23,9 @@ public:
 	virtual ~SendInterface() {}
 
 	virtual bool ready() = 0;
-	virtual uint32_t send(const QByteArray& sendMe, const Arguments& argument, bool command, ReceiveInterface* recieveInterface, bool store = true) = 0;
+	virtual uint32_t send(const std::string& sendMe, const Arguments& argument, bool command, ReceiveInterface* recieveInterface, bool store = true) = 0;
 	virtual void addDelay(uint32_t delayInMilliSeconds, ReceiveInterface* recieveInterface) = 0;
-	virtual void addLogComment(const QByteArray& comment) = 0;
+	virtual void addLogComment(const std::string& comment) = 0;
 	virtual void addEndTransaction(ReceiveInterface* recieveInterface) = 0;
 };
 

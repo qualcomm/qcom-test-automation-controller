@@ -6,7 +6,6 @@
 #include "TickCount.h"
 
 // QT
-#include <QDir>
 #include <mutex>
 #include <QThread>
 
@@ -51,8 +50,8 @@ void ProtocolInterface::clearPendingFrame()
 {
 	std::lock_guard<std::recursive_mutex> lock(_pendingFramePackageMutex);
 
-	if (_pendingFramePackage.isNull() == false)
-		_pendingFramePackage = FramePackage(Q_NULLPTR);
+	if (_pendingFramePackage != nullptr)
+		_pendingFramePackage = nullptr;
 }
 
 FramePackage& ProtocolInterface::pendingFramePackage()
@@ -82,7 +81,7 @@ void ProtocolInterface::queueDelay
 
 		framePackage->_recieveInterface = recieveInterface;
 		framePackage->_delayInMilliSeconds = delayInMilliSeconds;
-		framePackage->_request = QString("delay: %1").arg(delayInMilliSeconds).toLatin1();
+		framePackage->_request = "delay: " + std::to_string(delayInMilliSeconds);
 
 		std::lock_guard<std::recursive_mutex> lock(_outQueueMutex);
 		_outboundData.push_back(framePackage);
@@ -91,7 +90,7 @@ void ProtocolInterface::queueDelay
 
 void ProtocolInterface::queueLogComment
 (
-	const QByteArray& comment
+	const std::string& comment
 )
 {
 	FramePackage framePackage = FramePackage(new _FramePackage);
@@ -111,7 +110,7 @@ void ProtocolInterface::queueEndTransaction
 
 	framePackage->_recieveInterface = receiveInterface;
 	framePackage->_endTransaction = true;
-	framePackage->_request = QByteArray("End Transaction");
+	framePackage->_request = "End Transaction";
 
 	std::lock_guard<std::recursive_mutex> lock(_outQueueMutex);
 	_outboundData.push_back(framePackage);
@@ -124,17 +123,17 @@ FramePackage ProtocolInterface::getNextFramePackage()
 
 	{
 		std::lock_guard<std::recursive_mutex> lock(_pendingFramePackageMutex);
-		noPendingFrame = _pendingFramePackage.isNull() == true;
+		noPendingFrame = (_pendingFramePackage == nullptr);
 	}
 
 	if (noPendingFrame)
 	{
 		std::lock_guard<std::recursive_mutex> lock(_outQueueMutex);
 
-		if (_outboundData.isEmpty() == false)
+		if (_outboundData.empty() == false)
 		{
-			FramePackage framePackage = _outboundData.first();
-			_outboundData.pop_front();
+			FramePackage framePackage = _outboundData.front();
+			_outboundData.erase(_outboundData.begin());
 
 			if (framePackage->_delayInMilliSeconds != 0)
 			{
@@ -145,7 +144,7 @@ FramePackage ProtocolInterface::getNextFramePackage()
 			{
 				result = framePackage;
 			}
-			else if (framePackage->_comment.isEmpty() == false)
+			else if (framePackage->_comment.empty() == false)
 			{
 				result = framePackage;
 			}
@@ -167,12 +166,12 @@ uint32_t ProtocolInterface::queueSize()
 {
 	std::lock_guard<std::recursive_mutex> lock(_outQueueMutex);
 
-	return static_cast<uint32_t>(_outboundData.count());
+	return static_cast<uint32_t>(_outboundData.size());
 }
 
 bool ProtocolInterface::handleRecievedData
 (
-	const QByteArray& receivedData
+	const std::string& receivedData
 )
 {
 	_frameCoder->decode(receivedData);
@@ -182,7 +181,7 @@ bool ProtocolInterface::handleRecievedData
 
 void ProtocolInterface::frameCompleteFunc
 (
-	const QByteArray& completedFrame, 
+	const std::string& completedFrame, 
 	ProtocolInterface* protocolInterface
 )
 {
@@ -191,7 +190,7 @@ void ProtocolInterface::frameCompleteFunc
 
 void ProtocolInterface::badFrameFunc
 (
-	const QByteArray& completedFrame,
+	const std::string& completedFrame,
 	ProtocolInterface* protocolInterface
 )
 {

@@ -1,4 +1,4 @@
-﻿// Copyright (c) Qualcomm Technologies, Inc. and/or its subsidiaries.
+// Copyright (c) Qualcomm Technologies, Inc. and/or its subsidiaries.
 // SPDX-License-Identifier: BSD-3-Clause
 
 #include "TACLiteDriveThread.h"
@@ -11,10 +11,7 @@
 // QCommon
 #include "AppCore.h"
 
-// Qt
-#include <QDir>
-#include <QDateTime>
-#include <QTextStream>
+#include <string>
 
 #define on true
 #define off false
@@ -33,17 +30,17 @@ TACLiteDriveThread::TACLiteDriveThread
 
 	AlpacaDevice alpacaDevice = _AlpacaDevice::findAlpacaDevice(hash);
 
-	if (alpacaDevice->active())
+	if (alpacaDevice && alpacaDevice->active())
 	{
-		_ftdiChipset = _FTDIChipset::getDevice(QByteArray::fromStdString(alpacaDevice->portName()));
-		if (_ftdiChipset.isNull() == false)
+		_ftdiChipset = _FTDIChipset::getDevice(alpacaDevice->portName());
+		if (_ftdiChipset != nullptr)
 		{
 			_portName = _ftdiChipset->portName();
 			_platformID = _ftdiChipset->platformID();
 			_name = _ftdiChipset->serialNumber();
 
-			_versionString = _ftdiChipset->versionString().toLatin1();
-			_firmwareString = _ftdiChipset->firmwareString().toStdString();
+			_versionString = _ftdiChipset->versionString();
+			_firmwareString = _ftdiChipset->firmwareString();
 			_hardwareType = _ftdiChipset->boardType();
 			_firmwareMajor = 1;
 			_firmwareChip = 10000;
@@ -55,8 +52,8 @@ TACLiteDriveThread::TACLiteDriveThread
 			setSerialNumber(_ftdiChipset->serialNumber());
 			setPortName(_ftdiChipset->portName());
 
-			connect(this, &TACDriveThread::deviceDisconnected, alpacaDevice.data(), &_AlpacaDevice::onDeviceDisconnect, Qt::DirectConnection);
-			connect(this, &TACDriveThread::progress, alpacaDevice.data(), &_AlpacaDevice::progress);
+			connect(this, &TACDriveThread::deviceDisconnected, alpacaDevice.get(), &_AlpacaDevice::onDeviceDisconnect, Qt::DirectConnection);
+			connect(this, &TACDriveThread::progress, alpacaDevice.get(), &_AlpacaDevice::progress);
 		}
 	}
 }
@@ -69,14 +66,14 @@ bool TACLiteDriveThread::openFTDIDevice()
 {
 	bool result{false};
 
-	if (_ftdiChipset.isNull() == false)
+	if (_ftdiChipset != nullptr)
 	{
 		if (_ftdiChipset->isOpen() == false)
 		{
 			_ftdiChipset->setBoardType(_hardwareType);
 			if (_ftdiChipset->open(_pinsets))
 			{
-				AppCore::writeToApplicationLogLine("Opened port " + _ftdiChipset->portName().toStdString() + "\n");
+				AppCore::writeToApplicationLogLine("Opened port " + _ftdiChipset->portName() + "\n");
 
 				result = true;
 			}
@@ -150,7 +147,7 @@ void TACLiteDriveThread::sendCommandSequence
 				break;
 
 			case _CommandEntry::eLog:
-				tacCommand.addLogComment(QByteArray::fromStdString(std::get<std::string>(commandEntry->_arguement)));
+				tacCommand.addLogComment(std::get<std::string>(commandEntry->_arguement));
 				break;
 
 			case _CommandEntry::eDelay:
@@ -183,28 +180,28 @@ void TACLiteDriveThread::i2CReadRegister
 	uint32_t reg
 )
 {
-	Q_UNUSED(addr)
-	Q_UNUSED(reg)
+	(void)addr;
+	(void)reg;
 }
 
 void TACLiteDriveThread::i2CWriteRegister(uint32_t addr, uint32_t reg, uint32_t data)
 {
-	Q_UNUSED(addr)
-	Q_UNUSED(reg)
-	Q_UNUSED(data)
+	(void)addr;
+	(void)reg;
+	(void)data;
 }
 
 void TACLiteDriveThread::setName
 (
-	const QByteArray& newName
+	const std::string& newName
 )
 {
-	Q_UNUSED(newName)
+	(void)newName;
 }
 
 uint32_t TACLiteDriveThread::send
 (
-	const QByteArray& sendMe,
+	const std::string& sendMe,
 	const Arguments& arguments,
 	bool console,
 	ReceiveInterface* recieveInterface,
@@ -260,7 +257,7 @@ void TACLiteDriveThread::receive(FramePackage &framePackage)
 	{
 		clearWaitForCompletion();
 
-		if (framePackage->_lastError.isEmpty() == false)
+		if (!framePackage->_lastError.empty())
 			emit errorOnOpen(framePackage->_lastError);
 	}
 
@@ -284,7 +281,7 @@ void TACLiteDriveThread::run()
 	{
 		emit hardwareTypeUpdate(_versionString);
 		emit hardwareVersionUpdate("0.1.1");	
-		emit firmwareVersionUpdate(QString::fromStdString(_firmwareString));
+		emit firmwareVersionUpdate(_firmwareString);
 
 		emit nameUpdate(_name);
 		emit uuidUpdate(_uuid);
@@ -316,10 +313,10 @@ void TACLiteDriveThread::run()
 		while (!loopFinished)
 		{
 			FramePackage framePackage = _protocolInterface->getNextFramePackage();
-			if (framePackage.isNull() == false)
+			if (framePackage != nullptr)
 			{
 				if (framePackage->_delayInMilliSeconds != 0 ||
-					framePackage->_comment.isEmpty() == false ||
+					!framePackage->_comment.empty() ||
 					framePackage->_endTransaction == true ||
 					checkLocalStore(framePackage) == true)
 				{
@@ -327,13 +324,16 @@ void TACLiteDriveThread::run()
 				}
 				else
 				{
+					int pin = 0;
+					try {
+						pin = std::stoi(framePackage->_codedRequest);
+					} catch (...) {}
 
-					int pin = framePackage->_codedRequest.toInt();
 					bool state = getElectrialPinValue(framePackage->_requestHash, framePackage->_arguments);
 
-					AppCore::writeToApplicationLogLine("TACLiteDriveThread::run() write " + framePackage->_codedRequest.toStdString() + " state:" + (state ? "on" : "off"));
+					AppCore::writeToApplicationLogLine("TACLiteDriveThread::run() write " + framePackage->_codedRequest + " state:" + (state ? "on" : "off"));
 
-					if (_ftdiChipset.isNull() == false)
+					if (_ftdiChipset != nullptr)
 					{
 						if (_ftdiChipset->write(pin, state) == false)
 						{
@@ -345,7 +345,7 @@ void TACLiteDriveThread::run()
 						}
 						else
 						{
-							QByteArray argument;
+							std::string argument;
 
 							if (std::holds_alternative<bool>(framePackage->_arguments.at(0)))
 							{
@@ -353,7 +353,7 @@ void TACLiteDriveThread::run()
 							}
 							else if (std::holds_alternative<std::string>(framePackage->_arguments.at(0)))
 							{
-								argument = QByteArray::fromStdString(std::get<std::string>(framePackage->_arguments.at(0)));
+								argument = std::get<std::string>(framePackage->_arguments.at(0));
 							}
 
 							framePackage->_responses.push_back(framePackage->_request + " " + argument);
@@ -385,7 +385,7 @@ void TACLiteDriveThread::run()
 
 	AppCore::writeToApplicationLogLine("TACLiteDriveThread::run() _ftdiDevice->close()");
 
-	if (_ftdiChipset.isNull() == false)
+	if (_ftdiChipset != nullptr)
 		_ftdiChipset->close();
 
 	_connected = false;
@@ -397,16 +397,16 @@ void TACLiteDriveThread::run()
 
 void TACLiteDriveThread::sendCommand
 (
-	const QByteArray &command,
+	const std::string &command,
 	bool console,
 	ReceiveInterface *receiveInterface,
 	bool shouldStore
 )
 {
-	if (command.startsWith(kHelpCommand) == false)
+	if (command.rfind(kHelpCommand, 0) != 0)
 	{
 		Arguments args;
-		QByteArray decodedCommand = decodeCommand(command, args);
+		std::string decodedCommand = decodeCommand(command, args);
 
 		send(decodedCommand, args, console, receiveInterface, shouldStore);
 	}
@@ -418,7 +418,7 @@ bool TACLiteDriveThread::getElectrialPinValue
 	const Arguments& arguments
 )
 {
-	bool result{0};
+	bool result{false};
 	bool argValue = std::get<bool>(arguments.at(0));
 	switch (kCommandHash)
 	{
@@ -438,7 +438,7 @@ void TACLiteDriveThread::handleSetName
 
 	if (std::holds_alternative<std::string>(argument))
 	{
-		_name = QByteArray::fromStdString(std::get<std::string>(argument));
+		_name = std::get<std::string>(argument);
 		framePackage->_synonym = "Set Name " + _name;
 	}
 
@@ -453,7 +453,7 @@ void TACLiteDriveThread::handleSetPin
 	bool state = std::get<bool>(framePackage->getArgument(0));
 	uint32_t pin = std::get<uint32_t>(framePackage->getArgument(1));
 
-	framePackage->_synonym = "Set Pin " + QByteArray::number(pin) + " " + QByteArray(state ? "true" : "false");
+	framePackage->_synonym = "Set Pin " + std::to_string(pin) + " " + (state ? "true" : "false");
 
 	emit pinStateChanged(pin, state);
 }
@@ -463,9 +463,9 @@ void TACLiteDriveThread::handleUUIDResponse
 	FramePackage& framePackage
 )
 {
-	if (framePackage->_responses.count() > 1)
+	if (framePackage->_responses.size() > 1)
 	{
-		QByteArray response = framePackage->_responses.at(1);
+		std::string response = framePackage->_responses.at(1);
 		_uuid = response;
 
 		emit uuidUpdate(_uuid);
@@ -477,7 +477,7 @@ void TACLiteDriveThread::handleVersionResponse
 	FramePackage& framePackage
 )
 {
-	Q_UNUSED(framePackage)
+	(void)framePackage;
 	emit deviceStatusChange(tr("TAC Version Good"));
 
 	setupConnected();
@@ -488,15 +488,12 @@ void TACLiteDriveThread::handlePlatformID
 	FramePackage& framePackage
 )
 {
-	if (framePackage->_responses.count() >= 2)
+	if (framePackage->_responses.size() >= 2)
 	{
-		bool okay{false};
-
-		int boardID = framePackage->_responses.at(1).toInt(&okay);
-		if (okay)
-		{
+		try {
+			int boardID = std::stoi(framePackage->_responses.at(1));
 			_platformID = static_cast<PlatformID>(boardID);
-		}
+		} catch (...) {}
 	}
 
 	emit platformIDUpdate(static_cast<int>(_platformID));

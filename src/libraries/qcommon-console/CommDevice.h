@@ -10,6 +10,7 @@
 #include <QtSerialPort/QSerialPort>
 
 #include <cstdint>
+#include <string>
 
 class CommDevice :
 	public QObject
@@ -29,8 +30,8 @@ public:
 		_comPort = _serialPortInfo.portName().remove("com", Qt::CaseInsensitive).toInt();
 	}
 
-	virtual bool Send(const QByteArray& sendData);
-	uint64_t Read(QByteArray& incomingBytes);
+	virtual bool Send(const std::string& sendData);
+	uint64_t Read(std::string& incomingBytes);
 
 public slots:
 	bool IsOpen();
@@ -38,8 +39,8 @@ public slots:
 	void on_ReadyRead();
 
 	void on_parityChanged(QSerialPort::Parity parity);
-    void on_baudRateChanged(qint32 baudRate, QSerialPort::Directions directions);
-    void on_dataBitsChanged(QSerialPort::DataBits dataBits);
+	void on_baudRateChanged(qint32 baudRate, QSerialPort::Directions directions);
+	void on_dataBitsChanged(QSerialPort::DataBits dataBits);
 	void on_stopBitsChanged(QSerialPort::StopBits stopBits);
 	void on_error(QSerialPort::SerialPortError serialPortError);
 	void on_dataTerminalReadyChanged(bool set);
@@ -53,7 +54,7 @@ protected:
 	bool						_frameCoderOwned;
 	
 	bool						_logSerialData;
-	QString						_logSerialPath;
+	std::string					_logSerialPath;
 	QFile						_logFile;
 };
 

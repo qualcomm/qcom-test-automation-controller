@@ -3,43 +3,40 @@
 
 #include "ProcessUtilities.h"
 
-// QCommon
-#include <Range.h>
-
 // QT
 #include <QCoreApplication>
-#include <QDir>
-#include <QFileInfo>
 #include <QProcess>
-#include <QSet>
-#include <QStringList>
 
-bool isPlatformProcessRunning(const QString& applicationPath);
-QString getModulePath(void);
+#include <algorithm>
+#include <cctype>
+#include <filesystem>
+#include <fstream>
+#include <string>
+#include <vector>
+
+bool isPlatformProcessRunning(const std::string& applicationPath);
+std::string getModulePath();
 
 bool isProcessRunning
 (
 	const std::string& applicationName
 )
 {
-	QString candidatePath{QString::fromStdString(applicationName).toLower()};
-
-	return isPlatformProcessRunning(candidatePath);
+	return isPlatformProcessRunning(applicationName);
 }
 
 bool startProcess(const std::string &applicationName)
 {
 	bool result{false};
 
-	QString modulePath = getModulePath();
-	if (modulePath.isEmpty() == false)
+	std::string modulePath = getModulePath();
+	if (!modulePath.empty())
 	{
-		QFileInfo fileInfo(modulePath);
+		std::filesystem::path moduleDir = std::filesystem::path(modulePath).parent_path();
+		std::string appPath = (moduleDir / applicationName).lexically_normal().string();
+
 		QStringList arguments;
-
-		QString appPath = QDir::cleanPath(fileInfo.absolutePath() + QDir::separator() + QString::fromStdString(applicationName));
-
-		result = QProcess::startDetached(appPath, arguments, fileInfo.absolutePath());
+		result = QProcess::startDetached(QString::fromStdString(appPath), arguments, QString::fromStdString(moduleDir.string()));
 	}
 
 	return result;
@@ -50,51 +47,50 @@ bool startProcess(const std::string &applicationName)
 #include <windows.h>
 #include <tlhelp32.h>
 
-#include <string>
-
 bool isPlatformProcessRunning
 (
-	const QString& applicationPath
+	const std::string& applicationPath
 )
 {
 	bool result{false};
 
-	std::wstring modulePath;
-	HANDLE hProcessSnap;
-
-	hProcessSnap = CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, 0);
+	HANDLE hProcessSnap = CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, 0);
 	if (hProcessSnap != INVALID_HANDLE_VALUE)
 	{
-		PROCESSENTRY32 pe32;
+		PROCESSENTRY32W pe32;
+		pe32.dwSize = sizeof(PROCESSENTRY32W);
 
-		pe32.dwSize = sizeof(PROCESSENTRY32);
-
-		if (Process32First(hProcessSnap, &pe32))
+		if (Process32FirstW(hProcessSnap, &pe32))
 		{
-			QStringList processes;
+			std::vector<std::string> processes;
 
 			do
 			{
-				QString modulePathStr = QString::fromStdWString(std::wstring(&pe32.szExeFile[0])).toLower();
-				if (processes.contains(modulePathStr) == false)
-					processes.append(modulePathStr);
-			} while (Process32Next(hProcessSnap, &pe32));
+				int size_needed = WideCharToMultiByte(CP_UTF8, 0, pe32.szExeFile, -1, NULL, 0, NULL, NULL);
+				std::string modulePathStr;
+				if (size_needed > 0)
+				{
+					modulePathStr.resize(size_needed);
+					WideCharToMultiByte(CP_UTF8, 0, pe32.szExeFile, -1, &modulePathStr[0], size_needed, NULL, NULL);
+					if (!modulePathStr.empty() && modulePathStr.back() == '\0')
+						modulePathStr.pop_back();
+				}
+				for (char &c : modulePathStr)
+					c = static_cast<char>(std::tolower(static_cast<unsigned char>(c)));
 
-#ifdef DEBUG
-			auto sortModuleLambda = [] (const QString& module1, const QString& module2) -> bool
-			{
-				return module1 < module2;
-			};
+				if (std::find(processes.begin(), processes.end(), modulePathStr) == processes.end())
+					processes.push_back(modulePathStr);
+			} while (Process32NextW(hProcessSnap, &pe32));
 
-			// this helps with interactive debugging only
-			std::sort(processes.begin(), processes.end(), sortModuleLambda);
-#endif
-			for (const auto& processName: processes)
+			std::string appPathLower = applicationPath;
+			for (char &c : appPathLower)
+				c = static_cast<char>(std::tolower(static_cast<unsigned char>(c)));
+
+			for (const auto& processName : processes)
 			{
-				if (processName.contains(applicationPath))
+				if (processName.find(appPathLower) != std::string::npos)
 				{
 					result = true;
-
 					break;
 				}
 			}
@@ -106,20 +102,26 @@ bool isPlatformProcessRunning
 	return result;
 }
 
-QString getModulePath()
+std::string getModulePath()
 {
-	QString result;
+	std::string result;
 
 	WCHAR modulePath[MAX_PATH];
-	HMODULE hModule{Q_NULLPTR};
+	HMODULE hModule{nullptr};
 
-	if (GetModuleHandleEx(GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS | GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT,
+	if (GetModuleHandleExW(GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS | GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT,
 			(LPCWSTR) &getModulePath, &hModule) != FALSE)
 	{
-		if (GetModuleFileName(hModule, modulePath, sizeof(modulePath)) != FALSE)
+		if (GetModuleFileNameW(hModule, modulePath, sizeof(modulePath) / sizeof(WCHAR)) != FALSE)
 		{
-			std::wstring moduleName = std::wstring(&modulePath[0]);
-			result = QString::fromStdWString(modulePath);
+			int size_needed = WideCharToMultiByte(CP_UTF8, 0, modulePath, -1, NULL, 0, NULL, NULL);
+			if (size_needed > 0)
+			{
+				result.resize(size_needed);
+				WideCharToMultiByte(CP_UTF8, 0, modulePath, -1, &result[0], size_needed, NULL, NULL);
+				if (!result.empty() && result.back() == '\0')
+					result.pop_back();
+			}
 		}
 	}
 
@@ -128,49 +130,59 @@ QString getModulePath()
 
 #else
 
-QString getModulePath()
+std::string getModulePath()
 {
-    QString result;
+	std::string result;
 
-    QCoreApplication* instance = QCoreApplication::instance();
-    if (instance != Q_NULLPTR)
-        result = instance->applicationDirPath();
+	QCoreApplication* instance = QCoreApplication::instance();
+	if (instance != nullptr)
+		result = instance->applicationDirPath().toStdString();
 
-    return result;
+	return result;
 }
 
-bool isPlatformProcessRunning(const QString& applicationPath)
+bool isPlatformProcessRunning(const std::string& applicationPath)
 {
-    QDir rootDir("/proc");
+	std::string appLower = applicationPath;
+	for (char &c : appLower)
+		c = static_cast<char>(std::tolower(static_cast<unsigned char>(c)));
 
-    QFileInfoList list = rootDir.entryInfoList();
+	std::error_code ec;
+	std::filesystem::directory_iterator dirIt("/proc", ec);
+	if (ec)
+		return false;
 
-    for (const auto index: range(list.size()))
-    {
-        QFileInfo fileInfo = list.at(index);
+	for (const auto& entry : dirIt)
+	{
+		if (entry.is_directory(ec))
+		{
+			std::filesystem::path cmdFilePath = entry.path() / "cmdline";
+			if (std::filesystem::exists(cmdFilePath, ec))
+			{
+				std::ifstream cmdFile(cmdFilePath, std::ios::binary);
+				if (cmdFile.is_open())
+				{
+					std::string contents;
+					std::getline(cmdFile, contents, '\0');
+					if (contents.empty())
+					{
+						cmdFile.clear();
+						cmdFile.seekg(0);
+						std::getline(cmdFile, contents);
+					}
 
-        if (fileInfo.isDir())
-        {
-            QString cmdFilePath = fileInfo.absoluteFilePath()+ QDir::separator() + "cmdline";
-            QFileInfo cmdFile(cmdFilePath);
-            if (cmdFile.exists())
-            {
-                QFile cmdlinefile(cmdFile.absoluteFilePath());
-                if (cmdlinefile.open(QIODevice::ReadOnly))
-                {
-                    QByteArray contents = cmdlinefile.readAll();
-                    QList<QByteArray> parts = contents.split(' ');
+					size_t spacePos = contents.find(' ');
+					std::string firstPart = (spacePos != std::string::npos) ? contents.substr(0, spacePos) : contents;
+					for (char &c : firstPart)
+						c = static_cast<char>(std::tolower(static_cast<unsigned char>(c)));
 
-                    cmdlinefile.close();
-
-                    if (applicationPath.toLower() == parts.at(0).toLower())
-                        return true;
-                }
-            }
-        }
-    }
+					if (appLower == firstPart)
+						return true;
+				}
+			}
+		}
+	}
 	return false;
 }
 
 #endif
-

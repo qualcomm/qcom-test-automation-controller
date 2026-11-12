@@ -10,17 +10,17 @@ void FrameCoder::reset()
 
 void FrameCoder::decode
 (
-	const QByteArray& decodeMe
+	const std::string& decodeMe
 )
 {
-	Q_ASSERT(_frameFunction != Q_NULLPTR);
+	Q_ASSERT(_frameFunction != nullptr);
 
 	_frameFunction(decodeMe, _protocolInterface);
 }
 
-QByteArray FrameCoder::encode
+std::string FrameCoder::encode
 (
-	const QByteArray& encodeMe,
+	const std::string& encodeMe,
 	const Arguments& arguments
 )
 {

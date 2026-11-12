@@ -1,4 +1,4 @@
-﻿// Copyright (c) Qualcomm Technologies, Inc. and/or its subsidiaries.
+// Copyright (c) Qualcomm Technologies, Inc. and/or its subsidiaries.
 // SPDX-License-Identifier: BSD-3-Clause
 
 #include "FTDIPlatformConfiguration.h"
@@ -83,8 +83,8 @@ void _FTDIPlatformConfiguration::initialize
 {
 	_platform = eFTDI;
 
-	static QList<Bus> busList;
-	static QList<uint32_t> pinList = {0, 1, 2, 3, 4, 5, 6, 7};
+	static std::vector<Bus> busList;
+	static std::vector<uint32_t> pinList = {0, 1, 2, 3, 4, 5, 6, 7};
 
 	if (chipCount > kMaximumChipCount)
 	{
@@ -1415,7 +1415,10 @@ bool _FTDIPlatformConfiguration::read(QJsonObject& parentLevel)
 					chipIndex = pinEntry[kChipIndex].toInt();
 
 				if (pinEntry.contains(kBus))
-					bus = pinEntry[kBus].toString().at(0);
+				{
+					QString busStr = pinEntry[kBus].toString();
+					bus = busStr.isEmpty() ? '\0' : busStr.at(0).toLatin1();
+				}
 
 				if (pinEntry.contains(kPinNumber))
 					pinId = pinEntry[kPinNumber].toString().toInt();
@@ -1478,14 +1481,17 @@ bool _FTDIPlatformConfiguration::read(QJsonObject& parentLevel)
 				QJsonObject busEntry = busArray[pinIndex].toObject();
 
 				ChipIndex chipIndex{0};
-				Bus bus;
+				Bus bus{'\0'};
 				FTDIBusFunction busFunction{eBusFunctionUnknown};
 
 				if (busEntry.contains(kChipIndex))
 					chipIndex = busEntry[kChipIndex].toInt();
 
 				if (busEntry.contains(kBus))
-					bus = busEntry[kBus].toString().at(0);
+				{
+					QString busStr = busEntry[kBus].toString();
+					bus = busStr.isEmpty() ? '\0' : busStr.at(0).toLatin1();
+				}
 
 				if (busEntry.contains(kBusFunction))
 					busFunction = FTDIBusFunction(busEntry[kBusFunction].toInt());
@@ -1514,7 +1520,7 @@ void _FTDIPlatformConfiguration::write(QJsonObject& parentLevel)
 		QJsonObject pinData;
 
 		pinData[kChipIndex] = pinEntry._chipIndex;
-		pinData[kBus] = QVariant(pinEntry._bus).toString();
+		pinData[kBus] = QString(pinEntry._bus);
 		pinData[kPinNumber] = QString::number(pinEntry._chipPin);
 		pinData[kEnabled] = pinEntry._enabled;
 		pinData[kInput] = pinEntry._input;
@@ -1542,7 +1548,7 @@ void _FTDIPlatformConfiguration::write(QJsonObject& parentLevel)
 		QJsonObject busData;
 
 		busData[kChipIndex] = busFunction._chipIndex;
-		busData[kBus] = QVariant(busFunction._bus).toString();
+		busData[kBus] = QString(busFunction._bus);
 		busData[kBusFunction] = busFunction._busFunction;
 
 		busArray.append(busData);
@@ -1560,7 +1566,7 @@ PinID _FTDIPlatformConfiguration::getSetPinIndex
 {
 	int pinIndex{0};
 
-	switch (bus.toLatin1())
+	switch (bus)
 	{
 	case 'A': pinIndex = 0; break;
 	case 'B': pinIndex = 8; break;

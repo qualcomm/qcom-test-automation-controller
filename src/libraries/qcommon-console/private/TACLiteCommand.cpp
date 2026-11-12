@@ -13,6 +13,7 @@
 
 // C++
 #include <stdexcept>
+#include <string>
 
 TACLiteCommand::TACLiteCommand
 (
@@ -23,8 +24,8 @@ TACLiteCommand::TACLiteCommand
 	_sender(sender),
 	_ready(false)
 {
-	Q_ASSERT(_receiver != Q_NULLPTR);
-	Q_ASSERT(_sender != Q_NULLPTR);
+	Q_ASSERT(_receiver != nullptr);
+	Q_ASSERT(_sender != nullptr);
 
 	_ready = sender->ready();
 }
@@ -36,12 +37,12 @@ TACLiteCommand::~TACLiteCommand()
 
 void TACLiteCommand::version()
 {
-	send(kVersionCommand, Arguments(), false, _receiver);
+	send(kVersionCommand, Arguments(), false, true);
 }
 
 void TACLiteCommand::name()
 {
-	send(kGetNameCommand, Arguments(), false, _receiver);
+	send(kGetNameCommand, Arguments(), false, true);
 }
 
 void TACLiteCommand::uuid()
@@ -84,7 +85,7 @@ void TACLiteCommand::usb0
 
 	args.push_back(state);
 
-	send(kSetUSB0Command, args, false, _receiver);
+	send(kSetUSB0Command, args, false, true);
 }
 
 void TACLiteCommand::usb1
@@ -96,7 +97,7 @@ void TACLiteCommand::usb1
 
 	args.push_back(state);
 
-	send(kSetUSB1Command, args, false, _receiver);
+	send(kSetUSB1Command, args, false, true);
 }
 
 void TACLiteCommand::externalPowerControl(bool state)
@@ -105,7 +106,7 @@ void TACLiteCommand::externalPowerControl(bool state)
 
 	args.push_back(state);
 
-	send(kSetExternalPowerControlCommand, args, false, _receiver);
+	send(kSetExternalPowerControlCommand, args, false, true);
 }
 
 void TACLiteCommand::powerKey
@@ -117,7 +118,7 @@ void TACLiteCommand::powerKey
 
 	args.push_back(state);
 
-	send(kSetPowerKeyCommand, args, false, _receiver);
+	send(kSetPowerKeyCommand, args, false, true);
 }
 
 void TACLiteCommand::volumeUp
@@ -129,7 +130,7 @@ void TACLiteCommand::volumeUp
 
 	args.push_back(state);
 
-	send(kSetVolumeUpCommand, args, false, _receiver);
+	send(kSetVolumeUpCommand, args, false, true);
 }
 
 void TACLiteCommand::volumeDown
@@ -141,34 +142,34 @@ void TACLiteCommand::volumeDown
 
 	args.push_back(state);
 
-	send(kSetVolumeDownCommand, args, false, _receiver);
+	send(kSetVolumeDownCommand, args, false, true);
 }
 
 void TACLiteCommand::setName
 (
-	const QByteArray& newName
+	const std::string& newName
 )
 {
 	Arguments args;
 
-	args.push_back(newName.toStdString());
+	args.push_back(newName);
 
-	send(kSetNameCommand, args, false, _receiver);
+	send(kSetNameCommand, args, false, true);
 }
 
 void TACLiteCommand::getResetCount()
 {
-	send(kGetResetCountCommand, Arguments(), false, _receiver);
+	send(kGetResetCountCommand, Arguments(), false, true);
 }
 
 void TACLiteCommand::clearResetCount()
 {
-	send(kClearResetCountCommand, Arguments(), false, _receiver);
+	send(kClearResetCountCommand, Arguments(), false, true);
 }
 
 void TACLiteCommand::send
 (
-	const QByteArray& command,
+	const std::string& command,
 	const Arguments& arguments,
 	bool console,
 	bool store
@@ -184,7 +185,7 @@ void TACLiteCommand::addDelay(uint32_t delayInMilliSeconds)
 
 void TACLiteCommand::addLogComment
 (
-	const QByteArray& comment
+	const std::string& comment
 )
 {
 	_sender->addLogComment(comment);
@@ -204,7 +205,7 @@ void TACLiteCommand::disconnectUIM1Button
 
 	args.push_back(state);
 
-	send(kSetDisconnectUIM1Command, args, false, _receiver);
+	send(kSetDisconnectUIM1Command, args, false, true);
 }
 
 void TACLiteCommand::disconnectUIM2Button
@@ -216,7 +217,7 @@ void TACLiteCommand::disconnectUIM2Button
 
 	args.push_back(state);
 
-	send(kSetDisconnectUIM2Command, args, false, _receiver);
+	send(kSetDisconnectUIM2Command, args, false, true);
 }
 
 void TACLiteCommand::forcePSHoldHigh(bool state)
@@ -225,7 +226,7 @@ void TACLiteCommand::forcePSHoldHigh(bool state)
 
 	args.push_back(state);
 
-	send(kSetForcePSHoldHighCommand, args, false, _receiver);
+	send(kSetForcePSHoldHighCommand, args, false, true);
 }
 
 void TACLiteCommand::disconnectSDCard(bool state)
@@ -234,7 +235,7 @@ void TACLiteCommand::disconnectSDCard(bool state)
 
 	args.push_back(state);
 
-	send(kSetDisconnectSDCardCommand, args, false, _receiver);
+	send(kSetDisconnectSDCardCommand, args, false, true);
 }
 
 void TACLiteCommand::primaryEDL
@@ -246,7 +247,7 @@ void TACLiteCommand::primaryEDL
 
 	args.push_back(state);
 
-	send(kSetPrimaryEDLCommand, args, false, _receiver);
+	send(kSetPrimaryEDLCommand, args, false, true);
 }
 
 void TACLiteCommand::secondaryEDL
@@ -258,7 +259,7 @@ void TACLiteCommand::secondaryEDL
 
 	args.push_back(state);
 
-	send(kSetSecondaryEDLCommand, args, false, _receiver);
+	send(kSetSecondaryEDLCommand, args, false, true);
 }
 
 void TACLiteCommand::secondaryPMResinN(bool state)
@@ -267,7 +268,7 @@ void TACLiteCommand::secondaryPMResinN(bool state)
 
 	args.push_back(state);
 
-	send(kSecondaryPM_RESIN_NCommand, args, false, _receiver);
+	send(kSecondaryPM_RESIN_NCommand, args, false, true);
 }
 
 void TACLiteCommand::eud(bool state)
@@ -276,12 +277,12 @@ void TACLiteCommand::eud(bool state)
 
 	args.push_back(state);
 
-	send(kSetEUDCommand, args, false, _receiver);
+	send(kSetEUDCommand, args, false, true);
 }
 
 void TACLiteCommand::platformID()
 {
-	send(kGetPlatformIDCommand, Arguments(), false, _receiver);
+	send(kGetPlatformIDCommand, Arguments(), false, true);
 }
 
 void TACLiteCommand::headsetDisconnect(bool state)
@@ -291,6 +292,5 @@ void TACLiteCommand::headsetDisconnect(bool state)
 
 	args.push_back(state);
 
-	send(kSetHeadsetDisconnectCommand, args, false, _receiver);
+	send(kSetHeadsetDisconnectCommand, args, false, true);
 }
-

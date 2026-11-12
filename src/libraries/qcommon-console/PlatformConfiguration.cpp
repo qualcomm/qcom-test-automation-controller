@@ -18,16 +18,14 @@
 #include "StringUtilities.h"
 
 // Qt
-#include <QDateTime>
-#include <QDir>
 #include <QFile>
 #include <QFileInfo>
 #include <QJsonArray>
 #include <QJsonDocument>
 #include <QJsonObject>
-#include <QTime>
 
 #include <cctype>
+#include <filesystem>
 
 static bool equalsCaseInsensitive(const std::string& left, const std::string& right)
 {
@@ -95,7 +93,7 @@ const std::pair<int, int> kDefaultCellLocation(-1,-1);
 
 const std::string kNoVariableValue{"<no value>"};
 
-QString _PlatformConfiguration::_lastError;
+std::string _PlatformConfiguration::_lastError;
 Buttons _PlatformConfiguration::_classicButtons;
 bool _PlatformConfiguration::_dynamicConfigurationsInitialized{false};
 TACPlatformEntries _PlatformConfiguration::_tacPlatformEntries;
@@ -110,8 +108,8 @@ _PlatformConfiguration::_PlatformConfiguration()
 	defaultAlpacaScript();
 	defaultScriptVariables();
 
-	_creationDate = QDateTime::currentDateTime().toString();
-	_modifyDate = QDateTime::currentDateTime().toString();
+	_creationDate = currentDateTimeString();
+	_modifyDate = currentDateTimeString();
 }
 
 _PlatformConfiguration::~_PlatformConfiguration()
@@ -152,12 +150,12 @@ PlatformConfiguration _PlatformConfiguration::createPlatformConfiguration(DebugB
 
 PlatformConfiguration _PlatformConfiguration::openPlatformConfiguration
 (
-	const QString& filePath
+	const std::string& filePath
 )
 {
 	PlatformConfiguration result;
 
-	QFileInfo fileInfo(filePath);
+	QFileInfo fileInfo(QString::fromStdString(filePath));
 
 	if (fileInfo.isFile())
 	{
@@ -196,11 +194,12 @@ PlatformConfiguration _PlatformConfiguration::openPlatformConfiguration
 	return result;
 }
 
-QList<PlatformID> _PlatformConfiguration::platformEntryIds()
+std::vector<PlatformID> _PlatformConfiguration::platformEntryIds()
 {
-	QList<PlatformID> result;
+	std::vector<PlatformID> result;
 
-	result = _tacPlatformEntries.keys();
+	for (const auto& [id, entry] : _tacPlatformEntries)
+		result.push_back(id);
 
 	return result;
 }
@@ -241,32 +240,40 @@ void _PlatformConfiguration::initializeDynamicPlatform()
 	}
 }
 
-QString _PlatformConfiguration::makeConfigName(const QString &chip, PlatformID platformID)
+std::string _PlatformConfiguration::makeConfigName(const std::string &chip, PlatformID platformID)
 {
-	return QString("TAC_") + chip + "_" + QString::number(platformID) + ".tcnf";
+	return "TAC_" + chip + "_" + std::to_string(platformID) + ".tcnf";
 }
 
 bool _PlatformConfiguration::parseConfigName
 (
-	const QString& fileName,
+	const std::string& fileName,
 	DebugBoardType& debugBoardType,
 	PlatformID& platformID
 )
 {
 	bool result{false};
 
-	QFileInfo fileInfo(fileName);
+	QFileInfo fileInfo(QString::fromStdString(fileName));
 
 	if (fileInfo.suffix().toLower() == "tcnf")
 	{
-		QStringList fileNameParts = fileInfo.baseName().toLower().split("_");
-		if (fileNameParts.count() >= 3)
+		std::string baseName = fileInfo.baseName().toLower().toStdString();
+		std::vector<std::string> fileNameParts;
+		std::string token;
+		std::stringstream ss(baseName);
+		while (std::getline(ss, token, '_'))
+		{
+			if (!token.empty())
+				fileNameParts.push_back(token);
+		}
+
+		if (fileNameParts.size() >= 3)
 		{
 			if (fileNameParts.at(0) == "tac")
 			{
-				QString chip = fileNameParts.at(1);
-				debugBoardType = debugBoardTypeFromString(chip.toStdString());
-				platformID = fileNameParts.at(2).toLong();
+				debugBoardType = debugBoardTypeFromString(fileNameParts.at(1));
+				platformID = std::stol(fileNameParts.at(2));
 
 				result = true;
 			}
@@ -276,15 +283,17 @@ bool _PlatformConfiguration::parseConfigName
 	return result;
 }
 
-PlatformID _PlatformConfiguration::getUSBDescriptor(const QByteArray& usbDescriptorString)
+PlatformID _PlatformConfiguration::getUSBDescriptor(const std::string& usbDescriptorString)
 {
 	PlatformID result{0};
 
-	QString test{usbDescriptorString.toLower()};
+	std::string test{usbDescriptorString};
+	for (char& c : test) c = static_cast<char>(std::tolower(static_cast<unsigned char>(c)));
 
-	for (const auto& tacEntry: std::as_const(_tacPlatformEntries))
+	for (const auto& [id, tacEntry]: _tacPlatformEntries)
 	{
-		QString candidate = QString::fromStdString(tacEntry._platformEntry->_usbDescriptor).toLower();
+		std::string candidate{tacEntry._platformEntry->_usbDescriptor};
+		for (char& c : candidate) c = static_cast<char>(std::tolower(static_cast<unsigned char>(c)));
 		if (candidate == test)
 		{
 			result = tacEntry._platformEntry->_platformID;
@@ -294,7 +303,7 @@ PlatformID _PlatformConfiguration::getUSBDescriptor(const QByteArray& usbDescrip
 
 	if (result == 0)
 	{
-		if (usbDescriptorString.startsWith("ALPACA-LITE "))
+		if (usbDescriptorString.rfind("ALPACA-LITE ", 0) == 0)
 			result = ALPACA_LITE_ID;
 	}
 
@@ -303,18 +312,20 @@ PlatformID _PlatformConfiguration::getUSBDescriptor(const QByteArray& usbDescrip
 
 bool _PlatformConfiguration::containsUSBDescriptor
 (
-	const QByteArray &usbDescriptorString
+	const std::string &usbDescriptorString
 )
 {
 	bool result{false};
 
-	QString test{usbDescriptorString.toLower()};
+	std::string test{usbDescriptorString};
+	for (char& c : test) c = static_cast<char>(std::tolower(static_cast<unsigned char>(c)));
 
 	initializeDynamicPlatform();
 
-	for (const auto& tacEntry: std::as_const(_tacPlatformEntries))
+	for (const auto& [id, tacEntry]: _tacPlatformEntries)
 	{
-		QString candidate = QString::fromStdString(tacEntry._platformEntry->_usbDescriptor).toLower();
+		std::string candidate{tacEntry._platformEntry->_usbDescriptor};
+		for (char& c : candidate) c = static_cast<char>(std::tolower(static_cast<unsigned char>(c)));
 		if (candidate == test)
 		{
 			result = true;
@@ -325,9 +336,9 @@ bool _PlatformConfiguration::containsUSBDescriptor
 	return result;
 }
 
-QString _PlatformConfiguration::lastError()
+std::string _PlatformConfiguration::lastError()
 {
-	QString result{_PlatformConfiguration::_lastError};
+	std::string result{_PlatformConfiguration::_lastError};
 
 	_PlatformConfiguration::_lastError.clear();
 
@@ -336,7 +347,7 @@ QString _PlatformConfiguration::lastError()
 
 void _PlatformConfiguration::setName
 (
-	const QString& name
+	const std::string& name
 )
 {
 	if (_name != name)
@@ -348,7 +359,7 @@ void _PlatformConfiguration::setName
 
 void _PlatformConfiguration::setAuthor
 (
-	const QString& author
+	const std::string& author
 )
 {
 	if (_author != author)
@@ -360,7 +371,7 @@ void _PlatformConfiguration::setAuthor
 
 void _PlatformConfiguration::setDescription
 (
-	const QString& description
+	const std::string& description
 )
 {
 	if (_description != description)
@@ -416,13 +427,13 @@ void _PlatformConfiguration::updateTabs
 	_dirty = true;
 }
 
-void _PlatformConfiguration::setPlatform(const QString& platform)
+void _PlatformConfiguration::setPlatform(const std::string& platform)
 {
-	if (platform.compare("psoc", Qt::CaseInsensitive) == 0)
+	if (platform == "psoc" || platform == "PSOC")
 		_platform = ePSOC;
-	else if (platform.compare("ftdi", Qt::CaseInsensitive) == 0)
+	else if (platform == "ftdi" || platform == "FTDI")
 		_platform = eFTDI;
-	else if (platform.compare("pic32cx (automotive)", Qt::CaseInsensitive) == 0)
+	else if (platform == "pic32cx (automotive)" || platform == "PIC32CX (AUTOMOTIVE)")
 		_platform = ePIC32CXAuto;
 }
 
@@ -436,9 +447,9 @@ PlatformID _PlatformConfiguration::getPlatformId()
 	return _platformId;
 }
 
-QString _PlatformConfiguration::getFileVersion()
+std::string _PlatformConfiguration::getFileVersion()
 {
-	return QString::number(_fileVersion);
+	return std::to_string(_fileVersion);
 }
 
 uint32_t _PlatformConfiguration::fileVersion()
@@ -446,9 +457,9 @@ uint32_t _PlatformConfiguration::fileVersion()
 	return _fileVersion;
 }
 
-QString _PlatformConfiguration::getPlatformString()
+std::string _PlatformConfiguration::getPlatformString()
 {
-	return QString::fromStdString(debugBoardTypeToString(_platform));
+	return debugBoardTypeToString(_platform);
 }
 
 void _PlatformConfiguration::setPlatformID(PlatformID platformId)
@@ -462,26 +473,26 @@ Tabs _PlatformConfiguration::getTabs()
 	return _tabs;
 }
 
-QStringList _PlatformConfiguration::getAllTabs()
+std::vector<std::string> _PlatformConfiguration::getAllTabs()
 {
-	QStringList result;
+	std::vector<std::string> result;
 
 	for (auto& tab: _tabs)
 	{
-		result.append(QString::fromStdString(tab._name));
+		result.push_back(tab._name);
 	}
 
 	return result;
 }
 
-QStringList _PlatformConfiguration::getVisibleTabs()
+std::vector<std::string> _PlatformConfiguration::getVisibleTabs()
 {
-	QStringList result;
+	std::vector<std::string> result;
 
 	for (auto& tab: _tabs)
 	{
 		if (tab._visible)
-			result.append(QString::fromStdString(tab._name));
+			result.push_back(tab._name);
 	}
 
 	return result;
@@ -950,9 +961,9 @@ bool _PlatformConfiguration::setButtonCellLocation(HashType hash, const std::pai
 	return result;
 }
 
-QSize _PlatformConfiguration::getFormDimension()
+std::pair<int, int> _PlatformConfiguration::getFormDimension()
 {
-	if (_formDimension.isValid())
+	if (_formDimension.first > 0 && _formDimension.second > 0)
 		return _formDimension;
 
 	return kClassicDimension;
@@ -960,10 +971,10 @@ QSize _PlatformConfiguration::getFormDimension()
 
 void _PlatformConfiguration::setFormDimension
 (
-	const QSize& formDimension
+	const std::pair<int, int>& formDimension
 )
 {
-	if (formDimension.isValid())
+	if (formDimension.first > 0 && formDimension.second > 0)
 	{
 		if (formDimension != kClassicDimension)
 			_formDimension = formDimension;
@@ -984,7 +995,7 @@ void _PlatformConfiguration::setResetEnabledState(bool newState)
 	}
 }
 
-QByteArray _PlatformConfiguration::getUSBDescriptor()
+std::string _PlatformConfiguration::getUSBDescriptor()
 {
 	return _usbDescriptor;
 }
@@ -1004,46 +1015,52 @@ void _PlatformConfiguration::setAlpacaScript
 	_dirty = true;
 }
 
-QString _PlatformConfiguration::filePath()
+std::string _PlatformConfiguration::filePath()
 {
-	return QDir::cleanPath(_platformPath + QDir::separator() + _platformFile);
+	return (std::filesystem::path(_platformPath) / _platformFile).lexically_normal().string();
 }
 
-void _PlatformConfiguration::setSupportedFirmwareVer(const QList<uint32_t> &firmwareList)
+void _PlatformConfiguration::setSupportedFirmwareVer(const std::vector<uint32_t> &firmwareList)
 {
 	_supportedFirmwareVer = firmwareList;
 }
 
-QList<uint32_t> _PlatformConfiguration::supportedFirmwareVer()
+std::vector<uint32_t> _PlatformConfiguration::supportedFirmwareVer()
 {
 	return _supportedFirmwareVer;
 }
 
-void _PlatformConfiguration::setFilePath(const QString &filePath)
+void _PlatformConfiguration::setFilePath(const std::string &filePath)
 {
-	QFileInfo fileInfo(filePath);
+	std::filesystem::path pathObj(filePath);
+	std::string absPath = std::filesystem::absolute(pathObj).lexically_normal().string();
 
-	if (fileInfo.absoluteFilePath().startsWith("C:/ProgramData/Qualcomm/QTAC", Qt::CaseInsensitive))
+	std::string lowerPath = absPath;
+	for (char &c : lowerPath)
+		c = static_cast<char>(std::tolower(static_cast<unsigned char>(c)));
+
+	if (lowerPath.rfind("c:/programdata/qualcomm/qtac", 0) == 0 ||
+		lowerPath.rfind("c:\\programdata\\qualcomm\\qtac", 0) == 0)
 	{
 		if (_platform == ePSOC && _platformId < 255)
 		{
-			_platformPath = QString::fromStdString(documentsDataPath("TAC Configurations"));
-			_platformFile = fileInfo.fileName();
+			_platformPath = documentsDataPath("TAC Configurations");
+			_platformFile = pathObj.filename().string();
 		}
 		else if (_platform == eFTDI && _platformId < 90000)
 		{
-			_platformPath = QString::fromStdString(documentsDataPath("TAC Configurations"));
-			_platformFile = fileInfo.fileName();
+			_platformPath = documentsDataPath("TAC Configurations");
+			_platformFile = pathObj.filename().string();
 		}
 	}
 	else
 	{
-		_platformPath = fileInfo.absolutePath();
-		_platformFile = fileInfo.fileName();
+		_platformPath = pathObj.parent_path().string();
+		_platformFile = pathObj.filename().string();
 	}
 }
 
-void _PlatformConfiguration::setUSBDescriptor(const QByteArray& usbDescriptor)
+void _PlatformConfiguration::setUSBDescriptor(const std::string& usbDescriptor)
 {
 	if (usbDescriptor != _usbDescriptor)
 	{
@@ -1052,12 +1069,12 @@ void _PlatformConfiguration::setUSBDescriptor(const QByteArray& usbDescriptor)
 	}
 }
 
-bool _PlatformConfiguration::load(const QString& filePath)
+bool _PlatformConfiguration::load(const std::string& filePath)
 {
 	bool result(false);
 
 	QJsonDocument document;
-	QFile jsonFile(filePath);
+	QFile jsonFile(QString::fromStdString(filePath));
 
 	if (jsonFile.open(QIODevice::ReadOnly))
 	{
@@ -1080,18 +1097,18 @@ bool _PlatformConfiguration::load(const QString& filePath)
 				}
 				else
 				{
-					_lastError = QObject::tr("JSON Document is NULL") ;
+					_lastError = "JSON Document is NULL";
 				}
 			}
 			else
 			{
-				_lastError = QObject::tr("Error parsing configuration file") + parserError.errorString();
+				_lastError = (QObject::tr("Error parsing configuration file") + parserError.errorString()).toStdString();
 			}
 		}
 	}
 	else
 	{
-		_lastError = QObject::tr("Unable to open platform configuration file ") + filePath;
+		_lastError = (QObject::tr("Unable to open platform configuration file ") + QString::fromStdString(filePath)).toStdString();
 	}
 
 	return result;
@@ -1099,32 +1116,32 @@ bool _PlatformConfiguration::load(const QString& filePath)
 
 void _PlatformConfiguration::save()
 {
-	_modifyDate = QDateTime::currentDateTime().toString();
+	_modifyDate = currentDateTimeString();
 
-	if (_platformPath.isEmpty())
+	if (_platformPath.empty())
 	{
 		if (_platform == ePSOC)
 		{
 			if (_platformId < 255)
-				_platformPath = QString::fromStdString(documentsDataPath("TAC Configurations"));
+				_platformPath = documentsDataPath("TAC Configurations");
 			else
-				_platformPath = QString::fromStdString(tacConfigRoot());
+				_platformPath = tacConfigRoot();
 		}
 		else
 		{
 			if (_platformId < 90000)
-				_platformPath = QString::fromStdString(documentsDataPath("TAC Configurations"));
+				_platformPath = documentsDataPath("TAC Configurations");
 			else
-				_platformPath = QString::fromStdString(tacConfigRoot());
+				_platformPath = tacConfigRoot();
 		}
 	}
 
-	if (_platformFile.isEmpty())
+	if (_platformFile.empty())
 		_platformFile = makeConfigName(getPlatformString(), _platformId);
 
-	QString targetFilePath = QDir::cleanPath(_platformPath + QDir::separator() + _platformFile);
+	std::string targetFilePath = (std::filesystem::path(_platformPath) / _platformFile).lexically_normal().string();
 
-	QFile targetFile(targetFilePath);
+	QFile targetFile(QString::fromStdString(targetFilePath));
 	if (targetFile.open(QIODevice::WriteOnly) == true)
 	{
 		QJsonObject rootLevel;
@@ -1522,7 +1539,7 @@ PlatformConfiguration TACPlatformEntry::getConfiguration()
 
 			if (platformPath.empty() == false)
 			{
-				_platformConfiguration = _PlatformConfiguration::openPlatformConfiguration(QString::fromStdString(platformPath));
+				_platformConfiguration = _PlatformConfiguration::openPlatformConfiguration(platformPath);
 				if (_platformConfiguration.isNull() == false)
 				{
 					AppCore::writeToApplicationLog("TACPlatformEntry::getConfiguration() Platform " + platformPath + " loaded\n");

@@ -16,7 +16,7 @@ class QCOMMONCONSOLE_EXPORT PSOCSerialTableModel :
 	public SerialTableModel
 {
 public:
-	PSOCSerialTableModel(QObject* parent = Q_NULLPTR);
+	PSOCSerialTableModel(QObject* parent = nullptr);
 
 	QVariant portData(int deviceIndex, int dataIndex);
 };

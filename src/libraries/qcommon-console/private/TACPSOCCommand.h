@@ -10,9 +10,6 @@
 class ReceiveInterface;
 #include "SendInterface.h"
 
-// Qt
-#include <QByteArray>
-
 #include <cstdint>
 #include <string>
 
@@ -29,7 +26,7 @@ public:
 	virtual void setPinState(uint16_t pin, bool state);
 	virtual void setAddressPinState(const std::string& i2cAddress, uint16_t pin, bool state);
 
-	void setName(const QByteArray& newName);
+	void setName(const std::string& newName);
 
 	void getResetCount();
 	void clearResetCount();
@@ -37,9 +34,9 @@ public:
 	void i2CReadRegister(uint32_t addr, uint32_t reg);
 	void i2CWriteRegister(uint32_t addr, uint32_t reg, uint32_t data);
 
-	void send(const QByteArray& command, const Arguments& arguments, bool console, bool store = true);
+	void send(const std::string& command, const Arguments& arguments, bool console, bool store = true);
 	void addDelay(uint32_t delayInMilliSeconds);
-	void addLogComment(const QByteArray& comment);
+	void addLogComment(const std::string& comment);
 	void addEndTransaction();
 
 	void platformID();

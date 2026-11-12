@@ -10,6 +10,7 @@
 #include <QtSerialPort/QSerialPortInfo>
 
 #include <cstdint>
+#include <string>
 
 struct QCOMMONCONSOLE_EXPORT SerialPortSettings
 {
@@ -51,10 +52,10 @@ public:
 		_serialPortSettings = setMe;
 	}
 
-	virtual bool open(OpenMode mode);
-	virtual void close();
+	virtual bool open(OpenMode mode) override;
+	virtual void close() override;
 
-	QByteArray readAll();
+	std::string readAll();
 
 signals:
 	void PortOpened(const QSerialPortInfo& serialPortInfo);

@@ -9,10 +9,8 @@
 class ReceiveInterface;
 #include "SendInterface.h"
 
-// Qt
-#include <QByteArray>
-
 #include <cstdint>
+#include <string>
 
 class QCOMMONCONSOLE_EXPORT TACSTM32Command
 {
@@ -22,9 +20,9 @@ public:
 
 	virtual void setPinState(uint16_t pin, bool state);
 
-	void send(const QByteArray& command, const Arguments& arguments, bool console, bool store = true);
+	void send(const std::string& command, const Arguments& arguments, bool console, bool store = true);
 	void addDelay(uint32_t delayInMilliSeconds);
-	void addLogComment(const QByteArray& comment);
+	void addLogComment(const std::string& comment);
 	void addEndTransaction();
 
 private:

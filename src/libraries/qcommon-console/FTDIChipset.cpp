@@ -4,15 +4,16 @@
 #include "FTDIChipset.h"
 
 // QCommon
+#include "AlpacaSettings.h"
 #include "AppCore.h"
 #include "PlatformConfiguration.h"
 #include "Range.h"
 #include "version.h"
 
-// Qt
-#include <QSettings>
-
+#include <algorithm>
 #include <cstdint>
+#include <cstdio>
+#include <string>
 
 // FTDI
 #include "ftd2xx.h"
@@ -92,7 +93,7 @@ uint32_t _FTDIChipset::getDeviceCount()
 	linuxTraversal();
 #endif
 
-	return _ftdiChipsetList.count();
+	return static_cast<uint32_t>(_ftdiChipsetList.size());
 }
 
 FTDIChipset _FTDIChipset::getDevice
@@ -102,7 +103,7 @@ FTDIChipset _FTDIChipset::getDevice
 {
 	FTDIChipset result;
 
-	if (deviceIndex < static_cast<uint32_t>(_ftdiChipsetList.count()))
+	if (deviceIndex < static_cast<uint32_t>(_ftdiChipsetList.size()))
 		result = _ftdiChipsetList.at(deviceIndex);
 
 	return result;
@@ -110,30 +111,31 @@ FTDIChipset _FTDIChipset::getDevice
 
 FTDIChipset _FTDIChipset::getDevice
 (
-	const QByteArray& portName
+	const std::string& portName
 )
 {
 	for (auto& ftdiChipset: _ftdiChipsetList)
 	{
-		QByteArray candidate = ftdiChipset->portName();
-		if (candidate.contains(portName))
+		std::string candidate = ftdiChipset->portName();
+		if (candidate.find(portName) != std::string::npos)
 			return ftdiChipset;
 
 		candidate = ftdiChipset->serialNumber();
-		if (candidate.contains(portName))
+		if (candidate.find(portName) != std::string::npos)
 			return ftdiChipset;
 	}
 
 	return FTDIChipset();
 }
 
-QByteArray _FTDIChipset::normalizeSerialNumber(DebugBoardType boardType, const QByteArray& segmentSerialNumber)
+std::string _FTDIChipset::normalizeSerialNumber(DebugBoardType boardType, const std::string& segmentSerialNumber)
 {
-	QByteArray serialNumber{segmentSerialNumber};
+	std::string serialNumber{segmentSerialNumber};
 
 	if (boardType == eFTDI)
 	{
-		serialNumber = serialNumber.remove(serialNumber.length() - 1, 1);
+		if (!serialNumber.empty())
+			serialNumber.pop_back();
 	}
 
 	return serialNumber;
@@ -145,27 +147,22 @@ bool _FTDIChipset::open(FTDIPinSets pinsets)
 	uint8_t mask;
 	uint8_t mode;
 
-	if (_boardType == eFTDI)
+	if (_boardType == eFT232H)
 	{
-		mask = 0xff;
-		mode = FT_BITMODE_ASYNC_BITBANG;
+		mask = 0xFF;
+		mode = FT_BITMODE_CBUS_BITBANG;
 	}
 	else
 	{
-		mask = 0x0f;
-		mode = FT_BITMODE_CBUS_BITBANG;
+		mask = 0xFF;
+		mode = FT_BITMODE_ASYNC_BITBANG;
 	}
 
 	FT_STATUS ftStatus;
 
-	AppCore::writeToApplicationLog(std::string("Bus A : ") + (pinsets.testFlag(eA) ? "true" : "false") + "\n");
-	AppCore::writeToApplicationLog(std::string("Bus B : ") + (pinsets.testFlag(eB) ? "true" : "false") + "\n");
-	AppCore::writeToApplicationLog(std::string("Bus C : ") + (pinsets.testFlag(eC) ? "true" : "false") + "\n");
-	AppCore::writeToApplicationLog(std::string("Bus D : ") + (pinsets.testFlag(eD) ? "true" : "false") + "\n");
-
 	if (pinsets.testFlag(eA))
 	{
-		ftStatus = FT_OpenEx(_aSerialNumber.data(), FT_OPEN_BY_SERIAL_NUMBER, &_aHandle);
+		ftStatus = FT_OpenEx(const_cast<char*>(_aSerialNumber.c_str()), FT_OPEN_BY_SERIAL_NUMBER, &_aHandle);
 		if (ftStatus == FT_OK)
 		{
 			FT_SetBitMode(_aHandle, mask, mode);
@@ -173,15 +170,15 @@ bool _FTDIChipset::open(FTDIPinSets pinsets)
 		}
 		else
 		{
-            result = false;
+			result = false;
 			AppCore::writeToApplicationLog("FTDI Port A failure: " + _FTDIChipset::ftidStatusToString(ftStatus) + "\n");
-			_aHandle = Q_NULLPTR;
+			_aHandle = nullptr;
 		}
 	}
 
 	if (pinsets.testFlag(eB))
 	{
-		ftStatus = FT_OpenEx(_bSerialNumber.data(), FT_OPEN_BY_SERIAL_NUMBER, &_bHandle);
+		ftStatus = FT_OpenEx(const_cast<char*>(_bSerialNumber.c_str()), FT_OPEN_BY_SERIAL_NUMBER, &_bHandle);
 		if (ftStatus == FT_OK)
 		{
 			FT_SetBitMode(_bHandle, mask, mode);
@@ -189,15 +186,15 @@ bool _FTDIChipset::open(FTDIPinSets pinsets)
 		}
 		else
 		{
-            result = false;
+			result = false;
 			AppCore::writeToApplicationLog("FTDI Port B failure: " + _FTDIChipset::ftidStatusToString(ftStatus) + "\n");
-			_bHandle = Q_NULLPTR;
+			_bHandle = nullptr;
 		}
 	}
 
 	if (pinsets.testFlag(eC))
 	{
-		ftStatus = FT_OpenEx(_cSerialNumber.data(), FT_OPEN_BY_SERIAL_NUMBER, &_cHandle);
+		ftStatus = FT_OpenEx(const_cast<char*>(_cSerialNumber.c_str()), FT_OPEN_BY_SERIAL_NUMBER, &_cHandle);
 		if (ftStatus == FT_OK)
 		{
 			FT_SetBitMode(_cHandle, mask, mode);
@@ -205,15 +202,15 @@ bool _FTDIChipset::open(FTDIPinSets pinsets)
 		}
 		else
 		{
-            result = false;
+			result = false;
 			AppCore::writeToApplicationLog("FTDI Port C failure: " + _FTDIChipset::ftidStatusToString(ftStatus) + "\n");
-			_cHandle = Q_NULLPTR;
+			_cHandle = nullptr;
 		}
 	}
 
 	if (pinsets.testFlag(eD))
 	{
-		ftStatus = FT_OpenEx(_dSerialNumber.data(), FT_OPEN_BY_SERIAL_NUMBER, &_dHandle);
+		ftStatus = FT_OpenEx(const_cast<char*>(_dSerialNumber.c_str()), FT_OPEN_BY_SERIAL_NUMBER, &_dHandle);
 		if (ftStatus == FT_OK)
 		{
 			FT_SetBitMode(_dHandle, mask, mode);
@@ -221,9 +218,9 @@ bool _FTDIChipset::open(FTDIPinSets pinsets)
 		}
 		else
 		{
-            result = false;
+			result = false;
 			AppCore::writeToApplicationLog("FTDI Port D failure: " + _FTDIChipset::ftidStatusToString(ftStatus) + "\n");
-			_dHandle = Q_NULLPTR;
+			_dHandle = nullptr;
 		}
 	}
 
@@ -234,16 +231,16 @@ bool _FTDIChipset::isOpen()
 {
 	bool result{false};
 
-	result = _aHandle != Q_NULLPTR;
+	result = _aHandle != nullptr;
 
 	if (result == false)
-		result = _bHandle != Q_NULLPTR;
+		result = _bHandle != nullptr;
 
 	if (result == false)
-		result = _cHandle != Q_NULLPTR;
+		result = _cHandle != nullptr;
 
 	if (result == false)
-		result = _dHandle != Q_NULLPTR;
+		result = _dHandle != nullptr;
 
 	return result;
 }
@@ -252,43 +249,43 @@ void _FTDIChipset::close()
 {
 	FT_STATUS ftStatus;
 
-	if (_aHandle != Q_NULLPTR)
+	if (_aHandle != nullptr)
 	{
 		FT_SetBitMode(_aHandle, 0, 0);
 
 		ftStatus = FT_Close(_aHandle);
 		if (ftStatus == FT_OK)
-			_aHandle = Q_NULLPTR;
+			_aHandle = nullptr;
 		else
 			AppCore::writeToApplicationLog("FTDI Port A close failure: " + _FTDIChipset::ftidStatusToString(ftStatus) + "\n");
 	}
 
-	if (_bHandle != Q_NULLPTR)
+	if (_bHandle != nullptr)
 	{
 		FT_SetBitMode(_bHandle, 0, 0);
 		ftStatus = FT_Close(_bHandle);
 		if (ftStatus == FT_OK)
-			_bHandle = Q_NULLPTR;
+			_bHandle = nullptr;
 		else
 			AppCore::writeToApplicationLog("FTDI Port B close failure: " + _FTDIChipset::ftidStatusToString(ftStatus) + "\n");
 	}
 
-	if (_cHandle != Q_NULLPTR)
+	if (_cHandle != nullptr)
 	{
 		FT_SetBitMode(_cHandle, 0, 0);
 		ftStatus = FT_Close(_cHandle);
 		if (ftStatus == FT_OK)
-			_cHandle = Q_NULLPTR;
+			_cHandle = nullptr;
 		else
 			AppCore::writeToApplicationLog("FTDI Port C close failure: " + _FTDIChipset::ftidStatusToString(ftStatus) + "\n");
 	}
 
-	if (_dHandle != Q_NULLPTR)
+	if (_dHandle != nullptr)
 	{
 		FT_SetBitMode(_dHandle, 0, 0);
 		ftStatus = FT_Close(_dHandle);
 		if (ftStatus == FT_OK)
-			_dHandle = Q_NULLPTR;
+			_dHandle = nullptr;
 		else
 			AppCore::writeToApplicationLog("FTDI Port D close failure: " + _FTDIChipset::ftidStatusToString(ftStatus) + "\n");
 	}
@@ -314,16 +311,13 @@ void _FTDIChipset::setPlatformID(PlatformID platformID)
 	_platformID = platformID;
 }
 
-QString _FTDIChipset::versionString()
+std::string _FTDIChipset::versionString()
 {
-	QString result;
-
-	result = QString::fromStdString(PlatformContainer::toString(_platformID)) + " " + firmwareString();
-
+	std::string result = PlatformContainer::toString(_platformID) + " " + firmwareString();
 	return result;
 }
 
-QString _FTDIChipset::firmwareString()
+std::string _FTDIChipset::firmwareString()
 {
 	return QCOMMONCONSOLE_VERSION;
 }
@@ -333,7 +327,7 @@ HashType _FTDIChipset::hash()
 	return _hash;
 }
 
-QByteArray _FTDIChipset::serialNumber()
+std::string _FTDIChipset::serialNumber()
 {
 	return _serialNumber;
 }
@@ -347,14 +341,14 @@ bool _FTDIChipset::newDevice()
 	return result;
 }
 
-QByteArray _FTDIChipset::aSerialNumber()
+std::string _FTDIChipset::aSerialNumber()
 {
 	return _aSerialNumber;
 }
 
-void _FTDIChipset::setASerialNumber(const QByteArray& aSerialNumber)
+void _FTDIChipset::setASerialNumber(const std::string& aSerialNumber)
 {
-	if (_aSerialNumber.isEmpty())
+	if (_aSerialNumber.empty())
 	{
 		setupHash(aSerialNumber);
 
@@ -362,14 +356,14 @@ void _FTDIChipset::setASerialNumber(const QByteArray& aSerialNumber)
 	}
 }
 
-QByteArray _FTDIChipset::bSerialNumber()
+std::string _FTDIChipset::bSerialNumber()
 {
 	return _bSerialNumber;
 }
 
-void _FTDIChipset::setBSerialNumber(const QByteArray& bSerialNumber)
+void _FTDIChipset::setBSerialNumber(const std::string& bSerialNumber)
 {
-	if (_bSerialNumber.isEmpty())
+	if (_bSerialNumber.empty())
 	{
 		setupHash(bSerialNumber);
 
@@ -377,14 +371,14 @@ void _FTDIChipset::setBSerialNumber(const QByteArray& bSerialNumber)
 	}
 }
 
-QByteArray _FTDIChipset::cSerialNumber()
+std::string _FTDIChipset::cSerialNumber()
 {
 	return _cSerialNumber;
 }
 
-void _FTDIChipset::setCSerialNumber(const QByteArray& cSerialNumber)
+void _FTDIChipset::setCSerialNumber(const std::string& cSerialNumber)
 {
-	if (_cSerialNumber.isEmpty())
+	if (_cSerialNumber.empty())
 	{
 		setupHash(cSerialNumber);
 
@@ -392,14 +386,14 @@ void _FTDIChipset::setCSerialNumber(const QByteArray& cSerialNumber)
 	}
 }
 
-QByteArray _FTDIChipset::dSerialNumber()
+std::string _FTDIChipset::dSerialNumber()
 {
 	return _dSerialNumber;
 }
 
-void _FTDIChipset::setDSerialNumber(const QByteArray& dSerialNumber)
+void _FTDIChipset::setDSerialNumber(const std::string& dSerialNumber)
 {
-	if (_dSerialNumber.isEmpty())
+	if (_dSerialNumber.empty())
 	{
 		setupHash(dSerialNumber);
 
@@ -414,12 +408,12 @@ bool _FTDIChipset::write
 )
 {
 	bool result{false};
-	void* handle{Q_NULLPTR};
-	CharBit* charBit{Q_NULLPTR};
+	void* handle{nullptr};
+	CharBit* charBit{nullptr};
 
 	if (pin <= 7) // a
 	{
-		if (_aHandle != Q_NULLPTR)
+		if (_aHandle != nullptr)
 		{
 			handle = _aHandle;
 			_aPins.set(pin, state);
@@ -428,7 +422,7 @@ bool _FTDIChipset::write
 	}
 	else if (pin <= 15) // b
 	{
-		if (_bHandle != Q_NULLPTR)
+		if (_bHandle != nullptr)
 		{
 			handle = _bHandle;
 			_bPins.set(pin, state);
@@ -437,7 +431,7 @@ bool _FTDIChipset::write
 	}
 	else if (pin <= 23) // c
 	{
-		if (_cHandle != Q_NULLPTR)
+		if (_cHandle != nullptr)
 		{
 			handle = _cHandle;
 			_cPins.set(pin, state);
@@ -446,7 +440,7 @@ bool _FTDIChipset::write
 	}
 	else if (pin <= 31) // d
 	{
-		if (_dHandle != Q_NULLPTR)
+		if (_dHandle != nullptr)
 		{
 			handle = _dHandle;
 			_dPins.set(pin, state);
@@ -454,7 +448,7 @@ bool _FTDIChipset::write
 		}
 	}
 
-	if (handle != Q_NULLPTR && charBit != Q_NULLPTR)
+	if (handle != nullptr && charBit != nullptr)
 	{
 		FT_STATUS status{FT_OTHER_ERROR};
 
@@ -464,15 +458,16 @@ bool _FTDIChipset::write
 			uint8_t writeValue = logicalValue ^ _invertMask;
 			uint8_t cbusValue = (0x0F << 4) | writeValue;
 
-			AppCore::writeToApplicationLogLine(
-				QString("FT232H W  CBUS3=%1 CBUS2=%2 CBUS1=%3 CBUS0=%4  pre=0x%5 ^inv=0x%6 hw=0x%7")
-				.arg((logicalValue >> 3) & 1)
-				.arg((logicalValue >> 2) & 1)
-				.arg((logicalValue >> 1) & 1)
-				.arg((logicalValue >> 0) & 1)
-				.arg(logicalValue, 2, 16, QChar('0'))
-				.arg(_invertMask, 2, 16, QChar('0'))
-				.arg(cbusValue, 2, 16, QChar('0')).toStdString());
+			char logBuf[128];
+			std::snprintf(logBuf, sizeof(logBuf), "FT232H W  CBUS3=%d CBUS2=%d CBUS1=%d CBUS0=%d  pre=0x%02X ^inv=0x%02X hw=0x%02X",
+				(logicalValue >> 3) & 1,
+				(logicalValue >> 2) & 1,
+				(logicalValue >> 1) & 1,
+				(logicalValue >> 0) & 1,
+				logicalValue,
+				_invertMask,
+				cbusValue);
+			AppCore::writeToApplicationLogLine(logBuf);
 
 			status = FT_SetBitMode(handle, cbusValue, FT_BITMODE_CBUS_BITBANG);
 
@@ -480,23 +475,23 @@ bool _FTDIChipset::write
 			FT_STATUS readStatus = FT_GetBitMode(handle, &readBack);
 			if (readStatus == FT_OK)
 			{
-				AppCore::writeToApplicationLogLine(
-					QString("FT232H R  CBUS3=%1 CBUS2=%2 CBUS1=%3 CBUS0=%4")
-					.arg((readBack >> 3) & 1)
-					.arg((readBack >> 2) & 1)
-					.arg((readBack >> 1) & 1)
-					.arg((readBack >> 0) & 1).toStdString());
+				std::snprintf(logBuf, sizeof(logBuf), "FT232H R  CBUS3=%d CBUS2=%d CBUS1=%d CBUS0=%d",
+					(readBack >> 3) & 1,
+					(readBack >> 2) & 1,
+					(readBack >> 1) & 1,
+					(readBack >> 0) & 1);
+				AppCore::writeToApplicationLogLine(logBuf);
 
 				uint8_t mismatch = (writeValue ^ readBack) & 0x0F;
 				if (mismatch != 0)
 				{
-					AppCore::writeToApplicationLogLine(
-						QString("FT232H MISMATCH  bits=0x%1  CBUS3=%2 CBUS2=%3 CBUS1=%4 CBUS0=%5")
-						.arg(mismatch, 2, 16, QChar('0'))
-						.arg((mismatch >> 3) & 1)
-						.arg((mismatch >> 2) & 1)
-						.arg((mismatch >> 1) & 1)
-						.arg((mismatch >> 0) & 1).toStdString());
+					std::snprintf(logBuf, sizeof(logBuf), "FT232H MISMATCH  bits=0x%02X  CBUS3=%d CBUS2=%d CBUS1=%d CBUS0=%d",
+						mismatch,
+						(mismatch >> 3) & 1,
+						(mismatch >> 2) & 1,
+						(mismatch >> 1) & 1,
+						(mismatch >> 0) & 1);
+					AppCore::writeToApplicationLogLine(logBuf);
 				}
 			}
 			else
@@ -519,28 +514,28 @@ bool _FTDIChipset::write
 		{
 			std::string message = "FTDI Write Failed: " + _FTDIChipset::ftidStatusToString(status)  + "\n";
 			AppCore::writeToApplicationLog(message);
-			_lastError = QByteArray::fromStdString(message);
+			_lastError = message;
 		}
 	}
 
 	return result;
 }
 
-HashType _FTDIChipset::hash(const QByteArray &serialNumber)
+HashType _FTDIChipset::hash(const std::string &serialNumber)
 {
 	HashType result{0};
 
-	result = ::arrayHash(serialNumber.toStdString());
+	result = ::arrayHash(serialNumber);
 
 	return result;
 }
 
 void _FTDIChipset::setSerialNumber
 (
-	const QByteArray& serialNumber
+	const std::string& serialNumber
 )
 {
-	if (_serialNumber.isEmpty())
+	if (_serialNumber.empty())
 	{
 		_serialNumber = serialNumber;
 
@@ -559,11 +554,11 @@ unsigned long long _FTDIChipset::setCustomVIDPID()
 	return ftStatus;
 }
 
-void _FTDIChipset::setupHash(const QByteArray& segmentSerialNumber)
+void _FTDIChipset::setupHash(const std::string& segmentSerialNumber)
 {
 	if (_hash == 0)
 	{
-		QByteArray serialNumber = _FTDIChipset::normalizeSerialNumber(_boardType, segmentSerialNumber);
+		std::string serialNumber = _FTDIChipset::normalizeSerialNumber(_boardType, segmentSerialNumber);
 
 		_hash = hash(serialNumber);
 		_serialNumber = serialNumber;
@@ -572,19 +567,19 @@ void _FTDIChipset::setupHash(const QByteArray& segmentSerialNumber)
 
 void _FTDIChipset::setupPortName()
 {
-	if (_portName.isEmpty())
+	if (_portName.empty())
 	{
-		if (_serialNumber.isEmpty() == false)
+		if (!_serialNumber.empty())
 		{
-			QSettings settings(QSettings::UserScope, "Qualcomm, Inc.", "Alpaca");
+			AlpacaSettings settings("Alpaca");
 
 			settings.beginGroup("VTPs");
-			uint nextPort = settings.value("NextPortNumber", 1).toUInt();
+			unsigned int nextPort = settings.value("NextPortNumber", 1).toUInt();
 
-			QString vtpName = settings.value(_serialNumber, QString()).toString();
-			if (vtpName.isEmpty())
+			std::string vtpName = settings.value(_serialNumber, std::string()).toString();
+			if (vtpName.empty())
 			{
-				vtpName = QString("VTP%1").arg(nextPort);
+				vtpName = "VTP" + std::to_string(nextPort);
 				settings.setValue(_serialNumber, vtpName);
 
 				nextPort++;
@@ -594,17 +589,17 @@ void _FTDIChipset::setupPortName()
 
 			settings.endGroup();
 
-			_portName = vtpName.toLatin1();
+			_portName = vtpName;
 		}
 	}
 }
 
 PlatformID _FTDIChipset::nameToPlatform
 (
-	const QByteArray& deviceName
+	const std::string& deviceName
 )
 {
-	return PlatformContainer::fromUSBDescriptor(deviceName.toStdString());
+	return PlatformContainer::fromUSBDescriptor(deviceName);
 }
 
 #ifdef Q_OS_LINUX
@@ -622,7 +617,7 @@ void _FTDIChipset::linuxTraversal()
 		{
 			if (deviceCount > 0)
 			{
-				FT_DEVICE_LIST_INFO_NODE* devInfoList{Q_NULLPTR};
+				FT_DEVICE_LIST_INFO_NODE* devInfoList{nullptr};
 
 				devInfoList = new FT_DEVICE_LIST_INFO_NODE[deviceCount];
 
@@ -641,24 +636,25 @@ void _FTDIChipset::linuxTraversal()
 					{
 						ftStatus = FT_GetDeviceInfoDetail(i, &Flags, &Type, &ID, &LocId, SerialNumber, Description, &ftHandleTemp);
 
-						QString description(Description);
-						QByteArray usbDescriptor;
-						if (description.endsWith("BugHopper", Qt::CaseInsensitive))
-							usbDescriptor = description.toLatin1();
-						else
-							usbDescriptor = description.left(description.length() - 2).toLatin1();
-						if (_PlatformConfiguration::containsUSBDescriptor(usbDescriptor) || usbDescriptor.startsWith("ALPACA-LITE "))
+						std::string description(Description);
+						std::string usbDescriptor;
+						if (description.length() >= 9 && description.compare(description.length() - 9, 9, "BugHopper") == 0)
+							usbDescriptor = description;
+						else if (description.length() >= 2)
+							usbDescriptor = description.substr(0, description.length() - 2);
+
+						if (_PlatformConfiguration::containsUSBDescriptor(usbDescriptor) || usbDescriptor.rfind("ALPACA-LITE ", 0) == 0)
 						{
 							PlatformID platformID = _PlatformConfiguration::getUSBDescriptor(usbDescriptor);
-							QByteArray deviceSerialNumber(SerialNumber);
+							std::string deviceSerialNumber(SerialNumber);
 							TACPlatformEntry platformEntry = _PlatformConfiguration::getEntry(platformID);
 							DebugBoardType boardType = platformEntry._platformEntry->_boardtype;
-							QByteArray serialNumber = _FTDIChipset::normalizeSerialNumber(boardType, deviceSerialNumber);
+							std::string serialNumber = _FTDIChipset::normalizeSerialNumber(boardType, deviceSerialNumber);
 
-							if (serialNumber.isEmpty() == false)
+							if (!serialNumber.empty())
 							{
 								uint portHash = hash(serialNumber);
-								QChar segment = description.right(1)[0];
+								char segment = description.empty() ? '\0' : description.back();
 
 								FTDIChipset ftdiChipset;
 
@@ -672,14 +668,14 @@ void _FTDIChipset::linuxTraversal()
 									ftdiChipset->setPlatformID(platformID);
 									ftdiChipset->setBoardType(boardType);
 
-									_ftdiChipsetList.append(ftdiChipset);
+									_ftdiChipsetList.push_back(ftdiChipset);
 								}
 
 								ftdiChipset->setSerialNumber(serialNumber);
-								if (ftdiChipset->_usbDescriptor.isEmpty() == true)
+								if (ftdiChipset->_usbDescriptor.empty())
 									ftdiChipset->_usbDescriptor = usbDescriptor;
 
-								switch (segment.toLatin1())
+								switch (segment)
 								{
 								case 'A':
 								case 'a':
@@ -738,7 +734,7 @@ void _FTDIChipset::windowsTraversal()
 	{
 		if (deviceCount > 0)
 		{
-			FT_DEVICE_LIST_INFO_NODE* devInfoList{Q_NULLPTR};
+			FT_DEVICE_LIST_INFO_NODE* devInfoList{nullptr};
 
 			devInfoList = new FT_DEVICE_LIST_INFO_NODE[deviceCount];
 
@@ -747,26 +743,25 @@ void _FTDIChipset::windowsTraversal()
 			{
 				for (auto i: range(deviceCount))
 				{
-					QString description = devInfoList[i].Description;
-					QByteArray usbDescriptor;
-					if (description.endsWith("BugHopper", Qt::CaseInsensitive))
-						usbDescriptor = description.toLatin1();
-					else
-						usbDescriptor = description.left(description.length() - 2).toLatin1();
-					if (_PlatformConfiguration::containsUSBDescriptor(usbDescriptor) || usbDescriptor.startsWith("ALPACA-LITE "))
+					std::string description = devInfoList[i].Description ? devInfoList[i].Description : "";
+					std::string usbDescriptor;
+					if (description.length() >= 9 && description.compare(description.length() - 9, 9, "BugHopper") == 0)
+						usbDescriptor = description;
+					else if (description.length() >= 2)
+						usbDescriptor = description.substr(0, description.length() - 2);
+
+					if (_PlatformConfiguration::containsUSBDescriptor(usbDescriptor) || usbDescriptor.rfind("ALPACA-LITE ", 0) == 0)
 					{
 						PlatformID platformId = _PlatformConfiguration::getUSBDescriptor(usbDescriptor);
-						QByteArray deviceSerialNumber = devInfoList[i].SerialNumber;
+						std::string deviceSerialNumber = devInfoList[i].SerialNumber ? devInfoList[i].SerialNumber : "";
 						TACPlatformEntry platformEntry = _PlatformConfiguration::getEntry(platformId);
 						DebugBoardType boardType = platformEntry._platformEntry->_boardtype;
-						QByteArray serialNumber = _FTDIChipset::normalizeSerialNumber(boardType, deviceSerialNumber);
+						std::string serialNumber = _FTDIChipset::normalizeSerialNumber(boardType, deviceSerialNumber);
 
-
-						if (serialNumber.isEmpty() == false)
+						if (!serialNumber.empty())
 						{
 							uint portHash = hash(serialNumber);
-
-							QChar segment = description.right(1)[0]; // This is 'r' for Bug Hopper devices
+							char segment = description.empty() ? '\0' : description.back(); // This is 'r' for Bug Hopper devices
 
 							FTDIChipset ftdiChipset;
 
@@ -780,14 +775,14 @@ void _FTDIChipset::windowsTraversal()
 								ftdiChipset->setPlatformID(platformId);
 								ftdiChipset->setBoardType(boardType);
 
-								_ftdiChipsetList.append(ftdiChipset);
+								_ftdiChipsetList.push_back(ftdiChipset);
 							}
 
 							ftdiChipset->setSerialNumber(serialNumber);
-							if (ftdiChipset->_usbDescriptor.isEmpty())
+							if (ftdiChipset->_usbDescriptor.empty())
 								ftdiChipset->_usbDescriptor = usbDescriptor;
 
-							switch (segment.toLatin1())
+							switch (segment)
 							{
 							case 'A':
 							case 'a':
@@ -801,7 +796,6 @@ void _FTDIChipset::windowsTraversal()
 
 							case 'C':
 							case 'c':
-
 							// Handling for Bug Hopper devices
 							case 'R':
 							case 'r':
@@ -816,7 +810,7 @@ void _FTDIChipset::windowsTraversal()
 
 							ftdiChipset->_active = true;
 
-							if (devInfoList->Flags == FT_FLAGS_OPENED)
+							if (devInfoList[i].Flags == FT_FLAGS_OPENED)
 								ftdiChipset->_lastError = "QTAC failed to enumerate all connected FTDI devices as they are in use";
 						}
 					}

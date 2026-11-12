@@ -17,7 +17,7 @@ class QCOMMONCONSOLE_EXPORT PIC32CXSerialTableModel :
 	public SerialTableModel
 {
 public:
-	PIC32CXSerialTableModel(QObject* parent = Q_NULLPTR);
+	PIC32CXSerialTableModel(QObject* parent = nullptr);
 
 	QVariant portData(int deviceIndex, int dataIndex);
 };

@@ -16,22 +16,23 @@
 
 // Qt
 #include <QJsonDocument>
-#include <QMap>
-#include <QSharedPointer>
-#include <QSize>
-#include <QString>
 
 #include <cstdint>
+#include <map>
+#include <memory>
+#include <string>
+#include <utility>
+#include <vector>
 
 const int kDefaultPlatformId{99999};
 const int kDefaultFirmwareVersion{15};
-const QSize kClassicDimension(560, 725);
+const std::pair<int, int> kClassicDimension{560, 725};
 
 typedef int16_t ChipIndex;
 
 class _PlatformConfiguration;
 
-typedef QSharedPointer<_PlatformConfiguration> PlatformConfiguration;
+typedef std::shared_ptr<_PlatformConfiguration> PlatformConfiguration;
 
 struct QCOMMONCONSOLE_EXPORT TACPlatformEntry
 {
@@ -45,7 +46,7 @@ protected:
 	PlatformConfiguration		_platformConfiguration;
 };
 
-typedef QMap<PlatformID, TACPlatformEntry> TACPlatformEntries;
+typedef std::map<PlatformID, TACPlatformEntry> TACPlatformEntries;
 
 class QCOMMONCONSOLE_EXPORT _PlatformConfiguration
 {
@@ -59,55 +60,55 @@ public:
 	static void initializeDynamicPlatform();
 
 	static PlatformConfiguration createPlatformConfiguration(DebugBoardType debugBoardType, int chipCount = 1, PSOCVariant psocVariant = ePSOCUnknown);
-	static PlatformConfiguration openPlatformConfiguration(const QString& filePath);
+	static PlatformConfiguration openPlatformConfiguration(const std::string& filePath);
 
-	static QList<PlatformID> platformEntryIds();
+	static std::vector<PlatformID> platformEntryIds();
 	static TACPlatformEntry getEntry(PlatformID platformID);
 
-	static QString makeConfigName(const QString& chip, PlatformID platformID);
-	static bool parseConfigName(const QString& fileName, DebugBoardType& debugBoardType, PlatformID &platformID);
+	static std::string makeConfigName(const std::string& chip, PlatformID platformID);
+	static bool parseConfigName(const std::string& fileName, DebugBoardType& debugBoardType, PlatformID &platformID);
 
-	static PlatformID getUSBDescriptor(const QByteArray& usbDescriptorString);
-	static bool containsUSBDescriptor(const QByteArray& usbDescriptorString);
+	static PlatformID getUSBDescriptor(const std::string& usbDescriptorString);
+	static bool containsUSBDescriptor(const std::string& usbDescriptorString);
 
-	static QString getLastError() { return _lastError; }
+	static std::string getLastError() { return _lastError; }
 
 	bool dirty() { return _dirty; }
 
-	bool load(const QString& filePath);
+	bool load(const std::string& filePath);
 	void save();
 
-	static QString lastError();
+	static std::string lastError();
 
-	QString name() { return _name; }
-	void setName(const QString& name);
+	std::string name() { return _name; }
+	void setName(const std::string& name);
 
-	QString author() { return _author; }
-	void setAuthor(const QString& author);
+	std::string author() { return _author; }
+	void setAuthor(const std::string& author);
 
-	QString description() { return _description; }
-	void setDescription(const QString& description);
+	std::string description() { return _description; }
+	void setDescription(const std::string& description);
 
-	QString creationDate() { return _creationDate; }
+	std::string creationDate() { return _creationDate; }
 
-	QString modificationDate() { return _modifyDate; }
+	std::string modificationDate() { return _modifyDate; }
 
 	// Getter method to get the platform type
 	DebugBoardType getPlatform() { return _platform; }
 
 	// auto incremented file version to provide file history
-	QString getFileVersion();
+	std::string getFileVersion();
 	uint32_t fileVersion();
 
 	// Returns string version of platform type for UI elements
-	QString getPlatformString();
+	std::string getPlatformString();
 
 	// Setter method to set the platform type
 	void setPlatform(DebugBoardType platform);
 
 	// The function is required to update _platform value
 	// in memory after reading the string from file
-	void setPlatform(const QString& platform);
+	void setPlatform(const std::string& platform);
 
 	virtual PSOCVariant variant();
 
@@ -119,8 +120,8 @@ public:
 	void deleteTabs(Tabs& tabs);
 	void updateTabs(Tabs& tabs);
 	Tabs getTabs();
-	QStringList getAllTabs();
-	QStringList getVisibleTabs();
+	std::vector<std::string> getAllTabs();
+	std::vector<std::string> getVisibleTabs();
 
 	void renameTab(const std::string& oldName, const std::string& newName);
 	void setTabVisible(const std::string& tabName, bool visible);
@@ -159,24 +160,24 @@ public:
 	HashType addButtonCellLocation(const std::string& labelName, const std::string& tabName, const std::pair<int, int>& cellLocation);
 	bool setButtonCellLocation(HashType hash, const std::pair<int, int>& cellLocation);
 
-	QSize getFormDimension();
-	void setFormDimension(const QSize& formDimension);
+	std::pair<int, int> getFormDimension();
+	void setFormDimension(const std::pair<int, int>& formDimension);
 
 	bool resetActive() { return _resetActive; }
 	bool getResetEnabledState();
 	void setResetEnabledState(bool newState);
 
-	void setUSBDescriptor(const QByteArray& usbDescriptor);
-	QByteArray getUSBDescriptor();
+	void setUSBDescriptor(const std::string& usbDescriptor);
+	std::string getUSBDescriptor();
 
 	const std::string& getAlpacaScript();
 	void setAlpacaScript(const std::string& alpacaScript);
 
-	void setFilePath(const QString& filePath);
-	QString filePath();
+	void setFilePath(const std::string& filePath);
+	std::string filePath();
 
-	void setSupportedFirmwareVer(const QList<uint32_t> &firmwareList);
-	QList<uint32_t> supportedFirmwareVer();
+	void setSupportedFirmwareVer(const std::vector<uint32_t> &firmwareList);
+	std::vector<uint32_t> supportedFirmwareVer();
 
 protected:
 
@@ -190,27 +191,27 @@ protected:
 	void defaultScriptVariables();
 
 	bool						_dirty{false};
-	static QString				_lastError;
+	static std::string			_lastError;
 	static bool					_dynamicConfigurationsInitialized;
 
-	QString						_platformPath;
-	QString						_platformFile;
+	std::string					_platformPath;
+	std::string					_platformFile;
 	PlatformID					_platformId{kDefaultPlatformId};
 	uint32_t					_fileVersion{0};
-	QString						_name;
-	QString						_author;
-	QString						_description;
-	QString						_creationDate;
-	QString						_modifyDate;
+	std::string					_name;
+	std::string					_author;
+	std::string					_description;
+	std::string					_creationDate;
+	std::string					_modifyDate;
 	DebugBoardType				_platform;
-	QByteArray					_usbDescriptor;
+	std::string					_usbDescriptor;
 	std::string					_alpacaScript;
-	QList<uint32_t>				_supportedFirmwareVer;
+	std::vector<uint32_t>		_supportedFirmwareVer;
 
 	Tabs						_tabs;
 	Buttons						_buttons;
 	ScriptVariables             _scriptVariables;
-	QSize						_formDimension;
+	std::pair<int, int>			_formDimension;
 	bool						_resetActive{false};
 	bool						_resetEnabled{false};
 

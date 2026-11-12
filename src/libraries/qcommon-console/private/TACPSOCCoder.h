@@ -9,11 +9,10 @@
 // QCommon
 #include "FrameCoder.h"
 
-// Qt
-#include <QByteArray>
+#include <string>
 
-const QByteArray kCommand("CMD >> ");
-const QByteArray kCommandNotRecognized("CMD: Command not recognized.");
+const std::string kCommand{"CMD >> "};
+const std::string kCommandNotRecognized{"CMD: Command not recognized."};
 
 class QCOMMONCONSOLE_EXPORT TACPSOCCoder :
 	public FrameCoder
@@ -22,15 +21,15 @@ public:
 	TACPSOCCoder();
 	virtual ~TACPSOCCoder();
 
-	virtual void reset();
+	virtual void reset() override;
 
-	virtual void decode(const QByteArray& decodeMe);
+	virtual void decode(const std::string& decodeMe) override;
 
-	virtual QByteArray encode(const QByteArray& encodeMe, const Arguments& arguments);
+	virtual std::string encode(const std::string& encodeMe, const Arguments& arguments) override;
 
 private:
 	Q_DISABLE_COPY(TACPSOCCoder)
-	QByteArray					_recieveBuffer;
+	std::string					_recieveBuffer;
 };
 
 #endif // TACPSOCCODER_H

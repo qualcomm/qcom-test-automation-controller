@@ -2,10 +2,6 @@
 // SPDX-License-Identifier: BSD-3-Clause
 
 #include "SystemUsername.h"
-#include <QDomDocument>
-#include <QDomNode>
-#include <QDomNodeList>
-#include <QStringList>
 
 // Windows
 #ifdef Q_OS_WIN
@@ -75,7 +71,6 @@ void SystemUsername::getUserNameWin()
 #ifdef Q_OS_WIN
 DWORD SystemUsername::parseEvent(EVT_HANDLE hEvent)
 {
-//	QRegExp re("SubjectUserName\'>(.*)</Data><Data Name='SubjectDomainName");
 	DWORD dwBufferUsed = kEventBufferSize*2;
 	WCHAR renderedContent[kEventBufferSize];
 	char eventDataStr[kEventBufferSize];
@@ -84,27 +79,21 @@ DWORD SystemUsername::parseEvent(EVT_HANDLE hEvent)
 	EvtRender(NULL, hEvent, EvtRenderEventXml, kEventBufferSize*2, renderedContent, &dwBufferUsed, 0);
 	wcstombs_s(&bufferSize, eventDataStr, renderedContent, kEventBufferSize);
 
-	// fix me
-	QString eventData{eventDataStr};
-
-//	re.indexIn(eventData, 0);
-	QString filteredStr(""/*re.cap(0)*/);
+	std::string filteredStr;
 
 	// The first capture from the regex should contain our username. Generally, this is of the format "SubjectUserName'>biswroy</Data><Data Name='SubjectDomainName"
 	// Check if there is actually a captured string. If not, we ignore.
-	if (!filteredStr.isEmpty())
+	if (!filteredStr.empty())
 	{
-		// Try to split the captured string by the '> character so as to obtain "SubjectUserName and biswroy</Data><Data Name='SubjectDomainName"
-		QStringList chunkedStr = filteredStr.split("'>");
-		// If the list length is > 1, we have some data that can be filtered further.
-		if (chunkedStr.length() > 1)
+		size_t pos1 = filteredStr.find("'>");
+		if (pos1 != std::string::npos)
 		{
-			// Split the second string by </ which gives biswroy and Data><Data Name='SubjectDomainName"
-			chunkedStr = chunkedStr[1].split("</");
-			// If we have some string
-			if (chunkedStr.length() > 0)
-				// It must be the username
-				_userName = chunkedStr[0].toStdString();
+			std::string secondPart = filteredStr.substr(pos1 + 2);
+			size_t pos2 = secondPart.find("</");
+			if (pos2 != std::string::npos)
+			{
+				_userName = secondPart.substr(0, pos2);
+			}
 		}
 	}
 

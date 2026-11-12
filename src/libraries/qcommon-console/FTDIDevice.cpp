@@ -1,4 +1,4 @@
-﻿// Copyright (c) Qualcomm Technologies, Inc. and/or its subsidiaries.
+// Copyright (c) Qualcomm Technologies, Inc. and/or its subsidiaries.
 // SPDX-License-Identifier: BSD-3-Clause
 
 #include "FTDIDevice.h"
@@ -54,14 +54,14 @@ bool FTDIDevice::programDevice
 	if (tacPlatformEntry._platformEntry->_platformID == platformID)
 	{
 		FT_STATUS ftStatus;
-		FT_HANDLE ftHandle{Q_NULLPTR};
+		FT_HANDLE ftHandle{nullptr};
 
-		QByteArray serialNumber = QByteArray::fromStdString(alpacaDevice->serialNumber()) + "A";
+		std::string serialNumber = alpacaDevice->serialNumber() + "A";
 		std::string usbDescriptor = tacPlatformEntry._platformEntry->_usbDescriptor;
 
 		// For FT232H devices, no need to append bus info in serial number
 		if (tacPlatformEntry._platformEntry->_boardtype == eFT232H)
-			serialNumber = QByteArray::fromStdString(alpacaDevice->serialNumber());
+			serialNumber = alpacaDevice->serialNumber();
 
 		if (usbDescriptor.empty())
 		{
@@ -71,7 +71,7 @@ bool FTDIDevice::programDevice
 				usbDescriptor = "BugHopper";
 		}
 
-		ftStatus = FT_OpenEx(serialNumber.data(), FT_OPEN_BY_SERIAL_NUMBER, &ftHandle);
+		ftStatus = FT_OpenEx(const_cast<char*>(serialNumber.c_str()), FT_OPEN_BY_SERIAL_NUMBER, &ftHandle);
 		if (ftStatus == FT_OK)
 		{
 			FT_PROGRAM_DATA ftData;
@@ -148,16 +148,16 @@ uint32_t FTDIDevice::updateAlpacaDevices()
 		HashType hash = ftdiChipset->hash();
 
 		AlpacaDevice alpacaDevice = _AlpacaDevice::findAlpacaDevice(hash);
-		if (alpacaDevice.isNull())
+		if (!alpacaDevice)
 		{
 			FTDIDevice* ftdiDevice = new FTDIDevice;
 
 			ftdiDevice->_active = true;
-			ftdiDevice->_portName = ftdiChipset->portName().toStdString();
+			ftdiDevice->_portName = ftdiChipset->portName();
 			ftdiDevice->_hash = hash;
 			ftdiDevice->_chipVersion = 10000;
-			ftdiDevice->_usbDescriptor = ftdiChipset->usbDescriptor().toStdString();
-			ftdiDevice->_serialNumber = ftdiChipset->serialNumber().toStdString();
+			ftdiDevice->_usbDescriptor = ftdiChipset->usbDescriptor();
+			ftdiDevice->_serialNumber = ftdiChipset->serialNumber();
 			ftdiDevice->_platformID = ftdiChipset->platformID();
 
 			TACPlatformEntry platformEntry = _PlatformConfiguration::getEntry(ftdiDevice->_platformID);
@@ -188,13 +188,13 @@ bool FTDIDevice::open()
 	if (_platformConfiguration.isNull() == false)
 	{
 		if (_platformConfiguration->getPlatform() == eFTDI)
-			_ftdiPlatformConfiguration = static_cast<_FTDIPlatformConfiguration*>(_platformConfiguration.data());
+			_ftdiPlatformConfiguration = static_cast<_FTDIPlatformConfiguration*>(_platformConfiguration.get());
 		else
-			_ft232hPlatformConfiguration = static_cast<_FT232HPlatformConfiguration*>(_platformConfiguration.data());
+			_ft232hPlatformConfiguration = static_cast<_FT232HPlatformConfiguration*>(_platformConfiguration.get());
 
 		buildMapping();
 
-		if (_driveThread == Q_NULLPTR)
+		if (_driveThread == nullptr)
 		{
 			TACLiteDriveThread* driveThread = new TACLiteDriveThread(_hash);
 
@@ -273,9 +273,9 @@ bool FTDIDevice::open()
 void FTDIDevice::buildMapping()
 {
 	if (_platformConfiguration->getPlatform() == eFTDI)
-		Q_ASSERT(_ftdiPlatformConfiguration != Q_NULLPTR);
+		Q_ASSERT(_ftdiPlatformConfiguration != nullptr);
 	else
-		Q_ASSERT(_ft232hPlatformConfiguration != Q_NULLPTR);
+		Q_ASSERT(_ft232hPlatformConfiguration != nullptr);
 
 	buildCommandList();
 	buildQuickSettings();
@@ -285,7 +285,7 @@ void FTDIDevice::buildCommandList()
 {
 	if (_commands.empty() == true)
 	{
-		if (_platformConfiguration != Q_NULLPTR)
+		if (_platformConfiguration != nullptr)
 		{
 			FTDIPinList ftdiPinList;
 

@@ -9,8 +9,10 @@
 #include "AppCore.h"
 #include "Range.h"
 
+#include <string>
+
 const std::string kPIC32CXDescription{"ALPACA PIC32CX Debug Board"};
-PIC32CXSerialTableModel* gPIC32CXTACSerialTableModel{Q_NULLPTR};
+PIC32CXSerialTableModel* gPIC32CXTACSerialTableModel{nullptr};
 
 PIC32CXDevice::~PIC32CXDevice()
 {
@@ -18,10 +20,10 @@ PIC32CXDevice::~PIC32CXDevice()
 
 uint32_t PIC32CXDevice::updateAlpacaDevices()
 {
-	if (gPIC32CXTACSerialTableModel == Q_NULLPTR)
+	if (gPIC32CXTACSerialTableModel == nullptr)
 		gPIC32CXTACSerialTableModel = new PIC32CXSerialTableModel;
 
-	if (gPIC32CXTACSerialTableModel == Q_NULLPTR)
+	if (gPIC32CXTACSerialTableModel == nullptr)
 		return 0;
 
 	gPIC32CXTACSerialTableModel->refresh();
@@ -31,11 +33,11 @@ uint32_t PIC32CXDevice::updateAlpacaDevices()
 	{
 		AlpacaDevice alpacaDevice;
 
-		std::string portName = gPIC32CXTACSerialTableModel->rowData(deviceIndex, kPortNameCol).toLatin1().toStdString();
+		std::string portName = gPIC32CXTACSerialTableModel->rowData(deviceIndex, kPortNameCol);
 		HashType hash = ::arrayHash(portName);
 
 		alpacaDevice = _AlpacaDevice::findAlpacaDevice(hash);
-		if (alpacaDevice.isNull())
+		if (alpacaDevice == nullptr)
 		{
 			PIC32CXDevice* pic32cxDevice = new PIC32CXDevice;
 
@@ -47,18 +49,16 @@ uint32_t PIC32CXDevice::updateAlpacaDevices()
 			pic32cxDevice->_platformID = ALPACA_PIC32CX_ID;
 			pic32cxDevice->_description = kPIC32CXDescription;
 
-			QString serialNumber = gPIC32CXTACSerialTableModel->rowData(deviceIndex, kSerialNumberCol);
-			pic32cxDevice->_serialNumber = serialNumber.toLatin1().toStdString();
+			std::string serialNumber = gPIC32CXTACSerialTableModel->rowData(deviceIndex, kSerialNumberCol);
+			pic32cxDevice->_serialNumber = serialNumber;
 
-			QStringList serialNumberList = serialNumber.split("XX");
-
-			if (serialNumberList.size() > 1)
+			size_t xxPos = serialNumber.find("XX");
+			if (xxPos != std::string::npos)
 			{
-				pic32cxDevice->_usbDescriptor = serialNumberList.at(0).toLatin1().toStdString();
+				pic32cxDevice->_usbDescriptor = serialNumber.substr(0, xxPos);
 
-				QByteArray usbDescriptorBytes = QByteArray::fromStdString(pic32cxDevice->_usbDescriptor);
-				if (_PlatformConfiguration::containsUSBDescriptor(usbDescriptorBytes) == true)
-					pic32cxDevice->_platformID = _PlatformConfiguration::getUSBDescriptor(usbDescriptorBytes);
+				if (_PlatformConfiguration::containsUSBDescriptor(pic32cxDevice->_usbDescriptor) == true)
+					pic32cxDevice->_platformID = _PlatformConfiguration::getUSBDescriptor(pic32cxDevice->_usbDescriptor);
 			}
 
 			TACPlatformEntry platformEntry = _PlatformConfiguration::getEntry(pic32cxDevice->_platformID);
@@ -66,7 +66,7 @@ uint32_t PIC32CXDevice::updateAlpacaDevices()
 			pic32cxDevice->_description = platformEntry._platformEntry->_description;
 			pic32cxDevice->_platformConfiguration = platformEntry.getConfiguration();
 
-			_AlpacaDevice::_alpacaDevices.push_back(AlpacaDevice(pic32cxDevice));
+			_AlpacaDevice::_alpacaDevices.push_back(std::shared_ptr<PIC32CXDevice>(pic32cxDevice));
 
 			AppCore::writeToApplicationLog("Found a PIC32CX device with port name: '" + portName + "'\n");
 		}
@@ -76,14 +76,14 @@ uint32_t PIC32CXDevice::updateAlpacaDevices()
 		}
 	}
 
-	return _AlpacaDevice::_alpacaDevices.count();
+	return static_cast<uint32_t>(_AlpacaDevice::_alpacaDevices.size());
 }
 
 bool PIC32CXDevice::open()
 {
 	bool result{false};
 
-	if (_driveThread == Q_NULLPTR)
+	if (_driveThread == nullptr)
 	{
 		_driveThread = new TACPIC32CXDriveThread(_hash);
 		_driveThread->setThreadDelay(300);
@@ -103,7 +103,7 @@ bool PIC32CXDevice::open()
 
 	if (result == true)
 	{
-		_pic32cxPlatformConfiguration = static_cast<_PIC32CXPlatformConfiguration*>(_platformConfiguration.data());
+		_pic32cxPlatformConfiguration = static_cast<_PIC32CXPlatformConfiguration*>(_platformConfiguration.get());
 
 		buildMapping();
 
@@ -132,7 +132,7 @@ void PIC32CXDevice::buildMapping()
 			tacCommand._tabName = pin._tabName;
 			tacCommand._groupName = CommandGroup::toString(pin._commandGroup);
 
-			tacCommand._cellLocation = fromQPoint(pin._cellLocation);
+			tacCommand._cellLocation = pin._cellLocation;
 
 			_commands[tacCommand._command] = tacCommand;
 			_commandList.push_back(tacCommand);

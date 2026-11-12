@@ -7,10 +7,12 @@
 #include "ConsoleApplicationEnhancements.h"
 #include "AlpacaSettings.h"
 
-const QString kLoggingEnabled(QStringLiteral("logEnabled"));
-const QString kAppLogLocation(QStringLiteral("appLogLocation"));
-const QString kRunLogLocation(QStringLiteral("runLogLocation"));
-const QString kPlatformConfigLocation(QStringLiteral("platformConfigLocation"));
+#include <string>
+
+const std::string kLoggingEnabled{"logEnabled"};
+const std::string kAppLogLocation{"appLogLocation"};
+const std::string kRunLogLocation{"runLogLocation"};
+const std::string kPlatformConfigLocation{"platformConfigLocation"};
 
 PreferencesBase::PreferencesBase()
 {
@@ -30,8 +32,8 @@ void PreferencesBase::setAppName
 
 	settings.beginGroup(kPreferences);
 	_loggingActive = settings.value(kLoggingEnabled, defaultLoggingState()).toBool();
-	_appLoggingPath = killOneDrive(settings.value(kAppLogLocation, QString::fromStdString(defaultAppLogPath())).toString().toStdString(), defaultAppLogPath());
-	_runLoggingPath = killOneDrive(settings.value(kRunLogLocation, QString::fromStdString(defaultRunLogPath())).toString().toStdString(), defaultRunLogPath());
+	_appLoggingPath = killOneDrive(settings.value(kAppLogLocation, defaultAppLogPath()).toString(), defaultAppLogPath());
+	_runLoggingPath = killOneDrive(settings.value(kRunLogLocation, defaultRunLogPath()).toString(), defaultRunLogPath());
 	_platformConfigLocation = killOneDrive(defaultPlatformConfigLocation(), defaultPlatformConfigLocation());
 	settings.endGroup();
 }
@@ -103,7 +105,7 @@ void PreferencesBase::saveAppLogPath
 	AlpacaSettings settings(_appName);
 
 	settings.beginGroup(kPreferences);
-	settings.setValue(kAppLogLocation, QString::fromStdString(_appLoggingPath));
+	settings.setValue(kAppLogLocation, _appLoggingPath);
 	settings.endGroup();
 }
 
@@ -135,7 +137,7 @@ void PreferencesBase::saveRunLogPath
 	AlpacaSettings settings(_appName);
 
 	settings.beginGroup(kPreferences);
-	settings.setValue(kRunLogLocation, QString::fromStdString(_runLoggingPath));
+	settings.setValue(kRunLogLocation, _runLoggingPath);
 	settings.endGroup();
 }
 
@@ -151,11 +153,10 @@ std::string PreferencesBase::platformConfigLocation()
 
 void PreferencesBase::setPlatformConfigLocation(const std::string& platformConfigLocation)
 {
-	Q_UNUSED(platformConfigLocation);
+	(void)platformConfigLocation;
 }
 
 void PreferencesBase::savePlatformConfigLocation(const std::string& saveLocation)
 {
-	Q_UNUSED(saveLocation);
+	(void)saveLocation;
 }
-

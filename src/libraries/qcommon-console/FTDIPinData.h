@@ -17,7 +17,7 @@
 const int kMaxPinIndex{7};
 const int kPinsPerBus{8};
 
-typedef QChar Bus;
+typedef char Bus;
 
 enum FTDIBusFunction
 {
@@ -45,14 +45,7 @@ struct FTDIBusData
 
 	static HashType makeFTDIHash(ChipIndex chipIndex, Bus bus)
 	{
-		HashType result{0};
-
-		QString chipStr = QString::number(chipIndex);
-		QString busStr = QString(bus);
-
-		result = strHash((chipStr + busStr).toStdString());
-
-		return result;
+		return strHash(std::to_string(chipIndex) + bus);
 	}
 
 	static std::string toString(FTDIBusFunction busFunction)
@@ -87,7 +80,7 @@ struct FTDIBusData
 	HashType					_hash{0};
 
 	ChipIndex					_chipIndex{1};
-	Bus							_bus;
+	Bus							_bus{'\0'};
 	FTDIBusFunction				_busFunction{eBusFunctionUnknown};
 };
 
@@ -112,21 +105,13 @@ struct FTDIPinData
 
 	static HashType makeFTDIHash(ChipIndex chipIndex, Bus bus, PinID pin)
 	{
-		HashType result{0};
-
-		QString chipStr = QString::number(chipIndex);
-		QString busStr = QString(bus);
-		QString pinStr = QString::number(pin);
-
-		result = strHash((chipStr + busStr + pinStr).toStdString());
-
-		return result;
+		return strHash(std::to_string(chipIndex) + bus + std::to_string(pin));
 	}
 
 	HashType					_hash{0};
 
 	ChipIndex					_chipIndex{1};
-	Bus							_bus;
+	Bus							_bus{'\0'};
 	PinID						_chipPin{static_cast<PinID>(-1)};
 	PinID						_setPin{static_cast<PinID>(-1)};
 	bool						_enabled{false};

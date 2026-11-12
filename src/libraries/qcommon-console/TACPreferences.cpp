@@ -10,14 +10,16 @@
 #include "ConsoleApplicationEnhancements.h"
 #include "AlpacaSettings.h"
 
-const QString kButtonAssertTime(QStringLiteral("buttonAssertTime"));
-const QString kPowerOnDelay(QStringLiteral("powerOnDelay"));
-const QString kShutdownDelayEnable(QStringLiteral("shutdownDelayEnable"));
-const QString kShutdownDelay(QStringLiteral("shutdownDelay"));
-const QString kLastDevice(QStringLiteral("lastDevice"));
-const QString kOpenLastDeviceOnStarup(QStringLiteral("openLastDeviceOnStartup"));
-const QString kTACConfigurationPath(QStringLiteral("TACConfigLocations"));
-const QString kTACEditorConfigurationPath(QStringLiteral("TACEditorConfigLocations"));
+#include <string>
+
+const std::string kButtonAssertTime{"buttonAssertTime"};
+const std::string kPowerOnDelay{"powerOnDelay"};
+const std::string kShutdownDelayEnable{"shutdownDelayEnable"};
+const std::string kShutdownDelay{"shutdownDelay"};
+const std::string kLastDevice{"lastDevice"};
+const std::string kOpenLastDeviceOnStarup{"openLastDeviceOnStartup"};
+const std::string kTACConfigurationPath{"TACConfigLocations"};
+const std::string kTACEditorConfigurationPath{"TACEditorConfigLocations"};
 
 void TACPreferences::setAppName
 (
@@ -36,7 +38,7 @@ void TACPreferences::setAppName
 	_autoShutdown = settings.value(kShutdownDelayEnable, defaultAutoShutdown()).toBool();
 	_autoShutdownDelay = settings.value(kShutdownDelay, defaultAutoShutdownDelay()).toReal();
 	_openLast = settings.value(kOpenLastDeviceOnStarup, defaultOpenLastStart()).toBool();
-	_tacEditorConfigLocation = settings.value(kTACEditorConfigurationPath, QString::fromStdString(defaultTACEditorConfigLocation())).toString().toStdString();
+	_tacEditorConfigLocation = settings.value(kTACEditorConfigurationPath, defaultTACEditorConfigLocation()).toString();
 
 	settings.endGroup();
 }
@@ -203,16 +205,13 @@ void TACPreferences::saveOpenLastStart(bool openLastOnStart)
 
 std::string TACPreferences::lastDevice()
 {
-	QString result;
-
 	AlpacaSettings settings(kAppName);
 
 	settings.beginGroup(kPreferences);
-    result = settings.value(kLastDevice, QString()).toString();
-
+	std::string result = settings.value(kLastDevice, "").toString();
 	settings.endGroup();
 
-	return result.toStdString();
+	return result;
 }
 
 void TACPreferences::saveLastDevice
@@ -223,7 +222,7 @@ void TACPreferences::saveLastDevice
 	AlpacaSettings settings(kAppName);
 
 	settings.beginGroup(kPreferences);
-	settings.setValue(kLastDevice, QString::fromStdString(lastDevice));
+	settings.setValue(kLastDevice, lastDevice);
 
 	settings.endGroup();
 }
@@ -250,8 +249,7 @@ void TACPreferences::saveTACEditorConfigLocation(const std::string &saveLocation
 	AlpacaSettings settings(kAppName);
 
 	settings.beginGroup(kPreferences);
-	settings.setValue(kTACEditorConfigurationPath, QString::fromStdString(_tacEditorConfigLocation));
+	settings.setValue(kTACEditorConfigurationPath, _tacEditorConfigLocation);
 
 	settings.endGroup();
 }
-

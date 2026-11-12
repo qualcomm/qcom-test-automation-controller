@@ -6,13 +6,23 @@
 // QCommon
 #include "StringUtilities.h"
 
+#include <algorithm>
+#include <string>
+
+SerialPortInfo::SerialPortInfo
+(
+	const std::string& name
+) :
+	QSerialPortInfo(QString::fromStdString(name))
+{
+}
+
 SerialPortInfo::SerialPortInfo
 (
 	const QString& name
 ) :
 	QSerialPortInfo(name)
 {
-
 }
 
 SerialPortInfo::SerialPortInfo
@@ -48,7 +58,7 @@ SerialPortInfos SerialPortInfo::availablePorts()
 	QList<QSerialPortInfo> serialPortInfos = QSerialPortInfo::availablePorts();
 	for (const auto& serialPortInfo: serialPortInfos)
 	{
-		result += SerialPortInfo(serialPortInfo);
+		result.push_back(SerialPortInfo(serialPortInfo));
 	}
 
 	return result;
@@ -86,13 +96,13 @@ bool equal
 {
 	bool result(false);
 
-	if (si1.count() == si2.count())
+	if (si1.size() == si2.size())
 	{
 		result = true;
 
 		for (const auto& serialPortInfo: si1)
 		{
-			if (si2.contains(serialPortInfo) == false)
+			if (std::find(si2.begin(), si2.end(), serialPortInfo) == si2.end())
 			{
 				result = false;
 				break;
@@ -103,7 +113,7 @@ bool equal
 	return result;
 }
 
-quint64 qHash(const SerialPortInfo &key, uint seed)
+uint64_t qHash(const SerialPortInfo &key, unsigned int seed)
 {
 	Q_UNUSED(seed)
 

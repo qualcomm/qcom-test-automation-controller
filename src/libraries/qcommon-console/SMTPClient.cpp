@@ -2,14 +2,13 @@
 // SPDX-License-Identifier: BSD-3-Clause
 
 #include "SMTPClient.h"
-#include"AppCore.h"
+#include "AppCore.h"
 
 #include <QFile>
 #include <QFileInfo>
-#include <QRegularExpression>
-#include <QString>
-#include <QStringList>
 #include <QTcpSocket>
+
+#include <regex>
 
 SMTPClient::~SMTPClient()
 {
@@ -52,17 +51,17 @@ void SMTPClient::setMimeFiles(const std::vector<std::string>& mimeFiles)
 
 void SMTPClient::send(const std::string& senderAddress, const std::string& receiverAddress, const std::string& subject, const std::string& body)
 {
-	if (isMailAddressValid(senderAddress) == false || isMailAddressValid(receiverAddress) == false)
+	if (!isMailAddressValid(senderAddress) || !isMailAddressValid(receiverAddress))
 		throw SMTPClientException("The supplied email address is invalid. Please use a valid email address.");
 
 	QTcpSocket socket;
 
 	socket.connectToHost(QString::fromStdString(_hostName), _portNumber);
 
-	if (socket.waitForConnected(_timeout) == false)
+	if (!socket.waitForConnected(_timeout))
 		throw SMTPClientException(socket.errorString().toStdString());
 
-	if (socket.isValid() == false)
+	if (!socket.isValid())
 		throw SMTPClientException("The TCP Socket is invalid.");
 
 	socket.write("EHLO 22.03.19.98\r\n");
@@ -71,13 +70,15 @@ void SMTPClient::send(const std::string& senderAddress, const std::string& recei
 	if (socket.waitForReadyRead())
 		AppCore::writeToApplicationLogLine(socket.readAll().toStdString());
 
-	socket.write(QByteArray::fromStdString("mail from: " + senderAddress + "\r\n"));
+	std::string mailFrom = "mail from: " + senderAddress + "\r\n";
+	socket.write(mailFrom.c_str(), static_cast<qint64>(mailFrom.length()));
 	socket.flush();
 
 	if (socket.waitForReadyRead())
 		AppCore::writeToApplicationLogLine(socket.readAll().toStdString());
 
-	socket.write(QByteArray::fromStdString("rcpt to: " + receiverAddress + " NOTIFY=success,failure\r\n"));
+	std::string rcptTo = "rcpt to: " + receiverAddress + " NOTIFY=success,failure\r\n";
+	socket.write(rcptTo.c_str(), static_cast<qint64>(rcptTo.length()));
 	socket.flush();
 
 	if (socket.waitForReadyRead())
@@ -89,24 +90,25 @@ void SMTPClient::send(const std::string& senderAddress, const std::string& recei
 	if (socket.waitForReadyRead())
 		AppCore::writeToApplicationLogLine(socket.readAll().toStdString());
 
-	socket.write(QByteArray::fromStdString("Subject: " + subject + "\r\n"));
+	std::string subjectLine = "Subject: " + subject + "\r\n";
+	socket.write(subjectLine.c_str(), static_cast<qint64>(subjectLine.length()));
 	socket.flush();
 
-	QByteArray message;
+	std::string message;
 
-	message = QByteArray::fromStdString("FROM: " + senderAddress + "\r\n");
-	message.append(QByteArray::fromStdString("TO: " + receiverAddress + "\r\n"));
+	message = "FROM: " + senderAddress + "\r\n";
+	message += "TO: " + receiverAddress + "\r\n";
 
-	for (auto& ccUser : _ccAddresses)
+	for (const auto& ccUser : _ccAddresses)
 	{
-		message.append(QByteArray::fromStdString("CC: " + ccUser + "\r\n"));
+		message += "CC: " + ccUser + "\r\n";
 	}
 
-	// Intitiate multipart MIME with cutting boundary "alpaca-boundary"
-	message.append("MIME-Version: 1.0\r\n");
-	message.append("Content-Type: multipart/mixed;boundary=alpaca-boundary\r\n\r\n");
+	// Initiate multipart MIME with cutting boundary "alpaca-boundary"
+	message += "MIME-Version: 1.0\r\n";
+	message += "Content-Type: multipart/mixed;boundary=alpaca-boundary\r\n\r\n";
 
-	socket.write(message);
+	socket.write(message.c_str(), static_cast<qint64>(message.length()));
 	socket.flush();
 
 	/*
@@ -129,44 +131,37 @@ void SMTPClient::send(const std::string& senderAddress, const std::string& recei
 	 */
 
 	message = "--alpaca-boundary\r\n";
-	message.append("Content-Type: text/plain\r\n");
-	message.append(QByteArray::fromStdString(body));
-	message.append("\r\n--alpaca-boundary\r\n");
+	message += "Content-Type: text/plain\r\n";
+	message += body;
+	message += "\r\n--alpaca-boundary\r\n";
 
-	socket.write(message);
+	socket.write(message.c_str(), static_cast<qint64>(message.length()));
 	socket.flush();
 
-	if (_mimeFiles.empty() == false)
+	if (!_mimeFiles.empty())
 	{
-		for (auto& filePath : _mimeFiles)
+		for (const auto& filePath : _mimeFiles)
 		{
 			QFile file(QString::fromStdString(filePath));
 
-			if (file.exists() && file.open(QIODevice::ReadOnly) == true)
+			if (file.exists() && file.open(QIODevice::ReadOnly))
 			{
 				std::string fileName = QFileInfo(file).fileName().toStdString();
 
-				message = QByteArray::fromStdString("Content-Type: " + contentType(fileName) + "\r\nContent-Disposition: attachment; filename=" + fileName + "\r\nMIME-Version: 1.0\r\nContent-Transfer-Encoding: base64\r\n\r\n");
-				socket.write(message);
+				message = "Content-Type: " + contentType(fileName) + "\r\nContent-Disposition: attachment; filename=" + fileName + "\r\nMIME-Version: 1.0\r\nContent-Transfer-Encoding: base64\r\n\r\n";
+				socket.write(message.c_str(), static_cast<qint64>(message.length()));
 				socket.flush();
 
-				message = file.readAll().toBase64();
+				std::string base64Data = file.readAll().toBase64().toStdString();
 
-				int idx = 0;
-				while (true)
+				size_t offset = 0;
+				while (offset < base64Data.length())
 				{
-					QByteArray contentData = message.mid(76*idx, 76);
-
-					if (contentData.isEmpty() == false)
-					{
-						socket.write(contentData);
-						socket.write("\r\n");
-						socket.flush();
-					}
-					else
-						break;
-
-					idx += 1;
+					std::string chunk = base64Data.substr(offset, 76);
+					socket.write(chunk.c_str(), static_cast<qint64>(chunk.length()));
+					socket.write("\r\n");
+					socket.flush();
+					offset += 76;
 				}
 			}
 			else
@@ -175,7 +170,7 @@ void SMTPClient::send(const std::string& senderAddress, const std::string& recei
 			}
 
 			message = "\r\n\r\n--alpaca-boundary\r\n";
-			socket.write(message);
+			socket.write(message.c_str(), static_cast<qint64>(message.length()));
 			socket.flush();
 		}
 	}
@@ -195,15 +190,8 @@ void SMTPClient::send(const std::string& senderAddress, const std::string& recei
 
 bool SMTPClient::isMailAddressValid(const std::string& mailAddress)
 {
-	bool result {false};
-
-	QRegularExpression re("\\b[A-Z0-9._%+-]+@[A-Z0-9.-]+\\.[A-Z]{2,4}\\b", QRegularExpression::CaseInsensitiveOption);
-
-	QRegularExpressionMatch match = re.match(QString::fromStdString(mailAddress));
-	if (match.hasMatch())
-		result = true;
-
-	return result;
+	static const std::regex re(R"(\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,4}\b)", std::regex::icase);
+	return std::regex_search(mailAddress, re);
 }
 
 static bool endsWithCaseSensitive(const std::string& value, const std::string& suffix)

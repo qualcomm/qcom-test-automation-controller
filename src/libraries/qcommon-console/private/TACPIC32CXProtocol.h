@@ -4,7 +4,6 @@
 #ifndef TACPIC32CXPROTOCOL_H
 #define TACPIC32CXPROTOCOL_H
 
-
 #include "QCommonConsoleGlobal.h"
 
 class TACDriveThread;
@@ -14,6 +13,7 @@ class TACDriveThread;
 #include "ReceiveInterface.h"
 
 #include <cstdint>
+#include <string>
 
 class QCOMMONCONSOLE_EXPORT TACPIC32CXProtocol :
   public QObject,
@@ -30,29 +30,29 @@ public:
 
 	void setTACDriveTrain(TACDriveThread* tacDriveTrain);
 
-	uint32_t sendCommand(const QByteArray& command, const Arguments& arguments, bool console = false,
-						ReceiveInterface* receiveInterface = Q_NULLPTR, bool shouldStore = true);
-	void endTransaction(ReceiveInterface* receiveInterface = Q_NULLPTR);
+	uint32_t sendCommand(const std::string& command, const Arguments& arguments, bool console = false,
+						ReceiveInterface* receiveInterface = nullptr, bool shouldStore = true);
+	void endTransaction(ReceiveInterface* receiveInterface = nullptr);
 	void sendHelpCommand();
 
 	// Receive Interface
-	virtual void receive(FramePackage& framePackage);
+	virtual void receive(FramePackage& framePackage) override;
 
 	// timing
-	virtual void idle();
+	virtual void idle() override;
 
 protected:
-	virtual void frameComplete(const QByteArray& completedFrame);
-	virtual void badFrame(const QByteArray& completedFrame);
+	virtual void frameComplete(const std::string& completedFrame) override;
+	virtual void badFrame(const std::string& completedFrame) override;
 
 private:
 	TACDriveThread*				_tacDriveTrain;
 	uint64_t					_tickCount;
-	QByteArray					_currentCommand;
+	std::string					_currentCommand;
 
 	void triggerElapsed();
 
-	void queueCommand(const QByteArray& command);
+	void queueCommand(const std::string& command);
 };
 
 #endif // TACPIC32CXPROTOCOL_H

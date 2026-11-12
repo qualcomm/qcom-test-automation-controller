@@ -6,6 +6,9 @@
 #include "TACCommands.h"
 #include "TACCommandHashes.h"
 
+#include <string>
+#include <vector>
+
 TACPSOCCoder::TACPSOCCoder() :
 	FrameCoder()
 {
@@ -15,7 +18,7 @@ TACPSOCCoder::~TACPSOCCoder()
 {
 }
 
-void TACPSOCCoder::TACPSOCCoder::reset()
+void TACPSOCCoder::reset()
 {
 	_recieveBuffer.clear();
 	FrameCoder::reset();
@@ -23,26 +26,41 @@ void TACPSOCCoder::TACPSOCCoder::reset()
 
 void TACPSOCCoder::decode
 (
-	const QByteArray& decodeMe
+	const std::string& decodeMe
 )
 {
-	static const QString kDelimiter("\r\n");
+	static const std::string kDelimiter{"\r\n"};
 
 	_recieveBuffer += decodeMe;
 
-	QString frame = QString(_recieveBuffer);
+	std::vector<std::string> frames;
+	size_t start = 0, pos = 0;
+	while ((pos = _recieveBuffer.find(kDelimiter, start)) != std::string::npos)
+	{
+		if (pos > start)
+			frames.push_back(_recieveBuffer.substr(start, pos - start));
+		start = pos + kDelimiter.length();
+	}
+	if (start < _recieveBuffer.size())
+		frames.push_back(_recieveBuffer.substr(start));
 
-	QStringList frames = frame.split(kDelimiter, Qt::SkipEmptyParts);
+	bool hasCmd = false;
+	for (const auto& f : frames)
+	{
+		if (f == kCommand || f == kCommandNotRecognized)
+		{
+			hasCmd = true;
+			break;
+		}
+	}
 
-	if (frames.contains(kCommand) || frames.contains(kCommandNotRecognized))
+	if (hasCmd)
 	{
 		int count(0);
 
-		QListIterator<QString> iter(frames);
-		while (iter.hasNext())
+		for (const auto& frameData : frames)
 		{
 			count++;
-			QByteArray frameData = iter.next().toLatin1();
 			_frameFunction(frameData, _protocolInterface);
 		}
 
@@ -52,20 +70,21 @@ void TACPSOCCoder::decode
 			count++;
 		}
 
-		_frameFunction(QByteArray(), _protocolInterface);
+		_frameFunction(std::string(), _protocolInterface);
 
 		_recieveBuffer.clear();
 	}
 }
 
-QByteArray TACPSOCCoder::encode
-(const QByteArray& encodeMe,
+std::string TACPSOCCoder::encode
+(
+	const std::string& encodeMe,
 	const Arguments &arguments
 )
 {
-	QByteArray result(encodeMe);
+	std::string result(encodeMe);
 
-	switch (CommandStringToHash(encodeMe.toStdString()))
+	switch (CommandStringToHash(encodeMe))
 	{
 	case kVersionCommandHash:
 		result = "version\r";
@@ -76,7 +95,7 @@ QByteArray TACPSOCCoder::encode
 		break;
 
 	case kSetNameCommandHash:
-		result = "setname " + QByteArray::fromStdString(std::get<std::string>(arguments.at(0))) + "\r";
+		result = "setname " + std::get<std::string>(arguments.at(0)) + "\r";
 		break;
 
 	case kGetUUIDCommandHash:
@@ -96,7 +115,7 @@ QByteArray TACPSOCCoder::encode
 		break;
 
 	case kI2CReadRegisterCommandHash:
-		result = "i2c readRegisterBytes " + QByteArray::fromStdString(std::get<std::string>(arguments.at(0))) + " 1";
+		result = "i2c readRegisterBytes " + std::get<std::string>(arguments.at(0)) + " 1";
 		break;
 
 	case kI2CReadRegisterValueCommandHash:
@@ -105,12 +124,12 @@ QByteArray TACPSOCCoder::encode
 
 	case kI2CWriteRegisterCommandHash:
 		if (arguments.size() == 3)
-			result = "i2c write " + QByteArray::fromStdString(std::get<std::string>(arguments.at(0))) + " " + QByteArray::fromStdString(std::to_string(std::get<uint32_t>(arguments.at(1)))) + " " + QByteArray(std::get<bool>(arguments.at(2)) ? "1" : "0") + "\r";
+			result = "i2c write " + std::get<std::string>(arguments.at(0)) + " " + std::to_string(std::get<uint32_t>(arguments.at(1))) + " " + (std::get<bool>(arguments.at(2)) ? "1" : "0") + "\r";
 		break;
 
 	case kSetPinCommandHash:
 		if (arguments.size() == 2)
-			result = "pin " + QByteArray(std::get<bool>(arguments.at(0)) ? "1" : "0") + " " + QByteArray::fromStdString(std::to_string(std::get<uint32_t>(arguments.at(1)))) + "\r";
+			result = "pin " + std::string(std::get<bool>(arguments.at(0)) ? "1" : "0") + " " + std::to_string(std::get<uint32_t>(arguments.at(1))) + "\r";
 		break;
 
 	default:
@@ -118,7 +137,7 @@ QByteArray TACPSOCCoder::encode
 		break;
 	}
 
-	if (result.endsWith("\r") == false)
+	if (result.empty() || result.back() != '\r')
 		result += "\r";
 
 	return result;

@@ -7,25 +7,27 @@
 #include "QCommonConsoleGlobal.h"
 
 // Qt
-#include <QList>
 #include <QtSerialPort/QSerialPortInfo>
 
 #include <cstdint>
+#include <string>
+#include <vector>
 
 class SerialPortInfo;
 
-typedef QList<SerialPortInfo> SerialPortInfos;
+typedef std::vector<SerialPortInfo> SerialPortInfos;
 
 class QCOMMONCONSOLE_EXPORT SerialPortInfo :
 	public QSerialPortInfo
 {
 public:
 	SerialPortInfo() {};
+	SerialPortInfo(const std::string &name);
 	SerialPortInfo(const QString &name);
 	SerialPortInfo(const SerialPortInfo& copyMe);
 	SerialPortInfo(const QSerialPortInfo& copyMe);
 
-	uint hash();
+	uint32_t hash();
 
 	static SerialPortInfos availablePorts();
 
@@ -67,6 +69,6 @@ inline bool operator <
 	return si1.portName() < si2.portName();
 }
 
-quint64 qHash(const SerialPortInfo& key, uint seed);
+uint64_t qHash(const SerialPortInfo& key, unsigned int seed);
 
 #endif // SERIALPORTINFO_H

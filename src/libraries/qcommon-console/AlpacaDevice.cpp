@@ -12,6 +12,7 @@
 #include "AppCore.h"
 #include "StringUtilities.h"
 
+#include <algorithm>
 #include <cctype>
 #include <iterator>
 
@@ -62,7 +63,7 @@ uint32_t _AlpacaDevice::updateAlpacaDevices()
 	PIC32CXDevice::updateAlpacaDevices();
 	STM32Device::updateAlpacaDevices();
 
-	return _AlpacaDevice::_alpacaDevices.count();
+	return static_cast<uint32_t>(_AlpacaDevice::_alpacaDevices.size());
 }
 
 AlpacaDevice _AlpacaDevice::findAlpacaDevice
@@ -76,7 +77,7 @@ AlpacaDevice _AlpacaDevice::findAlpacaDevice
 			return alpacaDevice;
 	}
 
-	return AlpacaDevice(Q_NULLPTR);
+	return nullptr;
 }
 
 static std::string toLowerCopy(const std::string& value)
@@ -110,7 +111,7 @@ AlpacaDevice _AlpacaDevice::findAlpacaDevice
 			return alpacaDevice;
 	}
 
-	return AlpacaDevice(Q_NULLPTR);
+	return nullptr;
 }
 
 AlpacaDevice _AlpacaDevice::findAlpacaDeviceBySerialNumber
@@ -137,7 +138,7 @@ AlpacaDevice _AlpacaDevice::findAlpacaDeviceBySerialNumber
 		}
 	}
 
-	return AlpacaDevice(Q_NULLPTR);
+	return nullptr;
 }
 
 AlpacaDevice _AlpacaDevice::findAlpacaDeviceByDescription
@@ -164,7 +165,7 @@ AlpacaDevice _AlpacaDevice::findAlpacaDeviceByDescription
 		}
 	}
 
-	return AlpacaDevice(Q_NULLPTR);
+	return nullptr;
 }
 
 AlpacaDevice _AlpacaDevice::findAlpacaDeviceByUSBDescriptor
@@ -191,7 +192,7 @@ AlpacaDevice _AlpacaDevice::findAlpacaDeviceByUSBDescriptor
 		}
 	}
 
-	return AlpacaDevice(Q_NULLPTR);
+	return nullptr;
 }
 
 std::string _AlpacaDevice::getLastError()
@@ -203,19 +204,19 @@ std::string _AlpacaDevice::getLastError()
 
 bool _AlpacaDevice::isOpen()
 {
-	return _driveThread != Q_NULLPTR;
+	return _driveThread != nullptr;
 }
 
 void _AlpacaDevice::close()
 {
-	if (_driveThread != Q_NULLPTR)
+	if (_driveThread != nullptr)
 	{
 		_driveThread->shutDown();
 
-		if (_driveThread != Q_NULLPTR)
+		if (_driveThread != nullptr)
 			_driveThread->deleteLater();
 
-		_driveThread = Q_NULLPTR;
+		_driveThread = nullptr;
 	}
 }
 
@@ -386,7 +387,7 @@ bool _AlpacaDevice::sendCommand
 {
 	bool result{false};
 
-	if (_driveThread != Q_NULLPTR)
+	if (_driveThread != nullptr)
 	{
 		auto commandIterator = _commands.find(command);
 		if (commandIterator != _commands.end())
@@ -400,7 +401,7 @@ bool _AlpacaDevice::sendCommand
 		}
 
 		// this should always get called to end the blocking call
-		if (_driveThread != Q_NULLPTR)
+		if (_driveThread != nullptr)
 		{
 			_driveThread->clearWaitForCompletion();
 		}
@@ -431,7 +432,7 @@ bool _AlpacaDevice::quickCommand
 {
 	bool result{false};
 
-	if (_driveThread != Q_NULLPTR)
+	if (_driveThread != nullptr)
 	{
 		if (active() == true)
 		{
@@ -469,7 +470,7 @@ bool _AlpacaDevice::isCommandQueueClear()
 {
 	bool result{false};
 
-	if (_driveThread != Q_NULLPTR)
+	if (_driveThread != nullptr)
 	{
 		if (active() == true)
 			result = _driveThread->waitForCompletionStatus();
@@ -493,11 +494,11 @@ std::string _AlpacaDevice::getHelp()
 		std::string result;
 		result.reserve(4096);
 
-		result = "Name: " + _platformConfiguration->name().toStdString() + kEndOfLine + kEndOfLine;
+		result = "Name: " + _platformConfiguration->name() + kEndOfLine + kEndOfLine;
 		result += "Platform: " + debugBoardTypeToString(_platformConfiguration->getPlatform()) + kEndOfLine;
-		result += "Author: " + _platformConfiguration->author().toStdString() + kEndOfLine;
-		result += "Description: " + _platformConfiguration->description().toStdString() + kEndOfLine;
-		result += "Modification Date: " + _platformConfiguration->modificationDate().toStdString() + kEndOfLine;
+		result += "Author: " + _platformConfiguration->author() + kEndOfLine;
+		result += "Description: " + _platformConfiguration->description() + kEndOfLine;
+		result += "Modification Date: " + _platformConfiguration->modificationDate() + kEndOfLine;
 
 		Pins pins = _platformConfiguration->getPins();
 		if (pins.size() > 0)
@@ -534,7 +535,7 @@ void _AlpacaDevice::setPinState
 	bool state
 )
 {
-	if (_driveThread != Q_NULLPTR)
+	if (_driveThread != nullptr)
 	{
 		if (active() == true)
 		{
@@ -565,7 +566,7 @@ void _AlpacaDevice::setAddressPinState
 	bool state
 )
 {
-	if (_driveThread != Q_NULLPTR)
+	if (_driveThread != nullptr)
 	{
 		if (active() == true)
 		{
@@ -589,7 +590,7 @@ void _AlpacaDevice::setAddressPinState
 
 void _AlpacaDevice::setWaitForCompletion()
 {
-	if (_driveThread != Q_NULLPTR)
+	if (_driveThread != nullptr)
 		_driveThread->setWaitForCompletion();
 }
 
@@ -603,19 +604,9 @@ HashType _AlpacaDevice::hash()
 	return _hash;
 }
 
-std::string _AlpacaDevice::description()
-{
-	return _description;
-}
-
 std::string _AlpacaDevice::usbDescriptor()
 {
 	return _usbDescriptor;
-}
-
-std::string _AlpacaDevice::serialNumber()
-{
-	return _serialNumber;
 }
 
 PlatformID _AlpacaDevice::platformID()
@@ -647,28 +638,28 @@ DebugBoardType _AlpacaDevice::debugBoardType()
 	return _boardType;
 }
 
-QString _AlpacaDevice::debugBoardTypeString()
+std::string _AlpacaDevice::debugBoardTypeString()
 {
 	if (_driveThread)
 		return _driveThread->debugBoardTypeString();
 
-	return QString();
+	return std::string();
 }
 
-QString _AlpacaDevice::hardwareVersionString()
+std::string _AlpacaDevice::hardwareVersionString()
 {
 	if (_driveThread)
 		return _driveThread->hardwareVersionString();
 
-	return QString();
+	return std::string();
 }
 
-QString _AlpacaDevice::firmwareVersion()
+std::string _AlpacaDevice::firmwareVersion()
 {
 	if (_driveThread)
 		return _driveThread->firmwareVersion();
 
-	return QString();
+	return std::string();
 }
 
 uint _AlpacaDevice::majorVersion()
@@ -732,7 +723,7 @@ void _AlpacaDevice::externalPowerControl(bool state)
 std::string _AlpacaDevice::name() const
 {
 	if (_driveThread)
-		return _driveThread->name().toStdString();
+		return _driveThread->name();
 
 	return _serialNumber;
 }
@@ -740,24 +731,18 @@ std::string _AlpacaDevice::name() const
 void _AlpacaDevice::setName(const std::string &newName)
 {
 	if (_driveThread)
-		_driveThread->setName(QByteArray::fromStdString(newName));
+		_driveThread->setName(newName);
 }
 
-QSize _AlpacaDevice::windowDimension()
+std::pair<int, int> _AlpacaDevice::windowDimension()
 {
-	if (_platformConfiguration != Q_NULLPTR)
+	if (_platformConfiguration != nullptr)
 		return _platformConfiguration->getFormDimension();
-	return QSize(560, 750);
+	return std::pair<int, int>(560, 750);
 }
 
 std::string _AlpacaDevice::portName() const
 {
-//	if (_portName.isEmpty())
-//	{
-//		if (_driveThread)
-//			_portName = _driveThread->portName();
-//	}
-
 	return _portName;
 }
 
@@ -766,7 +751,7 @@ void _AlpacaDevice::setPortName(const std::string &portName)
 	_portName = portName;
 
 	if (_driveThread)
-		_driveThread->setPortName(QByteArray::fromStdString(portName));
+		_driveThread->setPortName(portName);
 }
 
 std::string _AlpacaDevice::description() const
@@ -774,43 +759,45 @@ std::string _AlpacaDevice::description() const
 	if (_driveThread)
 		return _driveThread->description();
 
-	return std::string();
+	return _description;
 }
 
 void _AlpacaDevice::setDescription(const std::string &description)
 {
+	_description = description;
+
 	if (_driveThread)
 		_driveThread->setDescription(description);
 }
 
-QString _AlpacaDevice::serialNumber() const
+std::string _AlpacaDevice::serialNumber() const
 {
 	if (_driveThread)
 		return _driveThread->serialNumber();
 
-	return QString();
+	return _serialNumber;
 }
 
-void _AlpacaDevice::setSerialNumber(QString serialNumber)
+void _AlpacaDevice::setSerialNumber(const std::string &serialNumber)
 {
-	_serialNumber = serialNumber.toLatin1().toStdString();
+	_serialNumber = serialNumber;
 
 	if (_driveThread)
 		_driveThread->setSerialNumber(serialNumber);
 }
 
-QString _AlpacaDevice::uuid()
+std::string _AlpacaDevice::uuid()
 {
 	if (_driveThread)
 		return _driveThread->uuid();
 
-	return QString();
+	return std::string();
 }
 
 void _AlpacaDevice::on_pinStateChanged
 (
-		quint64 pin,
-		bool state
+	uint64_t pin,
+	bool state
 )
 {
 	AppCore::writeToApplicationLogLine("_AlpacaDevice::on_pinStateChanged(" + std::to_string(pin) + ", " + fromBool(state) + ")");
@@ -836,7 +823,7 @@ int _AlpacaDevice::getResetCount()
 {
 	int result{0};
 
-	if (_driveThread != Q_NULLPTR)
+	if (_driveThread != nullptr)
 		result = _driveThread->getResetCount();
 
 	return result;
@@ -844,19 +831,18 @@ int _AlpacaDevice::getResetCount()
 
 void _AlpacaDevice::clearResetCount()
 {
-	if (_driveThread != Q_NULLPTR)
+	if (_driveThread != nullptr)
 		_driveThread->clearResetCount();
 }
 
 void _AlpacaDevice::i2CReadRegister(uint32_t addr, uint32_t reg)
 {
-	if (_driveThread != Q_NULLPTR)
+	if (_driveThread != nullptr)
 		_driveThread->i2CReadRegister(addr, reg);
 }
 
 void _AlpacaDevice::i2CWriteRegister(uint32_t addr, uint32_t reg, uint32_t data)
 {
-	if (_driveThread != Q_NULLPTR)
+	if (_driveThread != nullptr)
 		_driveThread->i2CWriteRegister(addr, reg, data);
 }
-

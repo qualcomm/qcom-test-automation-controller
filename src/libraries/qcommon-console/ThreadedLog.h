@@ -9,16 +9,16 @@ class _ThreadedLog;
 
 // Qt
 #include <QFile>
-#include <QSharedPointer>
-#include <QString>
-#include <QStringList>
 #include <QThread>
 
 // C++
 #include <atomic>
+#include <memory>
 #include <mutex>
+#include <string>
+#include <vector>
 
-typedef QSharedPointer<_ThreadedLog>  ThreadedLog;
+typedef std::shared_ptr<_ThreadedLog> ThreadedLog;
 
 class QCOMMONCONSOLE_EXPORT _ThreadedLog :
 	public QThread
@@ -27,18 +27,18 @@ public:
 	_ThreadedLog() = default;
 
 	static ThreadedLog createThreadedLog();
-	static QString createLogName(const QString& prefix);
+	static std::string createLogName(const std::string& prefix);
 
-	void open(const QString& filePath);
+	void open(const std::string& filePath);
 	bool isOpen();
 	void close();
 
-	QString currentLogPath()
+	std::string currentLogPath()
 	{
 		return _currentLogPath;
 	}
 
-	void addLogEntry(const QString& logEntry);
+	void addLogEntry(const std::string& logEntry);
 
 	virtual void run() override;
 
@@ -46,8 +46,8 @@ protected:
 	std::atomic<bool>			_running{false};
 	std::atomic<bool>			_starting{false};
 	std::recursive_mutex		_mutex;
-	QStringList					_logEntries;
-	QString						_currentLogPath;
+	std::vector<std::string>	_logEntries;
+	std::string					_currentLogPath;
 	QFile						_logFile;
 };
 

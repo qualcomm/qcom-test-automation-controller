@@ -9,6 +9,7 @@
 #include <QException>
 
 #include <cstdint>
+#include <exception>
 #include <string>
 #include <vector>
 
@@ -52,28 +53,30 @@ private:
 	std::vector<std::string>	_mimeFiles;
 };
 
-class QCOMMONCONSOLE_EXPORT SMTPClientException : QException
+class QCOMMONCONSOLE_EXPORT SMTPClientException : public std::exception, public QException
 {
 public:
-	SMTPClientException(std::string const& message) :
-		  _message(message)
+	explicit SMTPClientException(const std::string& message) :
+		_message(message)
 	{
 
 	}
 
-	~SMTPClientException()
-	{
+	virtual ~SMTPClientException() noexcept = default;
 
-	}
-
-	void raise() const
+	void raise() const override
 	{
 		throw *this;
 	}
 
-	SMTPClientException* clone() const
+	SMTPClientException* clone() const override
 	{
 		return new SMTPClientException(*this);
+	}
+
+	const char* what() const noexcept override
+	{
+		return _message.c_str();
 	}
 
 	std::string getMessage() const
@@ -82,7 +85,7 @@ public:
 	}
 
 private:
-	std::string             _message;
+	std::string _message;
 };
 
 #endif // SMTPCLIENT_H

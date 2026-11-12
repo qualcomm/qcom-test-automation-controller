@@ -6,11 +6,9 @@
 
 #include "QCommonConsoleGlobal.h"
 
-// Qt
-#include <QDateTime>
-#include <QString>
-
+#include <chrono>
 #include <cstdint>
+#include <string>
 
 enum QCOMMONCONSOLE_EXPORT NotificationLevel
 {
@@ -29,16 +27,16 @@ const uint32_t kNotificationLabelHeight(80);
 class QCOMMONCONSOLE_EXPORT Notification
 {
 public:
-    Notification(const QString& message, const NotificationLevel level, const uint64_t id = 0)
+    Notification(const std::string& message, const NotificationLevel level, const uint64_t id = 0)
     {
         _message = message;
         _level = level;
         _id = id;
-        _timestamp = QDateTime::currentDateTime();
+        _timestamp = std::chrono::system_clock::now();
         _occurrenceCount = 1;
     }
 
-    QString getMessage() const
+    std::string getMessage() const
     {
         return _message;
     }
@@ -53,7 +51,7 @@ public:
         return _id;
     }
 
-    QDateTime getTimestamp() const
+    std::chrono::system_clock::time_point getTimestamp() const
     {
         return _timestamp;
     }
@@ -66,15 +64,15 @@ public:
     void addOccurrence()
     {
         _occurrenceCount++;
-        _timestamp = QDateTime::currentDateTime();
+        _timestamp = std::chrono::system_clock::now();
     }
 
 private:
-    QString                     _message;
-    NotificationLevel           _level;
-    uint64_t                     _id;
-    QDateTime                   _timestamp;
-    uint32_t                     _occurrenceCount;
+    std::string                                 _message;
+    NotificationLevel                           _level;
+    uint64_t                                    _id;
+    std::chrono::system_clock::time_point       _timestamp;
+    uint32_t                                    _occurrenceCount;
 };
 
 #endif // NOTIFICATION_H

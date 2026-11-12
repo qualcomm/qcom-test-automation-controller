@@ -3,6 +3,8 @@
 
 #include "SerialPort.h"
 
+#include <string>
+
 SerialPort::SerialPort
 (
 	const QSerialPortInfo& serialPortInfo
@@ -35,9 +37,10 @@ void SerialPort::close()
 	emit PortClosed(_serialPortInfo);
 }
 
-QByteArray SerialPort::readAll()
+std::string SerialPort::readAll()
 {
 	waitForReadyRead(_serialPortSettings._timeout);
 
-	return QSerialPort::readAll();
+	QByteArray data = QSerialPort::readAll();
+	return std::string(data.constData(), data.size());
 }

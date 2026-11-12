@@ -13,8 +13,7 @@
 #include "FTDIChipset.h"
 #include "ReceiveInterface.h"
 
-// Qt
-#include <QFile>
+#include <string>
 
 class QCOMMONCONSOLE_EXPORT TACLiteDriveThread :
 	public TACDriveThread
@@ -32,37 +31,37 @@ public:
 
 	void setInvertMask(uint8_t mask)
 	{
-		if (_ftdiChipset.isNull() == false)
+		if (_ftdiChipset != nullptr)
 			_ftdiChipset->setInvertMask(mask);
 	}
 
-	virtual void run();
+	virtual void run() override;
 
-	virtual void sendCommand(const QByteArray& command, bool console = false,
-		ReceiveInterface* receiveInterface = Q_NULLPTR, bool shouldStore = true);
+	virtual void sendCommand(const std::string& command, bool console = false,
+		ReceiveInterface* receiveInterface = nullptr, bool shouldStore = true) override;
 
 	virtual void externalPowerControl(bool state);
 
-	virtual void setPinState(uint16_t pin, bool state);
-	virtual void sendCommandSequence(CommandEntries& commandEntries);
+	virtual void setPinState(uint16_t pin, bool state) override;
+	virtual void sendCommandSequence(CommandEntries& commandEntries) override;
 
-	virtual int getResetCount();
-	virtual void clearResetCount();
+	virtual int getResetCount() override;
+	virtual void clearResetCount() override;
 
-	virtual void i2CReadRegister(uint32_t addr, uint32_t reg);
-	virtual void i2CWriteRegister(uint32_t addr, uint32_t reg, uint32_t data);
+	virtual void i2CReadRegister(uint32_t addr, uint32_t reg) override;
+	virtual void i2CWriteRegister(uint32_t addr, uint32_t reg, uint32_t data) override;
 
 	// properties
-	virtual void setName(const QByteArray& newName);
+	virtual void setName(const std::string& newName) override;
 
 	// Send Interface
-	virtual uint32_t send(const QByteArray& sendMe, const Arguments& arguments, bool console, ReceiveInterface* recieveInterface, bool store = true);
-	virtual bool ready();
+	virtual uint32_t send(const std::string& sendMe, const Arguments& arguments, bool console, ReceiveInterface* recieveInterface, bool store = true) override;
+	virtual bool ready() override;
 
 	// Receive Interface
-	virtual void receive(FramePackage& framePackage);
+	virtual void receive(FramePackage& framePackage) override;
 
-	QString portDescription();
+	std::string portDescription();
 
 protected:
 	bool openFTDIDevice();
@@ -82,8 +81,8 @@ private:
 	void handleUUIDResponse(FramePackage& framePackage);
 	void handleVersionResponse(FramePackage& framePackage);
 
-	virtual void setupConnected();
-	virtual void setupDiscovery();
+	virtual void setupConnected() override;
+	virtual void setupDiscovery() override;
 
 	bool getElectrialPinValue(uint32_t kCommandHash, const Arguments& arguments);
 };

@@ -9,18 +9,21 @@
 #include <string>
 #include <utility>
 
-#include <QString>
-
 typedef uint64_t HashType;
 
-QString QCOMMONCONSOLE_EXPORT toCamelCase(const QString&  camelCaseMe, const QChar splitChar = '_', Qt::SplitBehavior splitBehavior = Qt::SkipEmptyParts);
+std::string QCOMMONCONSOLE_EXPORT toCamelCase(const std::string& camelCaseMe, char splitChar = '_');
 bool QCOMMONCONSOLE_EXPORT isAlphaNumeric(const std::string& testMe);
 std::string QCOMMONCONSOLE_EXPORT fromBool(bool value);
 
 std::string QCOMMONCONSOLE_EXPORT fromQPoint(const std::pair<int, int>& value);
 std::pair<int, int> QCOMMONCONSOLE_EXPORT toQPoint(const std::string& value);
+std::string QCOMMONCONSOLE_EXPORT fromPoint(const std::pair<int, int>& value);
+std::pair<int, int> QCOMMONCONSOLE_EXPORT toPoint(const std::string& value);
 
 HashType QCOMMONCONSOLE_EXPORT strHash(const std::string& hashMe);
 HashType QCOMMONCONSOLE_EXPORT arrayHash(const std::string& hashMe);
+
+std::string QCOMMONCONSOLE_EXPORT currentDateTimeString();
+std::string QCOMMONCONSOLE_EXPORT formatDateTime(const std::string& format);
 
 #endif // STRINGUTILITIES_H

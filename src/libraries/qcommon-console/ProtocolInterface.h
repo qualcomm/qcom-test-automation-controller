@@ -9,12 +9,12 @@
 #include "QCommonConsoleGlobal.h"
 
 // Qt
-#include <QByteArray>
-#include <QDateTime>
 #include <QObject>
 
+#include <chrono>
 #include <cstdint>
 #include <mutex>
+#include <string>
 
 const uint32_t kBadQueueValue(0xFFFFFFFF);
 
@@ -31,19 +31,19 @@ public:
 	FramePackage& pendingFramePackage();
 
 	void queueCommand(const FramePackage& framePackage);
-	void queueDelay(uint32_t delayInMilliSeconds, ReceiveInterface* receiveInterface = Q_NULLPTR);
-	void queueLogComment(const QByteArray& comment);
-	void queueEndTransaction(ReceiveInterface* receiveInterface = Q_NULLPTR);
+	void queueDelay(uint32_t delayInMilliSeconds, ReceiveInterface* receiveInterface = nullptr);
+	void queueLogComment(const std::string& comment);
+	void queueEndTransaction(ReceiveInterface* receiveInterface = nullptr);
 
 	FramePackage getNextFramePackage();
 	uint32_t queueSize();
 
 	// Data incoming
-	bool handleRecievedData(const QByteArray& receivedData);
+	bool handleRecievedData(const std::string& receivedData);
 
 	// timing
 	virtual void idle() = 0;
-	virtual void setBaseTime(const QDateTime& baseTime)
+	virtual void setBaseTime(const std::chrono::system_clock::time_point& baseTime = std::chrono::system_clock::now())
 	{
 		_baseTime = baseTime;
 	}
@@ -54,23 +54,23 @@ public:
 	}
 
 protected:
-	QDateTime					_baseTime;
-	FrameCoder*					_frameCoder{Q_NULLPTR};
-	uint64_t					_timeout{750};
+	std::chrono::system_clock::time_point	_baseTime;
+	FrameCoder*								_frameCoder{nullptr};
+	uint64_t								_timeout{750};
 
-	static uint32_t				_sendID;
+	static uint32_t							_sendID;
 
-	virtual void frameComplete(const QByteArray& completedFrame) = 0;
-	virtual void badFrame(const QByteArray& completedFrame) = 0;
+	virtual void frameComplete(const std::string& completedFrame) = 0;
+	virtual void badFrame(const std::string& completedFrame) = 0;
 
-	static void frameCompleteFunc(const QByteArray& completedFrame, ProtocolInterface* userData);
-	static void badFrameFunc(const QByteArray& completedFrame, ProtocolInterface* userData);
+	static void frameCompleteFunc(const std::string& completedFrame, ProtocolInterface* userData);
+	static void badFrameFunc(const std::string& completedFrame, ProtocolInterface* userData);
 
 	uint32_t getNextSendID();
 
 private:
 	std::recursive_mutex		_pendingFramePackageMutex;
-	FramePackage				_pendingFramePackage{FramePackage(Q_NULLPTR)};
+	FramePackage				_pendingFramePackage{nullptr};
 
 	std::recursive_mutex		_outQueueMutex;
 	FramePackageList			_outboundData;

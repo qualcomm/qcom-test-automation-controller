@@ -12,6 +12,7 @@ class TACDriveThread;
 #include "ReceiveInterface.h"
 
 #include <cstdint>
+#include <string>
 
 class QCOMMONCONSOLE_EXPORT TACSTM32Protocol :
 	public QObject,
@@ -28,19 +29,19 @@ public:
 
 	void setTACDriveTrain(TACDriveThread* tacDriveTrain);
 
-	uint32_t sendCommand(const QByteArray& command, const Arguments& arguments, bool console = false,
-		ReceiveInterface* receiveInterface = Q_NULLPTR, bool shouldStore = true);
-	void endTransaction(ReceiveInterface* receiveInterface = Q_NULLPTR);
+	uint32_t sendCommand(const std::string& command, const Arguments& arguments, bool console = false,
+		ReceiveInterface* receiveInterface = nullptr, bool shouldStore = true);
+	void endTransaction(ReceiveInterface* receiveInterface = nullptr);
 
 	// Receive Interface
-	virtual void receive(FramePackage& framePackage);
+	virtual void receive(FramePackage& framePackage) override;
 
 	// timing
-	virtual void idle();
+	virtual void idle() override;
 
 protected:
-	virtual void frameComplete(const QByteArray& completedFrame);
-	virtual void badFrame(const QByteArray& completedFrame);
+	virtual void frameComplete(const std::string& completedFrame) override;
+	virtual void badFrame(const std::string& completedFrame) override;
 
 private:
 	TACDriveThread*				_tacDriveTrain;

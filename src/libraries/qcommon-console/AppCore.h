@@ -8,9 +8,6 @@
 #include "PreferencesBase.h"
 #include "ThreadedLog.h"
 
-// QT
-#include <QString>
-
 #include <cstdint>
 #include <string>
 
@@ -46,14 +43,14 @@ public:
 
 	std::string currentAppLog()
 	{
-		return _appThreadedLog->currentLogPath().toStdString();
+		return _appThreadedLog ? _appThreadedLog->currentLogPath() : std::string();
 	}
 
 	void setRunLogging(bool loggingState);
 	bool runLoggingActive();
 	std::string currentRunLog()
 	{
-		return _runThreadedLog->currentLogPath().toStdString();
+		return _runThreadedLog ? _runThreadedLog->currentLogPath() : std::string();
 	}
 
 	std::string loggingPath();
@@ -83,7 +80,7 @@ private:
 	std::string					_appName;
 	std::string					_appVersion;
 
-	PreferencesBase*			_preferences{Q_NULLPTR};
+	PreferencesBase*			_preferences{nullptr};
 	ThreadedLog					_appThreadedLog;
 	ThreadedLog					_runThreadedLog;
 };

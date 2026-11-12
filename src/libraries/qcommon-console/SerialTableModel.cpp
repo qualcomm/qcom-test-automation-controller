@@ -9,24 +9,28 @@
 
 // Qt
 #include <QSerialPortInfo>
-#include <QSet>
-#include <QSize>
 
 // C++
 #include <algorithm>
+#include <cctype>
 #include <cstdint>
+#include <cstdio>
+#include <string>
 #include <utility>
+#include <vector>
 
 typedef std::pair<uint16_t, uint16_t> FilterKey;
 
-template<class T> QByteArray DecAndHexPrint(T value, int width)
+template<class T> std::string DecAndHexPrint(T value, int width)
 {
-	return QString("%1 (0x%2)").arg(value, 10, 10, QChar(' ')).arg(value, width, 16, QChar('0')).toLatin1();
+	char buf[64];
+	std::snprintf(buf, sizeof(buf), "%10u (0x%0*X)", static_cast<unsigned int>(value), width, static_cast<unsigned int>(value));
+	return std::string(buf);
 }
 
 struct STMImplementation
 {
-	QList<FilterKey>			_filterKeys;
+	std::vector<FilterKey>		_filterKeys;
 	SerialPortInfos				_serialInfos;
 };
 
@@ -42,19 +46,19 @@ SerialTableModel::SerialTableModel
 	QObject* parent // = nullptr
 ) :
 	QAbstractTableModel(parent),
-	_impl(Q_NULLPTR)
+	_impl(nullptr)
 {
 	_impl = new STMImplementation;
 
-	_columnHeaders << tr("Port Name") << tr("Description") << tr("Serial Number") << tr("Vendor") << tr("Product");
+	_columnHeaders = {"Port Name", "Description", "Serial Number", "Vendor", "Product"};
 }
 
 SerialTableModel::~SerialTableModel()
 {
-	if (_impl != Q_NULLPTR)
+	if (_impl != nullptr)
 	{
 		delete _impl;
-		_impl = Q_NULLPTR;
+		_impl = nullptr;
 	}
 }
 
@@ -66,9 +70,9 @@ void SerialTableModel::addFilterKey
 {
 	FilterKey filterKey = std::make_pair(vendorID, productID);
 
-	if (_impl->_filterKeys.contains(filterKey) == false)
+	if (std::find(_impl->_filterKeys.begin(), _impl->_filterKeys.end(), filterKey) == _impl->_filterKeys.end())
 	{
-		_impl->_filterKeys.append(filterKey);
+		_impl->_filterKeys.push_back(filterKey);
 	}
 }
 
@@ -78,8 +82,8 @@ bool SerialTableModel::filterProc
 	uint16_t productID
 )
 {
-	Q_UNUSED(vendorID)
-	Q_UNUSED(productID)
+	(void)vendorID;
+	(void)productID;
 
 	return true;
 }
@@ -89,13 +93,13 @@ QVariant SerialTableModel::portData(int deviceIndex, int dataIndex)
 	return data(createIndex(deviceIndex, dataIndex));
 }
 
-QString SerialTableModel::portName(int deviceIndex)
+std::string SerialTableModel::portName(int deviceIndex)
 {
-	QString result;
+	std::string result;
 
 	if (deviceIndex < rowCount())
 	{
-		result = data(createIndex(deviceIndex, kPortName)).toString();
+		result = data(createIndex(deviceIndex, kPortName)).toString().toStdString();
 	}
 
 	return result;
@@ -109,16 +113,16 @@ bool SortFunc(const SerialPortInfo& i, const SerialPortInfo& j)
 void SerialTableModel::refresh()
 {
 	AppCore* appCore = AppCore::getAppCore();
-	bool logging = appCore != Q_NULLPTR;
+	bool logging = appCore != nullptr;
 
-	bool filtered = _impl->_filterKeys.empty() == false;
+	bool filtered = !_impl->_filterKeys.empty();
 
 	SerialPortInfos availablePorts = SerialPortInfo::availablePorts();
 	SerialPortInfos serialInfos;
 
 	if (logging)
 	{
-		for (const auto& serialPortInfo: std::as_const(availablePorts))
+		for (const auto& serialPortInfo: availablePorts)
 		{
 			std::string message = "Found serial port with vendor id: " + std::to_string(serialPortInfo.vendorIdentifier()) + " and product id: " + std::to_string(serialPortInfo.productIdentifier()) + "\n";
 			appCore->writeToAppLog(message);
@@ -127,12 +131,12 @@ void SerialTableModel::refresh()
 
 	if (filtered)
 	{
-		for (const auto& serialPortInfo: std::as_const(availablePorts))
+		for (const auto& serialPortInfo: availablePorts)
 		{	
-			FilterKey filterKey = qMakePair(serialPortInfo.vendorIdentifier(), serialPortInfo.productIdentifier());
-			if (_impl->_filterKeys.contains(filterKey))
+			FilterKey filterKey = std::make_pair(serialPortInfo.vendorIdentifier(), serialPortInfo.productIdentifier());
+			if (std::find(_impl->_filterKeys.begin(), _impl->_filterKeys.end(), filterKey) != _impl->_filterKeys.end())
 			{
-				serialInfos.append(serialPortInfo);
+				serialInfos.push_back(serialPortInfo);
 			}
 		}
 	}
@@ -148,24 +152,24 @@ void SerialTableModel::refresh()
 
 	_impl->_serialInfos.clear();
 
-	if (serialInfos.count() != 0)
+	if (!serialInfos.empty())
 	{
 		std::sort(serialInfos.begin(), serialInfos.end(), SortFunc);
 
-		for (const auto& serialPortInfo: std::as_const(serialInfos))
+		for (const auto& serialPortInfo: serialInfos)
 		{
 			bool add(true);
 
 			if (filtered)
 			{
-				FilterKey filterKey = qMakePair(serialPortInfo.vendorIdentifier(), serialPortInfo.productIdentifier());
-				add = _impl->_filterKeys.contains(filterKey);
+				FilterKey filterKey = std::make_pair(serialPortInfo.vendorIdentifier(), serialPortInfo.productIdentifier());
+				add = std::find(_impl->_filterKeys.begin(), _impl->_filterKeys.end(), filterKey) != _impl->_filterKeys.end();
 			}
 
 			if (add)
 			{
 				if (filterProc(serialPortInfo.vendorIdentifier(), serialPortInfo.productIdentifier()))
-					_impl->_serialInfos.append(serialPortInfo);
+					_impl->_serialInfos.push_back(serialPortInfo);
 			}
 		}
 	}
@@ -178,9 +182,9 @@ int SerialTableModel::rowCount
 	const QModelIndex& parent // = QModelIndex()
 ) const
 {
-	Q_UNUSED(parent);
+	(void)parent;
 
-	return _impl->_serialInfos.count();
+	return static_cast<int>(_impl->_serialInfos.size());
 }
 
 int SerialTableModel::columnCount
@@ -188,9 +192,9 @@ int SerialTableModel::columnCount
 	const QModelIndex& parent // = QModelIndex()
 ) const
 {
-	Q_UNUSED(parent);
+	(void)parent;
 
-	return _columnHeaders.count();
+	return static_cast<int>(_columnHeaders.size());
 }
 
 QVariant SerialTableModel::headerData
@@ -200,12 +204,14 @@ QVariant SerialTableModel::headerData
 	int role // = Qt::DisplayRole
 ) const
 {
-	Q_UNUSED(orientation);
+	(void)orientation;
 
 	switch (role)
 	{
 	case Qt::DisplayRole:
-		return _columnHeaders.at(section);
+		if (section >= 0 && section < static_cast<int>(_columnHeaders.size()))
+			return QString::fromStdString(_columnHeaders.at(section));
+		break;
 
 	default:
 		break;
@@ -232,13 +238,11 @@ QVariant SerialTableModel::data
 		case kSerialNumber: return serialInfo.serialNumber();
 		case kVendor:
 		{
-			QString vendorString(DecAndHexPrint(serialInfo.vendorIdentifier(), 4));
-			return vendorString;
+			return QString::fromStdString(DecAndHexPrint(serialInfo.vendorIdentifier(), 4));
 		}
 		case kProduct:
 		{
-			QString prodString(DecAndHexPrint(serialInfo.productIdentifier(), 4));
-			return prodString;
+			return QString::fromStdString(DecAndHexPrint(serialInfo.productIdentifier(), 4));
 		}
 
 		default:
@@ -259,19 +263,32 @@ QSerialPortInfo SerialTableModel::getSelectedSerialPort()
 
 QSerialPortInfo SerialTableModel::getSerialPortFromName
 (
-	const QByteArray &portName
+	const std::string &portName
 )
 {
 	QSerialPortInfo result;
 
 	refresh();
 
-	for (const auto& serialInfo: std::as_const(_impl->_serialInfos))
+	for (const auto& serialInfo: _impl->_serialInfos)
 	{
-		if (serialInfo.portName().toLower() == portName.toLower())
+		std::string infoPort = serialInfo.portName().toStdString();
+		if (infoPort.size() == portName.size())
 		{
-			result = serialInfo;
-			break;
+			bool match = true;
+			for (size_t i = 0; i < infoPort.size(); ++i)
+			{
+				if (std::tolower(static_cast<unsigned char>(infoPort[i])) != std::tolower(static_cast<unsigned char>(portName[i])))
+				{
+					match = false;
+					break;
+				}
+			}
+			if (match)
+			{
+				result = serialInfo;
+				break;
+			}
 		}
 	}
 
@@ -280,19 +297,32 @@ QSerialPortInfo SerialTableModel::getSerialPortFromName
 
 QSerialPortInfo SerialTableModel::getSerialPortFromSerialNumber
 (
-	const QByteArray &serialNumber
+	const std::string &serialNumber
 )
 {
 	QSerialPortInfo result;
 
 	refresh();
 
-	for (const auto& serialInfo: std::as_const(_impl->_serialInfos))
+	for (const auto& serialInfo: _impl->_serialInfos)
 	{
-		if (serialInfo.serialNumber().toLower() == serialNumber.toLower())
+		std::string infoSerial = serialInfo.serialNumber().toStdString();
+		if (infoSerial.size() == serialNumber.size())
 		{
-			result = serialInfo;
-			break;
+			bool match = true;
+			for (size_t i = 0; i < infoSerial.size(); ++i)
+			{
+				if (std::tolower(static_cast<unsigned char>(infoSerial[i])) != std::tolower(static_cast<unsigned char>(serialNumber[i])))
+				{
+					match = false;
+					break;
+				}
+			}
+			if (match)
+			{
+				result = serialInfo;
+				break;
+			}
 		}
 	}
 
@@ -301,26 +331,26 @@ QSerialPortInfo SerialTableModel::getSerialPortFromSerialNumber
 
 void SerialTableModel::setSelectedSerialPort(int rowIndex)
 {
-	if (rowIndex ==-1)
+	if (rowIndex == -1)
 		_selectedSerialPort = QSerialPortInfo();
 	else
 		_selectedSerialPort = _impl->_serialInfos.at(rowIndex);
 }
 
-QString SerialTableModel::rowData
+std::string SerialTableModel::rowData
 (
 	int row,
 	int column
 )
 {
-	QString result;
+	std::string result;
 
-	if (row < _impl->_serialInfos.count())
+	if (row >= 0 && row < static_cast<int>(_impl->_serialInfos.size()))
 	{
-		if (column < _columnHeaders.count())
+		if (column >= 0 && column < static_cast<int>(_columnHeaders.size()))
 		{
 			QModelIndex modelIndex = index(row, column);
-			result = data(modelIndex).toString();
+			result = data(modelIndex).toString().toStdString();
 		}
 	}
 

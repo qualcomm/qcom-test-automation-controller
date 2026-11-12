@@ -20,12 +20,12 @@ public:
 
 	static uint32_t updateAlpacaDevices();
 
-	virtual bool open();
+	virtual bool open() override;
 
-	virtual void buildMapping();
+	virtual void buildMapping() override;
 
 private:
-	_PSOCPlatformConfiguration*	_psocPlatformConfiguration{Q_NULLPTR};
+	_PSOCPlatformConfiguration*	_psocPlatformConfiguration{nullptr};
 };
 
 #endif // TACDEVICE_H

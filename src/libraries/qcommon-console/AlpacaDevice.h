@@ -17,20 +17,18 @@
 #include "PlatformID.h"
 #include "StringUtilities.h"
 
-// Qt
-#include <QList>
-#include <QSharedPointer>
-
+#include <memory>
 #include <mutex>
 #include <string>
+#include <utility>
 #include <vector>
 
 const std::string kMACNotSupported{"Not supported"};
 
 class _AlpacaDevice;
 
-typedef QSharedPointer<_AlpacaDevice> AlpacaDevice;
-typedef QList<AlpacaDevice> AlpacaDevices;
+typedef std::shared_ptr<_AlpacaDevice> AlpacaDevice;
+typedef std::vector<AlpacaDevice> AlpacaDevices;
 
 class QCOMMONCONSOLE_EXPORT _AlpacaDevice:
 	public QObject
@@ -93,18 +91,16 @@ public:
 
 	// properties
 	DebugBoardType debugBoardType();
-	QString debugBoardTypeString();
-	QString hardwareVersionString();
-	QString firmwareVersion();
+	std::string debugBoardTypeString();
+	std::string hardwareVersionString();
+	std::string firmwareVersion();
 
 	uint majorVersion();
 	std::string chipVersion();
 	uint minorVersion();
 	uint revisionVersion();
 
-	std::string description();
 	std::string usbDescriptor();
-	std::string serialNumber();
 	PlatformID platformID();
 	std::string macAddress();
 	PlatformConfiguration platformConfiguration();
@@ -114,15 +110,15 @@ public:
 	std::string name() const;
 	void setName(const std::string& newName);
 
-	QSize windowDimension();
+	std::pair<int, int> windowDimension();
 
 	std::string description() const;
 	void setDescription(const std::string& description);
 
-	QString serialNumber() const;
-	void setSerialNumber(QString serialNumber);
+	std::string serialNumber() const;
+	void setSerialNumber(const std::string& serialNumber);
 
-	QString uuid();
+	std::string uuid();
 
 	int getResetCount();
 	void clearResetCount();
@@ -136,12 +132,12 @@ public:
 	}
 
 signals:
-	void pinStateChanged(/*PinID*/ quint64 pin, bool state);
-	void progress(const quint8 value=10, NotificationLevel level=eInfoNotification);
-	void errorEvent(const QByteArray& message);
+	void pinStateChanged(uint64_t pin, bool state);
+	void progress(const uint8_t value=10, NotificationLevel level=eInfoNotification);
+	void errorEvent(const std::string& message);
 
 public slots:
-	void on_pinStateChanged(/*PinID*/ quint64 pin, bool state);
+	void on_pinStateChanged(uint64_t pin, bool state);
 	void onDeviceDisconnect();
 
 protected:
@@ -159,14 +155,14 @@ protected:
 	uint						_chipVersion{0};
 	PlatformID					_platformID{MICRO_EPM_BOARD_ID_UNKNOWN};
 	std::string					_helpText;
-	TACDriveThread*				_driveThread{Q_NULLPTR};
+	TACDriveThread*				_driveThread{nullptr};
 
 	PlatformConfiguration		_platformConfiguration;
 	TACCommandMap				_commands;
 	TACCommands					_commandList;
 	std::vector<std::string>	_quickCommandList;
 	AlpacaScript				_alpacaScript;
-	std::string                  _lastError;
+	std::string                 _lastError;
 };
 
 #endif // TACDEVICE_H

@@ -11,12 +11,9 @@
 #include "TACPIC32CXCommand.h"
 #include "TACCommandHashes.h"
 
-// Qt
-#include <QDir>
-#include <QDateTime>
-#include <QTextStream>
-
 #include <cstdint>
+#include <string>
+#include <vector>
 
 const std::string kTACSerialDriveTrainName("TAC PIC32CX Drive Train");
 
@@ -27,10 +24,8 @@ TACPIC32CXDriveThread::TACPIC32CXDriveThread(uint hash) :
 	setProtocolInterface(&_tacProtocol);
 	_tacProtocol.setTACDriveTrain(this);
 
-	AlpacaDevices alpacaDevices;
-
 	AlpacaDevice alpacaDevice = _AlpacaDevice::findAlpacaDevice(hash);
-	if (alpacaDevice->active())
+	if (alpacaDevice && alpacaDevice->active())
 	{
 		_hardwareType = ePIC32CXAuto;
 
@@ -40,12 +35,12 @@ TACPIC32CXDriveThread::TACPIC32CXDriveThread(uint hash) :
 		_description = "PIC32CX (Automotive) Board";
 		_uuid = "PIC32CX - No UUID";
 
-		_portName = QByteArray::fromStdString(alpacaDevice->portName());
-		_serialNumber = QString::fromStdString(alpacaDevice->serialNumber());
+		_portName = alpacaDevice->portName();
+		_serialNumber = alpacaDevice->serialNumber();
 		_description = alpacaDevice->description();
 
-		connect(this, &TACDriveThread::pinStateChanged, alpacaDevice.data(), &_AlpacaDevice::on_pinStateChanged);
-		connect(this, &TACDriveThread::progress, alpacaDevice.data(), &_AlpacaDevice::progress);
+		connect(this, &TACDriveThread::pinStateChanged, alpacaDevice.get(), &_AlpacaDevice::on_pinStateChanged);
+		connect(this, &TACDriveThread::progress, alpacaDevice.get(), &_AlpacaDevice::progress);
 	}
 }
 
@@ -78,13 +73,13 @@ bool TACPIC32CXDriveThread::openSerialDevice()
 
 		if (_serialPort->open(QIODevice::ReadWrite) == true)
 		{
-			setSerialNumber(_tacPortInfo.serialNumber());
-			setPortName(_tacPortInfo.portName().toLatin1());
+			setSerialNumber(_tacPortInfo.serialNumber().toStdString());
+			setPortName(_tacPortInfo.portName().toStdString());
 
 			emit serialNumUpdate(_serialNumber);
 
-			AppCore::writeToApplicationLogLine("Device " + _serialNumber.toStdString() + " opened");
-			AppCore::writeToApplicationLogLine("Com port " + portName().toStdString() + "\n");
+			AppCore::writeToApplicationLogLine("Device " + _serialNumber + " opened");
+			AppCore::writeToApplicationLogLine("Com port " + portName() + "\n");
 
 			{
 				TACPIC32CXCommand tacCommand(this, this);
@@ -95,14 +90,14 @@ bool TACPIC32CXDriveThread::openSerialDevice()
 		}
 		else
 		{
-			_lastErrorMessage = "Unable to open TAC Port. " + serialPortError().toLatin1();
+			_lastErrorMessage = "Unable to open TAC Port. " + serialPortError();
 
-			AppCore::writeToApplicationLogLine(_lastErrorMessage.toStdString());
+			AppCore::writeToApplicationLogLine(_lastErrorMessage);
 
 			emit errorOnOpen("PIC32CX Device Open Failed. Check the Application Log");
 
 			delete _serialPort;
-			_serialPort = Q_NULLPTR;
+			_serialPort = nullptr;
 		}
 	}
 
@@ -111,14 +106,14 @@ bool TACPIC32CXDriveThread::openSerialDevice()
 
 void TACPIC32CXDriveThread::sendCommand
 (
-	const QByteArray& command,
+	const std::string& command,
 	bool console, // = false
-	ReceiveInterface* receiveInterface, // = Q_NULLPTR
+	ReceiveInterface* receiveInterface, // = nullptr
 	bool shouldStore // = true
 )
 {
 	Arguments args;
-	QByteArray decodedCommand = decodeCommand(command, args);
+	std::string decodedCommand = decodeCommand(command, args);
 
 	send(decodedCommand, args, console, receiveInterface, shouldStore);
 }
@@ -146,30 +141,30 @@ void TACPIC32CXDriveThread::sendCommandSequence(CommandEntries& commandEntries)
 {
 	for (const auto& commandEntry: commandEntries)
 	{
-        {
-            TACPIC32CXCommand tacCommand(this, this);
+		{
+			TACPIC32CXCommand tacCommand(this, this);
 
-            switch (commandEntry->_commandAction)
-            {
-            case _CommandEntry::eNotSet:
-                break;
+			switch (commandEntry->_commandAction)
+			{
+			case _CommandEntry::eNotSet:
+				break;
 
-            case _CommandEntry::eSetPin:
-                tacCommand.setPinState(commandEntry->_pinID, std::get<bool>(commandEntry->_arguement));
-                break;
+			case _CommandEntry::eSetPin:
+				tacCommand.setPinState(commandEntry->_pinID, std::get<bool>(commandEntry->_arguement));
+				break;
 
-            case _CommandEntry::eLog:
-                tacCommand.addLogComment(QByteArray::fromStdString(std::get<std::string>(commandEntry->_arguement)) + "\n");
-                break;
+			case _CommandEntry::eLog:
+				tacCommand.addLogComment(std::get<std::string>(commandEntry->_arguement) + "\n");
+				break;
 
-            case _CommandEntry::eDelay:
-                tacCommand.addDelay(std::get<uint32_t>(commandEntry->_arguement));
-                break;
+			case _CommandEntry::eDelay:
+				tacCommand.addDelay(std::get<uint32_t>(commandEntry->_arguement));
+				break;
 
-            case _CommandEntry::eBaseCommand:
-                break;
-            }
-        }
+			case _CommandEntry::eBaseCommand:
+				break;
+			}
+		}
 
 		emit progress(kProgressActive);
 	}
@@ -187,11 +182,11 @@ void TACPIC32CXDriveThread::clearResetCount()
 	waitForCompletion();
 }
 
-QString TACPIC32CXDriveThread::serialPortError()
+std::string TACPIC32CXDriveThread::serialPortError()
 {
-	QString result;
+	std::string result;
 
-	if (_serialPort != Q_NULLPTR)
+	if (_serialPort != nullptr)
 	{
 		switch (_serialPort->error())
 		{
@@ -237,7 +232,7 @@ QString TACPIC32CXDriveThread::serialPortError()
 
 		case QSerialPort::UnknownError:
 		default:
-			result = QString("An unidentified serial port error %1 has occured occurred.").arg(_serialPort->error());
+			result = "An unidentified serial port error " + std::to_string(_serialPort->error()) + " has occurred.";
 			break;
 		}
 	}
@@ -292,13 +287,13 @@ void TACPIC32CXDriveThread::on_readyRead()
 	_readyRead = true;
 }
 
-void TACPIC32CXDriveThread::setName(const QByteArray& newName)
+void TACPIC32CXDriveThread::setName(const std::string& newName)
 {
 	if (newName.length() <= 32)
 	{
 		if (newName != _name)
 		{
-			if (isAlphaNumeric(newName.toStdString()) == true)
+			if (isAlphaNumeric(newName) == true)
 			{
 				waitForCompletion();
 			}
@@ -306,7 +301,7 @@ void TACPIC32CXDriveThread::setName(const QByteArray& newName)
 	}
 }
 
-uint32_t TACPIC32CXDriveThread::send(const QByteArray& sendMe, const Arguments& arguments, bool console, ReceiveInterface* recieveInterface, bool store)
+uint32_t TACPIC32CXDriveThread::send(const std::string& sendMe, const Arguments& arguments, bool console, ReceiveInterface* recieveInterface, bool store)
 {
 	return _tacProtocol.sendCommand(sendMe, arguments, console, recieveInterface, store);
 }
@@ -326,21 +321,21 @@ bool TACPIC32CXDriveThread::readSerialData()
 
 		_serialBuffer.clear();
 
-		QByteArray chunk;
+		std::string chunk;
 
 		while (true)
 		{
 			chunk = _serialPort->readAll();
-			if (chunk.isEmpty() == false)
+			if (!chunk.empty())
 				_serialBuffer.append(chunk);
 			else
 				break;
 		}
 
-		if (_serialBuffer.isEmpty() == false)
+		if (!_serialBuffer.empty())
 		{
 #ifdef DEBUG
-			AppCore::writeToApplicationLogLine(_serialBuffer.toStdString());
+			AppCore::writeToApplicationLogLine(_serialBuffer);
 #endif
 			_protocolInterface->handleRecievedData(_serialBuffer);
 			result = true;
@@ -360,7 +355,6 @@ void TACPIC32CXDriveThread::receive(FramePackage& framePackage)
 		if (_protocolInterface->queueSize() == 0)
 			emit progress(kProgressMax);
 	}
-
 	else
 	{
 		if (framePackage->_valid == true)
@@ -399,17 +393,20 @@ void TACPIC32CXDriveThread::receive(FramePackage& framePackage)
 
 void TACPIC32CXDriveThread::i2CReadRegister(uint32_t addr, uint32_t reg)
 {
-	// do nothing
+	(void)addr;
+	(void)reg;
 }
 
 void TACPIC32CXDriveThread::i2CWriteRegister(uint32_t addr, uint32_t reg, uint32_t data)
 {
-	// do nothing
+	(void)addr;
+	(void)reg;
+	(void)data;
 }
 
 void TACPIC32CXDriveThread::run()
 {
-	Q_ASSERT(_protocolInterface != Q_NULLPTR);
+	Q_ASSERT(_protocolInterface != nullptr);
 
 	AppCore::getAppCore()->setRunLogging(AppCore::getAppCore()->getPreferences()->loggingActive());
 
@@ -439,18 +436,19 @@ void TACPIC32CXDriveThread::run()
 			while (!loopFinished)
 			{
 				FramePackage framePackage = _protocolInterface->getNextFramePackage();
-				if (framePackage.isNull() == false)
+				if (framePackage != nullptr)
 				{
 					if (framePackage->_delayInMilliSeconds != 0 ||
-						framePackage->_comment.isEmpty() == false ||
+						!framePackage->_comment.empty() ||
 						framePackage->_endTransaction == true ||
 						checkLocalStore(framePackage) == true)
+					{
 						receive(framePackage);
-
+					}
 					else
 					{
 #ifdef DEBUG
-						AppCore::writeToApplicationLogLine("TACPIC32CXDriveTrain::run()::Write: " + framePackage->_codedRequest.toStdString());
+						AppCore::writeToApplicationLogLine("TACPIC32CXDriveTrain::run()::Write: " + framePackage->_codedRequest);
 #endif
 
 						// No funny stuff in serial buffer when executing this command
@@ -462,7 +460,7 @@ void TACPIC32CXDriveThread::run()
 								AppCore::writeToApplicationLogLine("Buffer cleared before identifying PIC32CX board");
 						}
 
-						int64_t bytesWritten = _serialPort->write(framePackage->_codedRequest);
+						int64_t bytesWritten = _serialPort->write(framePackage->_codedRequest.data(), framePackage->_codedRequest.size());
 						if (bytesWritten == -1)
 						{
 							AppCore::writeToApplicationLogLine("TACPIC32CXDriveTrain::run()::bytesWritten == -1");
@@ -513,13 +511,13 @@ void TACPIC32CXDriveThread::handleSetPin(FramePackage& framePackage)
 	if (std::holds_alternative<uint32_t>(pinArgument) && std::holds_alternative<bool>(stateArgument))
 	{
 		uint32_t pin = std::get<uint32_t>(pinArgument);
-		QString pinString = QString("Pin %1 ").arg(pin);
+		std::string pinString = "Pin " + std::to_string(pin) + " ";
 
 		bool pinOn = std::get<bool>(stateArgument);
 		if (pinOn)
-			framePackage->_synonym = pinString.toLatin1() + "on";
+			framePackage->_synonym = pinString + "on";
 		else
-			framePackage->_synonym = pinString.toLatin1() + "off";
+			framePackage->_synonym = pinString + "off";
 
 		emit pinStateChanged(static_cast<PinID>(pin), pinOn);
 	}
@@ -527,39 +525,48 @@ void TACPIC32CXDriveThread::handleSetPin(FramePackage& framePackage)
 
 void TACPIC32CXDriveThread::handleVersionResponse(FramePackage& framePackage)
 {
-	if (framePackage->_responses.count() > 0)
+	if (!framePackage->_responses.empty())
 	{
-		bool okay{true};
-
-		QStringList boardIdentity = QString(framePackage->_responses.at(0)).split(',', Qt::SkipEmptyParts);
+		std::string resp = framePackage->_responses.at(0);
+		std::vector<std::string> boardIdentity;
+		size_t start = 0, pos = 0;
+		while ((pos = resp.find(',', start)) != std::string::npos)
+		{
+			if (pos > start)
+				boardIdentity.push_back(resp.substr(start, pos - start));
+			start = pos + 1;
+		}
+		if (start < resp.size())
+			boardIdentity.push_back(resp.substr(start));
 
 		if (boardIdentity.size() < 7)
 		{
-			AppCore::writeToApplicationLogLine("Incomplete board response: " + boardIdentity.join(",").toStdString());
+			AppCore::writeToApplicationLogLine("Incomplete board response: " + resp);
 		}
 		else
 		{
-			_name = boardIdentity.at(0).toLatin1();
-			AppCore::writeToApplicationLogLine("PIC32CX board name: " + std::string(_name.data()));
+			_name = boardIdentity.at(0);
+			AppCore::writeToApplicationLogLine("PIC32CX board name: " + _name);
 
-			_firmwareString = boardIdentity.at(1).toStdString();
+			_firmwareString = boardIdentity.at(1);
 			AppCore::writeToApplicationLogLine("PIC32CX board firmware version: " + _firmwareString);
 
-			_macAddress = boardIdentity.at(3).toStdString();
+			_macAddress = boardIdentity.at(3);
 			AppCore::writeToApplicationLogLine("PIC32CX board MAC: " + _macAddress);
 
-			int boardID = boardIdentity.at(4).toInt(&okay);
-			if (okay)
+			try {
+				int boardID = std::stoi(boardIdentity.at(4));
 				_platformID = static_cast<PlatformID>(boardID);
-			else
+			} catch (...) {
 				_platformID = ALPACA_PIC32CX_ID;
+			}
 
 			AppCore::writeToApplicationLogLine("Identified platform id: " + std::to_string(_platformID));
 
 			_serialNumber = boardIdentity.at(5);
-			AppCore::writeToApplicationLogLine("PIC32CX board Serial Number: " + _serialNumber.toStdString());
+			AppCore::writeToApplicationLogLine("PIC32CX board Serial Number: " + _serialNumber);
 
-			_mcnNumber = boardIdentity.at(6).toStdString();
+			_mcnNumber = boardIdentity.at(6);
 			AppCore::writeToApplicationLogLine("PIC32CX board MCN: " + _mcnNumber);
 		}
 	}
@@ -571,11 +578,16 @@ void TACPIC32CXDriveThread::handleVersionResponse(FramePackage& framePackage)
 
 void TACPIC32CXDriveThread::handleClearBuffer(FramePackage &framePackage)
 {
-	if (framePackage->_responses.count() > 0)
+	if (!framePackage->_responses.empty())
 	{
-		QByteArrayList boardResponse = framePackage->_responses;
+		std::string joined;
+		for (size_t i = 0; i < framePackage->_responses.size(); ++i)
+		{
+			if (i > 0) joined += ",";
+			joined += framePackage->_responses[i];
+		}
 
-		AppCore::writeToApplicationLogLine("Buffer cleared. Board response: '" + boardResponse.join(",").toStdString() + "'");
+		AppCore::writeToApplicationLogLine("Buffer cleared. Board response: '" + joined + "'");
 	}
 }
 
@@ -611,7 +623,7 @@ void TACPIC32CXDriveThread::setupDiscovery()
 
 void TACPIC32CXDriveThread::log(FramePackage& framePackage)
 {
-	QString logEntry;
+	std::string logEntry;
 
 	AppCore::writeToApplicationLogLine("");
 	AppCore::writeToApplicationLogLine("Frame Package Start");
@@ -620,45 +632,42 @@ void TACPIC32CXDriveThread::log(FramePackage& framePackage)
 
 	if (framePackage->_delayInMilliSeconds > 0)
 	{
-		logEntry = QString("Delay %1 in msecs").arg(framePackage->_delayInMilliSeconds);
+		logEntry = "Delay " + std::to_string(framePackage->_delayInMilliSeconds) + " in msecs";
 		timeStampLogMessage(logEntry);
-		AppCore::writeToApplicationLogLine(logEntry.toStdString());
+		AppCore::writeToApplicationLogLine(logEntry);
 	}
-	else if (framePackage->_comment.isEmpty() == false)
+	else if (!framePackage->_comment.empty())
 	{
-		logEntry = QString("%1").arg(framePackage->_comment.data());
+		logEntry = framePackage->_comment;
 		timeStampLogMessage(logEntry);
-		AppCore::writeToApplicationLogLine(logEntry.toStdString());
+		AppCore::writeToApplicationLogLine(logEntry);
 	}
 	else
 	{
 		if (framePackage->_console == true)
-			logEntry = QString("Request from console: %1").arg(framePackage->_request.data());
+			logEntry = "Request from console: " + framePackage->_request;
 		else
-			logEntry = QString("Request: %1").arg(framePackage->_request.data());
+			logEntry = "Request: " + framePackage->_request;
 
-		AppCore::writeToApplicationLogLine(logEntry.toStdString());
+		AppCore::writeToApplicationLogLine(logEntry);
 
 		logEntry.clear();
 		timeStampLogMessage(logEntry);
-		AppCore::writeToApplicationLogLine(logEntry.toStdString());
+		AppCore::writeToApplicationLogLine(logEntry);
 
-		if (framePackage->_synonym.isEmpty() == false)
+		if (!framePackage->_synonym.empty())
 		{
-			logEntry = QString("Synonym: %1").arg(framePackage->_synonym.data());
-			AppCore::writeToApplicationLogLine(logEntry.toStdString());
+			logEntry = "Synonym: " + framePackage->_synonym;
+			AppCore::writeToApplicationLogLine(logEntry);
 		}
 
 		AppCore::writeToApplicationLogLine("Responses");
 
-		auto response = framePackage->_responses.begin();
-		while (response != framePackage->_responses.end())
+		for (const auto& response : framePackage->_responses)
 		{
-			logEntry = QString("   %1").arg(response->data());
-			AppCore::writeToApplicationLogLine(logEntry.toStdString());
-			response++;
+			logEntry = "   " + response;
+			AppCore::writeToApplicationLogLine(logEntry);
 		}
-
 	}
 
 	AppCore::writeToApplicationLogLine("Frame Package End");

@@ -5,36 +5,45 @@
 
 #include "CSV.h"
 
-#include <QString>
+#include <ostream>
+#include <string>
+
+static void replaceAll(std::string& str, const std::string& from, const std::string& to)
+{
+	if (from.empty()) return;
+	size_t startPos = 0;
+	while ((startPos = str.find(from, startPos)) != std::string::npos)
+	{
+		str.replace(startPos, from.length(), to);
+		startPos += to.length();
+	}
+}
 
 void writeCSVLine
 (
-   QTextStream& textStream,
-   const std::vector<std::string>& values
+	std::ostream& stream,
+	const std::vector<std::string>& values
 )
 {
-   bool first(true);
+	bool first = true;
 
-   auto value = values.cbegin();
-   while (value != values.cend())
-   {
-      QString writeValue(QString::fromStdString(*value));
+	for (const auto& val : values)
+	{
+		std::string writeValue = val;
 
-      writeValue.replace(",", "%x2C");
-      writeValue.replace("\r", "%x0D");
-      writeValue.replace("\n", "%x0A");
-      writeValue.replace("\"", "%x22");
+		replaceAll(writeValue, ",", "%x2C");
+		replaceAll(writeValue, "\r", "%x0D");
+		replaceAll(writeValue, "\n", "%x0A");
+		replaceAll(writeValue, "\"", "%x22");
 
-      if (first)
-         first = false;
-      else
-         textStream << " , ";
+		if (first)
+			first = false;
+		else
+			stream << " , ";
 
-      textStream << "\"" << writeValue << "\"";
+		stream << "\"" << writeValue << "\"";
+	}
 
-      value++;
-   }
-
-   if (values.empty() == false)
-      textStream << "\r\n";
+	if (!values.empty())
+		stream << "\r\n";
 }

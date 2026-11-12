@@ -5,12 +5,9 @@
 
 #include "QCommonConsoleGlobal.h"
 
-// QT
-#include <QVariant>
-
 #include <string>
 
-const QString kPreferences(QStringLiteral("Preferences"));
+const std::string kPreferences{"Preferences"};
 
 class QCOMMONCONSOLE_EXPORT PreferencesBase
 {

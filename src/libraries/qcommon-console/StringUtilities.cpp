@@ -3,29 +3,44 @@
 
 #include "StringUtilities.h"
 
-// QT
-#include <QStringList>
-
 // C++
 #include <cctype>
+#include <chrono>
+#include <ctime>
 #include <functional>
+#include <sstream>
 
 using namespace std;
 
-QString toCamelCase
+std::string toCamelCase
 (
-	const QString& camelCaseMe,
-	const QChar splitChar,
-	Qt::SplitBehavior splitBehavior
+	const std::string& camelCaseMe,
+	char splitChar
 )
 {
-	QStringList parts = camelCaseMe.split(splitChar, splitBehavior);
-	for (auto& part: parts)
+	std::string result;
+	bool capitalizeNext = true;
+	for (char c : camelCaseMe)
 	{
-		part.replace(0, 1, (part)[0].toUpper());
+		if (c == splitChar)
+		{
+			capitalizeNext = true;
+		}
+		else
+		{
+			if (capitalizeNext)
+			{
+				result.push_back(static_cast<char>(std::toupper(static_cast<unsigned char>(c))));
+				capitalizeNext = false;
+			}
+			else
+			{
+				result.push_back(c);
+			}
+		}
 	}
 
-	return parts.join("");
+	return result;
 }
 
 bool isAlphaNumeric
@@ -95,4 +110,44 @@ std::pair<int, int> toQPoint(const std::string& value)
 	}
 
 	return result;
+}
+
+std::string fromPoint(const std::pair<int, int>& value)
+{
+	return fromQPoint(value);
+}
+
+std::pair<int, int> toPoint(const std::string& value)
+{
+	return toQPoint(value);
+}
+
+std::string currentDateTimeString()
+{
+	auto now = std::chrono::system_clock::now();
+	std::time_t t = std::chrono::system_clock::to_time_t(now);
+	std::tm tm{};
+#if defined(_WIN32)
+	localtime_s(&tm, &t);
+#else
+	localtime_r(&t, &tm);
+#endif
+	char buf[64];
+	std::strftime(buf, sizeof(buf), "%c", &tm);
+	return std::string(buf);
+}
+
+std::string formatDateTime(const std::string& format)
+{
+	auto now = std::chrono::system_clock::now();
+	std::time_t t = std::chrono::system_clock::to_time_t(now);
+	std::tm tm{};
+#if defined(_WIN32)
+	localtime_s(&tm, &t);
+#else
+	localtime_r(&t, &tm);
+#endif
+	char buf[128];
+	std::strftime(buf, sizeof(buf), format.c_str(), &tm);
+	return std::string(buf);
 }

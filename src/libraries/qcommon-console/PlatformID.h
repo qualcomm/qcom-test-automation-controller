@@ -9,11 +9,11 @@
 #include "DebugBoardType.h"
 #include "FTDIPinSet.h"
 
-#include <QMap>
-#include <QSharedPointer>
-
 #include <cstdint>
+#include <map>
+#include <memory>
 #include <string>
+#include <vector>
 
 typedef uint32_t PlatformID;
 
@@ -42,9 +42,9 @@ struct _PlatformEntry
 	FTDIPinSets					_pinSets[kMaxPinSetCount];
 };
 
-typedef QSharedPointer<_PlatformEntry> PlatformEntry;
-typedef QList<PlatformEntry> PlatformIDList;
-typedef QMap<PlatformID, PlatformEntry> PlatformIDs;
+typedef std::shared_ptr<_PlatformEntry> PlatformEntry;
+typedef std::vector<PlatformEntry> PlatformIDList;
+typedef std::map<PlatformID, PlatformEntry> PlatformIDs;
 typedef PlatformIDs::const_iterator PlatformIDIterator;
 
 class QCOMMONCONSOLE_EXPORT PlatformContainer

@@ -1,4 +1,4 @@
-﻿// Copyright (c) Qualcomm Technologies, Inc. and/or its subsidiaries.
+// Copyright (c) Qualcomm Technologies, Inc. and/or its subsidiaries.
 // SPDX-License-Identifier: BSD-3-Clause
 
 #include "PSOCPlatformConfiguration.h"
@@ -12,7 +12,6 @@
 // Qt
 #include <QJsonObject>
 #include <QJsonArray>
-#include <QHash>
 
 const QString kPlatformEntries(QStringLiteral("pins"));
 const QString kTabOrderData(QStringLiteral("tabs"));
@@ -64,7 +63,7 @@ _PSOCPlatformConfiguration::_PSOCPlatformConfiguration(PSOCVariant psocVariant)
 	if (_classicActions.empty())
 		_PSOCPlatformConfiguration::initialize(psocVariant);
 
-	for (auto [pinNumber, pinData] : RangedContainer(_PSOCPlatformConfiguration::_classicActions))
+	for (const auto& [pinNumber, pinData] : _PSOCPlatformConfiguration::_classicActions)
 		_pinEntries[pinData._pin] = pinData;
 
 	if (psocVariant == ePSOCGPIOIIC)
@@ -198,9 +197,9 @@ PSOCPinList _PSOCPlatformConfiguration::getAllPins()
 {
 	PSOCPinList pinList;
 
-	for (const auto& pinData: std::as_const(_pinEntries))
+	for (const auto& [pin, pinData]: _pinEntries)
 	{
-		pinList.append(pinData);
+		pinList.push_back(pinData);
 	}
 
 	auto sortLambda = [] (PSOCPinData p1, PSOCPinData& p2) -> bool
@@ -220,10 +219,10 @@ PSOCPinList _PSOCPlatformConfiguration::getActivePins()
 {
 	PSOCPinList pinList;
 
-	for (const auto& pinData: std::as_const(_pinEntries))
+	for (const auto& [pin, pinData]: _pinEntries)
 	{
 		if (pinData._enabled == true)
-			pinList.append(pinData);
+			pinList.push_back(pinData);
 	}
 
 	auto sortLambda = [] (PSOCPinData p1, PSOCPinData& p2) -> bool
@@ -546,7 +545,7 @@ void _PSOCPlatformConfiguration::refreshSlaveConfig()
 {
 	_i2cEntries.clear();
 
-	for (auto [classicPin, classicEntry] : RangedContainer(_classicI2CActions))
+	for (const auto& [classicPin, classicEntry] : _classicI2CActions)
 	{
 		for (const auto& slave : std::as_const(_slaveConfigs))
 		{
@@ -621,15 +620,15 @@ PSOCI2CEntries _PSOCPlatformConfiguration::getActiveI2CEntries() const
 	return result;
 }
 
-QList<PSOCI2CData> _PSOCPlatformConfiguration::getI2CEntriesForSlave(const PSOCI2CSlave& slave) const
+std::vector<PSOCI2CData> _PSOCPlatformConfiguration::getI2CEntriesForSlave(const PSOCI2CSlave& slave) const
 {
 	std::string tabName = i2cSlaveTabName(slave);
 
-	QList<PSOCI2CData> result;
-	for (const auto& i2cData : std::as_const(_i2cEntries))
+	std::vector<PSOCI2CData> result;
+	for (const auto& [hash, i2cData] : _i2cEntries)
 	{
 		if (i2cData._tabName == tabName && i2cData._slaveAddress == slave._slaveAddress)
-			result.append(i2cData);
+			result.push_back(i2cData);
 	}
 
 	auto sortByPin = [] (const PSOCI2CData& p1, const PSOCI2CData& p2) -> bool
@@ -638,9 +637,9 @@ QList<PSOCI2CData> _PSOCPlatformConfiguration::getI2CEntriesForSlave(const PSOCI
 	};
 	std::sort(result.begin(), result.end(), sortByPin);
 
-	int rowCount = slave._portCount * 8;
-	if (result.count() > rowCount)
-		result = result.mid(0, rowCount);
+	size_t rowCount = static_cast<size_t>(slave._portCount * 8);
+	if (result.size() > rowCount)
+		result.resize(rowCount);
 
 	return result;
 }

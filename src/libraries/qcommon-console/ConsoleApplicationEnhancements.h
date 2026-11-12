@@ -6,10 +6,9 @@
 // QCommon
 #include "QCommonConsoleGlobal.h"
 
-// QT
-#include <QSettings>
-
 #include <string>
+
+class IniSettings;
 
 std::string QCOMMONCONSOLE_EXPORT applicationBinPath();
 std::string QCOMMONCONSOLE_EXPORT applicationDataPath();
@@ -21,8 +20,8 @@ std::string QCOMMONCONSOLE_EXPORT killOneDrive(const std::string& testPath, cons
 
 std::string QCOMMONCONSOLE_EXPORT createFilenameTimeStamp();
 
-bool QCOMMONCONSOLE_EXPORT isNewInstall(QSettings& settings, const std::string& currentInstallGuuid);
-void QCOMMONCONSOLE_EXPORT renewInstallRegistry(QSettings& settings, const std::string& newInstallGuid);
+bool QCOMMONCONSOLE_EXPORT isNewInstall(IniSettings& settings, const std::string& currentInstallGuuid);
+void QCOMMONCONSOLE_EXPORT renewInstallRegistry(IniSettings& settings, const std::string& newInstallGuid);
 
 std::string QCOMMONCONSOLE_EXPORT getModuleFilePath(const std::string& moduleFileName);
 std::string QCOMMONCONSOLE_EXPORT expandPath(const std::string& filePath);
@@ -35,4 +34,3 @@ bool QCOMMONCONSOLE_EXPORT isUserPrivileged();
 bool QCOMMONCONSOLE_EXPORT executeBinaryAsAdministrator(const std::string &binary, const std::string &cmdArgs);
 
 #endif
-

@@ -12,7 +12,6 @@
 
 // QT
 class QJsonObject;
-#include <QList>
 
 #include <cstdint>
 #include <string>
@@ -49,7 +48,7 @@ public:
 
 	~USBDescriptors() = default;
 
-	QList<PlatformID> getPlatforms();
+	std::vector<PlatformID> getPlatforms();
 
 	DescriptorList getDescriptors();
 	DescriptorList getDescriptorsByBoardType(DebugBoardType debugBoardType);

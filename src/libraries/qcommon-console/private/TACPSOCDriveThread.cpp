@@ -13,12 +13,10 @@
 #include "PSOCSerialTableModel.h"
 #include "StringUtilities.h"
 
-// Qt
-#include <QDir>
-#include <QDateTime>
-#include <QTextStream>
-
+#include <algorithm>
 #include <cstdint>
+#include <string>
+#include <vector>
 
 #define on true
 #define off false
@@ -35,17 +33,15 @@ TACPSOCDriveThread::TACPSOCDriveThread
 	setProtocolInterface(&_tacProtocol);
 	_tacProtocol.setTACDriveTrain(this);
 
-	AlpacaDevices alpacaDevices;
-
 	AlpacaDevice alpacaDevice = _AlpacaDevice::findAlpacaDevice(hash);
-	if (alpacaDevice->active())
+	if (alpacaDevice && alpacaDevice->active())
 	{
-		_portName = QByteArray::fromStdString(alpacaDevice->portName());
-		_serialNumber = QString::fromStdString(alpacaDevice->serialNumber());
+		_portName = alpacaDevice->portName();
+		_serialNumber = alpacaDevice->serialNumber();
 		_description = alpacaDevice->description();
 
-		connect(this, &TACDriveThread::pinStateChanged, alpacaDevice.data(), &_AlpacaDevice::on_pinStateChanged);
-		connect(this, &TACDriveThread::progress, alpacaDevice.data(), &_AlpacaDevice::progress);
+		connect(this, &TACDriveThread::pinStateChanged, alpacaDevice.get(), &_AlpacaDevice::on_pinStateChanged);
+		connect(this, &TACDriveThread::progress, alpacaDevice.get(), &_AlpacaDevice::progress);
 	}
 }
 
@@ -76,26 +72,26 @@ bool TACPSOCDriveThread::openSerialDevice()
 
 		if (_serialPort->open(QIODevice::ReadWrite) == true)
 		{		
-			setSerialNumber(_tacPortInfo.serialNumber());
-			setPortName(_tacPortInfo.portName().toLatin1());
+			setSerialNumber(_tacPortInfo.serialNumber().toStdString());
+			setPortName(_tacPortInfo.portName().toStdString());
 
 			emit serialNumUpdate(_serialNumber);
 
-			AppCore::writeToApplicationLogLine("Device " + _serialNumber.toStdString() + " opened");
-			AppCore::writeToApplicationLogLine("Com port " + portName().toStdString() + "\n");
+			AppCore::writeToApplicationLogLine("Device " + _serialNumber + " opened");
+			AppCore::writeToApplicationLogLine("Com port " + portName() + "\n");
 
 			result = true;
 		}
 		else
 		{
-			_lastErrorMessage = "Unable to open TAC Port. " + serialPortError().toLatin1();
+			_lastErrorMessage = "Unable to open TAC Port. " + serialPortError();
 
-			AppCore::writeToApplicationLogLine(_lastErrorMessage.toStdString());
+			AppCore::writeToApplicationLogLine(_lastErrorMessage);
 
 			emit errorOnOpen("PSOC Device Open Failed, Check the Application Log");
 
 			delete _serialPort;
-			_serialPort = Q_NULLPTR;
+			_serialPort = nullptr;
 		}
 	}
 
@@ -104,16 +100,16 @@ bool TACPSOCDriveThread::openSerialDevice()
 
 void TACPSOCDriveThread::sendCommand
 (
-	const QByteArray& command,
+	const std::string& command,
 	bool console, // = false
-	ReceiveInterface* receiveInterface, // = Q_NULLPTR
+	ReceiveInterface* receiveInterface, // = nullptr
 	bool shouldStore // = true
 )
 {
-	if (command.startsWith(kHelpCommand) == false)
+	if (command.rfind(kHelpCommand, 0) != 0)
 	{
 		Arguments args;
-		QByteArray decodedCommand = decodeCommand(command, args);
+		std::string decodedCommand = decodeCommand(command, args);
 
 		send(decodedCommand, args, console, receiveInterface, shouldStore);
 	}
@@ -176,7 +172,7 @@ void TACPSOCDriveThread::sendCommandSequence
 			break;
 
 		case _CommandEntry::eLog:
-			tacCommand.addLogComment(QByteArray::fromStdString(std::get<std::string>(commandEntry->_arguement)) + "\n");
+			tacCommand.addLogComment(std::get<std::string>(commandEntry->_arguement) + "\n");
 			break;
 
 		case _CommandEntry::eDelay:
@@ -260,11 +256,11 @@ void TACPSOCDriveThread::i2CWriteRegister
 	waitForCompletion();
 }
 
-QString TACPSOCDriveThread::serialPortError()
+std::string TACPSOCDriveThread::serialPortError()
 {
-	QString result;
+	std::string result;
 
-	if (_serialPort != Q_NULLPTR)
+	if (_serialPort != nullptr)
 	{
 		switch (_serialPort->error())
 		{
@@ -310,7 +306,7 @@ QString TACPSOCDriveThread::serialPortError()
 
 		case QSerialPort::UnknownError:
 		default:
-			result = QString("An unidentified serial port error %1 has occured occurred.").arg(_serialPort->error());
+			result = "An unidentified serial port error " + std::to_string(_serialPort->error()) + " has occurred.";
 			break;
 		}
 	}
@@ -370,14 +366,14 @@ void TACPSOCDriveThread::on_readyRead()
 
 void TACPSOCDriveThread::setName
 (
-	const QByteArray& newName
+	const std::string& newName
 )
 {
 	if (newName.length() <= 32)
 	{
 		if (newName != _name)
 		{
-			if (isAlphaNumeric(newName.toStdString()) == true)
+			if (isAlphaNumeric(newName) == true)
 			{
 				{
 					TACPSOCCommand tacCommand(this, this);
@@ -393,7 +389,7 @@ void TACPSOCDriveThread::setName
 
 uint32_t TACPSOCDriveThread::send
 (
-	const QByteArray& sendMe,
+	const std::string& sendMe,
 	const Arguments& arguments,
 	bool console,
 	ReceiveInterface* recieveInterface,
@@ -416,12 +412,12 @@ bool TACPSOCDriveThread::readSerialData()
 	{
 		_readyRead = false;
 
-		QByteArray buffer(_serialPort->readAll());
+		std::string buffer = _serialPort->readAll();
 
-		if (buffer.isEmpty() == false)
+		if (!buffer.empty())
 		{
 #ifdef DEBUG
-			AppCore::writeToApplicationLogLine(buffer.toStdString());
+			AppCore::writeToApplicationLogLine(buffer);
 #endif
 			_protocolInterface->handleRecievedData(buffer);
 			result = true;
@@ -497,7 +493,7 @@ void TACPSOCDriveThread::receive
 
 void TACPSOCDriveThread::run()
 {
-	Q_ASSERT(_protocolInterface != Q_NULLPTR);
+	Q_ASSERT(_protocolInterface != nullptr);
 
 	AppCore::getAppCore()->setRunLogging(AppCore::getAppCore()->getPreferences()->loggingActive());
 
@@ -528,10 +524,10 @@ void TACPSOCDriveThread::run()
 			while (!loopFinished)
 			{
 				FramePackage framePackage = _protocolInterface->getNextFramePackage();
-				if (framePackage.isNull() == false)
+				if (framePackage != nullptr)
 				{
 					if (framePackage->_delayInMilliSeconds != 0 ||
-						framePackage->_comment.isEmpty() == false ||
+						!framePackage->_comment.empty() ||
 						framePackage->_endTransaction == true ||
 						checkLocalStore(framePackage) == true)
 					{
@@ -540,10 +536,10 @@ void TACPSOCDriveThread::run()
 					else
 					{
 #ifdef DEBUG
-						AppCore::writeToApplicationLogLine("TACPSOCDriveThread::run()::Write: " + framePackage->_codedRequest.toStdString());
+						AppCore::writeToApplicationLogLine("TACPSOCDriveThread::run()::Write: " + framePackage->_codedRequest);
 #endif
 
-						int64_t bytesWritten = _serialPort->write(framePackage->_codedRequest);
+						int64_t bytesWritten = _serialPort->write(framePackage->_codedRequest.data(), framePackage->_codedRequest.size());
 						if (bytesWritten == -1)
 						{
 							AppCore::writeToApplicationLogLine("TACPSOCDriveThread::run()::bytesWritten == -1");
@@ -592,10 +588,9 @@ void TACPSOCDriveThread::handleGetNameResponse
 	FramePackage& framePackage
 )
 {
-	if (framePackage->_responses.count() > 1)
+	if (framePackage->_responses.size() > 1)
 	{
-		QByteArray response = framePackage->_responses.at(1);
-		_name = response;
+		_name = framePackage->_responses.at(1);
 
 		emit nameUpdate(_name);
 	}
@@ -606,16 +601,17 @@ void TACPSOCDriveThread::handleGetResetCount
 	FramePackage& framePackage
 )
 {
-	if (framePackage.isNull() == false)
+	if (framePackage != nullptr)
 	{
-		if (framePackage->_responses.count() >= 3)
+		if (framePackage->_responses.size() >= 3)
 		{
 			if (framePackage->_responses.at(0) == "getresetcount")
 			{
 				if (framePackage->_responses.at(2) == "ok")
 				{
-					QByteArray value = framePackage->_responses.at(1);
-					_resetCount = value.toUInt();
+					try {
+						_resetCount = std::stoul(framePackage->_responses.at(1));
+					} catch (...) {}
 				}
 			}
 		}
@@ -633,21 +629,21 @@ void TACPSOCDriveThread::handleI2CRead
 	{
 		if (framePackage->_valid)
 		{
-			QByteArray response;
+			std::string response;
 
-			QList<QByteArray> responses = framePackage->_responses;
+			std::vector<std::string> responses = framePackage->_responses;
 			responses.pop_back();
 
-			if (responses.empty() == false)
-				 response = responses.last();
-			else
-				response = framePackage->_responses.last();
+			if (!responses.empty())
+				 response = responses.back();
+			else if (!framePackage->_responses.empty())
+				response = framePackage->_responses.back();
 
 			emit i2CReadResult(response, true);
 		}
 		else
 		{
-			emit i2CReadResult(framePackage->_responses.last(), false);
+			emit i2CReadResult(framePackage->_responses.empty() ? "" : framePackage->_responses.back(), false);
 		}
 	}
 }
@@ -659,12 +655,12 @@ void TACPSOCDriveThread::handleI2CWrite
 {
 	if (framePackage->_valid)
 	{
-		QByteArray successResult = framePackage->_request + " " + QByteArray::fromStdString(std::get<std::string>(framePackage->getArgument(0))) + " Successful";
+		std::string successResult = framePackage->_request + " " + std::get<std::string>(framePackage->getArgument(0)) + " Successful";
 		emit i2CWriteResult(successResult);
 	}
 	else
 	{
-		QByteArray result = "\"" + framePackage->_responses.last() + "\" Are the parameters correct?";
+		std::string result = "\"" + (framePackage->_responses.empty() ? "" : framePackage->_responses.back()) + "\" Are the parameters correct?";
 		emit i2CWriteResult(result);
 	}
 }
@@ -680,13 +676,13 @@ void TACPSOCDriveThread::handleSetPin
 	if (std::holds_alternative<uint32_t>(pinArgument) && std::holds_alternative<bool>(stateArgument))
 	{
 		uint32_t pin = std::get<uint32_t>(pinArgument);
-		QString pinString = QString("Pin %1 ").arg(pin);
+		std::string pinString = "Pin " + std::to_string(pin) + " ";
 
 		bool pinOn = std::get<bool>(stateArgument);
 		if (pinOn)
-			framePackage->_synonym = pinString.toLatin1() + "on";
+			framePackage->_synonym = pinString + "on";
 		else
-			framePackage->_synonym = pinString.toLatin1() + "off";
+			framePackage->_synonym = pinString + "off";
 
 		emit pinStateChanged(static_cast<PinID>(pin), pinOn);
 	}
@@ -701,7 +697,7 @@ void TACPSOCDriveThread::handleSetName
 
 	if (std::holds_alternative<std::string>(argument))
 	{
-		_name = QByteArray::fromStdString(std::get<std::string>(argument));
+		_name = std::get<std::string>(argument);
 		framePackage->_synonym = "Set Name " + _name;
 	}
 
@@ -713,10 +709,9 @@ void TACPSOCDriveThread::handleUUIDResponse
 	FramePackage& framePackage
 )
 {
-	if (framePackage->_responses.count() > 1)
+	if (framePackage->_responses.size() > 1)
 	{
-		QByteArray response = framePackage->_responses.at(1);
-		_uuid = response;
+		_uuid = framePackage->_responses.at(1);
 
 		emit uuidUpdate(_uuid);
 	}
@@ -729,21 +724,21 @@ void TACPSOCDriveThread::handleVersionResponse
 {
 	static int retryCount{1};
 
-	if (framePackage->_responses.count() > 1)
+	if (framePackage->_responses.size() > 1)
 	{
 		bool isEPM{false};
-		QByteArray versionString = framePackage->_responses.at(0);
-		if (versionString.contains("EPM"))
+		std::string versionString = framePackage->_responses.at(0);
+		if (versionString.find("EPM") != std::string::npos)
 			isEPM = true;
 		else
 		{
 			versionString = framePackage->_responses.at(1);
-			if (versionString.contains("EPM"))
+			if (versionString.find("EPM") != std::string::npos)
 				isEPM = true;
 		}
 
 		_versionString = versionString;
-		AppCore::writeToApplicationLogLine("Version String: " + std::string(_versionString.data()));
+		AppCore::writeToApplicationLogLine("Version String: " + _versionString);
 
 		retryCount = 1;
 
@@ -758,25 +753,45 @@ void TACPSOCDriveThread::handleVersionResponse
 
 		emit hardwareTypeUpdate(debugBoardTypeString());
 
-		QStringList versionParts = QString(_versionString).split(" ", Qt::SkipEmptyParts);
-		if (versionParts.count() >= 7)
+		std::vector<std::string> versionParts;
+		size_t start = 0, pos = 0;
+		while ((pos = _versionString.find(' ', start)) != std::string::npos)
 		{
-			int fwIndex = versionParts.indexOf("FW");
-			if (fwIndex != -1)
+			if (pos > start)
+				versionParts.push_back(_versionString.substr(start, pos - start));
+			start = pos + 1;
+		}
+		if (start < _versionString.size())
+			versionParts.push_back(_versionString.substr(start));
+
+		if (versionParts.size() >= 7)
+		{
+			auto it = std::find(versionParts.begin(), versionParts.end(), "FW");
+			if (it != versionParts.end() && std::distance(versionParts.begin(), it) + 2 < static_cast<ptrdiff_t>(versionParts.size()))
 			{
 				try
 				{
-					QString firmwareString = versionParts.at(fwIndex + 2);
+					std::string firmwareString = *(it + 2);
 
-					_firmwareString = firmwareString.toStdString();
+					_firmwareString = firmwareString;
 
-					QStringList firmwareVersionParts = firmwareString.split(".", Qt::SkipEmptyParts);
-					if (firmwareVersionParts.count() >= 4)
+					std::vector<std::string> firmwareVersionParts;
+					size_t fStart = 0, fPos = 0;
+					while ((fPos = firmwareString.find('.', fStart)) != std::string::npos)
 					{
-						_firmwareMajor = firmwareVersionParts.at(0).toUInt();
-						_firmwareChip = firmwareVersionParts.at(1).toUInt();
-						_firmwareMinor = firmwareVersionParts.at(2).toUInt();
-						_firmwareRevision = firmwareVersionParts.at(3).toUInt();
+						if (fPos > fStart)
+							firmwareVersionParts.push_back(firmwareString.substr(fStart, fPos - fStart));
+						fStart = fPos + 1;
+					}
+					if (fStart < firmwareString.size())
+						firmwareVersionParts.push_back(firmwareString.substr(fStart));
+
+					if (firmwareVersionParts.size() >= 4)
+					{
+						_firmwareMajor = std::stoul(firmwareVersionParts.at(0));
+						_firmwareChip = std::stoul(firmwareVersionParts.at(1));
+						_firmwareMinor = std::stoul(firmwareVersionParts.at(2));
+						_firmwareRevision = std::stoul(firmwareVersionParts.at(3));
 
 						if (_firmwareMinor < 15)
 							_oldFirmware = true;
@@ -811,15 +826,12 @@ void TACPSOCDriveThread::handlePlatformID
 	FramePackage& framePackage
 )
 {
-	if (framePackage->_responses.count() >= 2)
+	if (framePackage->_responses.size() >= 2)
 	{
-		bool okay{false};
-
-		int boardID = framePackage->_responses.at(1).toInt(&okay);
-		if (okay)
-		{
+		try {
+			int boardID = std::stoi(framePackage->_responses.at(1));
 			_platformID = static_cast<PlatformID>(boardID);
-		}
+		} catch (...) {}
 	}
 
 	emit platformIDUpdate(static_cast<int>(_platformID));
@@ -864,7 +876,7 @@ void TACPSOCDriveThread::log
 	FramePackage& framePackage
 )
 {
-	QString logEntry;
+	std::string logEntry;
 
 	AppCore::writeToApplicationLogLine("");
 	AppCore::writeToApplicationLogLine("Frame Package Start");
@@ -873,45 +885,42 @@ void TACPSOCDriveThread::log
 
 	if (framePackage->_delayInMilliSeconds > 0)
 	{
-		logEntry = QString("Delay %1 in msecs").arg(framePackage->_delayInMilliSeconds);
+		logEntry = "Delay " + std::to_string(framePackage->_delayInMilliSeconds) + " in msecs";
 		timeStampLogMessage(logEntry);
-		AppCore::writeToApplicationLogLine(logEntry.toStdString());
+		AppCore::writeToApplicationLogLine(logEntry);
 	}
-	else if (framePackage->_comment.isEmpty() == false)
+	else if (!framePackage->_comment.empty())
 	{
-		logEntry = QString("%1").arg(framePackage->_comment.data());
+		logEntry = framePackage->_comment;
 		timeStampLogMessage(logEntry);
-		AppCore::writeToApplicationLogLine(logEntry.toStdString());
+		AppCore::writeToApplicationLogLine(logEntry);
 	}
 	else
 	{
 		if (framePackage->_console == true)
-			logEntry = QString("Request from console: %1").arg(framePackage->_request.data());
+			logEntry = "Request from console: " + framePackage->_request;
 		else
-			logEntry = QString("Request: %1").arg(framePackage->_request.data());
+			logEntry = "Request: " + framePackage->_request;
 
-		AppCore::writeToApplicationLogLine(logEntry.toStdString());
+		AppCore::writeToApplicationLogLine(logEntry);
 
 		logEntry.clear();
 		timeStampLogMessage(logEntry);
-		AppCore::writeToApplicationLogLine(logEntry.toStdString());
+		AppCore::writeToApplicationLogLine(logEntry);
 
-		if (framePackage->_synonym.isEmpty() == false)
+		if (!framePackage->_synonym.empty())
 		{
-			logEntry = QString("Synonym: %1").arg(framePackage->_synonym.data());
-			AppCore::writeToApplicationLogLine(logEntry.toStdString());
+			logEntry = "Synonym: " + framePackage->_synonym;
+			AppCore::writeToApplicationLogLine(logEntry);
 		}
 
 		AppCore::writeToApplicationLogLine("Responses");
 
-		auto response = framePackage->_responses.begin();
-		while (response != framePackage->_responses.end())
+		for (const auto& response : framePackage->_responses)
 		{
-			logEntry = QString("   %1").arg(response->data());
-			AppCore::writeToApplicationLogLine(logEntry.toStdString());
-			response++;
+			logEntry = "   " + response;
+			AppCore::writeToApplicationLogLine(logEntry);
 		}
-
 	}
 
 	AppCore::writeToApplicationLogLine("Frame Package End");

@@ -4,17 +4,19 @@
 #include "CommDevice.h"
 
 // QCommon
+#include "AlpacaSettings.h"
 #include "Serial/SerialPreferences.h"
+#include "StringUtilities.h"
 
 // Qt
-#include <QDateTime>
 #include <QDebug>
-#include <QDir>
-#include <QSettings>
+
+#include <filesystem>
+#include <string>
 
 CommDevice::CommDevice() :
-	QObject(NULL),
-	_serialPort(NULL)
+	QObject(nullptr),
+	_serialPort(nullptr)
 {
 
 }
@@ -26,7 +28,7 @@ CommDevice::~CommDevice()
 
 bool CommDevice::IsOpen()
 {
-	if (_serialPort != NULL)
+	if (_serialPort != nullptr)
 		return _serialPort->isOpen();
 
 	return false;
@@ -35,9 +37,9 @@ bool CommDevice::IsOpen()
 bool CommDevice::Open()
 {
 	bool result(false);
-	QSettings settings;
+	AlpacaSettings settings;
 
-	if (_serialPort == NULL)
+	if (_serialPort == nullptr)
 	{
 		_serialPort = new QSerialPort(this);
 
@@ -53,21 +55,22 @@ bool CommDevice::Open()
 
 		if (_logSerialData == true)
 		{
-			_logSerialPath = settings.value(kDumpComPortPath, QString()).toString();
-			if (_logSerialPath.isEmpty() == true)
+			std::string path = settings.value(kDumpComPortPath, "").toString();
+			if (path.empty())
 				_logSerialData = false;
 			else
 			{
-				if (QDir(_logSerialPath).exists() == false)
-					QDir().mkpath(_logSerialPath);
+				std::error_code ec;
+				std::filesystem::create_directories(path, ec);
 
-				_logSerialPath = _logSerialPath + QDir::separator() + "Serial_" + QDateTime::currentDateTime().toString("MMdd_HHmmss") + ".ssn";
+				path = (std::filesystem::path(path) / ("Serial_" + formatDateTime("%m%d_%H%M%S") + ".ssn")).string();
+				_logSerialPath = path;
 
-				_logFile.setFileName(_logSerialPath);
+				_logFile.setFileName(QString::fromStdString(path));
 
 				if (_logFile.open(QIODevice::WriteOnly) == false)
 				{
-					qDebug() << "Not able to open serial log file " << _logSerialPath << " turning logging off";
+					qDebug() << "Not able to open serial log file " << path.c_str() << " turning logging off";
 					_logSerialData = false;
 				}
 			}
@@ -120,16 +123,16 @@ void CommDevice::Close()
 
 bool CommDevice::Send
 (
-	const QByteArray& sendData
+	const std::string& sendData
 )
 {
-	Q_UNUSED(sendData);
+	(void)sendData;
 
 	bool result(false);
 
 	if (_serialPort != nullptr && _serialPort->isOpen())
 	{
-		uint64_t bytesSent = _serialPort->write(sendData);
+		uint64_t bytesSent = _serialPort->write(sendData.data(), sendData.size());
 		result = (bytesSent == sendData.size());
 	}
 
@@ -138,13 +141,12 @@ bool CommDevice::Send
 
 uint64_t CommDevice::Read
 (
-	QByteArray& incomingBytes
+	std::string& incomingBytes
 )
 {
 	uint64_t bytesAvailable(0);
 
 	const uint64_t kMaxToRead(0xFFFFF);
-	bool first(true);
 
 	if (_serialPort->isReadable())
 	{
@@ -155,7 +157,7 @@ uint64_t CommDevice::Read
 
 		readData = _serialPort->read(bytesAvailable);
 
-		incomingBytes += readData; // Don't presume the buffer is empty
+		incomingBytes.append(readData.constData(), readData.size()); // Don't presume the buffer is empty
 
 		if (_logSerialData == true && _logFile.isOpen())
 			_logFile.write(readData);

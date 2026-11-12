@@ -9,12 +9,10 @@
 #include "QCommonConsoleGlobal.h"
 
 // QT
-#include <QFile>
-#include <QIODevice>
-#include <QMap>
 #include <QThread>
 
 #include <cstdint>
+#include <map>
 #include <mutex>
 #include <string>
 
@@ -47,9 +45,9 @@ public:
 		return _driveTrainID;
 	}
 
-	QByteArray lastErrorMessage()
+	std::string lastErrorMessage()
 	{
-		QByteArray result(_lastErrorMessage);
+		std::string result(_lastErrorMessage);
 		_lastErrorMessage.clear();
 		return result;
 	}
@@ -59,9 +57,9 @@ public:
 	virtual void run() = 0;
 
 	// Send Interface
-	virtual uint32_t send(const QByteArray& sendMe, const Arguments& arguments, bool console, ReceiveInterface* recieveInterface, bool store = true) = 0;
+	virtual uint32_t send(const std::string& sendMe, const Arguments& arguments, bool console, ReceiveInterface* recieveInterface, bool store = true) = 0;
 	virtual void addDelay(uint32_t delayInMilliSeconds, ReceiveInterface* recieveInterface);
-	virtual void addLogComment(const QByteArray& comment);
+	virtual void addLogComment(const std::string& comment);
 	virtual void addEndTransaction(ReceiveInterface* receiveInterface);
 
 protected:
@@ -85,10 +83,10 @@ protected:
 	static int					_driveTrainIDs;
 
 	int							_driveTrainID{0};
-	ProtocolInterface*			_protocolInterface{Q_NULLPTR};
+	ProtocolInterface*			_protocolInterface{nullptr};
 	
 	std::string					_driveTrainName{"<unnamed>"};
-	QByteArray                  _lastErrorMessage;
+	std::string                 _lastErrorMessage;
 
 private:
 	std::mutex					_runningMutex;
@@ -96,6 +94,6 @@ private:
 
 };
 
-typedef QMap<int, DriveThread*> DriveTrains;
+typedef std::map<int, DriveThread*> DriveTrains;
 
 #endif // DRIVETHREAD_H

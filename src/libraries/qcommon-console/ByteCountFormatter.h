@@ -4,11 +4,11 @@
 // Copyright (c) Qualcomm Technologies, Inc. and/or its subsidiaries.
 // SPDX-License-Identifier: BSD-3-Clause
 
-#include <QString>
-
 #include <cstdint>
+#include <cstdio>
+#include <string>
 
-inline QString FormatBytes
+inline std::string FormatBytes
 (
 	uint64_t byteCount,
 	int precision = -1
@@ -22,13 +22,13 @@ inline QString FormatBytes
 	const uint64_t kTeraByte(kGigaByte * 1024);
 
 	int unitArrayIndex;
-	QString unitArray[] =
+	const char* unitArray[] =
 	{
-		QString("B"),
-		QString("KB"),
-		QString("MB"),
-		QString("GB"),
-		QString("TB")
+		"B",
+		"KB",
+		"MB",
+		"GB",
+		"TB"
 	};
 
 	if (byteCount < kKiloByte)
@@ -57,10 +57,18 @@ inline QString FormatBytes
 		divisor = kTeraByte;
 	}
 
-	if	(divisor ==	0.0)
-		return QString("%1 %2").arg((double) byteCount,	0, 'f', precision).arg(unitArray[unitArrayIndex]);
+	char buffer[64];
+	double displayValue = (divisor == 0.0) ? static_cast<double>(byteCount) : (static_cast<double>(byteCount) / divisor);
+	if (precision < 0)
+	{
+		std::snprintf(buffer, sizeof(buffer), "%.0f %s", displayValue, unitArray[unitArrayIndex]);
+	}
+	else
+	{
+		std::snprintf(buffer, sizeof(buffer), "%.*f %s", precision, displayValue, unitArray[unitArrayIndex]);
+	}
 
-	return QString("%1 %2").arg((double) byteCount / divisor, 0, 'f', precision).arg(unitArray[unitArrayIndex]);
+	return std::string(buffer);
 }
 
 #endif // BYTECOUNTFORMATTER_H

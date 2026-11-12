@@ -56,9 +56,9 @@ void BasicColor::setNamedColor
 			std::string greenString = namedColor.substr(3, 2);
 			std::string blueString = namedColor.substr(5, 2);
 
-			_red = static_cast<uint16_t>(std::strtoul(redString.c_str(), Q_NULLPTR, 16));
-			_green = static_cast<uint16_t>(std::strtoul(greenString.c_str(), Q_NULLPTR, 16));
-			_blue = static_cast<uint16_t>(std::strtoul(blueString.c_str(), Q_NULLPTR, 16));
+			_red = static_cast<uint16_t>(std::strtoul(redString.c_str(), nullptr, 16));
+			_green = static_cast<uint16_t>(std::strtoul(greenString.c_str(), nullptr, 16));
+			_blue = static_cast<uint16_t>(std::strtoul(blueString.c_str(), nullptr, 16));
 
 			_valid = true;
 		}

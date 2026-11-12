@@ -16,7 +16,7 @@ const QString kTabOrderData(QStringLiteral("tabs"));
 const bool kDefaultInitialPinValue(false);
 const bool kDefaultPinInvertedState(false);
 const CommandGroups kDefaultCommandGroup{eUnknownCommandGroup};
-const QPoint kDefaultCellLocation(QPoint(-1,-1));
+const std::pair<int, int> kDefaultCellLocation{-1, -1};
 
 const QString kRunPriority(QStringLiteral("run_priority"));
 const QString kPinNumber(QStringLiteral("pin_number"));

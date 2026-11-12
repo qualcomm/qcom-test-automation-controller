@@ -4,10 +4,6 @@
 // QCommon
 #include "DriveThread.h"
 
-// QT
-#include <QDateTime>
-#include <QDir>
-
 int DriveThread::_driveTrainIDs(1);
 
 DriveThread::DriveThread()
@@ -37,13 +33,13 @@ void DriveThread::addDelay
 	ReceiveInterface* recieveInterface
 )
 {
-	if (_protocolInterface != Q_NULLPTR)
+	if (_protocolInterface != nullptr)
 		_protocolInterface->queueDelay(delayInMilliSeconds, recieveInterface);
 }
 
-void DriveThread::addLogComment(const QByteArray& comment)
+void DriveThread::addLogComment(const std::string& comment)
 {
-	if (_protocolInterface != Q_NULLPTR)
+	if (_protocolInterface != nullptr)
 		_protocolInterface->queueLogComment(comment);
 }
 
@@ -52,7 +48,7 @@ void DriveThread::addEndTransaction
 	ReceiveInterface* receiveInterface
 )
 {
-	if (_protocolInterface != Q_NULLPTR)
+	if (_protocolInterface != nullptr)
 		_protocolInterface->queueEndTransaction(receiveInterface);
 }
 
