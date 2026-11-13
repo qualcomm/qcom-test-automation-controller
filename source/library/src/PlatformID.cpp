@@ -341,36 +341,35 @@ void PlatformContainer::initializeDynamic()
     std::string fileContents((std::istreambuf_iterator<char>(file)),
                               std::istreambuf_iterator<char>());
 
-    json_t root;
-    try { root = boost::json::parse(fileContents); }
-    catch (...) { return; }
+    json_t root = json_t::parse(fileContents);
+    if (root.isNull()) return;
 
-    const auto* rootObj = root.if_object();
-    if (!rootObj || !rootObj->contains(kCatalog))
-        return;
-    const auto* catalog = rootObj->at(kCatalog).if_array();
-    if (!catalog)
-        return;
+    if (!root.isObject()) return;
+    qtac::JsonObject rootObj = root.asObject();
+    if (!rootObj.contains(kCatalog)) return;
+    if (!rootObj.at(kCatalog).isArray()) return;
+    qtac::JsonArray catalog = rootObj.at(kCatalog).asArray();
 
     // Resolve the directory that contains devicelist.json so that relative
     // configPath values can be resolved against it.
     fs_compat::Path deviceListDir =
         fs_compat::Path(deviceListPath).parent_path();
 
-    for (const auto& entryVal : *catalog)
+    for (const auto& entryVal : catalog)
     {
-        const auto* entry = entryVal.if_object();
-        if (!entry || !entry->contains(kPlatformId))
+        if (!entryVal.isObject()) continue;
+        qtac::JsonObject entry = entryVal.asObject();
+        if (!entry.contains(kPlatformId))
             continue;
 
-        PlatformID pid = static_cast<PlatformID>(qtac::json_util::toInt(entry->at(kPlatformId)));
+        PlatformID pid = static_cast<PlatformID>(qtac::json_util::toInt(entry.at(kPlatformId)));
 
-        int boardTypeInt = qtac::json_util::valueInt(*entry, kDebugBoardType, 0);
+        int boardTypeInt = qtac::json_util::valueInt(entry, kDebugBoardType, 0);
         DebugBoardType boardType = static_cast<DebugBoardType>(boardTypeInt);
 
-        std::string description = qtac::json_util::valueString(*entry, kDescription, "");
-        std::string usbDesc     = qtac::json_util::valueString(*entry, kUsbDescriptor, "");
-        std::string configPath  = qtac::json_util::valueString(*entry, kConfigPath, "");
+        std::string description = qtac::json_util::valueString(entry, kDescription, "");
+        std::string usbDesc     = qtac::json_util::valueString(entry, kUsbDescriptor, "");
+        std::string configPath  = qtac::json_util::valueString(entry, kConfigPath, "");
 
         // Resolve configPath relative to devicelist.json location when it is
         // a relative path.
@@ -406,8 +405,8 @@ void PlatformContainer::initializeDynamic()
             qtac::ByteArray(usbDesc.c_str())
         );
 
-        platformEntry->_revision     = static_cast<uint32_t>(qtac::json_util::valueInt(*entry, kRevision, 0));
-        platformEntry->_firmwareChip = static_cast<uint32_t>(qtac::json_util::valueInt(*entry, kFirmwareChip, 0));
+        platformEntry->_revision     = static_cast<uint32_t>(qtac::json_util::valueInt(entry, kRevision, 0));
+        platformEntry->_firmwareChip = static_cast<uint32_t>(qtac::json_util::valueInt(entry, kFirmwareChip, 0));
 
         // FTDI bus set bitmasks (chip1..chip4, 0-indexed internally as [0..3])
         static const char* kBusSets[kMaxPinSetCount] = {
@@ -415,9 +414,9 @@ void PlatformContainer::initializeDynamic()
         };
         for (int i = 0; i < kMaxPinSetCount; ++i)
         {
-            if (entry->contains(kBusSets[i]))
+            if (entry.contains(kBusSets[i]))
                 platformEntry->_pinSets[i] =
-                    static_cast<FTDIPinSets>(qtac::json_util::toInt(entry->at(kBusSets[i])));
+                    static_cast<FTDIPinSets>(qtac::json_util::toInt(entry.at(kBusSets[i])));
         }
 
         _platformIds.insert(pid, platformEntry);

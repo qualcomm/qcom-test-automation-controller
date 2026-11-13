@@ -45,9 +45,8 @@ static bool openAndParse(const std::string& path, json_t& out)
     if (!file.is_open()) return false;
     std::string contents((std::istreambuf_iterator<char>(file)),
                           std::istreambuf_iterator<char>());
-    try { out = boost::json::parse(contents); }
-    catch (...) { return false; }
-    return true;
+    out = json_t::parse(contents);
+    return !out.isNull();
 }
 
 static std::string readTextFile(const std::string& path)
