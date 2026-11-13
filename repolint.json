@@ -103,7 +103,8 @@
                 "test*",
                 "docs*",
                 "ftd2xx.h",
-                "WinTypes.h"
+                "WinTypes.h",
+				"third-party*"
               ]
             },
             "lineCount": 60,

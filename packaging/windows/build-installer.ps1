@@ -3,12 +3,18 @@
 
 [CmdletBinding()]
 param(
-    [string] $SourceRoot,        
-    [string] $BinDir,            
-    [string] $SevenZipDir,       
-    [string] $OutDir,            
-    [string] $Version,           
-    [switch] $MockPayload        
+    [string] $SourceRoot,
+    [string] $BinDir,
+    [string] $SevenZipDir,
+    [string] $OutDir,
+    [string] $Version,
+    [switch] $MockPayload,
+    # Produce the headless/automation variant: only TACDev.dll + support files,
+    # no GUI binary, no Qt runtime.
+    [switch] $NoGui,
+    # Produce the Rust-only variant: only TACDev.dll + TACDev.lib + Rust interface.
+    # No FTDI drivers, no configurations, no docs, no examples, no other language bridges.
+    [switch] $RustOnly
 )
 
 $ErrorActionPreference = 'Stop'
@@ -82,8 +88,17 @@ $iexpress = Join-Path $env:WinDir 'System32\iexpress.exe'
 if (-not (Test-Path $iexpress)) { throw "iexpress.exe not found at $iexpress." }
 
 if (-not $Version) {
-    $vc = Get-Content (Join-Path $SourceRoot 'src\libraries\qcommon-console\version.cmake') -Raw
-    if ($vc -match 'QTAC_VERSION\s+"([^"]+)"') { $Version = $Matches[1] } else { $Version = '0.0.0' }
+    $versionCmake = Join-Path $SourceRoot 'src\libraries\qcommon-console\version.cmake'
+    $versionH     = Join-Path $SourceRoot 'source\library\include\qtac\version.h'
+    if (Test-Path $versionCmake) {
+        $vc = Get-Content $versionCmake -Raw
+        if ($vc -match 'QTAC_VERSION\s+"([^"]+)"') { $Version = $Matches[1] }
+    }
+    if (-not $Version -and (Test-Path $versionH)) {
+        $vh = Get-Content $versionH -Raw
+        if ($vh -match 'TAC_LIB_VERSION\s+"([^"]+)"') { $Version = $Matches[1] }
+    }
+    if (-not $Version) { $Version = '0.0.0' }
 }
 
 Write-Host "Building QTAC installer: arch=$Arch version=$Version"
@@ -96,59 +111,109 @@ Remove-Item $pkg -Recurse -Force -ErrorAction SilentlyContinue
 New-Item -ItemType Directory -Force -Path (Join-Path $data 'app') | Out-Null
 
 if ($MockPayload) {
-    Set-Content (Join-Path $data 'app\TAC.exe') 'placeholder'
-    Set-Content (Join-Path $data 'app\FTDICheck.exe') 'placeholder'
-    Set-Content (Join-Path $data 'app\Qt6Core.dll') 'placeholder'
+    if ($NoGui -or $RustOnly) {
+        Set-Content (Join-Path $data 'app\TACDev.dll') 'placeholder'
+        Set-Content (Join-Path $data 'app\TACDev.lib') 'placeholder'
+    } else {
+        Set-Content (Join-Path $data 'app\TAC.exe') 'placeholder'
+        Set-Content (Join-Path $data 'app\FTDICheck.exe') 'placeholder'
+        Set-Content (Join-Path $data 'app\Qt6Core.dll') 'placeholder'
+    }
 } else {
     if (-not (Test-Path $BinDir)) {
         throw "Build output not found: $BinDir. Run build.bat first (see README > Build & Usage)."
     }
-    Copy-Item (Join-Path $BinDir '*') (Join-Path $data 'app') -Recurse -Force
-}
-
-if (Test-Path (Join-Path $SourceRoot 'docs')) {
-    Copy-Item (Join-Path $SourceRoot 'docs') (Join-Path $data 'docs') -Recurse -Force
-    Remove-Item (Join-Path $data 'docs\plans') -Recurse -Force -ErrorAction SilentlyContinue
-}
-Copy-Item (Join-Path $SourceRoot 'configurations') (Join-Path $data 'configurations') -Recurse -Force
-
-if (Test-Path (Join-Path $SourceRoot 'examples')) {
-    Copy-Item (Join-Path $SourceRoot 'examples') (Join-Path $data 'examples') -Recurse -Force
-} else {
-    Write-Warning "No examples\ directory found at $SourceRoot\examples; examples will be absent from the installer."
-}
-
-$interfacesDest = Join-Path $data 'interfaces'
-New-Item -ItemType Directory -Force -Path $interfacesDest | Out-Null
-# C++ integrator headers (no compiled library -- consumers build against these
-# directly). Matches PROD parity: PROD ships interfaces\C++\TACDev\ headers.
-$cppHeaderSrc = Join-Path $SourceRoot 'interfaces\C++\TACDev'
-if (Test-Path $cppHeaderSrc) {
-    $cppHeaderDest = Join-Path $interfacesDest 'C++\TACDev'
-    New-Item -ItemType Directory -Force -Path $cppHeaderDest | Out-Null
-    Copy-Item (Join-Path $cppHeaderSrc '*.h') $cppHeaderDest -Force
-} else {
-    Write-Warning "No interfaces\C++\TACDev directory found; C++ headers will be absent from the installer."
-}
-
-foreach ($lang in @('Python', 'Java')) {
-    $srcLang = Join-Path $SourceRoot "interfaces\$lang"
-    if (Test-Path $srcLang) {
-        Copy-Item $srcLang (Join-Path $interfacesDest $lang) -Recurse -Force
+    if ($NoGui -or $RustOnly) {
+        # No-GUI / Rust-only variant: ship only TACDev.dll and its import lib.
+        $libDir = Join-Path (Split-Path $BinDir -Parent) 'lib'
+        foreach ($f in @('TACDev.dll')) {
+            $src = Join-Path $BinDir $f
+            if (Test-Path $src) { Copy-Item $src (Join-Path $data 'app') -Force }
+            else { Write-Warning "$f not found in $BinDir" }
+        }
+        foreach ($f in @('TACDev.lib')) {
+            $src = Join-Path $libDir $f
+            if (Test-Path $src) { Copy-Item $src (Join-Path $data 'app') -Force }
+            else { Write-Warning "$f not found in $libDir" }
+        }
     } else {
-        Write-Warning "No interfaces\$lang directory found; $lang interface will be absent from the installer."
+        Copy-Item (Join-Path $BinDir '*') (Join-Path $data 'app') -Recurse -Force
     }
 }
 
-$ftdiZip = Get-ChildItem (Join-Path $SourceRoot 'third-party') -Filter $ftdiZipGlob -ErrorAction SilentlyContinue |
-    Select-Object -First 1
-if ($ftdiZip) {
-    $dest = Join-Path $data $ftdiDest
-    New-Item -ItemType Directory -Force -Path $dest | Out-Null
-    & $sevenZip x $ftdiZip.FullName "-o$dest" -y | Out-Null
-    if ($LASTEXITCODE -ne 0) { throw "Extracting FTDI archive failed." }
+if (-not $RustOnly) {
+    if (Test-Path (Join-Path $SourceRoot 'docs')) {
+        Copy-Item (Join-Path $SourceRoot 'docs') (Join-Path $data 'docs') -Recurse -Force
+        Remove-Item (Join-Path $data 'docs\plans') -Recurse -Force -ErrorAction SilentlyContinue
+    }
+    Copy-Item (Join-Path $SourceRoot 'configurations') (Join-Path $data 'configurations') -Recurse -Force
+
+    if (Test-Path (Join-Path $SourceRoot 'examples')) {
+        Copy-Item (Join-Path $SourceRoot 'examples') (Join-Path $data 'examples') -Recurse -Force
+    } else {
+        Write-Warning "No examples\ directory found at $SourceRoot\examples; examples will be absent from the installer."
+    }
+}
+
+if (-not $RustOnly) {
+    $interfacesDest = Join-Path $data 'interfaces'
+    New-Item -ItemType Directory -Force -Path $interfacesDest | Out-Null
+
+    # C++ integrator headers (no compiled library -- consumers build against these
+    # directly). Matches PROD parity: PROD ships interfaces\C++\TACDev\ headers.
+    $cppHeaderSrc = Join-Path $SourceRoot 'interfaces\C++\TACDev'
+    if (Test-Path $cppHeaderSrc) {
+        $cppHeaderDest = Join-Path $interfacesDest 'C++\TACDev'
+        New-Item -ItemType Directory -Force -Path $cppHeaderDest | Out-Null
+        Copy-Item (Join-Path $cppHeaderSrc '*.h') $cppHeaderDest -Force
+    } else {
+        Write-Warning "No interfaces\C++\TACDev directory found; C++ headers will be absent from the installer."
+    }
+}
+
+if ($RustOnly) {
+    # Rust-only variant ships just TACDev.h alongside the DLL/lib already in app\.
+    # That is the complete C SDK needed to write Rust FFI bindings.
+    $hSrc = Join-Path $SourceRoot 'interfaces\C++\TACDev\TACDev.h'
+    if (Test-Path $hSrc) {
+        Copy-Item $hSrc (Join-Path $data 'app') -Force
+    } else {
+        Write-Warning "TACDev.h not found at $hSrc; header will be absent from the installer."
+    }
 } else {
-    Write-Warning "No FTDI archive ($ftdiZipGlob) in third-party\; driver files will be absent."
+    foreach ($lang in @('Python', 'Java', 'Rust')) {
+        $srcLang = Join-Path $SourceRoot "interfaces\$lang"
+        if (Test-Path $srcLang) {
+            $destLang = Join-Path $interfacesDest $lang
+            New-Item -ItemType Directory -Force -Path $destLang | Out-Null
+            Get-ChildItem $srcLang -Recurse |
+                Where-Object { $_.FullName -notmatch '\\target\\' } |
+                ForEach-Object {
+                    $rel  = $_.FullName.Substring($srcLang.Length + 1)
+                    $dest = Join-Path $destLang $rel
+                    if ($_.PSIsContainer) {
+                        New-Item -ItemType Directory -Force -Path $dest | Out-Null
+                    } else {
+                        Copy-Item $_.FullName $dest -Force
+                    }
+                }
+        } else {
+            Write-Warning "No interfaces\$lang directory found; $lang interface will be absent from the installer."
+        }
+    }
+}
+
+if (-not $RustOnly) {
+    $ftdiZip = Get-ChildItem (Join-Path $SourceRoot 'third-party') -Filter $ftdiZipGlob -ErrorAction SilentlyContinue |
+        Select-Object -First 1
+    if ($ftdiZip) {
+        $dest = Join-Path $data $ftdiDest
+        New-Item -ItemType Directory -Force -Path $dest | Out-Null
+        & $sevenZip x $ftdiZip.FullName "-o$dest" -y | Out-Null
+        if ($LASTEXITCODE -ne 0) { throw "Extracting FTDI archive failed." }
+    } else {
+        Write-Warning "No FTDI archive ($ftdiZipGlob) in third-party\; driver files will be absent."
+    }
 }
 
 $zip = Join-Path $pkg 'payload.zip'
@@ -180,9 +245,10 @@ $uninstallSedLines = Build-IExpressSed `
 if (-not (Test-Path $uninstallExe)) { throw "IExpress did not produce $uninstallExe." }
 Write-Host "  uninstall.exe : $uninstallExe"
 
-$setup = Join-Path $OutDir "QTAC-windows-$Arch.exe"
+$guiSuffix = if ($RustOnly) { '-rust' } elseif ($NoGui) { '-nogui' } else { '' }
+$setup = Join-Path $OutDir "QTAC-windows-$Arch$guiSuffix.exe"
 Remove-Item $setup -Force -ErrorAction SilentlyContinue
-$sed = Join-Path $OutDir "QTAC-$Arch.sed"
+$sed = Join-Path $OutDir "QTAC-$Arch$guiSuffix.sed"
 $sedLines = Build-IExpressSed `
     -TargetName $setup `
     -FriendlyName 'Qualcomm Test Automation Controller' `
