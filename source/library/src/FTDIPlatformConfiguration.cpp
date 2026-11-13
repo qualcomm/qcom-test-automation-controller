@@ -477,39 +477,39 @@ void _FTDIPlatformConfiguration::cascadeTabRename(const qtac::String& oldName,
 
 bool _FTDIPlatformConfiguration::read(json_t& j)
 {
-	const auto* jobj = j.if_object();
-	if (!jobj) return false;
+	if (!j.isObject()) return false;
+	qtac::JsonObject jobj = j.asObject();
 
-	if (jobj->contains(kChipCount))
-		_chipCount = qtac::json_util::toInt(jobj->at(kChipCount));
+	if (jobj.contains(kChipCount))
+		_chipCount = qtac::json_util::toInt(jobj.at(kChipCount));
 
-	if (jobj->contains(kModificationDate) && jobj->at(kModificationDate).is_string())
-		_modificationDate = qtac::String(qtac::json_util::toString(jobj->at(kModificationDate)));
-	if (jobj->contains(kFileVersion) && (jobj->at(kFileVersion).is_int64() || jobj->at(kFileVersion).is_uint64()))
-		_fileVersion = qtac::json_util::toInt(jobj->at(kFileVersion));
+	if (jobj.contains(kModificationDate) && jobj.at(kModificationDate).isString())
+		_modificationDate = qtac::String(qtac::json_util::toString(jobj.at(kModificationDate)));
+	if (jobj.contains(kFileVersion) && jobj.at(kFileVersion).isInt())
+		_fileVersion = qtac::json_util::toInt(jobj.at(kFileVersion));
 
 	// --- Parse tabs array: collect visible tabs sorted by ordinal ---
 	// Skip the fixed app tabs (General, Device Info, Terminal) — those are always present.
 	_tabs.clear();
-	if (jobj->contains(kTabs) && jobj->at(kTabs).is_array())
+	if (jobj.contains(kTabs) && jobj.at(kTabs).isArray())
 	{
 		using TabEntry = std::pair<int, std::string>;
 		std::vector<TabEntry> tabEntries;
-		for (const auto& jtVal : jobj->at(kTabs).as_array())
+		for (const auto& jtVal : jobj.at(kTabs).asArray())
 		{
-			const auto* jt = jtVal.if_object();
-			if (!jt) continue;
+			if (!jtVal.isObject()) continue;
+			qtac::JsonObject jt = jtVal.asObject();
 			bool visible = true;
-			if (jt->contains("visible")) visible = qtac::json_util::toBool(jt->at("visible"));
+			if (jt.contains("visible")) visible = qtac::json_util::toBool(jt.at("visible"));
 			if (!visible) continue;
 
 			std::string name;
-			if (jt->contains("name")) name = qtac::json_util::toString(jt->at("name"));
+			if (jt.contains("name")) name = qtac::json_util::toString(jt.at("name"));
 			if (name.empty() || name == "General" || name == "Device Info" || name == "Terminal")
 				continue;
 
 			int ordinal = 999;
-			if (jt->contains("ordinal")) ordinal = qtac::json_util::toInt(jt->at("ordinal"));
+			if (jt.contains("ordinal")) ordinal = qtac::json_util::toInt(jt.at("ordinal"));
 			tabEntries.push_back(std::make_pair(ordinal, name));
 		}
 		std::sort(tabEntries.begin(), tabEntries.end());
@@ -517,43 +517,43 @@ bool _FTDIPlatformConfiguration::read(json_t& j)
 			_tabs.append(qtac::String(te.second));
 	}
 
-	if (jobj->contains(kPinEntries) && jobj->at(kPinEntries).is_array())
+	if (jobj.contains(kPinEntries) && jobj.at(kPinEntries).isArray())
 	{
 		_pinEntries.clear();
-		for (const auto& peVal : jobj->at(kPinEntries).as_array())
+		for (const auto& peVal : jobj.at(kPinEntries).asArray())
 		{
-			const auto* pe = peVal.if_object();
-			if (!pe) continue;
+			if (!peVal.isObject()) continue;
+			qtac::JsonObject pe = peVal.asObject();
 			ChipIndex chipIndex{0};
 			Bus bus{0};
 			PinID pinId{0};
 
-			if (pe->contains(kChipIndex)) chipIndex = qtac::json_util::toInt(pe->at(kChipIndex));
-			if (pe->contains(kBus))
+			if (pe.contains(kChipIndex)) chipIndex = qtac::json_util::toInt(pe.at(kChipIndex));
+			if (pe.contains(kBus))
 			{
-				std::string busStr = qtac::json_util::toString(pe->at(kBus));
+				std::string busStr = qtac::json_util::toString(pe.at(kBus));
 				if (!busStr.empty()) bus = busStr[0];
 			}
-			if (pe->contains(kPinNumber))
-				pinId = static_cast<PinID>(std::stoi(qtac::json_util::toString(pe->at(kPinNumber))));
+			if (pe.contains(kPinNumber))
+				pinId = static_cast<PinID>(std::stoi(qtac::json_util::toString(pe.at(kPinNumber))));
 
 			FTDIPinData pinData(chipIndex, bus, pinId);
 			pinData._setPin = getSetPinIndex(chipIndex, bus, pinId);
 
-			if (pe->contains(kEnabled))       pinData._enabled  = qtac::json_util::toBool(pe->at(kEnabled));
-			if (pe->contains(kInput))         pinData._input    = qtac::json_util::toBool(pe->at(kInput));
-			if (pe->contains(kName))          pinData._pinLabel    = qtac::json_util::toString(pe->at(kName));
-			if (pe->contains(kToolTip))       pinData._pinTooltip  = qtac::json_util::toString(pe->at(kToolTip));
-			if (pe->contains(kInitialValue))  pinData._initialValue = qtac::json_util::toBool(pe->at(kInitialValue));
-			if (pe->contains(kPriority))      pinData._initializationPriority = qtac::json_util::toInt(pe->at(kPriority));
-			if (pe->contains(kInverted))      pinData._inverted = qtac::json_util::toBool(pe->at(kInverted));
-			if (pe->contains(kCommand))       pinData._pinCommand = qtac::json_util::toString(pe->at(kCommand));
-			if (pe->contains(kCommandGroup))  pinData._commandGroup = static_cast<CommandGroups>(qtac::json_util::toInt(pe->at(kCommandGroup)));
-			if (pe->contains(kTabName))       pinData._tabName = qtac::json_util::toString(pe->at(kTabName));
+			if (pe.contains(kEnabled))       pinData._enabled  = qtac::json_util::toBool(pe.at(kEnabled));
+			if (pe.contains(kInput))         pinData._input    = qtac::json_util::toBool(pe.at(kInput));
+			if (pe.contains(kName))          pinData._pinLabel    = qtac::json_util::toString(pe.at(kName));
+			if (pe.contains(kToolTip))       pinData._pinTooltip  = qtac::json_util::toString(pe.at(kToolTip));
+			if (pe.contains(kInitialValue))  pinData._initialValue = qtac::json_util::toBool(pe.at(kInitialValue));
+			if (pe.contains(kPriority))      pinData._initializationPriority = qtac::json_util::toInt(pe.at(kPriority));
+			if (pe.contains(kInverted))      pinData._inverted = qtac::json_util::toBool(pe.at(kInverted));
+			if (pe.contains(kCommand))       pinData._pinCommand = qtac::json_util::toString(pe.at(kCommand));
+			if (pe.contains(kCommandGroup))  pinData._commandGroup = static_cast<CommandGroups>(qtac::json_util::toInt(pe.at(kCommandGroup)));
+			if (pe.contains(kTabName))       pinData._tabName = qtac::json_util::toString(pe.at(kTabName));
 
-			if (pe->contains(kRunPriority))
+			if (pe.contains(kRunPriority))
 			{
-				std::string pointStr = qtac::json_util::toString(pe->at(kRunPriority));
+				std::string pointStr = qtac::json_util::toString(pe.at(kRunPriority));
 				qtac::Point pt = toPoint(qtac::String(pointStr));
 				if (pt.x() >= 0 && pt.y() >= 0)
 					pinData._cellLocation = pt;
@@ -565,25 +565,25 @@ bool _FTDIPlatformConfiguration::read(json_t& j)
 		}
 	}
 
-	if (jobj->contains(kBusEntries) && jobj->at(kBusEntries).is_array())
+	if (jobj.contains(kBusEntries) && jobj.at(kBusEntries).isArray())
 	{
 		_busFunctions.clear();
-		for (const auto& beVal : jobj->at(kBusEntries).as_array())
+		for (const auto& beVal : jobj.at(kBusEntries).asArray())
 		{
-			const auto* be = beVal.if_object();
-			if (!be) continue;
+			if (!beVal.isObject()) continue;
+			qtac::JsonObject be = beVal.asObject();
 			ChipIndex chipIndex{0};
 			Bus bus{0};
 			FTDIBusFunction bf{eBusFunctionUnknown};
 
-			if (be->contains(kChipIndex)) chipIndex = qtac::json_util::toInt(be->at(kChipIndex));
-			if (be->contains(kBus))
+			if (be.contains(kChipIndex)) chipIndex = qtac::json_util::toInt(be.at(kChipIndex));
+			if (be.contains(kBus))
 			{
-				std::string busStr = qtac::json_util::toString(be->at(kBus));
+				std::string busStr = qtac::json_util::toString(be.at(kBus));
 				if (!busStr.empty()) bus = busStr[0];
 			}
-			if (be->contains(kBusFunction))
-				bf = static_cast<FTDIBusFunction>(qtac::json_util::toInt(be->at(kBusFunction)));
+			if (be.contains(kBusFunction))
+				bf = static_cast<FTDIBusFunction>(qtac::json_util::toInt(be.at(kBusFunction)));
 
 			FTDIBusData busData(chipIndex, bus, bf);
 			_busFunctions.insert(busData._hash, busData);
@@ -592,21 +592,21 @@ bool _FTDIPlatformConfiguration::read(json_t& j)
 
 	// --- Load buttons ---
 	_buttons.clear();
-	if (jobj->contains(kButtons) && jobj->at(kButtons).is_array())
+	if (jobj.contains(kButtons) && jobj.at(kButtons).isArray())
 	{
-		for (const auto& jbVal : jobj->at(kButtons).as_array())
+		for (const auto& jbVal : jobj.at(kButtons).asArray())
 		{
-			const auto* jb = jbVal.if_object();
-			if (!jb) continue;
+			if (!jbVal.isObject()) continue;
+			qtac::JsonObject jb = jbVal.asObject();
 			qtac::ButtonEntry btn;
-			if (jb->contains(kName))         btn._name         = qtac::json_util::toString(jb->at(kName));
-			if (jb->contains(kCommand))      btn._command      = qtac::json_util::toString(jb->at(kCommand));
-			if (jb->contains(kCommandGroup)) btn._commandGroup = qtac::json_util::toInt(jb->at(kCommandGroup));
-			if (jb->contains(kTab))          btn._tab          = qtac::json_util::toString(jb->at(kTab));
-			if (jb->contains(kButtonToolTip)) btn._tooltip     = qtac::json_util::toString(jb->at(kButtonToolTip));
-			if (jb->contains(kCellLocation))
+			if (jb.contains(kName))         btn._name         = qtac::json_util::toString(jb.at(kName));
+			if (jb.contains(kCommand))      btn._command      = qtac::json_util::toString(jb.at(kCommand));
+			if (jb.contains(kCommandGroup)) btn._commandGroup = qtac::json_util::toInt(jb.at(kCommandGroup));
+			if (jb.contains(kTab))          btn._tab          = qtac::json_util::toString(jb.at(kTab));
+			if (jb.contains(kButtonToolTip)) btn._tooltip     = qtac::json_util::toString(jb.at(kButtonToolTip));
+			if (jb.contains(kCellLocation))
 			{
-				qtac::Point pt = toPoint(qtac::String(qtac::json_util::toString(jb->at(kCellLocation))));
+				qtac::Point pt = toPoint(qtac::String(qtac::json_util::toString(jb.at(kCellLocation))));
 				btn._cellX = pt.x();
 				btn._cellY = pt.y();
 			}
@@ -644,20 +644,20 @@ bool _FTDIPlatformConfiguration::read(json_t& j)
 
 	// --- Load variables ---
 	_variables.clear();
-	if (jobj->contains(kVariables) && jobj->at(kVariables).is_array())
+	if (jobj.contains(kVariables) && jobj.at(kVariables).isArray())
 	{
-		for (const auto& jvVal : jobj->at(kVariables).as_array())
+		for (const auto& jvVal : jobj.at(kVariables).asArray())
 		{
-			const auto* jv = jvVal.if_object();
-			if (!jv) continue;
+			if (!jvVal.isObject()) continue;
+			qtac::JsonObject jv = jvVal.asObject();
 			qtac::VariableEntry var;
-			if (jv->contains(kName))    var._name    = qtac::json_util::toString(jv->at(kName));
-			if (jv->contains(kLabel))   var._label   = qtac::json_util::toString(jv->at(kLabel));
-			if (jv->contains(kToolTip)) var._tooltip = qtac::json_util::toString(jv->at(kToolTip));
-			if (jv->contains(kType))    var._type    = static_cast<qtac::VariableType>(qtac::json_util::toInt(jv->at(kType)));
-			if (jv->contains(kDefaultValue))
+			if (jv.contains(kName))    var._name    = qtac::json_util::toString(jv.at(kName));
+			if (jv.contains(kLabel))   var._label   = qtac::json_util::toString(jv.at(kLabel));
+			if (jv.contains(kToolTip)) var._tooltip = qtac::json_util::toString(jv.at(kToolTip));
+			if (jv.contains(kType))    var._type    = static_cast<qtac::VariableType>(qtac::json_util::toInt(jv.at(kType)));
+			if (jv.contains(kDefaultValue))
 			{
-				std::string dv = qtac::json_util::toString(jv->at(kDefaultValue));
+				std::string dv = qtac::json_util::toString(jv.at(kDefaultValue));
 				if (var._type == qtac::VariableType::Boolean)
 					var._defaultValue = (dv == "1" || dv == "true");
 				else if (var._type == qtac::VariableType::Float)
@@ -670,9 +670,9 @@ bool _FTDIPlatformConfiguration::read(json_t& j)
 					catch (...) { var._defaultValue = 0u; }
 				}
 			}
-			if (jv->contains(kCellLocation))
+			if (jv.contains(kCellLocation))
 			{
-				qtac::Point pt = toPoint(qtac::String(qtac::json_util::toString(jv->at(kCellLocation))));
+				qtac::Point pt = toPoint(qtac::String(qtac::json_util::toString(jv.at(kCellLocation))));
 				var._cellX = pt.x();
 				var._cellY = pt.y();
 			}
@@ -704,9 +704,9 @@ bool _FTDIPlatformConfiguration::read(json_t& j)
 	ensureVar("fastboot", "Fastboot timing (ms)",  "Configurable Boot to fastboot timing in milliseconds", 8000, 1, 0);
 
 	// --- Load and parse script ---
-	if (jobj->contains(kScript) && jobj->at(kScript).is_string())
+	if (jobj.contains(kScript) && jobj.at(kScript).isString())
 	{
-		qtac::String scriptText = qtac::json_util::toString(jobj->at(kScript));
+		qtac::String scriptText = qtac::json_util::toString(jobj.at(kScript));
 
 		TACCommands cmds;
 		FTDIPinList activePins = getActivePins();
@@ -745,43 +745,43 @@ void _FTDIPlatformConfiguration::loadDefaultScript(const qtac::String& scriptTex
 
 void _FTDIPlatformConfiguration::write(json_t& j)
 {
-	auto& jobj = j.as_object();
-	jobj[kChipCount] = _chipCount;
+	j = json_t::makeObject();
+	j.setKey(kChipCount, _chipCount);
 
-	boost::json::array pinsArray;
+	json_t pinsArray = json_t::makeArray();
 	for (const auto& kv : _pinEntries)
 	{
 		const FTDIPinData& pe = kv.second;
-		boost::json::object pinData;
-		pinData[kChipIndex]    = pe._chipIndex;
-		pinData[kBus]          = std::string(1, pe._bus);
-		pinData[kPinNumber]    = qtac::String::number(static_cast<unsigned long long>(pe._chipPin)).toStdString();
-		pinData[kEnabled]      = pe._enabled;
-		pinData[kInput]        = pe._input;
-		pinData[kName]         = pe._pinLabel.toStdString();
-		pinData[kToolTip]      = pe._pinTooltip.toStdString();
-		pinData[kInitialValue] = pe._initialValue;
-		pinData[kPriority]     = pe._initializationPriority;
-		pinData[kInverted]     = pe._inverted;
-		pinData[kCommand]      = pe._pinCommand.toStdString();
-		pinData[kCommandGroup] = static_cast<int>(pe._commandGroup);
-		pinData[kRunPriority]  = fromPoint(pe._cellLocation).toStdString();
-		pinData[kTabName]      = pe._tabName.toStdString();
-		pinsArray.push_back(pinData);
+		json_t pinData = json_t::makeObject();
+		pinData.setKey(kChipIndex,    pe._chipIndex);
+		pinData.setKey(kBus,          std::string(1, pe._bus));
+		pinData.setKey(kPinNumber,    qtac::String::number(static_cast<unsigned long long>(pe._chipPin)).toStdString());
+		pinData.setKey(kEnabled,      pe._enabled);
+		pinData.setKey(kInput,        pe._input);
+		pinData.setKey(kName,         pe._pinLabel.toStdString());
+		pinData.setKey(kToolTip,      pe._pinTooltip.toStdString());
+		pinData.setKey(kInitialValue, pe._initialValue);
+		pinData.setKey(kPriority,     pe._initializationPriority);
+		pinData.setKey(kInverted,     pe._inverted);
+		pinData.setKey(kCommand,      pe._pinCommand.toStdString());
+		pinData.setKey(kCommandGroup, static_cast<int>(pe._commandGroup));
+		pinData.setKey(kRunPriority,  fromPoint(pe._cellLocation).toStdString());
+		pinData.setKey(kTabName,      pe._tabName.toStdString());
+		pinsArray.append(pinData);
 	}
-	jobj[kPinEntries] = pinsArray;
+	j.setKey(kPinEntries, pinsArray);
 
-	boost::json::array busArray;
+	json_t busArray = json_t::makeArray();
 	for (const auto& kv : _busFunctions)
 	{
 		const FTDIBusData& bf = kv.second;
-		boost::json::object busData;
-		busData[kChipIndex]   = bf._chipIndex;
-		busData[kBus]         = std::string(1, bf._bus);
-		busData[kBusFunction] = static_cast<int>(bf._busFunction);
-		busArray.push_back(busData);
+		json_t busData = json_t::makeObject();
+		busData.setKey(kChipIndex,   bf._chipIndex);
+		busData.setKey(kBus,         std::string(1, bf._bus));
+		busData.setKey(kBusFunction, static_cast<int>(bf._busFunction));
+		busArray.append(busData);
 	}
-	jobj[kBusEntries] = busArray;
+	j.setKey(kBusEntries, busArray);
 }
 
 // -----------------------------------------------------------------------
