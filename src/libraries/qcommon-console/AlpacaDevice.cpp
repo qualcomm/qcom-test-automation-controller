@@ -763,6 +763,9 @@ bool _AlpacaDevice::setPinState
 
 		if (active() == true)
 		{
+			// Direct callers such as TACFrame::onPinTriggered bypass
+			// _setCommandState(), so arm the completion wait here as well.
+			setWaitForCompletion();
 			bool result = _driveThread->setPinState(pin, state);
 			if (AppCore::getAppCore()->appLoggingActive())
 			{
