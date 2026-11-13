@@ -297,6 +297,7 @@ bool FTDIDevice::open()
 
 					for (const auto& initializationPin: initialPins)
 					{
+						_driveThread->setWaitForCompletion();
 						_driveThread->setPinState(initializationPin._pin, initializationPin._initialValue);
 
 						if (AppCore::getAppCore()->appLoggingActive())
