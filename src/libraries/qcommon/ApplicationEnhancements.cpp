@@ -62,8 +62,8 @@ void buildRecentsMenu
 
 		for (auto index: range(recentFiles.fileCount()))
 		{
-			QString filePath = recentFiles.getFilePath(index);
-			QString fileName = recentFiles.getFileName(index);
+			QString filePath = QString::fromStdString(recentFiles.getFilePath(index));
+			QString fileName = QString::fromStdString(recentFiles.getFileName(index));
 
 			if (fileName.isEmpty() == false)
 			{

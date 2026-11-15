@@ -2,10 +2,11 @@
 // SPDX-License-Identifier: BSD-3-Clause
 
 #include "ApplicationEnhancements.h"
-#include "ConsoleApplicationEnhancements.h"
 #include "DeviceCatalog.h"
 #include "DeviceSelectionDialog.h"
-#include "USBDescriptors.h"
+#include "QUSBDescriptors.h"
+#include "QAppPaths.h"
+#include "QCommonTypes.h"
 
 // Qt
 
@@ -45,12 +46,12 @@ DeviceCatalog::DeviceCatalog(QWidget* parent) :QDialog(parent)
 	connect(_deviceTable, &QTableWidget::itemClicked, this, &DeviceCatalog::onConfigurationLinkClicked);
 	connect(_deviceTable, &QTableWidget::customContextMenuRequested, this, &DeviceCatalog::onCustomContextMenuRequested);
 
-	USBDescriptors usbDescriptors;
+	QUSBDescriptors usbDescriptors;
 
 	if (usbDescriptors.load(kUSBDescriptorPath) == true)
 	{
 		int row{0};
-		DescriptorList descriptorList = usbDescriptors.getDescriptors();
+		QDescriptorList descriptorList = usbDescriptors.getDescriptors();
 
 		_deviceTable->setRowCount(descriptorList.count());
 		for (const auto& descriptor: std::as_const(descriptorList))
@@ -62,7 +63,7 @@ DeviceCatalog::DeviceCatalog(QWidget* parent) :QDialog(parent)
 			twi->setData(Qt::UserRole, descriptor._name);
 			_deviceTable->setItem(row, kConfigNameCol, twi);
 
-			twi = new QTableWidgetItem(debugBoardTypeToString(descriptor._debugBoardType));
+			twi = new QTableWidgetItem(toQString(descriptor._debugBoardType));
 			twi->setTextAlignment(Qt::AlignHCenter);
 			twi->setData(Qt::UserRole, descriptor._debugBoardType);
 			_deviceTable->setItem(row, kBoardType, twi);
@@ -87,7 +88,7 @@ DeviceCatalog::DeviceCatalog(QWidget* parent) :QDialog(parent)
 
 			if (descriptor._revision)
 			{
-				twi = new QTableWidgetItem(QString(QString::number(descriptor._revision)));
+				twi = new QTableWidgetItem(QString::number(descriptor._revision));
 				twi->setTextAlignment(Qt::AlignHCenter);
 				_deviceTable->setItem(row, 4, twi);
 			}
@@ -100,7 +101,7 @@ DeviceCatalog::DeviceCatalog(QWidget* parent) :QDialog(parent)
 
 			if (descriptor._configurationFilePath.isEmpty() == false)
 			{
-				twi = new QTableWidgetItem(QString(descriptor._configurationFilePath));
+				twi = new QTableWidgetItem(descriptor._configurationFilePath);
 				twi->setToolTip("Click to open the configuration in TAC Configuration Editor");
 				_deviceTable->setItem(row, 5, twi);
 			}
@@ -163,12 +164,12 @@ void DeviceCatalog::processProgramming(const DebugBoardType& type, const QPoint&
 	QMenu menu;
 	QAction* result;
 
-	if (alpacaDevices.count() > 0)
+	if (!alpacaDevices.empty())
 	{
-		for (const auto& device: std::as_const(alpacaDevices))
+		for (const auto& device: alpacaDevices)
 		{
-			QAction* programAction = menu.addAction(QString("Program Device %1 with Platform ID: %2").arg(device->name().data()).arg(_currentPlatformId));
-			programAction->setData(device->name() + ":" + device->serialNumber());
+			QAction* programAction = menu.addAction(QString("Program Device %1 with Platform ID: %2").arg(toQString(device->name())).arg(_currentPlatformId));
+			programAction->setData(toQString(device->name() + ":" + device->serialNumber()));
 		}
 
 		result = menu.exec(_deviceTable->mapToGlobal(pos));
@@ -188,7 +189,7 @@ void DeviceCatalog::processProgramming(const DebugBoardType& type, const QPoint&
 	}
 	else
 	{
-		QAction* programAction = menu.addAction("No "+ debugBoardTypeToString(type) +" Devices Found");
+		QAction* programAction = menu.addAction("No "+ toQString(type) +" Devices Found");
 		programAction->setEnabled(false);
 		menu.exec(_deviceTable->mapToGlobal(pos));
 	}

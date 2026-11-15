@@ -29,7 +29,7 @@ int main(int argc, char *argv[])
 	AppCore* appCore = AppCore::getAppCore();
 	PreferencesBase preferencesBase;
 
-	preferencesBase.setAppName(kAppName.toLatin1(), UPDATE_DEVICE_LIST);
+	preferencesBase.setAppName(kAppName.toStdString(), UPDATE_DEVICE_LIST);
 	appCore->setPreferences(&preferencesBase);
 
 	InitializeQCommonConsole();
@@ -39,8 +39,7 @@ int main(int argc, char *argv[])
 
 	if (parser.helpRequested())
 	{
-		QString helpText = parser.helpText();
-		std::cout << helpText.toLatin1().data() << std::endl;
+		std::cout << parser.helpText() << std::endl;
 	}
 	else if (parser.value("validate") == "true")
 		result = ftdiApp.verifyInstalledDriver();

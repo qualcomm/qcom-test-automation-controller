@@ -6,12 +6,12 @@
 // TAC
 #include "TACWindow.h"
 
-#include "TACDefines.h"
-
 // QCommon
 #include "AboutDialog.h"
-#include "AlpacaSettings.h"
+#include "QAlpacaSettings.h"
 #include "QuitAppEvent.h"
+#include "QTACDefines.h"
+#include "QAlpacaDevice.h"
 
 // QT
 #include <QFile>
@@ -29,7 +29,7 @@ TACApplication::TACApplication
 ) :
 	AlpacaApplication (argc, argv, kAppName, kAppVersion)
 {
-	_preferences.setAppName(kAppName.toLatin1(), kAppVersion.toLatin1());
+	_preferences.setAppName(kAppName, kAppVersion);
 	initialize(&_preferences);
 }
 
@@ -79,10 +79,9 @@ TACWindow* TACApplication::openByName
 {
 	TACWindow* result{Q_NULLPTR};
 
-	AlpacaDevice tacDevice = _AlpacaDevice::findAlpacaDevice(portName);
+	AlpacaDevice tacDevice = QAlpacaDevice::findAlpacaDevice(QString::fromLatin1(portName));
 
-	QByteArray actualPortName = tacDevice->portName();
-	if (actualPortName.isEmpty() == false)
+	if (tacDevice && tacDevice->portName().empty() == false)
 	{
 		for (const auto& tacWindow: std::as_const(_tacWindows))
 		{
@@ -104,6 +103,11 @@ TACWindow* TACApplication::openByName
 	}
 	
 	return result;
+}
+
+TACWindow* TACApplication::openByName(const QString& deviceName)
+{
+	return openByName(deviceName.toLatin1());
 }
 
 void TACApplication::showAboutDialog()
@@ -135,7 +139,7 @@ void TACApplication::quitTAC()
 
 void TACApplication::quitTACByMsg()
 {
-	AlpacaSettings settings(kAppName);
+	QAlpacaSettings settings(kAppName);
 
 	postEvent(this, new QuitAppEvent);
 }
@@ -190,19 +194,19 @@ bool TACApplication::openLastDevice()
 
 		if (_preferences.openLastStart())
 		{
-			QByteArray lastDevice = _preferences.lastDevice().toLatin1();
+			QString lastDevice = _preferences.lastDevice();
 			if (lastDevice.isEmpty() == false)
 			{
-				AlpacaDevice alpacaDevice = _AlpacaDevice::findAlpacaDevice(lastDevice);
-				if (alpacaDevice.isNull())
+				AlpacaDevice alpacaDevice = QAlpacaDevice::findAlpacaDevice(lastDevice);
+				if (alpacaDevice == nullptr)
 				{
-					AppCore::writeToApplicationLogLine(QString("LastDevice %1 not found").arg(QString(lastDevice)));
-					_preferences.saveLastDevice("");
+					AppCore::writeToApplicationLogLine("LastDevice " + lastDevice.toStdString() + " not found");
+					_preferences.saveLastDevice(QString());
 					_preferences.setOpenLastStart(false);
 				}
 				else
 				{
-					AppCore::writeToApplicationLogLine(QString("LastDevice: %1").arg(QString(lastDevice)));
+					AppCore::writeToApplicationLogLine("LastDevice: " + lastDevice.toStdString());
 
 					TACWindow* tacWindow = openByName(lastDevice);
 					if (tacWindow != Q_NULLPTR)

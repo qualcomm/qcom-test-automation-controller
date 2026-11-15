@@ -94,9 +94,7 @@ else()
 endif()
 
 # Build paths
-if(NOT DEFINED BUILDROOT)
-    set(BUILDROOT ${CMAKE_BINARY_DIR}/__Builds/${CONFIGURATION})
-endif()
+set(BUILDROOT ${CMAKE_SOURCE_DIR}/__Builds/${CONFIGURATION})
 set(BINPATH ${BUILDROOT}/bin)
 set(STATIC_LIBPATH ${BUILDROOT}/lib)
 

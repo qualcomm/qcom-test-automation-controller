@@ -127,27 +127,17 @@ endif()
 
 file(REMOVE_RECURSE "${TEMP_DIR}")
 
-if(WIN32)
-    add_library(ftd2xx_debug STATIC IMPORTED GLOBAL)
-    add_library(ftd2xx_release STATIC IMPORTED GLOBAL)
-    set_target_properties(ftd2xx_debug PROPERTIES IMPORTED_LOCATION "${DEBUG_LIB}")
-    set_target_properties(ftd2xx_release PROPERTIES IMPORTED_LOCATION "${RELEASE_LIB}")
-else()
-    add_library(ftd2xx STATIC IMPORTED GLOBAL)
+add_library(ftd2xx STATIC IMPORTED GLOBAL)
+set_target_properties(ftd2xx PROPERTIES
+    IMPORTED_LOCATION_DEBUG   "${DEBUG_LIB}"
+    IMPORTED_LOCATION_RELEASE "${RELEASE_LIB}"
+    IMPORTED_LOCATION         "${RELEASE_LIB}"
+)
+if(UNIX)
     set_target_properties(ftd2xx PROPERTIES
-        IMPORTED_LOCATION_DEBUG   "${DEBUG_LIB}"
-        IMPORTED_LOCATION_RELEASE "${RELEASE_LIB}"
-        IMPORTED_LOCATION         "${RELEASE_LIB}"
+        INTERFACE_LINK_LIBRARIES "pthread;dl"
     )
 endif()
-
-function(link_ftd2xx target_name)
-    if(WIN32)
-        target_link_libraries(${target_name} PRIVATE $<$<CONFIG:Debug>:ftd2xx_debug> $<$<CONFIG:Release>:ftd2xx_release>)
-    else()
-        target_link_libraries(${target_name} PRIVATE ftd2xx pthread dl)
-    endif()
-endfunction()
 
 include(FetchContent)
 set(HIDAPI_BUILD_HIDTEST OFF CACHE BOOL "" FORCE)

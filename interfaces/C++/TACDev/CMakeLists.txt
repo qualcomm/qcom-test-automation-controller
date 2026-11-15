@@ -37,6 +37,7 @@ target_compile_definitions(${LIBRARY_NAME} PUBLIC
 
 target_link_libraries(${LIBRARY_NAME} PUBLIC
     ${LIB_TARGET}
+    ftd2xx
 )
 
 

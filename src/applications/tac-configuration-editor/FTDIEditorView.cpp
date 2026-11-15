@@ -5,6 +5,11 @@
 
 #include "CustomValidator.h"
 #include "PlatformConfigurationException.h"
+#include "QCommonTypes.h"
+#include "QCommandGroup.h"
+#include "QTab.h"
+#include "QFTDIBusData.h"
+#include "QPlatformConfigBridge.h"
 
 // QCommon
 #include "TableCheckBox.h"
@@ -70,14 +75,14 @@ void FTDIEditorView::setPlatformConfiguration
 	PlatformConfiguration platformConfiguration
 )
 {
-	if (platformConfiguration.isNull() == false)
+	if (platformConfiguration != nullptr)
 	{
 		EditorView::setPlatformConfiguration(platformConfiguration);
 
 		if (platformConfiguration->getPlatform() == eFTDI)
-			_ftdiPlatformConfiguration = static_cast<_FTDIPlatformConfiguration*>(platformConfiguration.data());
+			_ftdiPlatformConfiguration = dynamic_cast<_FTDIPlatformConfiguration*>(platformConfiguration.get());
 		else
-			_ft232hPlatformConfiguration = static_cast<_FT232HPlatformConfiguration*>(platformConfiguration.data());
+			_ft232hPlatformConfiguration = dynamic_cast<_FT232HPlatformConfiguration*>(platformConfiguration.get());
 
 		setupChipTabs();
 
@@ -108,12 +113,12 @@ void FTDIEditorView::onBusFunctionChanged(const QString &text)
 		ChipIndex chipIndex = comboBox->property(kChipIndex).toInt();
 
 		if (_ftdiPlatformConfiguration != Q_NULLPTR)
-			_ftdiPlatformConfiguration->setBusFunction(hash, FTDIBusData::fromString(text));
+			_ftdiPlatformConfiguration->setBusFunction(hash, QFTDIBusData::fromString(text));
 
 		else if (_ft232hPlatformConfiguration != Q_NULLPTR)
-			_ft232hPlatformConfiguration->setBusFunction(hash, FTDIBusData::fromString(text));
+			_ft232hPlatformConfiguration->setBusFunction(hash, QFTDIBusData::fromString(text));
 
-		if (comboBox->currentText().compare(FTDIBusData::toString(eBusFunctionVCP)) == 0 || comboBox->currentText().compare(FTDIBusData::toString(eBusFunctionUnknown)) == 0)
+		if (comboBox->currentText() == QFTDIBusData::toString(eBusFunctionVCP) || comboBox->currentText() == QFTDIBusData::toString(eBusFunctionUnknown))
 		{
 			updateBusState(chipIndex, hash, false);
 		}
@@ -194,14 +199,14 @@ void FTDIEditorView::onGroupChanged(QString newText)
 		try
 		{
 			if (_ftdiPlatformConfiguration != Q_NULLPTR)
-				_ftdiPlatformConfiguration->setPinGroup(hash, CommandGroup::fromString(newText));
+				_ftdiPlatformConfiguration->setPinGroup(hash, QCommandGroup::fromString(newText));
 
 			else if (_ft232hPlatformConfiguration != Q_NULLPTR)
-				_ft232hPlatformConfiguration->setPinGroup(hash, CommandGroup::fromString(newText));
+				_ft232hPlatformConfiguration->setPinGroup(hash, QCommandGroup::fromString(newText));
 		}
 		catch (const PlatformConfigurationException& e)
 		{
-			QMessageBox::critical(this, "TAC Configuration Editor - cannot set pin group", e.getMessage());
+			QMessageBox::critical(this, "TAC Configuration Editor - cannot set pin group", QPlatformConfigBridge::getExceptionMessage(e));
 		}
 	}
 }
@@ -214,10 +219,10 @@ void FTDIEditorView::onTabsChanged(QString newText)
 		HashType hash = obj->property(kHash).toULongLong();
 
 		if (_ftdiPlatformConfiguration != Q_NULLPTR)
-			_ftdiPlatformConfiguration->setTabName(hash, newText);
+			_ftdiPlatformConfiguration->setTabName(hash, toStdString(newText));
 
 		else if (_ft232hPlatformConfiguration != Q_NULLPTR)
-			_ft232hPlatformConfiguration->setTabName(hash, newText);
+			_ft232hPlatformConfiguration->setTabName(hash, toStdString(newText));
 	}
 }
 
@@ -238,23 +243,23 @@ void FTDIEditorView::onTableItemChanged(QTableWidgetItem* twi)
 
 		case kPinLabelColumn:
 			if (_ftdiPlatformConfiguration != Q_NULLPTR)
-				_ftdiPlatformConfiguration->setPinLabel(hash, sanitizeText(itemText));
+				_ftdiPlatformConfiguration->setPinLabel(hash, toStdString(sanitizeText(itemText)));
 			else if (_ft232hPlatformConfiguration != Q_NULLPTR)
-				_ft232hPlatformConfiguration->setPinLabel(hash, sanitizeText(itemText));
+				_ft232hPlatformConfiguration->setPinLabel(hash, toStdString(sanitizeText(itemText)));
 			break;
 
 		case kPinTooltipColumn:
 			if (_ftdiPlatformConfiguration != Q_NULLPTR)
-				_ftdiPlatformConfiguration->setPinTooltip(hash, sanitizeText(itemText));
+				_ftdiPlatformConfiguration->setPinTooltip(hash, toStdString(sanitizeText(itemText)));
 			else if (_ft232hPlatformConfiguration != Q_NULLPTR)
-				_ft232hPlatformConfiguration->setPinTooltip(hash, sanitizeText(itemText));
+				_ft232hPlatformConfiguration->setPinTooltip(hash, toStdString(sanitizeText(itemText)));
 			break;
 
 		case kPinCommandColumn:
 			if (_ftdiPlatformConfiguration != Q_NULLPTR)
-				_ftdiPlatformConfiguration->setPinCommand(hash, sanitizeText(itemText));
+				_ftdiPlatformConfiguration->setPinCommand(hash, toStdString(sanitizeText(itemText)));
 			else if (_ft232hPlatformConfiguration != Q_NULLPTR)
-				_ft232hPlatformConfiguration->setPinCommand(hash, sanitizeText(itemText));
+				_ft232hPlatformConfiguration->setPinCommand(hash, toStdString(sanitizeText(itemText)));
 			break;
 
 		case kCellLocationColumn:
@@ -277,23 +282,23 @@ void FTDIEditorView::onTableItemChanged(QTableWidgetItem* twi)
 							twi->setText(kDefaultCellLocation);
 
 							if (_ftdiPlatformConfiguration != Q_NULLPTR)
-								_ftdiPlatformConfiguration->setPinCellLocation(hash, QPoint(-1,-1));
+								_ftdiPlatformConfiguration->setPinCellLocation(hash, {-1, -1});
 							else if (_ft232hPlatformConfiguration != Q_NULLPTR)
-								_ft232hPlatformConfiguration->setPinCellLocation(hash, QPoint(-1,-1));
+								_ft232hPlatformConfiguration->setPinCellLocation(hash, {-1, -1});
 						}
 						else
 							if (_ftdiPlatformConfiguration != Q_NULLPTR)
-								_ftdiPlatformConfiguration->setPinCellLocation(hash, QPoint(row, col));
+								_ftdiPlatformConfiguration->setPinCellLocation(hash, {row, col});
 							else if (_ft232hPlatformConfiguration != Q_NULLPTR)
-								_ft232hPlatformConfiguration->setPinCellLocation(hash, QPoint(row, col));
+								_ft232hPlatformConfiguration->setPinCellLocation(hash, {row, col});
 					}
 					else
 					{
 						twi->setText(kDefaultCellLocation);
 						if (_ftdiPlatformConfiguration != Q_NULLPTR)
-							_ftdiPlatformConfiguration->setPinCellLocation(hash, QPoint(-1,-1));
+							_ftdiPlatformConfiguration->setPinCellLocation(hash, {-1, -1});
 						else if (_ft232hPlatformConfiguration != Q_NULLPTR)
-							_ft232hPlatformConfiguration->setPinCellLocation(hash, QPoint(-1,-1));
+							_ft232hPlatformConfiguration->setPinCellLocation(hash, {-1, -1});
 					}
 				}
 				else
@@ -301,18 +306,18 @@ void FTDIEditorView::onTableItemChanged(QTableWidgetItem* twi)
 					twi->setText(kDefaultCellLocation);
 
 					if (_ftdiPlatformConfiguration != Q_NULLPTR)
-						_ftdiPlatformConfiguration->setPinCellLocation(hash, QPoint(-1,-1));
+						_ftdiPlatformConfiguration->setPinCellLocation(hash, {-1, -1});
 					else if (_ft232hPlatformConfiguration != Q_NULLPTR)
-						_ft232hPlatformConfiguration->setPinCellLocation(hash, QPoint(-1,-1));
+						_ft232hPlatformConfiguration->setPinCellLocation(hash, {-1, -1});
 				}
 			}
 			else
 			{
 				twi->setText(kDefaultCellLocation);
 				if (_ftdiPlatformConfiguration != Q_NULLPTR)
-					_ftdiPlatformConfiguration->setPinCellLocation(hash, QPoint(-1,-1));
+					_ftdiPlatformConfiguration->setPinCellLocation(hash, {-1, -1});
 				else if (_ft232hPlatformConfiguration != Q_NULLPTR)
-					_ft232hPlatformConfiguration->setPinCellLocation(hash, QPoint(-1,-1));
+					_ft232hPlatformConfiguration->setPinCellLocation(hash, {-1, -1});
 			}
 			break;
 		}
@@ -416,7 +421,7 @@ void FTDIEditorView::setupFunctionRows(ChipIndex chipIndex)
 
 			busFunction = _ftdiPlatformConfiguration->getBusFunction(chipIndex, Bus('A'));
 			tableComboBox = new TableComboBox(chipTable);
-			busFunctionString = FTDIBusData::toString(busFunction._busFunction);
+			busFunctionString = toQString(FTDIBusData::toString(busFunction._busFunction));
 			tableComboBox->setupItems(gComboBoxItems, busFunctionString);
 			tableComboBox->setProperty(kHash, busFunction._hash);
 			tableComboBox->setProperty(kChipIndex, chipIndex);
@@ -430,7 +435,7 @@ void FTDIEditorView::setupFunctionRows(ChipIndex chipIndex)
 
 			busFunction = _ftdiPlatformConfiguration->getBusFunction(chipIndex, Bus('B'));
 			tableComboBox = new TableComboBox(chipTable);
-			busFunctionString = FTDIBusData::toString(busFunction._busFunction);
+			busFunctionString = toQString(FTDIBusData::toString(busFunction._busFunction));
 			tableComboBox->setupItems(gComboBoxItems, busFunctionString);
 			tableComboBox->setProperty(kHash, busFunction._hash);
 			tableComboBox->setProperty(kChipIndex, chipIndex);
@@ -444,7 +449,7 @@ void FTDIEditorView::setupFunctionRows(ChipIndex chipIndex)
 
 			busFunction = _ftdiPlatformConfiguration->getBusFunction(chipIndex, Bus('C'));
 			tableComboBox = new TableComboBox(chipTable);
-			busFunctionString = FTDIBusData::toString(busFunction._busFunction);
+			busFunctionString = toQString(FTDIBusData::toString(busFunction._busFunction));
 			tableComboBox->setupItems(gComboBoxItems, busFunctionString);
 			tableComboBox->setProperty(kHash, busFunction._hash);
 			tableComboBox->setProperty(kChipIndex, chipIndex);
@@ -458,7 +463,7 @@ void FTDIEditorView::setupFunctionRows(ChipIndex chipIndex)
 
 			busFunction = _ftdiPlatformConfiguration->getBusFunction(chipIndex, Bus('D'));
 			tableComboBox = new TableComboBox(chipTable);
-			busFunctionString = FTDIBusData::toString(busFunction._busFunction);
+			busFunctionString = toQString(FTDIBusData::toString(busFunction._busFunction));
 			tableComboBox->setupItems(gComboBoxItems, busFunctionString);
 			tableComboBox->setProperty(kHash, busFunction._hash);
 			tableComboBox->setProperty(kChipIndex, chipIndex);
@@ -475,7 +480,7 @@ void FTDIEditorView::setupFunctionRows(ChipIndex chipIndex)
 
 			busFunction = _ft232hPlatformConfiguration->getBusFunction(chipIndex, Bus('C'));
 			tableComboBox = new TableComboBox(chipTable);
-			busFunctionString = FTDIBusData::toString(busFunction._busFunction);
+			busFunctionString = toQString(FTDIBusData::toString(busFunction._busFunction));
 			tableComboBox->setupItems(gComboBoxItems, busFunctionString);
 			tableComboBox->setProperty(kHash, busFunction._hash);
 			tableComboBox->setProperty(kChipIndex, chipIndex);
@@ -489,7 +494,7 @@ void FTDIEditorView::setupFunctionRows(ChipIndex chipIndex)
 
 			busFunction = _ft232hPlatformConfiguration->getBusFunction(chipIndex, Bus('D'));
 			tableComboBox = new TableComboBox(chipTable);
-			busFunctionString = FTDIBusData::toString(busFunction._busFunction);
+			busFunctionString = toQString(FTDIBusData::toString(busFunction._busFunction));
 			tableComboBox->setupItems(gComboBoxItems, busFunctionString);
 			tableComboBox->setProperty(kHash, busFunction._hash);
 			tableComboBox->setProperty(kChipIndex, chipIndex);
@@ -505,7 +510,7 @@ int FTDIEditorView::getPinRowOffset(const Bus& bus)
 {
 	int result{-1};
 
-	switch (bus.toLatin1())
+	switch (bus)
 	{
 	case 'A':
 		result = kARow;
@@ -598,39 +603,39 @@ void FTDIEditorView::setupPinRows(ChipIndex chipIndex, const Bus& bus)
 
 					twi = new QTableWidgetItem();
 					twi->setData(kHashRole, hash);
-					twi->setText(pinData._pinLabel.isEmpty() ? kDefaultPinLabel : pinData._pinLabel);
+					twi->setText(pinData._pinLabel.empty() ? kDefaultPinLabel : toQString(pinData._pinLabel));
 					twi->setTextAlignment(Qt::AlignHCenter | Qt::AlignVCenter);
 					chipTable->setItem(row, kPinLabelColumn, twi);
 
 					twi = new QTableWidgetItem();
 					twi->setData(kHashRole, hash);
-					twi->setText(pinData._pinTooltip.isEmpty() ? kDefaultPinTooltip : pinData._pinTooltip);
+					twi->setText(pinData._pinTooltip.empty() ? kDefaultPinTooltip : toQString(pinData._pinTooltip));
 					twi->setTextAlignment(Qt::AlignHCenter | Qt::AlignVCenter);
 					chipTable->setItem(row, kPinTooltipColumn, twi);
 
 					twi = new QTableWidgetItem();
 					twi->setData(kHashRole, hash);
-					twi->setText(pinData._pinCommand.isEmpty() ? kDefaultPinCommand : pinData._pinCommand);
+					twi->setText(pinData._pinCommand.empty() ? kDefaultPinCommand : toQString(pinData._pinCommand));
 					twi->setTextAlignment(Qt::AlignHCenter | Qt::AlignVCenter);
 					chipTable->setItem(row, kPinCommandColumn, twi);
 
 					tableComboBox = new TableComboBox(Q_NULLPTR);
 					tableComboBox->setProperty(kHash, hash);
-					tableComboBox->setupItems(CommandGroup::toStringList());
-					tableComboBox->setCurrentText(CommandGroup::toString(pinData._commandGroup));
+					tableComboBox->setupItems(QCommandGroup::toStringList());
+					tableComboBox->setCurrentText(QCommandGroup::toString(pinData._commandGroup));
 					connect(tableComboBox, SIGNAL(currentTextChanged(QString)), this, SLOT(onGroupChanged(QString)));
 					chipTable->setCellWidget(row, kCommandGroupColumn, tableComboBox);
 
 					tableComboBox = new TableComboBox(Q_NULLPTR);
 					tableComboBox->setProperty(kHash, hash);
-					tableComboBox->setupItems(Tab::toStringList(_configurableTabs));
-					tableComboBox->setCurrentText(pinData._tabName);
+					tableComboBox->setupItems(QTabs::toStringList(_configurableTabs));
+					tableComboBox->setCurrentText(toQString(pinData._tabName));
 					connect(tableComboBox, SIGNAL(currentTextChanged(QString)), this, SLOT(onTabsChanged(QString)));
 					chipTable->setCellWidget(row, kTabsColumn, tableComboBox);
 
 					twi = new QTableWidgetItem();
 					twi->setData(kHashRole, hash);
-					twi->setText(QString::number(pinData._cellLocation.x()) + "," + QString::number(pinData._cellLocation.y()));
+					twi->setText(QString::number(pinData._cellLocation.first) + "," + QString::number(pinData._cellLocation.second));
 					twi->setTextAlignment(Qt::AlignHCenter | Qt::AlignVCenter);
 					chipTable->setItem(row, kCellLocationColumn, twi);
 				}
@@ -780,7 +785,7 @@ QString FTDIEditorView::getSetPinIndex
 {
 	int pinIndex{0};
 
-	switch (bus.toLatin1())
+	switch (bus)
 	{
 	case 'A': pinIndex = 0; break;
 	case 'B': pinIndex = 8; break;
@@ -979,28 +984,28 @@ void FTDIEditorView::resetToDefault(QTableWidget* tableWidget)
 
 			twi = tableWidget->item(tableWidget->currentRow(), kPinLabelColumn);
 			if (twi)
-				twi->setText(pinData._pinLabel);
+				twi->setText(toQString(pinData._pinLabel));
 
 			twi = tableWidget->item(tableWidget->currentRow(), kPinTooltipColumn);
 			if (twi)
-				twi->setText(pinData._pinTooltip);
+				twi->setText(toQString(pinData._pinTooltip));
 
 			twi = tableWidget->item(tableWidget->currentRow(), kPinCommandColumn);
 			if (twi)
-				twi->setText(pinData._pinCommand);
+				twi->setText(toQString(pinData._pinCommand));
 
 			comboBoxWidget = static_cast<TableComboBox*>(tableWidget->cellWidget(tableWidget->currentRow(), kCommandGroupColumn));
 			if (comboBoxWidget)
-				comboBoxWidget->setCurrentText(CommandGroup::toString(pinData._commandGroup));
+				comboBoxWidget->setCurrentText(QCommandGroup::toString(pinData._commandGroup));
 
 			comboBoxWidget = static_cast<TableComboBox*>(tableWidget->cellWidget(tableWidget->currentRow(), kTabsColumn));
 			if (comboBoxWidget)
-				comboBoxWidget->setCurrentText(pinData._tabName);
+				comboBoxWidget->setCurrentText(toQString(pinData._tabName));
 
 			twi = tableWidget->item(tableWidget->currentRow(), kCellLocationColumn);
 			if (twi)
 			{
-				QString cellLocationString = QString::number(pinData._cellLocation.x()) + "," + QString::number(pinData._cellLocation.y());
+				QString cellLocationString = QString::number(pinData._cellLocation.first) + "," + QString::number(pinData._cellLocation.second);
 				twi->setText(cellLocationString);
 			}
 		}

@@ -3,6 +3,7 @@
 
 #include "DeviceSelectionDialog.h"
 #include "ui_DeviceSelectionDialog.h"
+#include "QCommonTypes.h"
 
 #include <QPushButton>
 

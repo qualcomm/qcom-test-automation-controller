@@ -16,17 +16,18 @@
 #include "TACPreviewWindow.h"
 
 #include "DebugBoardType.h"
-#include "TACDefines.h"
 
 // QCommon
-#include "AlpacaDefines.h"
-#include "AlpacaSettings.h"
+#include "QTACDefines.h"
+#include "QAppPaths.h"
+#include "QAlpacaSettings.h"
 #include "ApplicationEnhancements.h"
 #include "PlatformID.h"
 #include "SystemInformation.h"
+#include "QCommonTypes.h"
+#include <algorithm>
 
 // QCommonConsole
-#include "ConsoleApplicationEnhancements.h"
 #include "CustomValidator.h"
 
 // Qt
@@ -122,14 +123,14 @@ void ConfigWindow::rebuildRecents()
 
 void ConfigWindow::setTACConfigFile(PlatformConfiguration tacConfigFile)
 {
-	Q_ASSERT(tacConfigFile.isNull() == false);
+	Q_ASSERT(tacConfigFile != nullptr);
 
 	_platformConfiguration = tacConfigFile;
 
 	QString windowTitle(this->windowTitle());
-	if (tacConfigFile->filePath().isEmpty() == false)
+	if (tacConfigFile->filePath().empty() == false)
 	{
-		QFileInfo tacFileInfo(tacConfigFile->filePath());
+		QFileInfo tacFileInfo(toQString(tacConfigFile->filePath()));
 
 		if (!tacFileInfo.fileName().isEmpty())
 			windowTitle += " - " +  tacFileInfo.fileName();
@@ -164,32 +165,32 @@ bool ConfigWindow::event(QEvent *ev)
 void ConfigWindow::populateFields()
 {
 	_name->setEnabled(true);
-	_name->setText(_platformConfiguration->name());
+	_name->setText(toQString(_platformConfiguration->name()));
 
 	SystemInformation sysInfo;
-	QString detectedAuthor = sysInfo.userName();
+	std::string detectedAuthor = sysInfo.userName();
 
 	// We could strictly restrict the author to a single user by disabling the author field but most authors prefer
 	// to add their configuration co-author's name. So, we arrive at a difficult decision of providing the freedom
 	// to authors vs restricting unauthorized people from submitting configurations on other's behalf. I have left
 	// the field open for editing to benefit the configuration author.
-	if (!detectedAuthor.isEmpty())
+	if (!detectedAuthor.empty())
 	{
-		if (_platformConfiguration->author().isEmpty())
+		if (_platformConfiguration->author().empty())
 			_platformConfiguration->setAuthor(detectedAuthor);
 	}
 
 	_author->setEnabled(true);
-	_author->setText(_platformConfiguration->author());
+	_author->setText(toQString(_platformConfiguration->author()));
 
 	_description->setEnabled(true);
-	_description->setText(_platformConfiguration->description());
+	_description->setText(toQString(_platformConfiguration->description()));
 
-	_creationDate->setText(_platformConfiguration->creationDate());
-	_modificationDate->setText(_platformConfiguration->modificationDate());
+	_creationDate->setText(toQString(_platformConfiguration->creationDate()));
+	_modificationDate->setText(toQString(_platformConfiguration->modificationDate()));
 
 	_platformConfigurationType->setEnabled(true);
-	_platformConfigurationType->setText(_platformConfiguration->getPlatformString());
+	_platformConfigurationType->setText(toQString(_platformConfiguration->getPlatformString()));
 
 	_platformId->setEnabled(true);
 	_platformId->setText(QString::number(_platformConfiguration->getPlatformId()));
@@ -213,7 +214,7 @@ void ConfigWindow::populateFields()
 		_usbDescriptor->setEnabled(true);
 		_usbDescriptor->show();
 
-		_usbDescriptor->setText(_platformConfiguration->getUSBDescriptor());
+		_usbDescriptor->setText(toQString(_platformConfiguration->getUSBDescriptor()));
 		break;
 
 	case ePIC32CXAuto:
@@ -226,7 +227,7 @@ void ConfigWindow::populateFields()
 		_usbDescriptor->setEnabled(true);
 		_usbDescriptor->show();
 
-		_usbDescriptor->setText(_platformConfiguration->getUSBDescriptor());
+		_usbDescriptor->setText(toQString(_platformConfiguration->getUSBDescriptor()));
 
 		break;
 
@@ -393,7 +394,7 @@ QList<quint32> ConfigWindow::firmwareSelection()
 
 void ConfigWindow::setFirmwareSelection()
 {
-	QList<quint32> supportedVersions = _platformConfiguration->supportedFirmwareVer();
+	std::vector<uint32_t> supportedVersions = _platformConfiguration->supportedFirmwareVer();
 
 	QList<QAbstractButton*> btnList = _firmwareBtnGroup->buttons();
 
@@ -404,7 +405,7 @@ void ConfigWindow::setFirmwareSelection()
 
 		if (ok)
 		{
-			bool checked = supportedVersions.contains(static_cast<quint32>(ver));
+			bool checked = std::find(supportedVersions.begin(), supportedVersions.end(), static_cast<uint32_t>(ver)) != supportedVersions.end();
 			btn->setChecked(checked);
 
 			if (checked)
@@ -450,37 +451,37 @@ void ConfigWindow::setAboutFirmware(int fwVer)
 
 void ConfigWindow::uploadConfiguration()
 {
-	QString configPath = _platformConfiguration->filePath();
-	QString platformName = _platformConfiguration->name();
-	QString platformType = _platformConfiguration->getPlatformString();
+	QString configPath = toQString(_platformConfiguration->filePath());
+	QString platformName = toQString(_platformConfiguration->name());
+	QString platformType = toQString(_platformConfiguration->getPlatformString());
 	PlatformID platformId = _platformConfiguration->getPlatformId();
 	int configVersion = _platformConfiguration->fileVersion();
 }
 
 void ConfigWindow::updateConfiguration()
 {
-	QString configPath = _platformConfiguration->filePath();
-	QString platformName = _platformConfiguration->name();
-	QString platformType = _platformConfiguration->getPlatformString();
+	QString configPath = toQString(_platformConfiguration->filePath());
+	QString platformName = toQString(_platformConfiguration->name());
+	QString platformType = toQString(_platformConfiguration->getPlatformString());
 	PlatformID platformId = _platformConfiguration->getPlatformId();
 	int configVersion = _platformConfiguration->fileVersion();
 }
 
 bool ConfigWindow::testForTACFile()
 {
-	if (_platformConfiguration == Q_NULLPTR)
+	if (_platformConfiguration == nullptr)
 	{
 		on__actionNew_triggered();
 	}
 
-	return _platformConfiguration != Q_NULLPTR;
+	return _platformConfiguration != nullptr;
 }
 
 bool ConfigWindow::open()
 {
 	bool result(false);
 
-	if (_platformConfiguration != Q_NULLPTR)
+	if (_platformConfiguration != nullptr)
 	{
 		ConfigWindow* openWindow;
 
@@ -490,7 +491,7 @@ bool ConfigWindow::open()
 	}
 	else
 	{
-		AlpacaSettings settings(kAppName);
+		QAlpacaSettings settings(kAppName);
 
 		QString initialDir = settings.value(kTACConfigPath, documentsDataPath(kAppName)).toString();
 
@@ -521,7 +522,7 @@ void ConfigWindow::on__actionNew_triggered()
 		{
 			if (platformConfig->getPlatform() == ePSOC && platformConfig->variant() == ePSOCGPIOIIC)
 			{
-				_PSOCPlatformConfiguration* psocPlatformConfig = static_cast<_PSOCPlatformConfiguration*>(platformConfig.data());
+				_PSOCPlatformConfiguration* psocPlatformConfig = static_cast<_PSOCPlatformConfiguration*>(platformConfig.get());
 
 				PSOCI2CDialog i2cDialog(psocPlatformConfig, this);
 				if (i2cDialog.exec() != QDialog::Accepted)
@@ -552,7 +553,7 @@ bool ConfigWindow::openFile(const QString& filePath)
 {
 	bool result{false};
 
-	_platformConfiguration = _PlatformConfiguration::openPlatformConfiguration(filePath);
+	_platformConfiguration = _PlatformConfiguration::openPlatformConfiguration(toStdString(filePath));
 	if (_platformConfiguration != Q_NULLPTR)
 	{
 		setTACConfigFile(_platformConfiguration);
@@ -590,13 +591,13 @@ void ConfigWindow::on__actionOpen_triggered()
 void ConfigWindow::on__name_textChanged(const QString& newText)
 {
 	if (_platformConfiguration)
-		_platformConfiguration->setName(newText);
+		_platformConfiguration->setName(toStdString(newText));
 }
 
 void ConfigWindow::on__author_textChanged(const QString& newText)
 {
 	if (_platformConfiguration)
-		_platformConfiguration->setAuthor(newText);
+		_platformConfiguration->setAuthor(toStdString(newText));
 }
 
 void ConfigWindow::on__platformId_textChanged(const QString& newText)
@@ -612,7 +613,7 @@ void ConfigWindow::on__platformId_textChanged(const QString& newText)
 		if (_platformConfiguration->getPlatform() == DebugBoardType::ePSOC)
 		{
 			if (_platformConfiguration->getPlatformId() == 255)
-				_nwgt->insertNotification("The PSOC platform id 255 is experimental.");
+				_nwgt->insertNotification("The PSOC platform id 255 is experimental. Configuration with this platform id will be saved at: " + tacConfigRoot());
 
 			else if (_platformConfiguration->getPlatformId() > 255)
 				_nwgt->insertNotification("A PSOC platform id above 255 is invalid and can crash the debug board upon programming", eWarnNotification);
@@ -623,7 +624,7 @@ void ConfigWindow::on__platformId_textChanged(const QString& newText)
 void ConfigWindow::on__usbDescriptor_textChanged(const QString& newText)
 {
 	if (_platformConfiguration)
-		_platformConfiguration->setUSBDescriptor(newText.toLatin1());
+		_platformConfiguration->setUSBDescriptor(toStdString(newText));
 }
 
 void ConfigWindow::on__resetCountEnable_clicked(bool checked)
@@ -639,7 +640,7 @@ void ConfigWindow::onConfigurationWriteComplete(const QString &filePath)
 
 void ConfigWindow::onConfigurationWriteError(const QString &error)
 {
-	AppCore::writeToApplicationLogLine("[ConfigWindow::onConfigurationWriteError]: " + error);
+	writeToApplicationLogLine("[ConfigWindow::onConfigurationWriteError]: " + error);
 }
 
 void ConfigWindow::onActionRecentMenuTriggered()
@@ -671,11 +672,14 @@ bool ConfigWindow::save()
 	{
 		if (_platformConfiguration != NULL)
 		{
-			_platformConfiguration->setSupportedFirmwareVer(firmwareSelection());
+			std::vector<uint32_t> fwVerList;
+			for (quint32 v : firmwareSelection())
+				fwVerList.push_back(static_cast<uint32_t>(v));
+			_platformConfiguration->setSupportedFirmwareVer(fwVerList);
 
 			_platformConfiguration->save();
 
-			QFileInfo fileInfo(_platformConfiguration->filePath());
+			QFileInfo fileInfo(toQString(_platformConfiguration->filePath()));
 			statusbar->showMessage("TAC Configuration File: " + fileInfo.filePath() + " saved", 5000);
 
 			QString windowTitle = kWindowTitle + " - " +  fileInfo.fileName();
@@ -696,7 +700,7 @@ bool ConfigWindow::save()
 
 void ConfigWindow::restoreSettings()
 {
-	AlpacaSettings settings(kAppName);
+	QAlpacaSettings settings(kAppName);
 	settings.beginGroup("TACConfigEditor");
 
 	QPoint pos = settings.value("pos", QPoint(40, 40)).toPoint();
@@ -710,7 +714,7 @@ void ConfigWindow::restoreSettings()
 
 void ConfigWindow::saveSettings()
 {
-	AlpacaSettings settings(kAppName);
+	QAlpacaSettings settings(kAppName);
 
 	settings.beginGroup("TACConfigEditor");
 
@@ -742,7 +746,7 @@ void ConfigWindow::on__actionManage_Tabs_triggered()
 void ConfigWindow::on__description_textChanged(const QString& newText)
 {
 	if (_platformConfiguration)
-		_platformConfiguration->setDescription(newText);
+		_platformConfiguration->setDescription(toStdString(newText));
 }
 
 void ConfigWindow::on__actionOpen_Script_Editor_triggered()

@@ -9,8 +9,11 @@
 #include "StringUtilities.h"
 
 // QCommon
-#include "CommandGroup.h"
 #include "TableComboBox.h"
+#include "QCommonTypes.h"
+#include "QCommandGroup.h"
+#include "QTab.h"
+#include "QPlatformConfigBridge.h"
 
 // QT
 #include <QMessageBox>
@@ -83,7 +86,7 @@ void ButtonEditor::on__addButton_clicked()
 	QStringList configurableTabs;
 	Button button;
 
-	if (_platformConfiguration.isNull() == false)
+	if (_platformConfiguration != Q_NULLPTR)
 	{
 		Tabs tabs = _platformConfiguration->getTabs();
 
@@ -113,7 +116,7 @@ void ButtonEditor::on__addButton_clicked()
 		_buttonsTable->setItem(row, kCommandColumn, twi);
 
 		tableComboBox = new TableComboBox(Q_NULLPTR);
-		tableComboBox->setupItems(CommandGroup::toStringList());
+		tableComboBox->setupItems(QCommandGroup::toStringList());
 		tableComboBox->setProperty(kHash, Button::makeHash(button));
 		tableComboBox->setProperty(kRow, row);
 		tableComboBox->setCurrentText(kDefaultGroup);
@@ -121,7 +124,7 @@ void ButtonEditor::on__addButton_clicked()
 		_buttonsTable->setCellWidget(row, kGroupColumn, tableComboBox);
 
 		tableComboBox = new TableComboBox(Q_NULLPTR);
-		tableComboBox->setupItems(Tab::toStringList(tabs));
+		tableComboBox->setupItems(QTabs::toStringList(tabs));
 		tableComboBox->setProperty(kHash, Button::makeHash(button));
 		tableComboBox->setCurrentText(kDefaultTab);
 		connect(tableComboBox, SIGNAL(currentTextChanged(QString)), this, SLOT(onTabsChanged(QString)));
@@ -149,9 +152,9 @@ void ButtonEditor::on__removeButton_clicked()
 			for (auto& tableRow : model->selectedRows())
 			{
 				Buttons buttons = _platformConfiguration->getButtonsMap();
-				for(auto& button : buttons)
+				for(auto& [hash, button] : buttons)
 				{
-					if (button._label == _buttonsTable->item(tableRow.row(), kLabelColumn)->text())
+					if (button._label == _buttonsTable->item(tableRow.row(), kLabelColumn)->text().toStdString())
 					{
 						_platformConfiguration->deleteButton(button._hash);
 					}
@@ -190,46 +193,46 @@ void ButtonEditor::read()
 		Tabs tabs = _platformConfiguration->getTabs();
 
 		Buttons buttons = _platformConfiguration->getButtonsMap();
-		_buttonsTable->setRowCount(buttons.count());
+		_buttonsTable->setRowCount(static_cast<int>(buttons.size()));
 
 		int row{0};
 
-		for (const auto& button : buttons)
+		for (const auto& [hash, button] : buttons)
 		{
 			twi = new QTableWidgetItem();
-			twi->setText(button._label);
+			twi->setText(toQString(button._label));
 			twi->setTextAlignment(Qt::AlignHCenter | Qt::AlignVCenter);
 			twi->setData(kHashRole, button._hash);
 			_buttonsTable->setItem(row, kLabelColumn, twi);
 
 			twi = new QTableWidgetItem();
-			twi->setText(button._toolTip);
+			twi->setText(toQString(button._toolTip));
 			twi->setTextAlignment(Qt::AlignHCenter | Qt::AlignVCenter);
 			twi->setData(kHashRole, button._hash);
 			_buttonsTable->setItem(row, kTooltipColumn, twi);
 
 			twi = new QTableWidgetItem();
-			twi->setText(button._command);
+			twi->setText(toQString(button._command));
 			twi->setTextAlignment(Qt::AlignHCenter | Qt::AlignVCenter);
 			twi->setData(kHashRole, button._hash);
 			_buttonsTable->setItem(row, kCommandColumn, twi);
 
 			tableComboBox = new TableComboBox(Q_NULLPTR);
-			tableComboBox->setupItems(CommandGroup::toStringList());
-			tableComboBox->setCurrentText(CommandGroup::toString(button._commandGroup));
+			tableComboBox->setupItems(QCommandGroup::toStringList());
+			tableComboBox->setCurrentText(QCommandGroup::toString(button._commandGroup));
 			tableComboBox->setProperty(kHash, button._hash);
 			connect(tableComboBox, SIGNAL(currentTextChanged(QString)), this, SLOT(onGroupChanged(QString)));
 			_buttonsTable->setCellWidget(row, kGroupColumn, tableComboBox);
 
 			tableComboBox = new TableComboBox(Q_NULLPTR);
-			tableComboBox->setupItems(Tab::toStringList(tabs));
-			tableComboBox->setCurrentText(button._tab);
+			tableComboBox->setupItems(QTabs::toStringList(tabs));
+			tableComboBox->setCurrentText(toQString(button._tab));
 			tableComboBox->setProperty(kHash, button._hash);
 			connect(tableComboBox, SIGNAL(currentTextChanged(QString)), this, SLOT(onTabsChanged(QString)));
 			_buttonsTable->setCellWidget(row, kTabsColumn, tableComboBox);
 
 			twi = new QTableWidgetItem();
-			twi->setText(fromQPoint(button._cellLocation));
+			twi->setText(toQString(fromQPoint(button._cellLocation)));
 			twi->setTextAlignment(Qt::AlignHCenter | Qt::AlignVCenter);
 			twi->setData(kHashRole, button._hash);
 			_buttonsTable->setItem(row, kCellLocationColumn, twi);
@@ -308,16 +311,16 @@ void ButtonEditor::onGroupChanged(const QString& newText)
 
 		try
 		{
-			result = _platformConfiguration->setButtonCommandGroup(hash, CommandGroup::fromString(newText));
+			result = _platformConfiguration->setButtonCommandGroup(hash, QCommandGroup::fromString(newText));
 			if (!result)
 			{
-				hash = _platformConfiguration->addButtonCommandGroup(labelName, tabName, CommandGroup::fromString(newText));
+				hash = _platformConfiguration->addButtonCommandGroup(toStdString(labelName), toStdString(tabName), QCommandGroup::fromString(newText));
 				obj->setProperty(kHash, hash);
 			}
 		}
 		catch (const PlatformConfigurationException& e)
 		{
-			QMessageBox::critical(this, "TAC Configuration Editor - cannot set pin group", e.getMessage());
+			QMessageBox::critical(this, "TAC Configuration Editor - cannot set pin group", QPlatformConfigBridge::getExceptionMessage(e));
 		}
 	}
 }
@@ -336,16 +339,16 @@ void ButtonEditor::onTabsChanged(const QString& newText)
 
 		try
 		{
-			result = _platformConfiguration->setButtonTab(hash, newText);
+			result = _platformConfiguration->setButtonTab(hash, toStdString(newText));
 			if (!result)
 			{
-				hash = _platformConfiguration->addButtonTab(labelName, newText);
+				hash = _platformConfiguration->addButtonTab(toStdString(labelName), toStdString(newText));
 				obj->setProperty(kHash, hash);
 			}
 		}
 		catch (const PlatformConfigurationException& e)
 		{
-			QMessageBox::critical(this, "TAC Configuration Editor - cannot set pin tab", e.getMessage());
+			QMessageBox::critical(this, "TAC Configuration Editor - cannot set pin tab", QPlatformConfigBridge::getExceptionMessage(e));
 		}
 	}
 }
@@ -372,26 +375,26 @@ void ButtonEditor::onTableItemChanged(QTableWidgetItem* twi)
 		switch(twi->column())
 		{
 		case kLabelColumn:
-			result = _platformConfiguration->setButtonLabel(hash, itemText);
+			result = _platformConfiguration->setButtonLabel(hash, toStdString(itemText));
 			if (!result)
 			{
-				hash = _platformConfiguration->addButtonLabel(itemText, tabName);
+				hash = _platformConfiguration->addButtonLabel(toStdString(itemText), toStdString(tabName));
 				twi->setData(kHashRole, hash);
 			}
 			break;
 		case kTooltipColumn:
-			result = _platformConfiguration->setButtonTooltip(hash, itemText);
+			result = _platformConfiguration->setButtonTooltip(hash, toStdString(itemText));
 			if (!result)
 			{
-				hash = _platformConfiguration->addButtonTooltip(labelName, tabName, itemText);
+				hash = _platformConfiguration->addButtonTooltip(toStdString(labelName), toStdString(tabName), toStdString(itemText));
 				twi->setData(kHashRole, hash);
 			}
 			break;
 		case kCommandColumn:
-			result = _platformConfiguration->setButtonCommand(hash, itemText);
+			result = _platformConfiguration->setButtonCommand(hash, toStdString(itemText));
 			if (!result)
 			{
-				hash = _platformConfiguration->addButtonCommand(labelName, tabName, itemText);
+				hash = _platformConfiguration->addButtonCommand(toStdString(labelName), toStdString(tabName), toStdString(itemText));
 				twi->setData(kHashRole, hash);
 			}
 			break;
@@ -406,16 +409,16 @@ void ButtonEditor::onTableItemChanged(QTableWidgetItem* twi)
 				if (row < 0 || col < 0)
 				{
 					twi->setText(kDefaultCellLocation);
-					result = _platformConfiguration->setButtonCellLocation(hash, QPoint(-1,-1));
+					result = _platformConfiguration->setButtonCellLocation(hash, {-1,-1});
 				}
 				else
 				{
-					result = _platformConfiguration->setButtonCellLocation(hash, QPoint(row, col));
+					result = _platformConfiguration->setButtonCellLocation(hash, {row, col});
 				}
 
 				if (!result)
 				{
-					hash = _platformConfiguration->addButtonCellLocation(labelName, tabName, QPoint(row, col));
+					hash = _platformConfiguration->addButtonCellLocation(toStdString(labelName), toStdString(tabName), {row, col});
 					twi->setData(kHashRole, hash);
 				}
 			}

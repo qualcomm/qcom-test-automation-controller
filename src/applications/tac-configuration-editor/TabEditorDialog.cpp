@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: BSD-3-Clause
 
 #include "TabEditorDialog.h"
+#include "QCommonTypes.h"
 
 TabEditorDialog::TabEditorDialog
 (
@@ -16,13 +17,13 @@ TabEditorDialog::TabEditorDialog
 	QString tabName;
 	bool selectAll{false};
 
-	if (tab._newText.isEmpty() == false)
+	if (tab._newText.empty() == false)
 	{
-		tabName = tab._newText;
+		tabName = toQString(tab._newText);
 	}
-	else if (tab._name.isEmpty() == false)
+	else if (tab._name.empty() == false)
 	{
-		tabName = tab._name;
+		tabName = toQString(tab._name);
 	}
 	else
 	{
@@ -47,6 +48,6 @@ void TabEditorDialog::on__visible_clicked(bool checked)
 
 void TabEditorDialog::on_buttonBox_accepted()
 {
-	_tab._newText = _tabName->text();
+	_tab._newText = toStdString(_tabName->text());
 }
 

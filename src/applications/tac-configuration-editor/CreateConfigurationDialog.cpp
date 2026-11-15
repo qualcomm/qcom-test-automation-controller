@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: BSD-3-Clause
 
 #include "CreateConfigurationDialog.h"
+#include "QCommonTypes.h"
 
 // QT
 #include <QMessageBox>

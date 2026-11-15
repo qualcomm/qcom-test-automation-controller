@@ -118,10 +118,7 @@ target_include_directories(${LIBRARY_NAME} PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}
 )
 
-if (TARGET ftd2xx)
-    target_link_libraries(${LIBRARY_NAME} PUBLIC ftd2xx)
-endif()
-
-if (TARGET hidapi::hidapi)
-    target_link_libraries(${LIBRARY_NAME} PUBLIC hidapi::hidapi)
-endif()
+target_link_libraries(${LIBRARY_NAME} PUBLIC
+    ftd2xx
+    hidapi::hidapi
+)

@@ -13,7 +13,7 @@
 #include <iostream>
 #include <iomanip>
 
-const QString kUSBDescriptorPath = tacConfigRoot() + "devicelist.json";
+const std::string kUSBDescriptorPath = tacConfigRoot() + "devicelist.json";
 
 int main(int argc, char *argv[])
 {
@@ -32,21 +32,21 @@ int main(int argc, char *argv[])
 
 		for (const auto& descriptor: std::as_const(descriptorList))
 		{
-			std::cout << std::setw(25) << descriptor._name.toLatin1().data();
-			std::cout << std::setw(10) << debugBoardTypeToString(descriptor._debugBoardType).toLatin1().data();
+			std::cout << std::setw(25) << descriptor._name;
+			std::cout << std::setw(10) << debugBoardTypeToString(descriptor._debugBoardType);
 			std::cout <<  std::setw(13) << descriptor._platformID;
-			if (descriptor._usbDescriptor.isEmpty() == false)
-				std::cout << std::setw(35) << descriptor._usbDescriptor.data();
+			if (!descriptor._usbDescriptor.empty())
+				std::cout << std::setw(35) << descriptor._usbDescriptor;
 			else
 				std::cout << std::setw(35) << "-";
 
 			std::cout << std::setw(9) << descriptor._revision;
-			std::cout << " " << descriptor._configurationFilePath.data();
+			std::cout << " " << descriptor._configurationFilePath;
 			std::cout << std::endl;
 		}
 	}
 	else
 	{
-		std::cout << "Failed to open " << kUSBDescriptorPath.toLatin1().data() << std::endl;
+		std::cout << "Failed to open " << kUSBDescriptorPath << std::endl;
 	}
 }

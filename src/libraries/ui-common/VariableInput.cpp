@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: BSD-3-Clause
 
 #include "VariableInput.h"
+#include "QCommonTypes.h"
 
 VariableInput::VariableInput(QWidget *parent) :
 	QWidget(parent)
@@ -18,17 +19,17 @@ VariableInput::~VariableInput()
 
 void VariableInput::setName(const QString &name)
 {
-	_variable._name = name;
+	_variable._name = toStdString(name);
 }
 
-QString &VariableInput::name()
+QString VariableInput::name() const
 {
-	return _variable._name;
+	return toQString(_variable._name);
 }
 
 void VariableInput::setLabel(const QString& label, const VariableType variableType)
 {
-	_variable._label = label;
+	_variable._label = toStdString(label);
 	switch(variableType)
 	{
 		case eUnknownVariableType:
@@ -41,20 +42,20 @@ void VariableInput::setLabel(const QString& label, const VariableType variableTy
 	}
 }
 
-QString &VariableInput::label()
+QString VariableInput::label() const
 {
-	return _variable._label;
+	return toQString(_variable._label);
 }
 
 void VariableInput::setTooltip(const QString &tooltip)
 {
-	_variable._tooltip = tooltip;
+	_variable._tooltip = toStdString(tooltip);
 	_variableValue->setToolTip(tooltip);
 }
 
-QString &VariableInput::tooltip()
+QString VariableInput::tooltip() const
 {
-	return _variable._tooltip;
+	return toQString(_variable._tooltip);
 }
 
 void VariableInput::setType(const VariableType variableType)
@@ -90,7 +91,7 @@ VariableType VariableInput::type()
 
 void VariableInput::setDefaultValue(const QVariant &value, const VariableType variableType)
 {
-	_variable._defaultValue = value;
+	_variable._defaultValue = toScriptVariableValue(value, variableType);
 	QString valueStr = value.toString();
 
 	switch(variableType)
@@ -110,17 +111,17 @@ void VariableInput::setDefaultValue(const QVariant &value, const VariableType va
 
 QVariant VariableInput::defaultValue()
 {
-	return _variable._defaultValue;
+	return toQVariant(_variable._defaultValue);
 }
 
 void VariableInput::setValue(const QVariant &value)
 {
-	_variable._defaultValue = value;
+	_variable._defaultValue = toScriptVariableValue(value, _variable._type);
 }
 
 QVariant VariableInput::value()
 {
-	return _variable._defaultValue;
+	return toQVariant(_variable._defaultValue);
 }
 
 void VariableInput::onSpinBoxValueChanged(double value)

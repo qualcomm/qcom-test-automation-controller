@@ -13,6 +13,9 @@ set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 
+# Add third-party dependencies (FTDI, HIDAPI)
+add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/../third-party ${CMAKE_CURRENT_BINARY_DIR}/third-party)
+
 # Add QCommonConsole static library
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/../src/libraries/qcommon-console ${CMAKE_CURRENT_BINARY_DIR}/qcommon-console)
 

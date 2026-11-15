@@ -21,6 +21,8 @@ namespace Ui {
 #include <QGroupBox>
 #include <QWidget>
 
+class QAlpacaDevice;
+
 class UILIB_EXPORT TACFrame :
 	public QWidget
 {
@@ -80,6 +82,7 @@ private:
 	PinMap						_pinMap;
 	PinMap						_i2cPinMap;
 	AlpacaDevice				_alpacaDevice;
+	QAlpacaDevice*				_alpacaDeviceBridge{nullptr};
 	PlatformConfiguration		_platformConfiguration;
 };
 

@@ -4,16 +4,20 @@
 // LITEProgrammer
 #include "ProgrammerCommandLine.h"
 
+// Qt
+#include <QCoreApplication>
+
 // QCommonConsole
 #include "AppCore.h"
 #include "FTDIDevice.h"
 #include "QCommonConsole.h"
 #include "Range.h"
+#include "StringUtilities.h"
 
 // c++
 #include <iostream>
 
-using namespace  std;
+using namespace std;
 
 void listDevices()
 {
@@ -21,7 +25,7 @@ void listDevices()
 
 	_AlpacaDevice::getAlpacaDevices(alpacaDevices, eFTDI);
 
-	auto deviceCount = alpacaDevices.count();
+	auto deviceCount = alpacaDevices.size();
 	if (deviceCount > 0)
 	{
 		cout << "Devices" << endl;
@@ -29,9 +33,9 @@ void listDevices()
 		{
 			auto alpacaDevice = alpacaDevices.at(index);
 
-			cout << "   Device:" << alpacaDevice->portName().data() <<
-				 " GUID:" << alpacaDevice->uuid().toLatin1().data() <<
-				 " Platform ID:" << QByteArray::number(alpacaDevice->platformID()).data() << endl;
+			cout << "   Device:" << alpacaDevice->portName() <<
+				 " GUID:" << alpacaDevice->uuid() <<
+				 " Platform ID:" << alpacaDevice->platformID() << endl;
 		}
 	}
 	else
@@ -50,7 +54,7 @@ void listPlatforms()
 	cout << "Platforms" << endl;
 	for (const auto& platformID: platformIDs)
 	{
-		cout << "   Platform: " << platformID->_description.toLatin1().data() << " ID: " << QString::number(platformID->_platformID).toLatin1().data() << endl;
+		cout << "   Platform: " << platformID->_description << " ID: " << platformID->_platformID << endl;
 	}
 
 	cout << endl;
@@ -63,9 +67,9 @@ bool programDevice
 {
 	bool result{false};
 
-	QByteArray serialNumber = commandLine.serialNumber().toLower();
+	std::string serialNumber = toLower(commandLine.serialNumber());
 	PlatformID platformID = commandLine.platformID();
-	if (serialNumber.isEmpty() == false)
+	if (!serialNumber.empty())
 	{
 		if (platformID != 0)
 		{
@@ -73,7 +77,7 @@ bool programDevice
 
 			_AlpacaDevice::getAlpacaDevices(alpacaDevices, eFTDI);
 
-			auto deviceCount = alpacaDevices.count();
+			auto deviceCount = alpacaDevices.size();
 			if (deviceCount > 0)
 			{
 				bool programmingError{false};
@@ -82,14 +86,14 @@ bool programDevice
 				{
 					auto alpacaDevice = alpacaDevices.at(index);
 
-					if (alpacaDevice->serialNumber().toLower() == serialNumber.toLower())
+					if (toLower(alpacaDevice->serialNumber()) == serialNumber)
 					{
-						QByteArray errorMessage;
+						std::string errorMessage;
 
 						result = FTDIDevice::programDevice(alpacaDevice, platformID, errorMessage);
-						if (result == false)
+						if (!result)
 						{
-							cout << QString("FTDIDevice::programDevice failed " + errorMessage).toLatin1().data() << endl;
+							cout << "FTDIDevice::programDevice failed " << errorMessage << endl;
 							programmingError = true;
 						}
 						else
@@ -99,8 +103,8 @@ bool programDevice
 					}
 				}
 
-				if (result == false && programmingError == false)
-					cout << QString("Serial Number %1 not found").arg(serialNumber.data()).toLatin1().data() << endl;
+				if (!result && !programmingError)
+					cout << "Serial Number " << serialNumber << " not found" << endl;
 			}
 			else
 			{
@@ -130,7 +134,7 @@ int main(int argc, char *argv[])
 	AppCore* appCore = AppCore::getAppCore();
 	PreferencesBase preferencesBase;
 
-	preferencesBase.setAppName(kAppName.toLatin1(), "1.1");
+	preferencesBase.setAppName(kAppName.toStdString(), "1.1");
 	appCore->setPreferences(&preferencesBase);
 
 	InitializeQCommonConsole();
@@ -142,7 +146,7 @@ int main(int argc, char *argv[])
 
 		if (parser.versionRequested())
 		{
-			std::cout << "Version: " << parser.version().data() << endl;
+			std::cout << "Version: " << parser.version() << endl;
 			earlyReturn = true;
 		}
 
@@ -170,7 +174,6 @@ int main(int argc, char *argv[])
 	}
 	else
 	{
-		QString helpText = parser.helpText();
-		std::cout << helpText.toLatin1().data();
+		std::cout << parser.helpText();
 	}
 }

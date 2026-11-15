@@ -15,8 +15,6 @@ class QMenu;
 class QTableWidget;
 class QWidget;
 
-QString QCOMMON_EXPORT createFilenameTimeStamp();
-
 void QCOMMON_EXPORT adjustMdiSubWindow(QWidget* childWindow, QMdiSubWindow* subMdiWindow);
 void QCOMMON_EXPORT buildRecentsMenu(QMenu* recentsMenu, RecentFiles& recentFiles, const QObject* receiver, const char* member);
 void QCOMMON_EXPORT setupApplicationStyle();

@@ -6,14 +6,12 @@
 // TAC
 #include "TACApplication.h"
 
-// QCommon
-
 // Qt
 #include <QFileDialog>
 
 PreferencesDialog::PreferencesDialog
 (
-	TACPreferences* preferences,
+	QTACPreferences* preferences,
 	QWidget* parent
 ) :
 	QDialog(parent),

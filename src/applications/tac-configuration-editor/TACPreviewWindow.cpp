@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: BSD-3-Clause
 
 #include "TACPreviewWindow.h"
+#include "QCommonTypes.h"
 
 #include <QResizeEvent>
 
@@ -21,7 +22,7 @@ void TACPreviewWindow::setPlatformConfiguration(PlatformConfiguration platformCo
 	_platformConfig = platformConfiguration;
 
 	_tacFrame->setPlatformConfiguration(_platformConfig);
-	resize(_platformConfig->getFormDimension());
+	resize(toQSize(_platformConfig->getFormDimension()));
 }
 
 void TACPreviewWindow::resizeEvent
@@ -30,10 +31,10 @@ void TACPreviewWindow::resizeEvent
 )
 {
 	QSize newSize = event->size();
-	if (newSize.width() > kClassicDimension.width() || newSize.height() > kClassicDimension.height())
+	if (newSize.width() > kClassicDimension.first || newSize.height() > kClassicDimension.second)
 	{
 		// we are going to pin this to larger than the classic dimension
-		_platformConfig->setFormDimension(size());
+		_platformConfig->setFormDimension(toStdPair(size()));
 	}
 }
 

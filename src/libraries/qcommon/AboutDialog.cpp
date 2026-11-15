@@ -6,8 +6,8 @@
 #include "AboutDialog.h"
 
 // QCommonConsole
-#include "AlpacaDefines.h"
 #include "AppCore.h"
+#include "QTACDefines.h"
 
 // QT
 #include <QDateTime>

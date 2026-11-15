@@ -7,6 +7,10 @@
 #include "PlatformConfigurationException.h"
 #include "TableComboBox.h"
 #include "TableCheckBox.h"
+#include "QCommonTypes.h"
+#include "QCommandGroup.h"
+#include "QTab.h"
+#include "QPlatformConfigBridge.h"
 
 // Qt
 #include <QMessageBox>
@@ -39,7 +43,7 @@ void PIC32CXEditorView::setPlatformConfiguration(PlatformConfiguration platformC
 	{
 		EditorView::setPlatformConfiguration(platformConfiguration);
 
-		_pic32cxPlatformConfig = static_cast<_PIC32CXPlatformConfiguration*>(platformConfiguration.data());
+		_pic32cxPlatformConfig = dynamic_cast<_PIC32CXPlatformConfiguration*>(platformConfiguration.get());
 
 		read();
 	}
@@ -103,7 +107,7 @@ bool PIC32CXEditorView::read()
 			if (twi != Q_NULLPTR)
 			{
 				twi->setData(kHashRole, pinData._hash);
-				twi->setText(pinData._pinLabel.isEmpty() ? kDefaultPinLabel : pinData._pinLabel);
+				twi->setText(pinData._pinLabel.empty() ? kDefaultPinLabel : toQString(pinData._pinLabel));
 				twi->setTextAlignment(Qt::AlignHCenter | Qt::AlignVCenter);
 				_pic32CXTable->setItem(row, kPinLabelColumn, twi);
 			}
@@ -112,7 +116,7 @@ bool PIC32CXEditorView::read()
 			if (twi != Q_NULLPTR)
 			{
 				twi->setData(kHashRole, pinData._hash);
-				twi->setText(pinData._pinTooltip.isEmpty() ? kDefaultPinTooltip : pinData._pinTooltip);
+				twi->setText(pinData._pinTooltip.empty() ? kDefaultPinTooltip : toQString(pinData._pinTooltip));
 				twi->setTextAlignment(Qt::AlignHCenter | Qt::AlignVCenter);
 				_pic32CXTable->setItem(row, kPinTooltipColumn, twi);
 			}
@@ -121,7 +125,7 @@ bool PIC32CXEditorView::read()
 			if (twi != Q_NULLPTR)
 			{
 				twi->setData(kHashRole, pinData._hash);
-				twi->setText(pinData._pinCommand.isEmpty() ? kDefaultPinCommand : pinData._pinCommand);
+				twi->setText(pinData._pinCommand.empty() ? kDefaultPinCommand : toQString(pinData._pinCommand));
 				twi->setTextAlignment(Qt::AlignHCenter | Qt::AlignVCenter);
 				_pic32CXTable->setItem(row, kPinCommandColumn, twi);
 			}
@@ -130,8 +134,8 @@ bool PIC32CXEditorView::read()
 			if (tableComboBox != Q_NULLPTR)
 			{
 				tableComboBox->setProperty(kHash, pinData._hash);
-				tableComboBox->setupItems(CommandGroup::toStringList());
-				tableComboBox->setCurrentText(CommandGroup::toString(pinData._commandGroup));
+				tableComboBox->setupItems(QCommandGroup::toStringList());
+				tableComboBox->setCurrentText(QCommandGroup::toString(pinData._commandGroup));
 
 				connect(tableComboBox, SIGNAL(currentTextChanged(QString)), this, SLOT(onGroupChanged(QString)));
 				_pic32CXTable->setCellWidget(row, kCommandGroupColumn, tableComboBox);
@@ -141,8 +145,8 @@ bool PIC32CXEditorView::read()
 			if (tableComboBox != Q_NULLPTR)
 			{
 				tableComboBox->setProperty(kHash, pinData._hash);
-				tableComboBox->setupItems(Tab::toStringList(_configurableTabs));
-				tableComboBox->setCurrentText(pinData._tabName);
+				tableComboBox->setupItems(QTabs::toStringList(_configurableTabs));
+				tableComboBox->setCurrentText(toQString(pinData._tabName));
 
 				connect(tableComboBox, SIGNAL(currentTextChanged(QString)), this, SLOT(onTabsChanged(QString)));
 				_pic32CXTable->setCellWidget(row, kTabsColumn, tableComboBox);
@@ -152,7 +156,7 @@ bool PIC32CXEditorView::read()
 			if (twi != Q_NULLPTR)
 			{
 				twi->setData(kHashRole, pinData._hash);
-				twi->setText(QString::number(pinData._cellLocation.x()) + "," + QString::number(pinData._cellLocation.y()));
+				twi->setText(QString::number(pinData._cellLocation.first) + "," + QString::number(pinData._cellLocation.second));
 				twi->setTextAlignment(Qt::AlignHCenter | Qt::AlignVCenter);
 				_pic32CXTable->setItem(row, kCellLocationColumn, twi);
 			}
@@ -241,11 +245,11 @@ void PIC32CXEditorView::onGroupChanged(const QString &newText)
 
 		try
 		{
-			_pic32cxPlatformConfig->setPinGroup(hash, CommandGroup::fromString(newText));
+			_pic32cxPlatformConfig->setPinGroup(hash, QCommandGroup::fromString(newText));
 		}
 		catch (const PlatformConfigurationException& e)
 		{
-			QMessageBox::critical(this, "TAC Configuration Editor - cannot set pin group", e.getMessage());
+			QMessageBox::critical(this, "TAC Configuration Editor - cannot set pin group", QPlatformConfigBridge::getExceptionMessage(e));
 		}
 	}
 }
@@ -259,11 +263,11 @@ void PIC32CXEditorView::onTabsChanged(const QString &newText)
 
 		try
 		{
-			_pic32cxPlatformConfig->setTabName(hash, newText);
+			_pic32cxPlatformConfig->setTabName(hash, toStdString(newText));
 		}
 		catch (const PlatformConfigurationException& e)
 		{
-			QMessageBox::critical(this, "TAC Configuration Editor - cannot set tab", e.getMessage());
+			QMessageBox::critical(this, "TAC Configuration Editor - cannot set tab", QPlatformConfigBridge::getExceptionMessage(e));
 		}
 	}
 }
@@ -275,13 +279,13 @@ void PIC32CXEditorView::onTableItemChanged(QTableWidgetItem* twi)
 	switch(twi->column())
 	{
 	case kPinLabelColumn:
-		_pic32cxPlatformConfig->setPinLabel(hash, sanitizeText(itemText));
+		_pic32cxPlatformConfig->setPinLabel(hash, toStdString(sanitizeText(itemText)));
 		break;
 	case kPinTooltipColumn:
-		_pic32cxPlatformConfig->setPinTooltip(hash, sanitizeText(itemText));
+		_pic32cxPlatformConfig->setPinTooltip(hash, toStdString(sanitizeText(itemText)));
 		break;
 	case kPinCommandColumn:
-		_pic32cxPlatformConfig->setPinCommand(hash, sanitizeText(itemText));
+		_pic32cxPlatformConfig->setPinCommand(hash, toStdString(sanitizeText(itemText)));
 		break;
 	case kCellLocationColumn:
 	{
@@ -294,15 +298,15 @@ void PIC32CXEditorView::onTableItemChanged(QTableWidgetItem* twi)
 			if (row < 0 || col < 0)
 			{
 				twi->setText(kDefaultCellLocation);
-				_pic32cxPlatformConfig->setPinCellLocation(hash, QPoint(-1,-1));
+				_pic32cxPlatformConfig->setPinCellLocation(hash, {-1, -1});
 			}
 			else
-				_pic32cxPlatformConfig->setPinCellLocation(hash, QPoint(row, col));
+				_pic32cxPlatformConfig->setPinCellLocation(hash, {row, col});
 		}
 		else
 		{
 			twi->setText(kDefaultCellLocation);
-			_pic32cxPlatformConfig->setPinCellLocation(hash, QPoint(-1,-1));
+			_pic32cxPlatformConfig->setPinCellLocation(hash, {-1, -1});
 		}
 		break;
 	}

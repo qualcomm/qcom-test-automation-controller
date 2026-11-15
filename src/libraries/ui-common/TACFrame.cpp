@@ -15,6 +15,8 @@
 #include "AppCore.h"
 #include "Range.h"
 #include "TACException.h"
+#include "QCommonTypes.h"
+#include "QAlpacaDevice.h"
 
 // TAC
 
@@ -22,6 +24,8 @@
 #include <QDir>
 #include <QFileInfoList>
 #include <QGroupBox>
+
+#include <functional>
 #include <QInputDialog>
 #include <QList>
 #include <QMenu>
@@ -68,7 +72,40 @@ TACFrame::TACFrame
 
 TACFrame::~TACFrame()
 {
+	shutDown();
+	delete _alpacaDeviceBridge;
+	_alpacaDeviceBridge = nullptr;
 	delete _ui;
+}
+
+void TACFrame::shutDown()
+{
+	if (_alpacaDeviceBridge != nullptr)
+	{
+		_alpacaDeviceBridge->close();
+	}
+	if (_alpacaDevice != nullptr)
+	{
+		_alpacaDevice->onPinStateChanged = nullptr;
+	}
+}
+
+QString TACFrame::name()
+{
+	if (_alpacaDeviceBridge != nullptr)
+	{
+		return _alpacaDeviceBridge->name();
+	}
+
+	return QString();
+}
+
+void TACFrame::setName(const QString& newName)
+{
+	if (_alpacaDeviceBridge != nullptr)
+	{
+		_alpacaDeviceBridge->setName(newName);
+	}
 }
 
 void TACFrame::setDevice
@@ -76,38 +113,41 @@ void TACFrame::setDevice
 	AlpacaDevice alpacaDevice
 )
 {
-	if (alpacaDevice.isNull() == false)
+	_alpacaDevice = alpacaDevice;
+	if (_alpacaDeviceBridge != nullptr)
 	{
-		_alpacaDevice = alpacaDevice;
+		delete _alpacaDeviceBridge;
+		_alpacaDeviceBridge = nullptr;
+	}
 
-		connect(_alpacaDevice.data(), &_AlpacaDevice::pinStateChanged, this, &TACFrame::onPinResponse);
+	if (alpacaDevice != nullptr)
+	{
+		_alpacaDeviceBridge = new QAlpacaDevice(alpacaDevice, this);
+		connect(_alpacaDeviceBridge, &QAlpacaDevice::pinStateChanged, this, &TACFrame::onPinResponse);
 
 		setPlatformConfiguration(alpacaDevice->platformConfiguration());
 
 		_ui->_infoGroupBox->hide();
 	}
-	{
-		// error message????
-	}
 }
 
 QString TACFrame::portName()
 {
-	if (_alpacaDevice.isNull() == false)
+	if (_alpacaDeviceBridge != nullptr)
 	{
-		return _alpacaDevice->portName();
+		return _alpacaDeviceBridge->portName();
 	}
 
-	return QByteArray();
+	return QString();
 }
 
 void TACFrame::onVariableValueUpdated(ScriptVariable scriptVariable)
 {
-	if (_alpacaDevice.isNull() == false)
+	if (_alpacaDeviceBridge != nullptr)
 	{
-		QByteArray variableName = scriptVariable._name.toLatin1();
-		QByteArray variableValue = scriptVariable._defaultValue.toString().toLatin1();
-		_alpacaDevice->updateScriptVariableValue(variableName, variableValue);
+		QString variableName = toQString(scriptVariable._name);
+		QString variableValue = toQVariant(scriptVariable._defaultValue).toString();
+		_alpacaDeviceBridge->updateScriptVariableValue(variableName, variableValue);
 	}
 }
 
@@ -116,7 +156,7 @@ void TACFrame::setPlatformConfiguration
 	PlatformConfiguration platformConfiguration
 )
 {
-	Q_ASSERT(platformConfiguration.isNull() == false);
+	Q_ASSERT(platformConfiguration != nullptr);
 
 	_platformConfiguration = platformConfiguration;
 
@@ -156,13 +196,13 @@ void TACFrame::setupUITabs()
 	Tabs tabs = _platformConfiguration->getTabs();
 	for (const auto& tab: tabs)
 	{
-		QString tabName = tab._name.toLower();
+		QString tabName = toQString(tab._name).toLower();
 
 		if ((tabName == "general" || tabName == "device info") == false)
 		{
 			UserWidget* userWidget = new UserWidget;
-			userWidget->setProperty("tabkey", tab._name);
-			_ui->_tabs->insertTab(999, userWidget, tab._name);
+			userWidget->setProperty("tabkey", toQString(tab._name));
+			_ui->_tabs->insertTab(999, userWidget, toQString(tab._name));
 		}
 	}
 }
@@ -175,9 +215,10 @@ void TACFrame::setupUIPins()
 
 	for (const auto& pin: pins)
 	{
-		if (tabName != pin._tabName)
+		QString currentTab = toQString(pin._tabName);
+		if (tabName != currentTab)
 		{
-			tabName = pin._tabName;
+			tabName = currentTab;
 
 			populatePinLEDs(pins, tabName);
 		}
@@ -186,7 +227,7 @@ void TACFrame::setupUIPins()
 
 void TACFrame::setupUII2CPins()
 {
-	_PSOCPlatformConfiguration* psocConfig = dynamic_cast<_PSOCPlatformConfiguration*>(_platformConfiguration.data());
+	_PSOCPlatformConfiguration* psocConfig = dynamic_cast<_PSOCPlatformConfiguration*>(_platformConfiguration.get());
 	if (psocConfig == Q_NULLPTR)
 		return;
 
@@ -196,9 +237,10 @@ void TACFrame::setupUII2CPins()
 
 	for (const auto& pin: pins)
 	{
-		if (tabName != pin._tabName)
+		QString currentTab = toQString(pin._tabName);
+		if (tabName != currentTab)
 		{
-			tabName = pin._tabName;
+			tabName = currentTab;
 
 			populateI2CPinLEDs(pins, tabName);
 		}
@@ -213,9 +255,10 @@ void TACFrame::setupUIQuickSettings()
 
 	for (const auto& button: buttons)
 	{
-		if (tabName != button._tab)
+		QString currentTab = toQString(button._tab);
+		if (tabName != currentTab)
 		{
-			tabName = button._tab;
+			tabName = currentTab;
 
 			populateQuickSettingsButtons(buttons, tabName);
 		}
@@ -224,11 +267,9 @@ void TACFrame::setupUIQuickSettings()
 
 void TACFrame::setupUIVariables()
 {
-	QString tabName;
-
 	ScriptVariables variables = _platformConfiguration->getVariables();
 
-	for (const auto& variable: variables)
+	for (const auto& [name, variable]: variables)
 		populateVariables(variable);
 }
 
@@ -311,12 +352,13 @@ void TACFrame::populatePinLEDs(const Pins &pins, const QString &tabName)
 		bool userTab = tabWidget->property("usertab").toBool();
 		if (userTab == true)
 		{
-			for (const auto& pin: std::as_const(pins))
+			for (const auto& pin: pins)
 			{
-				if (pin._cellLocation.y() < 0 || pin._cellLocation.x() < 0)
+				QPoint cellLoc = toQPoint(pin._cellLocation);
+				if (cellLoc.y() < 0 || cellLoc.x() < 0)
 					emit startNotification(QString("Cell location violation found for pin: %1").arg(pin._pin), eErrorNotification);
 
-				else if (pin._tabName == tabName)
+				else if (toQString(pin._tabName) == tabName)
 				{
 					switch (pin._commandGroup)
 					{
@@ -343,15 +385,15 @@ void TACFrame::populatePinLEDs(const Pins &pins, const QString &tabName)
 						{
 							PinLED* pinLED = new PinLED(groupBox);
 							pinLED->setObjectName(QString("Pin %1").arg(pin._pin));
-							layout->addWidget(pinLED, pin._cellLocation.y(), pin._cellLocation.x(), 1, 1);
+							layout->addWidget(pinLED, cellLoc.y(), cellLoc.x(), 1, 1);
 
-							pinLED->setText(pin._pinLabel);
+							pinLED->setText(toQString(pin._pinLabel));
 							pinLED->setFont(font);
-							pinLED->setEnabled(_alpacaDevice.isNull() == false);
+							pinLED->setEnabled(_alpacaDevice != nullptr);
 							pinLED->setInverted(pin._inverted);
 							pinLED->setInitialState(pin._initialValue);
 							pinLED->setPinNumber(pin._pin, &_pinMap);
-							pinLED->setToolTip(pin._pinTooltip);
+							pinLED->setToolTip(toQString(pin._pinTooltip));
 
 							connect(pinLED, &PinLED::pinTriggered, this, &TACFrame::onPinTriggered);
 						}
@@ -376,12 +418,13 @@ void TACFrame::populateI2CPinLEDs(const Pins &pins, const QString &tabName)
 		bool userTab = tabWidget->property("usertab").toBool();
 		if (userTab == true)
 		{
-			for (const auto& pin: std::as_const(pins))
+			for (const auto& pin: pins)
 			{
-				if (pin._cellLocation.y() < 0 || pin._cellLocation.x() < 0)
+				QPoint cellLoc = toQPoint(pin._cellLocation);
+				if (cellLoc.y() < 0 || cellLoc.x() < 0)
 					emit startNotification(QString("Cell location violation found for pin: %1").arg(pin._pin), eErrorNotification);
 
-				else if (pin._tabName == tabName)
+				else if (toQString(pin._tabName) == tabName)
 				{
 					switch (pin._commandGroup)
 					{
@@ -408,15 +451,15 @@ void TACFrame::populateI2CPinLEDs(const Pins &pins, const QString &tabName)
 						{
 							PinLED* pinLED = new PinLED(groupBox);
 							pinLED->setObjectName(QString("Pin %1").arg(pin._pin));
-							layout->addWidget(pinLED, pin._cellLocation.y(), pin._cellLocation.x(), 1, 1);
+							layout->addWidget(pinLED, cellLoc.y(), cellLoc.x(), 1, 1);
 
-							pinLED->setText(pin._pinLabel);
+							pinLED->setText(toQString(pin._pinLabel));
 							pinLED->setFont(font);
-							pinLED->setEnabled(_alpacaDevice.isNull() == false);
+							pinLED->setEnabled(_alpacaDevice != nullptr);
 							pinLED->setInverted(pin._inverted);
 							pinLED->setInitialState(pin._initialValue);
 							pinLED->setPinNumber(pin._hash, &_i2cPinMap);
-							pinLED->setToolTip(pin._pinTooltip);
+							pinLED->setToolTip(toQString(pin._pinTooltip));
 
 							connect(pinLED, &PinLED::pinTriggered, this, &TACFrame::onI2CPinTriggered);
 						}
@@ -437,10 +480,11 @@ void TACFrame::populateQuickSettingsButtons
 
 	for (const auto& button: buttons)
 	{
-		if (button._cellLocation.y() < 0 || button._cellLocation.x() < 0)
-			emit startNotification(QString("Cell location violation found for quick settings label: %1").arg(button._label), eErrorNotification);
+		QPoint cellLoc = toQPoint(button._cellLocation);
+		if (cellLoc.y() < 0 || cellLoc.x() < 0)
+			emit startNotification(QString("Cell location violation found for quick settings label: %1").arg(toQString(button._label)), eErrorNotification);
 
-		else if (button._tab == tabName)
+		else if (toQString(button._tab) == tabName)
 		{
 			switch (button._commandGroup)
 			{
@@ -470,13 +514,13 @@ void TACFrame::populateQuickSettingsButtons
 				if (layout != Q_NULLPTR)
 				{
 					CommandButton* commandButton = new CommandButton(groupBox);
-					commandButton->setObjectName(QString("Command %1").arg(button._command));
-					layout->addWidget(commandButton, button._cellLocation.y(), button._cellLocation.x(), 1, 1);
+					commandButton->setObjectName(QString("Command %1").arg(toQString(button._command)));
+					layout->addWidget(commandButton, cellLoc.y(), cellLoc.x(), 1, 1);
 
-					commandButton->setText(button._label);
-					commandButton->setCommand(button._command);
-					commandButton->setEnabled(_alpacaDevice.isNull() == false);
-					commandButton->setToolTip(button._toolTip);
+					commandButton->setText(toQString(button._label));
+					commandButton->setCommand(toQString(button._command));
+					commandButton->setEnabled(_alpacaDevice != nullptr);
+					commandButton->setToolTip(toQString(button._toolTip));
 
 					connect(commandButton, &CommandButton::commandTriggered, this, &TACFrame::onCommandTriggered);
 				}
@@ -496,16 +540,17 @@ void TACFrame::populateVariables(const ScriptVariable &variable)
 		QGridLayout* layout = qobject_cast<QGridLayout*>(groupBox->layout());
 		if (layout != Q_NULLPTR)
 		{
+			QPoint cellLoc = toQPoint(variable._cellLocation);
 			VariableInput* variableInput = new VariableInput(groupBox);
-			variableInput->setObjectName(QString("Variable name: %1").arg(variable._name));
-			layout->addWidget(variableInput, variable._cellLocation.y(), variable._cellLocation.x());
+			variableInput->setObjectName(QString("Variable name: %1").arg(toQString(variable._name)));
+			layout->addWidget(variableInput, cellLoc.y(), cellLoc.x());
 
-			variableInput->setName(variable._name);
-			variableInput->setLabel(variable._label, variable._type);
-			variableInput->setToolTip(variable._tooltip);
+			variableInput->setName(toQString(variable._name));
+			variableInput->setLabel(toQString(variable._label), variable._type);
+			variableInput->setTooltip(toQString(variable._tooltip));
 			variableInput->setType(variable._type);
-			variableInput->setDefaultValue(variable._defaultValue, variable._type);
-			variableInput->setEnabled(_alpacaDevice.isNull() == false);
+			variableInput->setDefaultValue(toQVariant(variable._defaultValue), variable._type);
+			variableInput->setEnabled(_alpacaDevice != nullptr);
 			connect(variableInput, &VariableInput::variableValueUpdated, this, &TACFrame::onVariableValueUpdated);
 		}
 	}
@@ -540,12 +585,12 @@ void TACFrame::onPinTriggered
 	bool state
 )
 {
-	if (_alpacaDevice != Q_NULLPTR)
+	if (_alpacaDeviceBridge != nullptr)
 	{
 		try
 		{
-			AppCore::writeToApplicationLogLine("TACFrame::onPinTriggered(" + QString::number(pin) +")");
-			_alpacaDevice->setPinState(pin, !state);
+			AppCore::writeToApplicationLogLine("TACFrame::onPinTriggered(" + std::to_string(pin) + ")");
+			_alpacaDeviceBridge->setPinState(pin, !state);
 		}
 		catch(TACException& e)
 		{
@@ -577,8 +622,8 @@ void TACFrame::onI2CPinTriggered
 	bool state
 )
 {
-	_PSOCPlatformConfiguration* psocConfig = dynamic_cast<_PSOCPlatformConfiguration*>(_platformConfiguration.data());
-	if (psocConfig == Q_NULLPTR || _alpacaDevice.isNull())
+	_PSOCPlatformConfiguration* psocConfig = dynamic_cast<_PSOCPlatformConfiguration*>(_platformConfiguration.get());
+	if (psocConfig == Q_NULLPTR || _alpacaDeviceBridge == nullptr)
 		return;
 
 	PSOCI2CData i2cData = psocConfig->getI2CSlave(hash);
@@ -587,37 +632,37 @@ void TACFrame::onI2CPinTriggered
 		.arg(i2cData._slaveAddress, 2, 16, QChar('0'))
 		.arg(i2cData._writeAddress, 2, 16, QChar('0'));
 
-	_alpacaDevice->setAddressPinState(i2cAddress, i2cData._pin, !state);
+	_alpacaDeviceBridge->setAddressPinState(i2cAddress, i2cData._pin, !state);
 }
 
 void TACFrame::onCommandTriggered(const QString &command)
 {
-	if (_alpacaDevice.isNull() == false)
+	if (_alpacaDeviceBridge != nullptr)
 	{
-		_alpacaDevice->quickCommand(command.toLatin1());
+		_alpacaDeviceBridge->quickCommand(command);
 	}
 }
 
 void TACFrame::on__tabs_tabBarClicked(int index)
 {
-	if (_platformConfiguration != Q_NULLPTR)
+	if (_platformConfiguration != nullptr)
 	{
 		// let's build up the Info page
-		_ui->_hardwareType->setText(_platformConfiguration->getPlatformString());
+		_ui->_hardwareType->setText(toQString(_platformConfiguration->getPlatformString()));
 
-		if (_alpacaDevice.isNull() == false)
+		if (_alpacaDeviceBridge != nullptr)
 		{
-			_ui->_hardwareVersion->setText(_alpacaDevice->hardwareVersionString());
-			_ui->_firmwareVersion->setText(_alpacaDevice->firmwareVersion());
-			_ui->_chipset->setText(_alpacaDevice->chipVersion());
-			_ui->_deviceName->setText(_alpacaDevice->name());
-			_ui->_deviceUUID->setText(_alpacaDevice->uuid());
-			_ui->_serialNumber->setText(_alpacaDevice->serialNumber());
-			_ui->_platformID->setText(QString::number(_alpacaDevice->platformID()));
-			_ui->_macAddress->setText(_alpacaDevice->macAddress());
-			_ui->_configurationFile->setText(_platformConfiguration->name());
-			_ui->_configurationDate->setText(_platformConfiguration->modificationDate());
-			_ui->_configurationFileVersion->setText(_platformConfiguration->getFileVersion());
+			_ui->_hardwareVersion->setText(_alpacaDeviceBridge->hardwareVersionString());
+			_ui->_firmwareVersion->setText(_alpacaDeviceBridge->firmwareVersion());
+			_ui->_chipset->setText(_alpacaDeviceBridge->chipVersion());
+			_ui->_deviceName->setText(_alpacaDeviceBridge->name());
+			_ui->_deviceUUID->setText(_alpacaDeviceBridge->uuid());
+			_ui->_serialNumber->setText(_alpacaDeviceBridge->serialNumber());
+			_ui->_platformID->setText(QString::number(_alpacaDeviceBridge->platformID()));
+			_ui->_macAddress->setText(_alpacaDeviceBridge->macAddress());
+			_ui->_configurationFile->setText(toQString(_platformConfiguration->name()));
+			_ui->_configurationDate->setText(toQString(_platformConfiguration->modificationDate()));
+			_ui->_configurationFileVersion->setText(toQString(_platformConfiguration->getFileVersion()));
 		}
 	}
 }

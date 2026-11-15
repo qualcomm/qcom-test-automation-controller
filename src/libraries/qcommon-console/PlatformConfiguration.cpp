@@ -140,9 +140,23 @@ PlatformConfiguration _PlatformConfiguration::openPlatformConfiguration
 	PlatformConfiguration result;
 
 	std::error_code ec;
-	if (std::filesystem::is_regular_file(filePath, ec))
+	std::string actualPath = filePath;
+	if (!std::filesystem::is_regular_file(actualPath, ec))
 	{
 		std::string fileName = std::filesystem::path(filePath).filename().string();
+		if (!fileName.empty())
+		{
+			std::string fallback = AppCore::configurationsPath() + fileName;
+			if (std::filesystem::is_regular_file(fallback, ec))
+			{
+				actualPath = fallback;
+			}
+		}
+	}
+
+	if (std::filesystem::is_regular_file(actualPath, ec))
+	{
+		std::string fileName = std::filesystem::path(actualPath).filename().string();
 		std::string lowerFileName = toLower(fileName);
 
 		if (lowerFileName.find("_psoc_") != std::string::npos)
@@ -172,7 +186,7 @@ PlatformConfiguration _PlatformConfiguration::openPlatformConfiguration
 
 		if (result)
 		{
-			result->load(filePath);
+			result->load(actualPath);
 		}
 	}
 	else if (ec)

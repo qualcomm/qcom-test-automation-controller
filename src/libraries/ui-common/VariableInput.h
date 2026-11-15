@@ -21,13 +21,13 @@ public:
 	~VariableInput();
 
 	void setName(const QString& name);
-	QString& name();
+	QString name() const;
 
 	void setLabel(const QString& label, const VariableType variableType);
-	QString& label();
+	QString label() const;
 
 	void setTooltip(const QString& tooltip);
-	QString& tooltip();
+	QString tooltip() const;
 
 	void setType(const VariableType variableType);
 	VariableType type();

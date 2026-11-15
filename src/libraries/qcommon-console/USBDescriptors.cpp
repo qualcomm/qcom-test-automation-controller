@@ -167,20 +167,7 @@ bool USBDescriptors::readConfig(const ConfigurationFile& config)
 					usbDescriptor._revision = ConfigurationFile::getRecordUInt(catalogData, kRevisionNumber);
 
 				if (catalogData.find(kConfigFilePath) != catalogData.end())
-				{
-					std::string rawPath = ConfigurationFile::getRecordString(catalogData, kConfigFilePath);
-					std::error_code ec;
-					if (!std::filesystem::exists(rawPath, ec) || ec)
-					{
-						std::string filename = std::filesystem::path(rawPath).filename().string();
-						std::string resolved = tacConfigRoot() + filename;
-						if (std::filesystem::exists(resolved, ec) && !ec)
-						{
-							rawPath = resolved;
-						}
-					}
-					usbDescriptor._configurationFilePath = rawPath;
-				}
+					usbDescriptor._configurationFilePath = ConfigurationFile::getRecordString(catalogData, kConfigFilePath);
 
 #if defined(__linux__) || defined(Q_OS_LINUX)
 				usbDescriptor._configurationFilePath = expandPath(usbDescriptor._configurationFilePath);

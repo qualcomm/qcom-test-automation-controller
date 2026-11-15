@@ -6,6 +6,7 @@
 
 #include "AlpacaApplication.h"
 #include "DeviceCatalog.h"
+#include "QTACPreferences.h"
 #include "version.h"
 
 const QByteArray kAppName{QByteArrayLiteral("Device Catalog")};
@@ -31,7 +32,7 @@ public:
 protected:
     void shutDown();
 
-    PreferencesBase				_preferences;
+    QTACPreferences				_preferences;
 };
 
 #endif // DEVICECATALOGAPPLICATION_H

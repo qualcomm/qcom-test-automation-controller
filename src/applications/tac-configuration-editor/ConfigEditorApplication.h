@@ -5,7 +5,7 @@
 
 class ConfigWindow;
 
-#include "TACPreferences.h"
+#include "QTACPreferences.h"
 
 // QCommon
 #include "AlpacaApplication.h"
@@ -27,12 +27,12 @@ public:
 
 	static ConfigEditorApplication* appInstance();
 
-	TACPreferences* preferences()
+	QTACPreferences* preferences()
 	{
 		return &_preferences;
 	}
 
-	TACPreferences				_preferences;
+	QTACPreferences				_preferences;
 protected:
 	virtual void shutDown();
 };

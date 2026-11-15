@@ -271,6 +271,22 @@ std::string AppCore::applicationDataPath()
 {
 	std::error_code ec;
 
+	// 1. Environment variable override
+	const char* envPath = std::getenv("QTAC_DEVICELIST");
+	if (envPath && *envPath)
+	{
+		std::filesystem::path p(envPath);
+		if (std::filesystem::exists(p, ec) && !ec)
+		{
+			if (std::filesystem::is_directory(p, ec))
+				return p.lexically_normal().generic_string();
+			auto parent = p.parent_path();
+			if (parent.filename() == "configurations")
+				return parent.parent_path().lexically_normal().generic_string();
+			return parent.lexically_normal().generic_string();
+		}
+	}
+
 	// Installed production data path
 #if defined(_WIN32) || defined(_WIN64)
 	const std::string installedPath = "C:/ProgramData/Qualcomm/" + kDefaultAppName;
@@ -280,29 +296,59 @@ std::string AppCore::applicationDataPath()
 	const std::string installedPath = "./";
 #endif
 
-	// 1. If running as installed software (e.g. Program Files / /opt)
+	// 2. If running as installed software (e.g. Program Files / /opt)
 	std::string binPath = applicationBinPath();
 	std::string lowerBin = toLower(binPath);
 	bool isInstalledBin = (lowerBin.find("program files") != std::string::npos ||
 	                       lowerBin.find("/opt/qcom") != std::string::npos);
 
-	if (isInstalledBin && std::filesystem::exists(installedPath + "/configurations/devicelist.json", ec) && !ec)
+	if (isInstalledBin)
 	{
 		return installedPath;
 	}
 
-	// 2. Dev builds (Debug or Release compiled from source):
-	// Check parent directories of the executable for project configurations
-	std::filesystem::path current = std::filesystem::path(binPath).lexically_normal();
-	for (int depth = 0; depth < 5 && !current.empty() && current != current.parent_path(); ++depth, current = current.parent_path())
-	{
-		if (std::filesystem::exists(current / "configurations" / "devicelist.json", ec) && !ec)
+	// Helper to check a candidate directory
+	auto checkCandidate = [&](const std::filesystem::path& dir) -> std::string {
+		if (std::filesystem::exists(dir / "configurations" / "devicelist.json", ec) && !ec)
+			return dir.lexically_normal().generic_string();
+		if (std::filesystem::exists(dir / "devicelist.json", ec) && !ec)
 		{
-			return current.lexically_normal().generic_string();
+			if (dir.filename() == "configurations")
+				return dir.parent_path().lexically_normal().generic_string();
+			return dir.lexically_normal().generic_string();
+		}
+		return "";
+	};
+
+	// 3. Dev builds: Walk upward from executable directory (up to 12 levels)
+	std::filesystem::path current = std::filesystem::path(binPath).lexically_normal();
+	for (int depth = 0; depth < 12 && !current.empty() && current != current.parent_path(); ++depth, current = current.parent_path())
+	{
+		std::string found = checkCandidate(current);
+		if (!found.empty())
+			return found;
+	}
+
+	// 4. Walk upward from current working directory (up to 12 levels)
+	current = std::filesystem::current_path(ec);
+	if (!ec)
+	{
+		for (int depth = 0; depth < 12 && !current.empty() && current != current.parent_path(); ++depth, current = current.parent_path())
+		{
+			std::string found = checkCandidate(current);
+			if (!found.empty())
+				return found;
 		}
 	}
 
-	// 3. Fallback: If installed configurations exist, use installed path
+	// 5. Classic 4-levels-up relative check (as used in fd2892c)
+	std::filesystem::path relCheck("../../../../configurations/devicelist.json");
+	if (std::filesystem::exists(relCheck, ec) && !ec)
+	{
+		return std::filesystem::path("../../../../").lexically_normal().generic_string();
+	}
+
+	// 6. Check if installed path exists
 	if (std::filesystem::exists(installedPath + "/configurations/devicelist.json", ec) && !ec)
 	{
 		return installedPath;
@@ -314,7 +360,27 @@ std::string AppCore::applicationDataPath()
 std::string AppCore::configurationsPath()
 {
 	std::string dataPath = applicationDataPath();
-	std::string result = (std::filesystem::path(dataPath) / "configurations").lexically_normal().generic_string();
+	std::filesystem::path p(dataPath);
+	std::string result;
+	std::error_code ec;
+
+	if (p.filename() == "configurations")
+	{
+		result = p.lexically_normal().generic_string();
+	}
+	else if (std::filesystem::exists(p / "configurations", ec) && !ec)
+	{
+		result = (p / "configurations").lexically_normal().generic_string();
+	}
+	else if (std::filesystem::exists(p / "devicelist.json", ec) && !ec)
+	{
+		result = p.lexically_normal().generic_string();
+	}
+	else
+	{
+		result = (p / "configurations").lexically_normal().generic_string();
+	}
+
 	if (result.empty() || result.back() != '/')
 		result += '/';
 	return result;

@@ -66,7 +66,7 @@ void HoverAwareQWindow::insertNotification(const QString &message, const Notific
 		}
 	}
 
-	Notification newNotice(message, notificationLevel, _nextNotificationId++);
+	Notification newNotice(message.toStdString(), notificationLevel, _nextNotificationId++);
 	_notifications.insert(0, newNotice);
 
 	while (_notifications.size() > kMaxNotificationHistory)
@@ -116,7 +116,7 @@ void HoverAwareQWindow::buildListView()
 {
 	for (const Notification& notification : _notifications)
 	{
-		QString text = notification.getMessage();
+		QString text = QString::fromStdString(notification.getMessage());
 
 		if (notification.getOccurrenceCount() > 1)
 			text += QString(" (x%1)").arg(notification.getOccurrenceCount());
@@ -236,7 +236,7 @@ void HoverAwareQWindow::on__notificationListContainer_customContextMenuRequested
 						{
 							QClipboard* clipboard = QGuiApplication::clipboard();
 							if (clipboard != Q_NULLPTR)
-								clipboard->setText(notification.getMessage());
+								clipboard->setText(QString::fromStdString(notification.getMessage()));
 
 							break;
 						}
