@@ -20,7 +20,7 @@ const std::string kTACLiteDriveTrainName{"TAC Lite Drive Train"};
 
 TACLiteDriveThread::TACLiteDriveThread
 (
-	uint hash
+	uint32_t hash
 ) :
 	TACDriveThread(hash)
 {
@@ -51,9 +51,6 @@ TACLiteDriveThread::TACLiteDriveThread
 
 			setSerialNumber(_ftdiChipset->serialNumber());
 			setPortName(_ftdiChipset->portName());
-
-			connect(this, &TACDriveThread::deviceDisconnected, alpacaDevice.get(), &_AlpacaDevice::onDeviceDisconnect, Qt::DirectConnection);
-			connect(this, &TACDriveThread::progress, alpacaDevice.get(), &_AlpacaDevice::progress);
 		}
 	}
 }
@@ -80,19 +77,22 @@ bool TACLiteDriveThread::openFTDIDevice()
 			else
 			{
 				AppCore::writeToApplicationLogLine("TACLiteDriveThread::openFTDIDevice _ftdiDevice->open(pinsets) failed");
-				emit errorOnOpen("FTDI device open failed. Check the application log");
+				if (onError)
+					onError("FTDI device open failed. Check the application log");
 			}
 		}
 		else
 		{
 			AppCore::writeToApplicationLogLine("TACLiteDriveThread::openFTDIDevice _ftdiDevice->isOpen() == false");
-			emit errorOnOpen("FTDI device open failed. Check the application log");
+			if (onError)
+				onError("FTDI device open failed. Check the application log");
 		}
 	}
 	else
 	{
 		AppCore::writeToApplicationLogLine("TACLiteDriveThread::openFTDIDevice _ftdiDevice.isNull() == false");
-		emit errorOnOpen("FTDI device open failed. Check the application log");
+		if (onError)
+			onError("FTDI device open failed. Check the application log");
 	}
 
 	return result;
@@ -137,28 +137,51 @@ void TACLiteDriveThread::sendCommandSequence
 
 		for (const auto& commandEntry: commandEntries)
 		{
+			if (!commandEntry)
+				continue;
+
 			switch (commandEntry->_commandAction)
 			{
 			case _CommandEntry::eNotSet:
 				break;
 
 			case _CommandEntry::eSetPin:
-				tacCommand.setPinState(commandEntry->_pinID, std::get<bool>(commandEntry->_arguement));
+			{
+				bool st = false;
+				if (std::holds_alternative<bool>(commandEntry->_arguement))
+					st = std::get<bool>(commandEntry->_arguement);
+				else if (std::holds_alternative<uint32_t>(commandEntry->_arguement))
+					st = (std::get<uint32_t>(commandEntry->_arguement) != 0);
+				tacCommand.setPinState(commandEntry->_pinID, st);
 				break;
+			}
 
 			case _CommandEntry::eLog:
-				tacCommand.addLogComment(std::get<std::string>(commandEntry->_arguement));
+			{
+				std::string comment;
+				if (std::holds_alternative<std::string>(commandEntry->_arguement))
+					comment = std::get<std::string>(commandEntry->_arguement);
+				tacCommand.addLogComment(comment);
 				break;
+			}
 
 			case _CommandEntry::eDelay:
-				tacCommand.addDelay(std::get<uint32_t>(commandEntry->_arguement));
+			{
+				uint32_t ms = 0;
+				if (std::holds_alternative<uint32_t>(commandEntry->_arguement))
+					ms = std::get<uint32_t>(commandEntry->_arguement);
+				else if (std::holds_alternative<std::string>(commandEntry->_arguement))
+					toUInt32(std::get<std::string>(commandEntry->_arguement), ms);
+				tacCommand.addDelay(ms);
 				break;
+			}
 
 			case _CommandEntry::eBaseCommand:
 				break;
 			}
 
-			emit progress(kProgressActive);
+			if (onProgress)
+				onProgress(kProgressActive);
 		}
 	}
 
@@ -208,7 +231,9 @@ uint32_t TACLiteDriveThread::send
 	bool store
 )
 {
-	return _tacProtocol.sendCommand(sendMe, arguments, console, recieveInterface, store);
+	uint32_t res = _tacProtocol.sendCommand(sendMe, arguments, console, recieveInterface, store);
+	wake();
+	return res;
 }
 
 bool TACLiteDriveThread::ready()
@@ -222,8 +247,8 @@ void TACLiteDriveThread::receive(FramePackage &framePackage)
 	{
 		clearWaitForCompletion();
 
-		emit transactionEnded();
-		emit progress(kProgressMax);
+		if (onProgress)
+			onProgress(kProgressMax);
 	}
 	else if (framePackage->_valid == true)
 	{
@@ -257,8 +282,12 @@ void TACLiteDriveThread::receive(FramePackage &framePackage)
 	{
 		clearWaitForCompletion();
 
-		if (!framePackage->_lastError.empty())
-			emit errorOnOpen(framePackage->_lastError);
+		std::string errMsg = framePackage->_lastError.empty() ?
+			("TACLiteDriveThread: Command failed: " + framePackage->_request) :
+			framePackage->_lastError;
+		AppCore::writeToApplicationLogLine(errMsg);
+		if (onError)
+			onError(errMsg);
 	}
 
 	log(framePackage);
@@ -273,23 +302,17 @@ void TACLiteDriveThread::run()
 	if (openFTDIDevice() == true)
 	{
 		AppCore::writeToApplicationLogLine("TACLiteDriveThread::run() openFTDIDevice() == true");
-		emit deviceOpen();
+		if (onDeviceOpen)
+			onDeviceOpen();
 		startRunning();
 	}
 
 	if (weAreRunning())
 	{
-		emit hardwareTypeUpdate(_versionString);
-		emit hardwareVersionUpdate("0.1.1");	
-		emit firmwareVersionUpdate(_firmwareString);
-
-		emit nameUpdate(_name);
-		emit uuidUpdate(_uuid);
-		emit serialNumUpdate(_serialNumber);
-		emit platformIDUpdate(_platformID);
-
-		emit deviceOpen();
-		emit deviceStatusChange(tr("Starting"));
+		if (onDeviceOpen)
+			onDeviceOpen();
+		if (onDeviceStatusChange)
+			onDeviceStatusChange("Starting");
 
 		AppCore::writeToApplicationLogLine("setupConnected()");
 
@@ -297,8 +320,9 @@ void TACLiteDriveThread::run()
 	}
 	else
 	{
-		AppCore::writeToApplicationLogLine("TACLiteDriveThread::run() emit deviceDisconnected()");
-		emit deviceDisconnected();
+		AppCore::writeToApplicationLogLine("TACLiteDriveThread::run() dispatchDeviceDisconnected()");
+		if (onDeviceDisconnected)
+			onDeviceDisconnected();
 	}
 
 	AppCore::writeToApplicationLogLine("Hardware: " + std::to_string(static_cast<int>(_hardwareType)) + "\n");
@@ -370,14 +394,14 @@ void TACLiteDriveThread::run()
 			}
 			else
 			{
-				if (weAreRunning() == false)
+				if (weAreRunning() == false || stopRequested())
 				{
 					AppCore::writeToApplicationLogLine("TACLiteDriveThread::run() loopFinished == true\n");
 					loopFinished = true;
 				}
 				else
 				{
-					msleep(100);
+					sleepForOrStop(std::chrono::milliseconds(50));
 				}
 			}
 		}
@@ -390,7 +414,8 @@ void TACLiteDriveThread::run()
 
 	_connected = false;
 
-	emit deviceDisconnected();
+	if (onDeviceDisconnected)
+		onDeviceDisconnected();
 
 	shutdownLogging();
 }
@@ -441,8 +466,6 @@ void TACLiteDriveThread::handleSetName
 		_name = std::get<std::string>(argument);
 		framePackage->_synonym = "Set Name " + _name;
 	}
-
-	emit nameUpdate(_name);
 }
 
 void TACLiteDriveThread::handleSetPin
@@ -455,7 +478,8 @@ void TACLiteDriveThread::handleSetPin
 
 	framePackage->_synonym = "Set Pin " + std::to_string(pin) + " " + (state ? "true" : "false");
 
-	emit pinStateChanged(pin, state);
+	if (onPinStateChanged)
+		onPinStateChanged(pin, state ? 1 : 0);
 }
 
 void TACLiteDriveThread::handleUUIDResponse
@@ -467,8 +491,6 @@ void TACLiteDriveThread::handleUUIDResponse
 	{
 		std::string response = framePackage->_responses.at(1);
 		_uuid = response;
-
-		emit uuidUpdate(_uuid);
 	}
 }
 
@@ -478,7 +500,8 @@ void TACLiteDriveThread::handleVersionResponse
 )
 {
 	(void)framePackage;
-	emit deviceStatusChange(tr("TAC Version Good"));
+	if (onDeviceStatusChange)
+		onDeviceStatusChange("TAC Version Good");
 
 	setupConnected();
 }
@@ -496,8 +519,6 @@ void TACLiteDriveThread::handlePlatformID
 		} catch (...) {}
 	}
 
-	emit platformIDUpdate(static_cast<int>(_platformID));
-
 	setupConnected();
 }
 
@@ -507,7 +528,8 @@ void TACLiteDriveThread::setupConnected()
 	{
 		_connected = true;
 
-		emit deviceConnected();
+		if (onDeviceConnected)
+			onDeviceConnected();
 	}
 }
 

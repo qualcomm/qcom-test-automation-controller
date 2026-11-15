@@ -11,6 +11,7 @@
 
 #include "ConfigurationFile.h"
 
+#include <algorithm>
 #include <cstdint>
 #include <string>
 
@@ -1438,7 +1439,7 @@ bool _FTDIPlatformConfiguration::readConfig(const ConfigurationFile& config)
 					std::string pointString = ConfigurationFile::getRecordString(pinEntry, kRunPriority);
 					if (pointString.size() > 0)
 					{
-						std::pair<int, int> point = toQPoint(pointString);
+						std::pair<int, int> point = toPoint(pointString);
 						if (point.first >= 0 && point.second >= 0)
 							pinData._cellLocation = point;
 					}
@@ -1498,7 +1499,7 @@ void _FTDIPlatformConfiguration::writeConfig(ConfigurationFile& config)
 		pinData[kInverted] = pinEntry._inverted ? "true" : "false";
 		pinData[kCommand] = pinEntry._pinCommand;
 		pinData[kCommandGroup] = std::to_string(static_cast<int>(pinEntry._commandGroup));
-		pinData[kRunPriority] = fromQPoint(pinEntry._cellLocation);
+		pinData[kRunPriority] = fromPoint(pinEntry._cellLocation);
 		pinData[kTabName] = pinEntry._tabName;
 
 		pinsArray.push_back(pinData);

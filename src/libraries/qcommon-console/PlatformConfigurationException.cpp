@@ -3,18 +3,7 @@
 
 #include "PlatformConfigurationException.h"
 
-PlatformConfigurationException::PlatformConfigurationException(std::string const& message) :
-    _message(message)
+PlatformConfigurationException::PlatformConfigurationException(const std::string& message) :
+	QTACException(message)
 {
-
-}
-
-PlatformConfigurationException::~PlatformConfigurationException()
-{
-
-}
-
-std::string PlatformConfigurationException::getMessage() const
-{
-    return _message;
 }

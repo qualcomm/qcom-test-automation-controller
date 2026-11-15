@@ -6,7 +6,8 @@
 
 // QCommon
 #include "QCommonConsoleGlobal.h"
-#include "ReceiveInterface.h"
+
+class ReceiveInterface;
 
 #include <cstdint>
 #include <string>

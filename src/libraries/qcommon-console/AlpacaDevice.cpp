@@ -80,34 +80,22 @@ AlpacaDevice _AlpacaDevice::findAlpacaDevice
 	return nullptr;
 }
 
-static std::string toLowerCopy(const std::string& value)
-{
-	std::string result{value};
-
-	for (char& c: result)
-		c = static_cast<char>(std::tolower(static_cast<unsigned char>(c)));
-
-	return result;
-}
-
-static bool equalsCaseInsensitive(const std::string& left, const std::string& right)
-{
-	return toLowerCopy(left) == toLowerCopy(right);
-}
-
 AlpacaDevice _AlpacaDevice::findAlpacaDevice
 (
 	const std::string& portName
 )
 {
-	std::string searchTerm{toLowerCopy(portName)};
+	std::string searchTerm{toLower(portName)};
 
 	for (const auto& alpacaDevice: _AlpacaDevice::_alpacaDevices)
 	{
-		if (toLowerCopy(alpacaDevice->_portName).find(searchTerm) != std::string::npos)
+		std::string devPort = toLower(alpacaDevice->_portName);
+		std::string devSerial = toLower(alpacaDevice->_serialNumber);
+
+		if (!devPort.empty() && (devPort.find(searchTerm) != std::string::npos || searchTerm.find(devPort) != std::string::npos))
 			return alpacaDevice;
 
-		if (toLowerCopy(alpacaDevice->_serialNumber).find(searchTerm) != std::string::npos)
+		if (!devSerial.empty() && (devSerial.find(searchTerm) != std::string::npos || searchTerm.find(devSerial) != std::string::npos))
 			return alpacaDevice;
 	}
 
@@ -120,15 +108,15 @@ AlpacaDevice _AlpacaDevice::findAlpacaDeviceBySerialNumber
 	bool usePartial
 )
 {
-	std::string testSerial{toLowerCopy(serialNumber)};
+	std::string testSerial{toLower(serialNumber)};
 
 	for (const auto& alpacaDevice: _AlpacaDevice::_alpacaDevices)
 	{
-		std::string candidateSerial{toLowerCopy(alpacaDevice->_serialNumber)};
+		std::string candidateSerial{toLower(alpacaDevice->_serialNumber)};
 
 		if (usePartial)
 		{
-			if (testSerial.find(candidateSerial) != std::string::npos)
+			if (!candidateSerial.empty() && (testSerial.find(candidateSerial) != std::string::npos || candidateSerial.find(testSerial) != std::string::npos))
 				return alpacaDevice;
 		}
 		else
@@ -147,11 +135,11 @@ AlpacaDevice _AlpacaDevice::findAlpacaDeviceByDescription
 	bool usePartial // = true
 )
 {
-	std::string testDescription{toLowerCopy(description)};
+	std::string testDescription{toLower(description)};
 
 	for (const auto& tacDevice: _AlpacaDevice::_alpacaDevices)
 	{
-		std::string deviceDescription{toLowerCopy(tacDevice->description())};
+		std::string deviceDescription{toLower(tacDevice->description())};
 
 		if (usePartial)
 		{
@@ -174,11 +162,11 @@ AlpacaDevice _AlpacaDevice::findAlpacaDeviceByUSBDescriptor
 	bool usePartial
 )
 {
-	std::string testDescriptor{toLowerCopy(descriptor)};
+	std::string testDescriptor{toLower(descriptor)};
 
 	for (const auto& alpacaDevice: _AlpacaDevice::_alpacaDevices)
 	{
-		std::string deviceDescriptor{toLowerCopy(alpacaDevice->_usbDescriptor)};
+		std::string deviceDescriptor{toLower(alpacaDevice->_usbDescriptor)};
 
 		if (usePartial)
 		{
@@ -213,9 +201,7 @@ void _AlpacaDevice::close()
 	{
 		_driveThread->shutDown();
 
-		if (_driveThread != nullptr)
-			_driveThread->deleteLater();
-
+		delete _driveThread;
 		_driveThread = nullptr;
 	}
 }
@@ -228,7 +214,10 @@ void _AlpacaDevice::buildQuickSettings()
 		ScriptVariables scriptVariables = _platformConfiguration->getVariables();
 		if (_alpacaScript.parseScript(alpacaScript, scriptVariables, commandList()) == false)
 		{
-			// todo, write errors to log
+			_lastError = "Failed to parse AlpacaScript for device " + name();
+			AppCore::writeToApplicationLogLine(_lastError);
+			if (onError)
+				onError(_lastError);
 		}
 	}
 }
@@ -390,6 +379,18 @@ bool _AlpacaDevice::sendCommand
 	if (_driveThread != nullptr)
 	{
 		auto commandIterator = _commands.find(command);
+		if (commandIterator == _commands.end())
+		{
+			for (auto it = _commands.begin(); it != _commands.end(); ++it)
+			{
+				if (equalsIgnoreCase(it->first, command))
+				{
+					commandIterator = it;
+					break;
+				}
+			}
+		}
+
 		if (commandIterator != _commands.end())
 		{
 			setPinState(commandIterator->second._pin, state);
@@ -555,7 +556,10 @@ void _AlpacaDevice::setPinState
 	}
 	else
 	{
-		AppCore::writeToApplicationLogLine("_AlpacaDevice::setPinState _driveThread is NULL");
+		_lastError = "_AlpacaDevice::setPinState: _driveThread is NULL";
+		AppCore::writeToApplicationLogLine(_lastError);
+		if (onError)
+			onError(_lastError);
 	}
 }
 
@@ -584,7 +588,10 @@ void _AlpacaDevice::setAddressPinState
 	}
 	else
 	{
-		AppCore::writeToApplicationLogLine("_AlpacaDevice::setAddressPinState _driveThread is NULL");
+		_lastError = "_AlpacaDevice::setAddressPinState: _driveThread is NULL";
+		AppCore::writeToApplicationLogLine(_lastError);
+		if (onError)
+			onError(_lastError);
 	}
 }
 
@@ -662,7 +669,7 @@ std::string _AlpacaDevice::firmwareVersion()
 	return std::string();
 }
 
-uint _AlpacaDevice::majorVersion()
+uint32_t _AlpacaDevice::majorVersion()
 {
 	if (_driveThread)
 		return _driveThread->majorVersion();
@@ -691,7 +698,7 @@ std::string _AlpacaDevice::chipVersion()
 	return result;
 }
 
-uint _AlpacaDevice::minorVersion()
+uint32_t _AlpacaDevice::minorVersion()
 {
 	if (_driveThread)
 		return _driveThread->minorVersion();
@@ -699,7 +706,7 @@ uint _AlpacaDevice::minorVersion()
 	return 0;
 }
 
-uint _AlpacaDevice::revisionVersion()
+uint32_t _AlpacaDevice::revisionVersion()
 {
 	if (_driveThread)
 		return _driveThread->revisionVersion();
@@ -811,12 +818,15 @@ void _AlpacaDevice::on_pinStateChanged
 		}
 	}
 
-	emit pinStateChanged(pin, state);
+	if (onPinStateChanged)
+		onPinStateChanged(static_cast<int>(pin), state ? 1 : 0);
 }
 
 void _AlpacaDevice::onDeviceDisconnect()
 {
 	close();
+	if (onDeviceDisconnected)
+		onDeviceDisconnected();
 }
 
 int _AlpacaDevice::getResetCount()

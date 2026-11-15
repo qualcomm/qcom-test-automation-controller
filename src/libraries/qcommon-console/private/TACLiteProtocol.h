@@ -17,14 +17,9 @@ class TACDriveThread;
 #include <string>
 
 class QCOMMONCONSOLE_EXPORT TACLiteProtocol :
-	public QObject,
 	public ProtocolInterface,
 	public ReceiveInterface
 {
-Q_OBJECT
-
-Q_INTERFACES(ProtocolInterface)
-
 public:
 	TACLiteProtocol();
 	virtual ~TACLiteProtocol();

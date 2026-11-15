@@ -21,8 +21,6 @@ public:
 
 	static AppCore* getAppCore();
 
-	bool licenseIsValid();
-
 	void setLoggingState(bool state);
 	bool getLoggingState();
 
@@ -43,7 +41,6 @@ protected:
 	std::string					_appVersion;
 	std::string					_lastError;
 	static AppCore*				_appCore;
-	bool						_validLicense{true};
 };
 
 #endif // ALPACASHAREDLIBRARY_H

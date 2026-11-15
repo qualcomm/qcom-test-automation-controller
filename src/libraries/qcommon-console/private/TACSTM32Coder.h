@@ -15,6 +15,9 @@ class QCOMMONCONSOLE_EXPORT TACSTM32Coder :
 	public FrameCoder
 {
 public:
+	TACSTM32Coder(const TACSTM32Coder&) = delete;
+	TACSTM32Coder& operator=(const TACSTM32Coder&) = delete;
+
 	TACSTM32Coder();
 	virtual ~TACSTM32Coder();
 
@@ -29,8 +32,6 @@ public:
 	}
 
 private:
-	Q_DISABLE_COPY(TACSTM32Coder)
-
 	uint8_t						_gpioState{0};
 };
 

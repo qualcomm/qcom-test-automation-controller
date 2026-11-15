@@ -26,7 +26,6 @@ public:
 
 		_preferences.setAppName("TAC", "1.1.1");
 		_appCore->setPreferences(&_preferences);
-		_appCore->postAutomationEvent();
 	}
 
 	~DevTACCore()

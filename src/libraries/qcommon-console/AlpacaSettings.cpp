@@ -4,7 +4,7 @@
 #include "AlpacaSettings.h"
 
 AlpacaSettings::AlpacaSettings()
-	: IniSettings("Alpaca")
+	: INISettings("Alpaca")
 {
 }
 
@@ -12,7 +12,7 @@ AlpacaSettings::AlpacaSettings
 (
 	const std::string& appName
 ) :
-	IniSettings(appName)
+	INISettings(appName)
 {
 	if (!appName.empty())
 	{
@@ -26,7 +26,7 @@ AlpacaSettings::AlpacaSettings
 	const std::string& organization,
 	const std::string& appName
 ) :
-	IniSettings(organization, appName)
+	INISettings(organization, appName)
 {
 }
 

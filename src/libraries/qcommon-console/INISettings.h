@@ -10,7 +10,7 @@
 #include <string>
 #include <vector>
 
-class QCOMMONCONSOLE_EXPORT IniSettings
+class QCOMMONCONSOLE_EXPORT INISettings
 {
 public:
 	class QCOMMONCONSOLE_EXPORT Value
@@ -25,7 +25,7 @@ public:
 		Value(double v);
 		Value(bool v);
 
-		std::string toString() const;
+		const std::string& toString() const;
 		int toInt(int defaultVal = 0) const;
 		unsigned int toUInt(unsigned int defaultVal = 0) const;
 		int64_t toLongLong(int64_t defaultVal = 0) const;
@@ -40,13 +40,13 @@ public:
 		bool _exists{false};
 	};
 
-	IniSettings();
-	explicit IniSettings(const std::string& appName);
-	IniSettings(const std::string& organization, const std::string& appName);
-	virtual ~IniSettings();
+	INISettings();
+	explicit INISettings(const std::string& appName);
+	INISettings(const std::string& organization, const std::string& appName);
+	virtual ~INISettings();
 
 	void setFilePath(const std::string& path);
-	std::string filePath() const;
+	const std::string& filePath() const;
 
 	void beginGroup(const std::string& group);
 	void endGroup();
@@ -87,5 +87,7 @@ private:
 	bool                                                        _dirty{false};
 	std::map<std::string, std::map<std::string, std::string>> _sections;
 };
+
+using IniSettings = INISettings;
 
 #endif // INISETTINGS_H

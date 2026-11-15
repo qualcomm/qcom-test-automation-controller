@@ -6,21 +6,21 @@
 
 struct STMImplementation;
 
-#include "QCommonConsoleGlobal.h"
+#include "UIGlobalLib.h"
+#include "SerialPortInfo.h"
 
 // QCommon
 class AppCore;
 
 // Qt
 #include <QAbstractTableModel>
-#include <QSerialPortInfo>
 #include <QString>
 
 #include <cstdint>
 #include <string>
 #include <vector>
 
-class QCOMMONCONSOLE_EXPORT SerialTableModel :
+class UILIB_EXPORT SerialTableModel :
 	public QAbstractTableModel
 {
 Q_OBJECT
@@ -38,9 +38,9 @@ public:
 	QVariant portData(int deviceIndex, int dataIndex);
 	std::string portName(int deviceIndex);
 
-	QSerialPortInfo getSelectedSerialPort();
-	QSerialPortInfo getSerialPortFromName(const std::string& portName);
-	QSerialPortInfo getSerialPortFromSerialNumber(const std::string& serialNumber);
+	SerialPortInfo getSelectedSerialPort();
+	SerialPortInfo getSerialPortFromName(const std::string& portName);
+	SerialPortInfo getSerialPortFromSerialNumber(const std::string& serialNumber);
 	void setSelectedSerialPort(int rowIndex);
 
 	std::string rowData(int row, int column);
@@ -59,7 +59,7 @@ signals:
 private:
 	AppCore*					_appCore{nullptr};
 	STMImplementation*			_impl{nullptr};
-	QSerialPortInfo				_selectedSerialPort;
+	SerialPortInfo				_selectedSerialPort;
 	std::vector<std::string>	_columnHeaders;
 };
 

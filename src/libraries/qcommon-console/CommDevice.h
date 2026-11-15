@@ -4,21 +4,15 @@
 // SPDX-License-Identifier: BSD-3-Clause
 
 #include "ISerialPort.h"
+#include "SerialPortInfo.h"
 
 #include <cstdint>
 #include <fstream>
 #include <memory>
 #include <string>
 
-// Qt
-#include <QObject>
-#include <QtSerialPort/QSerialPortInfo>
-
-class CommDevice :
-	public QObject
+class CommDevice
 {
-	Q_OBJECT
-
 public:
 	CommDevice();
 	~CommDevice();
@@ -26,11 +20,19 @@ public:
 	bool Open();
 	void Close();
 
-	void SetSerialPortInfo(const QSerialPortInfo& serialPortInfo)
+	void SetSerialPortInfo(const SerialPortInfo& serialPortInfo)
 	{
 		_serialPortInfo = serialPortInfo;
-		_comPort = _serialPortInfo.portName().remove("com", Qt::CaseInsensitive).toInt();
-		_portName = _serialPortInfo.portName().toStdString();
+		_portName = _serialPortInfo.portName();
+		std::string name = _portName;
+		if (name.rfind("COM", 0) == 0 || name.rfind("com", 0) == 0)
+		{
+			try {
+				_comPort = std::stoi(name.substr(3));
+			} catch (...) {
+				_comPort = 0;
+			}
+		}
 	}
 
 	void SetPortName(const std::string& portName)
@@ -51,16 +53,13 @@ public:
 	virtual bool Send(const std::string& sendData);
 	uint64_t Read(std::string& incomingBytes);
 
-public slots:
 	bool IsOpen();
-	void on_ReadyRead();
 
 protected:
-	QSerialPortInfo				_serialPortInfo;
+	SerialPortInfo				_serialPortInfo;
 	int							_comPort{0};
 	std::string					_portName;
 	SerialPortPtr				_serialPort{nullptr};
-	bool						_frameCoderOwned{false};
 	
 	bool						_logSerialData{false};
 	std::string					_logSerialPath;

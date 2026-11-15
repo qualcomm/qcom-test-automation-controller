@@ -10,6 +10,7 @@
 #include "RangedContainer.h"
 
 #include "ConfigurationFile.h"
+#include <algorithm>
 #include <cstdio>
 
 const std::string kPlatformEntries("pins");
@@ -159,7 +160,7 @@ Pins _PSOCPlatformConfiguration::getI2CPinEntries()
 
 	PSOCI2CEntries activeEntries = getActiveI2CEntries();
 
-	for (const auto& i2cEntry: activeEntries)
+	for (const auto& [hash, i2cEntry]: activeEntries)
 	{
 		PinEntry pinEntry;
 
@@ -252,7 +253,7 @@ bool _PSOCPlatformConfiguration::getPinEnableState(const PinID pinId) const
 	bool result{true};
 	if (_pinEntries.find(pinId) !=  _pinEntries.end())
 	{
-		result = _pinEntries.value(pinId)._enabled;
+		result = _pinEntries.at(pinId)._enabled;
 	}
 
 	return result;
@@ -279,7 +280,7 @@ bool _PSOCPlatformConfiguration::getInitialPinValue(const PinID pinId) const
 	bool result{kDefaultInitialPinValue};
 
 	if (_pinEntries.find(pinId) != _pinEntries.end())
-		result = _pinEntries[pinId]._initialValue;
+		result = _pinEntries.at(pinId)._initialValue;
 
 	return result;
 }
@@ -306,7 +307,7 @@ uint64_t _PSOCPlatformConfiguration::getPinInitializationPriority(const PinID pi
 
 	if (_pinEntries.find(pinId) != _pinEntries.end())
 	{
-		result = _pinEntries.value(pinId)._initializationPriority;
+		result = _pinEntries.at(pinId)._initializationPriority;
 	}
 
 	return result;
@@ -333,7 +334,7 @@ std::string _PSOCPlatformConfiguration::getPinLabel(const PinID pinId) const
 	std::string result;
 
 	if (_pinEntries.find(pinId) != _pinEntries.end())
-		result = _pinEntries[pinId]._pinLabel;
+		result = _pinEntries.at(pinId)._pinLabel;
 
 	return result;
 }
@@ -355,7 +356,7 @@ std::string _PSOCPlatformConfiguration::getPinTooltip(const PinID pinId) const
 	std::string result;
 
 	if (_pinEntries.find(pinId) != _pinEntries.end())
-		result = _pinEntries[pinId]._pinTooltip;
+		result = _pinEntries.at(pinId)._pinTooltip;
 
 	return result;
 }
@@ -377,7 +378,7 @@ bool _PSOCPlatformConfiguration::getPinInvertedState(const PinID pinId) const
 	bool result{kDefaultPinInvertedState};
 
 	if (_pinEntries.find(pinId) != _pinEntries.end())
-		result = _pinEntries[pinId]._inverted;
+		result = _pinEntries.at(pinId)._inverted;
 
 	return result;
 }
@@ -399,7 +400,7 @@ std::string _PSOCPlatformConfiguration::getPinCommand(const PinID pinId) const
 	std::string result;
 
 	if (_pinEntries.find(pinId) != _pinEntries.end())
-		result = _pinEntries[pinId]._pinCommand;
+		result = _pinEntries.at(pinId)._pinCommand;
 
 	return result;
 }
@@ -421,7 +422,7 @@ CommandGroups _PSOCPlatformConfiguration::getPinGroup(const PinID pinId) const
 	CommandGroups result{kDefaultCommandGroup};
 
    if (_pinEntries.find(pinId) != _pinEntries.end())
-		result = _pinEntries[pinId]._commandGroup;
+		result = _pinEntries.at(pinId)._commandGroup;
 
 	return result;
 }
@@ -447,7 +448,7 @@ std::string _PSOCPlatformConfiguration::getClassicAction(const PinID pinId) cons
 	std::string result;
 
 	if (_pinEntries.find(pinId) != _pinEntries.end())
-		result = _pinEntries[pinId]._classicAction;
+		result = _pinEntries.at(pinId)._classicAction;
 
 	return result;
 }
@@ -470,7 +471,7 @@ std::pair<int, int> _PSOCPlatformConfiguration::getPinCellLocation(const PinID p
 
 	if (_pinEntries.find(pinId) != _pinEntries.end())
 	{
-		result = _pinEntries[pinId]._cellLocation;
+		result = _pinEntries.at(pinId)._cellLocation;
 	}
 
 	return result;
@@ -560,7 +561,7 @@ void _PSOCPlatformConfiguration::refreshSlaveConfig()
 			entry._hash = entry.makeHash();
 			entry._tabName = i2cSlaveTabName(slave);
 
-			_i2cEntries.insert(entry._hash, entry);
+			_i2cEntries[entry._hash] = entry;
 		}
 	}
 
@@ -613,10 +614,10 @@ PSOCI2CEntries _PSOCPlatformConfiguration::getI2CEntries() const
 PSOCI2CEntries _PSOCPlatformConfiguration::getActiveI2CEntries() const
 {
 	PSOCI2CEntries result;
-	for (auto it = _i2cEntries.constBegin(); it != _i2cEntries.constEnd(); ++it)
+	for (const auto& [hash, data] : _i2cEntries)
 	{
-		if (it.value()._enabled)
-			result.insert(it.key(), it.value());
+		if (data._enabled)
+			result.insert({hash, data});
 	}
 	return result;
 }
@@ -649,20 +650,23 @@ bool _PSOCPlatformConfiguration::addI2CSlave(const PSOCI2CData& i2cData)
 {
 	PSOCI2CData entry = i2cData;
 	entry._hash = entry.makeHash();
-	_i2cEntries.insert(entry._hash, entry);
+	_i2cEntries[entry._hash] = entry;
 	_dirty = true;
 	return true;
 }
 
 void _PSOCPlatformConfiguration::removeI2CSlave(HashType hash)
 {
-	if (_i2cEntries.remove(hash) > 0)
+	if (_i2cEntries.erase(hash) > 0)
 		_dirty = true;
 }
 
 PSOCI2CData _PSOCPlatformConfiguration::getI2CSlave(HashType hash) const
 {
-	return _i2cEntries.value(hash);
+	auto it = _i2cEntries.find(hash);
+	if (it != _i2cEntries.end())
+		return it->second;
+	return PSOCI2CData{};
 }
 
 bool _PSOCPlatformConfiguration::getI2CPinEnableState(const HashType hash) const
@@ -670,7 +674,7 @@ bool _PSOCPlatformConfiguration::getI2CPinEnableState(const HashType hash) const
 	bool result{true};
 	if (_i2cEntries.find(hash) != _i2cEntries.end())
 	{
-		result = _i2cEntries.value(hash)._enabled;
+		result = _i2cEntries.at(hash)._enabled;
 	}
 
 	return result;
@@ -697,7 +701,7 @@ bool _PSOCPlatformConfiguration::getI2CPinInvertedState(const HashType hash) con
 	bool result{kDefaultPinInvertedState};
 
 	if (_i2cEntries.find(hash) != _i2cEntries.end())
-		result = _i2cEntries[hash]._inverted;
+		result = _i2cEntries.at(hash)._inverted;
 
 	return result;
 }
@@ -719,7 +723,7 @@ std::string _PSOCPlatformConfiguration::getI2CPinLabel(const HashType hash) cons
 	std::string result;
 
 	if (_i2cEntries.find(hash) != _i2cEntries.end())
-		result = _i2cEntries[hash]._pinLabel;
+		result = _i2cEntries.at(hash)._pinLabel;
 
 	return result;
 }
@@ -741,7 +745,7 @@ std::string _PSOCPlatformConfiguration::getI2CPinTooltip(const HashType hash) co
 	std::string result;
 
 	if (_i2cEntries.find(hash) != _i2cEntries.end())
-		result = _i2cEntries[hash]._pinTooltip;
+		result = _i2cEntries.at(hash)._pinTooltip;
 
 	return result;
 }
@@ -763,7 +767,7 @@ std::string _PSOCPlatformConfiguration::getI2CPinCommand(const HashType hash) co
 	std::string result;
 
 	if (_i2cEntries.find(hash) != _i2cEntries.end())
-		result = _i2cEntries[hash]._pinCommand;
+		result = _i2cEntries.at(hash)._pinCommand;
 
 	return result;
 }
@@ -785,7 +789,7 @@ CommandGroups _PSOCPlatformConfiguration::getI2CPinGroup(const HashType hash) co
 	CommandGroups result{kDefaultCommandGroup};
 
 	if (_i2cEntries.find(hash) != _i2cEntries.end())
-		result = _i2cEntries[hash]._commandGroup;
+		result = _i2cEntries.at(hash)._commandGroup;
 
 	return result;
 }
@@ -808,7 +812,7 @@ std::string _PSOCPlatformConfiguration::getI2CTabName(const HashType hash) const
 
 	if (_i2cEntries.find(hash) != _i2cEntries.end())
 	{
-		result = _i2cEntries[hash]._tabName;
+		result = _i2cEntries.at(hash)._tabName;
 	}
 
 	return result;
@@ -832,7 +836,7 @@ std::pair<int, int> _PSOCPlatformConfiguration::getI2CPinCellLocation(const Hash
 
 	if (_i2cEntries.find(hash) != _i2cEntries.end())
 	{
-		result = _i2cEntries[hash]._cellLocation;
+		result = _i2cEntries.at(hash)._cellLocation;
 	}
 
 	return result;
@@ -860,7 +864,7 @@ void _PSOCPlatformConfiguration::cascadeTabDelete(const std::string &deleteMe)
 			++idx;
 	}
 
-	for (auto& pinEntry: _pinEntries)
+	for (auto& [pinId, pinEntry]: _pinEntries)
 	{
 		if (pinEntry._tabName == deleteMe)
 			pinEntry._tabName.clear();
@@ -873,7 +877,7 @@ void _PSOCPlatformConfiguration::cascadeTabRename
 	const std::string& newName
 )
 {
-	for (auto& pinEntry: _pinEntries)
+	for (auto& [pinId, pinEntry]: _pinEntries)
 	{
 		if (pinEntry._tabName == oldName)
 			pinEntry._tabName = newName;
@@ -886,7 +890,7 @@ std::string _PSOCPlatformConfiguration::getTabName(const PinID pinId) const
 
 	if (_pinEntries.find(pinId) != _pinEntries.end())
 	{
-		result = _pinEntries[pinId]._tabName;
+		result = _pinEntries.at(pinId)._tabName;
 	}
 
 	return result;
@@ -973,10 +977,10 @@ bool _PSOCPlatformConfiguration::readConfig(const ConfigurationFile &config)
 
 		if (pinEntry.find(kRunPriority) != pinEntry.end())
 		{
-			pinData._cellLocation = toQPoint(ConfigurationFile::getRecordString(pinEntry, kRunPriority));
+			pinData._cellLocation = toPoint(ConfigurationFile::getRecordString(pinEntry, kRunPriority));
 		}
 
-		_pinEntries.insert(pinData._pin, pinData);
+		_pinEntries[pinData._pin] = pinData;
 	}
 
 	// Read i2c_slaves (slave config descriptors)
@@ -1028,19 +1032,19 @@ bool _PSOCPlatformConfiguration::readConfig(const ConfigurationFile &config)
 				i2cEntry._tabName = ConfigurationFile::getRecordString(i2cData, kTabName);
 			if (i2cData.find(kRunPriority) != i2cData.end())
 			{
-				i2cEntry._cellLocation = toQPoint(ConfigurationFile::getRecordString(i2cData, kRunPriority));
+				i2cEntry._cellLocation = toPoint(ConfigurationFile::getRecordString(i2cData, kRunPriority));
 			}
 			if (i2cData.find(kInverted) != i2cData.end())
 				i2cEntry._inverted = ConfigurationFile::getRecordBool(i2cData, kInverted);
 
 			i2cEntry._hash = i2cEntry.makeHash();
-			_i2cEntries.insert(i2cEntry._hash, i2cEntry);
+			_i2cEntries[i2cEntry._hash] = i2cEntry;
 		}
 
 		// Older config files stored _tabName as the bare variant string (e.g. "TCA9534APWR")
 		// rather than the per-slave name (e.g. "TCA9534APWR (0x38)"). Migrate those entries so
 		// getI2CEntriesForSlave() (which now matches on the per-slave name) still finds them.
-		for (auto& i2cEntry : _i2cEntries)
+		for (auto& [hash, i2cEntry] : _i2cEntries)
 		{
 			for (const auto& slave : std::as_const(_slaveConfigs))
 			{
@@ -1070,7 +1074,7 @@ void _PSOCPlatformConfiguration::writeConfig(ConfigurationFile &config)
 	// Writing platform configuration mapping
 	ConfigurationTable jsonPlatformPinData;
 
-	for (const auto& pinData : std::as_const(_pinEntries))
+	for (const auto& [hash, pinData] : std::as_const(_pinEntries))
 	{
 		ConfigurationRecord psocPinData;
 
@@ -1085,7 +1089,7 @@ void _PSOCPlatformConfiguration::writeConfig(ConfigurationFile &config)
 		psocPinData[kCommmandGroup] = std::to_string(pinData._commandGroup);
 		psocPinData[kClassicAction] = pinData._classicAction;
 		// run_prority indicates cell_location (the location of the PinLED within TAC)
-		psocPinData[kRunPriority] = fromQPoint(pinData._cellLocation);
+		psocPinData[kRunPriority] = fromPoint(pinData._cellLocation);
 		psocPinData[kTabName] = pinData._tabName;
 
 		jsonPlatformPinData.push_back(psocPinData);
@@ -1110,7 +1114,7 @@ void _PSOCPlatformConfiguration::writeConfig(ConfigurationFile &config)
 
 		// Write i2c_addr (per-pin I2C entries)
 		ConfigurationTable jsonI2CData;
-		for (const auto& i2cEntry : std::as_const(_i2cEntries))
+		for (const auto& [hash, i2cEntry] : std::as_const(_i2cEntries))
 		{
 			ConfigurationRecord i2cData;
 			i2cData[kPinNumber] = std::to_string(i2cEntry._pin);
@@ -1123,7 +1127,7 @@ void _PSOCPlatformConfiguration::writeConfig(ConfigurationFile &config)
 			i2cData[kCommmandGroup] = std::to_string(i2cEntry._commandGroup);
 			i2cData[kClassicAction] = i2cEntry._classicAction;
 			i2cData[kTabName] = i2cEntry._tabName;
-			i2cData[kRunPriority] = fromQPoint(i2cEntry._cellLocation);
+			i2cData[kRunPriority] = fromPoint(i2cEntry._cellLocation);
 			i2cData[kInverted] = i2cEntry._inverted ? "true" : "false";
 			jsonI2CData.push_back(i2cData);
 		}

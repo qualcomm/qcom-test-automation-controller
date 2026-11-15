@@ -9,12 +9,14 @@
 #include "AlpacaSettings.h"
 #include "AppCore.h"
 #include "STM32PlatformConfiguration.h"
+#include "StringUtilities.h"
 
+#include <cassert>
 #include <chrono>
 #include <thread>
 
 // hidapi
-#include <hidapi.h>
+#include "private/hidapi.h"
 
 #if defined(_WIN32)
 #include <windows.h>
@@ -43,8 +45,8 @@ STM32Device::~STM32Device()
 
 bool STM32Device::programDevice(AlpacaDevice alpacaDevice, PlatformID platformID, std::string& errorMessage)
 {
-	Q_UNUSED(alpacaDevice)
-	Q_UNUSED(platformID)
+	(void)alpacaDevice;
+	(void)platformID;
 
 	errorMessage = "STM32 device does not support firmware programming";
 
@@ -179,7 +181,7 @@ uint32_t STM32Device::updateAlpacaDevices()
 		}
 	}
 
-	return _AlpacaDevice::_alpacaDevices.count();
+	return static_cast<uint32_t>(_AlpacaDevice::_alpacaDevices.size());
 }
 
 bool STM32Device::open()
@@ -209,12 +211,40 @@ bool STM32Device::open()
 				result = _driveThread->weAreRunning();
 				if (result == true)
 					count = maxInterations;
+				if (_driveThread->hasFinished())
+					break;
 
 				count++;
 			}
 
+			if (result == false)
+			{
+				std::string threadErr = _driveThread->lastErrorMessage();
+				if (!threadErr.empty())
+					_lastError = threadErr;
+				else if (_lastError.empty())
+					_lastError = "Failed to communicate with STM32 device on port " + portName();
+			}
+
 			if (result == true)
-				connect(driveThread, &TACSTM32DriveThread::pinStateChanged, this, &STM32Device::on_pinStateChanged, Qt::DirectConnection);
+			{
+				driveThread->onPinStateChanged = [this](int pin, int state) {
+					on_pinStateChanged(static_cast<uint64_t>(pin), state != 0);
+				};
+				driveThread->onDeviceDisconnected = [this]() {
+					onDeviceDisconnect();
+				};
+				driveThread->onProgress = [this](int val) {
+					if (onProgress) onProgress(val);
+				};
+				driveThread->onError = [this](const std::string& err) {
+					_lastError = err;
+					if (onError) onError(err);
+				};
+				driveThread->onDeviceStatusChange = [this](const std::string& status) {
+					if (onDeviceStatusChange) onDeviceStatusChange(status);
+				};
+			}
 		}
 	}
 
@@ -223,7 +253,7 @@ bool STM32Device::open()
 
 void STM32Device::buildMapping()
 {
-	Q_ASSERT(_stm32PlatformConfiguration != nullptr);
+	assert(_stm32PlatformConfiguration != nullptr);
 
 	buildCommandList();
 	buildQuickSettings();
@@ -247,7 +277,7 @@ void STM32Device::buildCommandList()
 				tacCommand._isInverted = stm32Pin._inverted;
 				tacCommand._tabName = stm32Pin._tabName;
 				tacCommand._groupName = CommandGroup::toString(stm32Pin._commandGroup);
-				tacCommand._cellLocation = stm32Pin._cellLocation;
+				tacCommand._cellLocation = fromPoint(stm32Pin._cellLocation);
 
 				_commands[tacCommand._command] = tacCommand;
 			}

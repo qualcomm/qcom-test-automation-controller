@@ -12,6 +12,8 @@
 #include "mymemcpy.h"
 #include "Range.h"
 
+#include <algorithm>
+#include <cassert>
 #include <chrono>
 #include <thread>
 
@@ -118,13 +120,14 @@ bool FTDIDevice::programDevice
 				}
 				else
 				{
-
 					errorMessage = "FT_EE_Program failed Error Code: " + _FTDIChipset::ftidStatusToString(ftStatus);
+					AppCore::writeToApplicationLogLine(errorMessage);
 				}
 			}
 			else
 			{
 				errorMessage = "FT_EE_ReadEx failed Error Code: " + _FTDIChipset::ftidStatusToString(ftStatus);
+				AppCore::writeToApplicationLogLine(errorMessage);
 			}
 
 			FT_Close(ftHandle);
@@ -132,6 +135,7 @@ bool FTDIDevice::programDevice
 		else
 		{
 			errorMessage = "FT_OpenEx failed Error Code: " + _FTDIChipset::ftidStatusToString(ftStatus);
+			AppCore::writeToApplicationLogLine(errorMessage);
 		}
 	}
 
@@ -176,7 +180,7 @@ uint32_t FTDIDevice::updateAlpacaDevices()
 		}
 	}
 
-	return _AlpacaDevice::_alpacaDevices.count();
+	return static_cast<uint32_t>(_AlpacaDevice::_alpacaDevices.size());
 }
 
 bool FTDIDevice::open()
@@ -185,7 +189,7 @@ bool FTDIDevice::open()
 
 	bool result{false};
 
-	if (_platformConfiguration.isNull() == false)
+	if (_platformConfiguration != nullptr)
 	{
 		if (_platformConfiguration->getPlatform() == eFTDI)
 			_ftdiPlatformConfiguration = static_cast<_FTDIPlatformConfiguration*>(_platformConfiguration.get());
@@ -226,14 +230,40 @@ bool FTDIDevice::open()
 				result = _driveThread->weAreRunning();
 				if (result == true)
 					count = maxInterations;
+				if (_driveThread->hasFinished())
+					break;
 
 				count++;
+			}
+
+			if (result == false)
+			{
+				std::string threadErr = _driveThread->lastErrorMessage();
+				if (!threadErr.empty())
+					_lastError = threadErr;
+				else if (_lastError.empty())
+					_lastError = "Failed to communicate with FTDI device on port " + portName();
 			}
 
 			if (result == true)
 			{
 
-				connect(driveThread, &TACLiteDriveThread::pinStateChanged, this, &FTDIDevice::on_pinStateChanged, Qt::DirectConnection);
+				driveThread->onPinStateChanged = [this](int pin, int state) {
+					on_pinStateChanged(static_cast<uint64_t>(pin), state != 0);
+				};
+				driveThread->onDeviceDisconnected = [this]() {
+					onDeviceDisconnect();
+				};
+				driveThread->onProgress = [this](int val) {
+					if (onProgress) onProgress(val);
+				};
+				driveThread->onError = [this](const std::string& err) {
+					_lastError = err;
+					if (onError) onError(err);
+				};
+				driveThread->onDeviceStatusChange = [this](const std::string& status) {
+					if (onDeviceStatusChange) onDeviceStatusChange(status);
+				};
 
 				Pins initialPins;
 				Pins pins = _platformConfiguration->getPins();
@@ -273,9 +303,9 @@ bool FTDIDevice::open()
 void FTDIDevice::buildMapping()
 {
 	if (_platformConfiguration->getPlatform() == eFTDI)
-		Q_ASSERT(_ftdiPlatformConfiguration != nullptr);
+		assert(_ftdiPlatformConfiguration != nullptr);
 	else
-		Q_ASSERT(_ft232hPlatformConfiguration != nullptr);
+		assert(_ft232hPlatformConfiguration != nullptr);
 
 	buildCommandList();
 	buildQuickSettings();
@@ -305,7 +335,7 @@ void FTDIDevice::buildCommandList()
 				tacCommand._isInverted = ftdiPin._inverted;
 				tacCommand._tabName = ftdiPin._tabName;
 				tacCommand._groupName = CommandGroup::toString(ftdiPin._commandGroup);
-				tacCommand._cellLocation = fromQPoint(ftdiPin._cellLocation);
+				tacCommand._cellLocation = fromPoint(ftdiPin._cellLocation);
 
 				_commands[tacCommand._command] = tacCommand;
 			}

@@ -8,7 +8,6 @@
 // QCommonConsole
 #include "AlpacaDefines.h"
 #include "AppCore.h"
-#include "StringProof.h"
 
 // QT
 #include <QDateTime>

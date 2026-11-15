@@ -17,16 +17,9 @@
 class QCOMMONCONSOLE_EXPORT TACPSOCDriveThread :
 	public TACDriveThread
 {
-Q_OBJECT
-
 public:
-	TACPSOCDriveThread(uint hash);
+	TACPSOCDriveThread(uint32_t hash);
 	~TACPSOCDriveThread();
-
-	virtual std::string locked()
-	{
-		return std::string();
-	}
 
 	virtual void run() override;
 
@@ -50,6 +43,7 @@ public:
 	// Send Interface
 	virtual uint32_t send(const std::string& sendMe, const Arguments& arguments, bool console, ReceiveInterface* recieveInterface, bool store = true) override;
 	virtual bool ready() override;
+	virtual bool connected() const override { return _connected; }
 
 	// Receive Interface
 	virtual void receive(FramePackage& framePackage) override;
@@ -57,20 +51,16 @@ public:
 protected:
 	bool openSerialDevice();
 
-protected slots:
 	void handleError(SerialPortError error);
-	void on_readyRead();
 
 private:
 	std::string serialPortError();
 	bool readSerialData();
 
-	static bool					_initialized;
 	bool						_connected{false};
 	TACPSOCProtocol				_tacProtocol;
 	SerialPortInfo				_tacPortInfo;
 	SerialPort*					_serialPort{nullptr};
-	bool						_readyRead{false};
 
 	void handleGetNameResponse(FramePackage& framePackage);
 	void handleGetResetCount(FramePackage& framePackage);

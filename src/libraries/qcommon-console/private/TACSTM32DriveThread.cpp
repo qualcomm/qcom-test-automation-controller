@@ -11,13 +11,15 @@
 // QCommon
 #include "AppCore.h"
 
+#include <chrono>
 #include <string>
+#include <thread>
 
 const std::string kTACSTM32DriveTrainName{"TAC STM32 Drive Train"};
 
 TACSTM32DriveThread::TACSTM32DriveThread
 (
-	uint hash
+	uint32_t hash
 ) :
 	TACDriveThread(hash)
 {
@@ -40,9 +42,6 @@ TACSTM32DriveThread::TACSTM32DriveThread
 
 		setSerialNumber(alpacaDevice->serialNumber());
 		setPortName(alpacaDevice->portName());
-
-		connect(this, &TACDriveThread::deviceDisconnected, alpacaDevice.get(), &_AlpacaDevice::onDeviceDisconnect, Qt::DirectConnection);
-		connect(this, &TACDriveThread::progress, alpacaDevice.get(), &_AlpacaDevice::progress);
 	}
 }
 
@@ -59,12 +58,16 @@ bool TACSTM32DriveThread::openSTM32Device()
 		result = _stm32Device->openTransport();
 
 		if (result == false)
-			emit errorOnOpen("Arduino BugHopper V2 device open failed. Check the application log");
+		{
+			if (onError)
+				onError("Arduino BugHopper V2 device open failed. Check the application log");
+		}
 	}
 	else
 	{
 		AppCore::writeToApplicationLogLine("TACSTM32DriveThread::openSTM32Device _stm32Device is null");
-		emit errorOnOpen("Arduino BugHopper V2 device open failed. Check the application log");
+		if (onError)
+			onError("Arduino BugHopper V2 device open failed. Check the application log");
 	}
 
 	return result;
@@ -91,28 +94,51 @@ void TACSTM32DriveThread::sendCommandSequence
 
 		for (const auto& commandEntry: commandEntries)
 		{
+			if (!commandEntry)
+				continue;
+
 			switch (commandEntry->_commandAction)
 			{
 			case _CommandEntry::eNotSet:
 				break;
 
 			case _CommandEntry::eSetPin:
-				tacCommand.setPinState(commandEntry->_pinID, std::get<bool>(commandEntry->_arguement));
+			{
+				bool st = false;
+				if (std::holds_alternative<bool>(commandEntry->_arguement))
+					st = std::get<bool>(commandEntry->_arguement);
+				else if (std::holds_alternative<uint32_t>(commandEntry->_arguement))
+					st = (std::get<uint32_t>(commandEntry->_arguement) != 0);
+				tacCommand.setPinState(commandEntry->_pinID, st);
 				break;
+			}
 
 			case _CommandEntry::eLog:
-				tacCommand.addLogComment(std::get<std::string>(commandEntry->_arguement));
+			{
+				std::string comment;
+				if (std::holds_alternative<std::string>(commandEntry->_arguement))
+					comment = std::get<std::string>(commandEntry->_arguement);
+				tacCommand.addLogComment(comment);
 				break;
+			}
 
 			case _CommandEntry::eDelay:
-				tacCommand.addDelay(std::get<uint32_t>(commandEntry->_arguement));
+			{
+				uint32_t ms = 0;
+				if (std::holds_alternative<uint32_t>(commandEntry->_arguement))
+					ms = std::get<uint32_t>(commandEntry->_arguement);
+				else if (std::holds_alternative<std::string>(commandEntry->_arguement))
+					toUInt32(std::get<std::string>(commandEntry->_arguement), ms);
+				tacCommand.addDelay(ms);
 				break;
+			}
 
 			case _CommandEntry::eBaseCommand:
 				break;
 			}
 
-			emit progress(kProgressActive);
+			if (onProgress)
+				onProgress(kProgressActive);
 		}
 	}
 
@@ -185,7 +211,9 @@ uint32_t TACSTM32DriveThread::send
 	bool store
 )
 {
-	return _tacProtocol.sendCommand(sendMe, arguments, console, recieveInterface, store);
+	uint32_t res = _tacProtocol.sendCommand(sendMe, arguments, console, recieveInterface, store);
+	wake();
+	return res;
 }
 
 bool TACSTM32DriveThread::ready()
@@ -202,8 +230,8 @@ void TACSTM32DriveThread::receive
 	{
 		clearWaitForCompletion();
 
-		emit transactionEnded();
-		emit progress(kProgressMax);
+		if (onProgress)
+			onProgress(kProgressMax);
 	}
 	else if (framePackage->_valid == true)
 	{
@@ -216,7 +244,8 @@ void TACSTM32DriveThread::receive
 
 				framePackage->_synonym = "Set Pin " + std::to_string(pin) + " " + (state ? "true" : "false");
 
-				emit pinStateChanged(pin, state);
+				if (onPinStateChanged)
+					onPinStateChanged(pin, state);
 			}
 			break;
 
@@ -228,8 +257,12 @@ void TACSTM32DriveThread::receive
 	{
 		clearWaitForCompletion();
 
-		if (!framePackage->_lastError.empty())
-			emit errorOnOpen(framePackage->_lastError);
+		std::string errMsg = framePackage->_lastError.empty() ?
+			("TACSTM32DriveThread: Command failed: " + framePackage->_request) :
+			framePackage->_lastError;
+		AppCore::writeToApplicationLogLine(errMsg);
+		if (onError)
+			onError(errMsg);
 	}
 
 	log(framePackage);
@@ -244,26 +277,23 @@ void TACSTM32DriveThread::run()
 	if (openSTM32Device() == true)
 	{
 		AppCore::writeToApplicationLogLine("TACSTM32DriveThread::run() openSTM32Device() == true");
-		emit deviceOpen();
+		if (onDeviceOpen)
+			onDeviceOpen();
 		startRunning();
 	}
 
 	if (weAreRunning())
 	{
-		emit hardwareVersionUpdate(hardwareVersionString());
-		emit nameUpdate(_name);
-		emit uuidUpdate(_uuid);
-		emit serialNumUpdate(_serialNumber);
-		emit platformIDUpdate(static_cast<int>(_platformID));
-
-		emit deviceStatusChange(tr("Starting"));
+		if (onDeviceStatusChange)
+			onDeviceStatusChange("Starting");
 
 		setupConnected();
 	}
 	else
 	{
-		AppCore::writeToApplicationLogLine("TACSTM32DriveThread::run() emit deviceDisconnected()");
-		emit deviceDisconnected();
+		AppCore::writeToApplicationLogLine("TACSTM32DriveThread::run() dispatchDeviceDisconnected()");
+		if (onDeviceDisconnected)
+			onDeviceDisconnected();
 	}
 
 	if (weAreRunning())
@@ -309,14 +339,14 @@ void TACSTM32DriveThread::run()
 			}
 			else
 			{
-				if (weAreRunning() == false)
+				if (weAreRunning() == false || stopRequested())
 				{
 					AppCore::writeToApplicationLogLine("TACSTM32DriveThread::run() loopFinished == true\n");
 					loopFinished = true;
 				}
 				else
 				{
-					msleep(5);
+					sleepForOrStop(std::chrono::milliseconds(5));
 				}
 			}
 		}
@@ -331,7 +361,8 @@ void TACSTM32DriveThread::run()
 
 	_connected = false;
 
-	emit deviceDisconnected();
+	if (onDeviceDisconnected)
+		onDeviceDisconnected();
 
 	shutdownLogging();
 }
@@ -342,7 +373,8 @@ void TACSTM32DriveThread::setupConnected()
 	{
 		_connected = true;
 
-		emit deviceConnected();
+		if (onDeviceConnected)
+			onDeviceConnected();
 	}
 }
 

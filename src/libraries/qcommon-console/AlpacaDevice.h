@@ -17,6 +17,7 @@
 #include "PlatformID.h"
 #include "StringUtilities.h"
 
+#include <functional>
 #include <memory>
 #include <mutex>
 #include <string>
@@ -30,11 +31,8 @@ class _AlpacaDevice;
 typedef std::shared_ptr<_AlpacaDevice> AlpacaDevice;
 typedef std::vector<AlpacaDevice> AlpacaDevices;
 
-class QCOMMONCONSOLE_EXPORT _AlpacaDevice:
-	public QObject
+class QCOMMONCONSOLE_EXPORT _AlpacaDevice
 {
-Q_OBJECT
-
 public:
 	_AlpacaDevice() = default;
 	virtual ~_AlpacaDevice();
@@ -95,10 +93,10 @@ public:
 	std::string hardwareVersionString();
 	std::string firmwareVersion();
 
-	uint majorVersion();
+	uint32_t majorVersion();
 	std::string chipVersion();
-	uint minorVersion();
-	uint revisionVersion();
+	uint32_t minorVersion();
+	uint32_t revisionVersion();
 
 	std::string usbDescriptor();
 	PlatformID platformID();
@@ -131,12 +129,13 @@ public:
 		_active = active;
 	}
 
-signals:
-	void pinStateChanged(uint64_t pin, bool state);
-	void progress(const uint8_t value=10, NotificationLevel level=eInfoNotification);
-	void errorEvent(const std::string& message);
+	// Callback hooks for observers/subscribers
+	std::function<void(int pin, int state)> onPinStateChanged;
+	std::function<void()>                   onDeviceDisconnected;
+	std::function<void(int progress)>       onProgress;
+	std::function<void(const std::string&)> onError;
+	std::function<void(const std::string&)> onDeviceStatusChange;
 
-public slots:
 	void on_pinStateChanged(uint64_t pin, bool state);
 	void onDeviceDisconnect();
 
@@ -152,7 +151,7 @@ protected:
 	std::string					_usbDescriptor;
 	std::string                 _macAddress{kMACNotSupported};
 	std::string					_serialNumber;
-	uint						_chipVersion{0};
+	uint32_t					_chipVersion{0};
 	PlatformID					_platformID{MICRO_EPM_BOARD_ID_UNKNOWN};
 	std::string					_helpText;
 	TACDriveThread*				_driveThread{nullptr};

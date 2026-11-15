@@ -14,6 +14,9 @@ class QCOMMONCONSOLE_EXPORT TACLiteCoder :
 	public FrameCoder
 {
 public:
+	TACLiteCoder(const TACLiteCoder&) = delete;
+	TACLiteCoder& operator=(const TACLiteCoder&) = delete;
+
 	TACLiteCoder();
 	virtual ~TACLiteCoder();
 
@@ -23,7 +26,6 @@ public:
 	virtual std::string encode(const std::string& encodeMe, const Arguments& arguments) override;
 
 private:
-	Q_DISABLE_COPY(TACLiteCoder)
 	std::string					_recieveBuffer;
 };
 

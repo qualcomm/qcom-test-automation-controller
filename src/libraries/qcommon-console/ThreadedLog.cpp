@@ -28,19 +28,21 @@ void _ThreadedLog::open(const std::string& filePath)
 	}
 
 	_running = true;
-	_workerThread = std::thread(&_ThreadedLog::workerLoop, this);
+	_workerThread = std::jthread([this](std::stop_token stopToken) {
+		workerLoop(stopToken);
+	});
 }
 
 bool _ThreadedLog::isOpen()
 {
-	return _running && _logFile.is_open();
+	return _running.load() && _logFile.is_open();
 }
 
 void _ThreadedLog::close()
 {
-	if (_running)
+	if (_running.exchange(false))
 	{
-		_running = false;
+		_workerThread.request_stop();
 		_cv.notify_all();
 
 		if (_workerThread.joinable())
@@ -59,15 +61,15 @@ void _ThreadedLog::addLogEntry(const std::string& logEntry)
 	_cv.notify_one();
 }
 
-void _ThreadedLog::workerLoop()
+void _ThreadedLog::workerLoop(std::stop_token stopToken)
 {
-	while (_running)
+	while (!stopToken.stop_requested() && _running.load())
 	{
 		std::vector<std::string> entries;
 		{
 			std::unique_lock<std::mutex> lock(_mutex);
-			_cv.wait_for(lock, std::chrono::milliseconds(100), [this]() {
-				return !_running || !_logEntries.empty();
+			_cv.wait_for(lock, std::chrono::milliseconds(100), [this, &stopToken]() {
+				return stopToken.stop_requested() || !_running.load() || !_logEntries.empty();
 			});
 
 			entries.swap(_logEntries);

@@ -13,6 +13,7 @@ class _ThreadedLog;
 #include <fstream>
 #include <memory>
 #include <mutex>
+#include <stop_token>
 #include <string>
 #include <thread>
 #include <vector>
@@ -40,10 +41,10 @@ public:
 	void addLogEntry(const std::string& logEntry);
 
 protected:
-	void workerLoop();
+	void workerLoop(std::stop_token stopToken);
 
 	std::atomic<bool>			_running{false};
-	std::thread					_workerThread;
+	std::jthread				_workerThread;
 	std::mutex					_mutex;
 	std::condition_variable		_cv;
 	std::vector<std::string>	_logEntries;

@@ -4,15 +4,12 @@
 // SPDX-License-Identifier: BSD-3-Clause
 
 #include "QCommonConsoleGlobal.h"
-#include "StringProof.h"
 #include "version.h"
 
 #include <cstdint>
 #include <string>
 
 const std::string kProductName("QTAC");
-const char kProductID[] =	"1e48f695-c109-11ec-aebb-063166a9270b"; // QTAC External
-const char kCoreFeature[] = "1e71efc7-c109-11ec-aebb-063166a9270b";
 
 const std::string kOrganizationName("Qualcomm, Inc.");
 const std::string kProductVersion(QTAC_VERSION);

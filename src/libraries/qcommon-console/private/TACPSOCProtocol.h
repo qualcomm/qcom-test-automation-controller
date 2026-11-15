@@ -16,14 +16,9 @@ class TACDriveThread;
 #include <string>
 
 class QCOMMONCONSOLE_EXPORT TACPSOCProtocol :
-	public QObject,
 	public ProtocolInterface,
 	public ReceiveInterface
 {
-Q_OBJECT
-
-Q_INTERFACES(ProtocolInterface)
-
 public:
 	TACPSOCProtocol();
 	virtual ~TACPSOCProtocol();

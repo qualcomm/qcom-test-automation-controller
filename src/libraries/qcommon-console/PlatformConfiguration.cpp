@@ -18,24 +18,12 @@
 #include "StringUtilities.h"
 
 #include "ConfigurationFile.h"
+#include "StringUtilities.h"
 
+#include <cassert>
 #include <cctype>
 #include <filesystem>
 #include <sstream>
-
-static bool equalsCaseInsensitive(const std::string& left, const std::string& right)
-{
-	if (left.size() != right.size())
-		return false;
-
-	for (size_t index = 0; index < left.size(); index++)
-	{
-		if (std::tolower(static_cast<unsigned char>(left[index])) != std::tolower(static_cast<unsigned char>(right[index])))
-			return false;
-	}
-
-	return true;
-}
 
 // Parameters in the JSON TAC Configuration
 const std::string kName("name");
@@ -155,8 +143,7 @@ PlatformConfiguration _PlatformConfiguration::openPlatformConfiguration
 	if (std::filesystem::is_regular_file(filePath, ec))
 	{
 		std::string fileName = std::filesystem::path(filePath).filename().string();
-		std::string lowerFileName = fileName;
-		for (char& c : lowerFileName) c = static_cast<char>(std::tolower(static_cast<unsigned char>(c)));
+		std::string lowerFileName = toLower(fileName);
 
 		if (lowerFileName.find("_psoc_") != std::string::npos)
 		{
@@ -187,6 +174,11 @@ PlatformConfiguration _PlatformConfiguration::openPlatformConfiguration
 		{
 			result->load(filePath);
 		}
+	}
+	else if (ec)
+	{
+		_PlatformConfiguration::_lastError = "PlatformConfiguration: file check error for '" + filePath + "': " + ec.message();
+		AppCore::writeToApplicationLogLine(_PlatformConfiguration::_lastError);
 	}
 
 	return result;
@@ -253,21 +245,12 @@ bool _PlatformConfiguration::parseConfigName
 	bool result{false};
 
 	std::filesystem::path p(fileName);
-	std::string ext = p.extension().string();
-	for (char& c : ext) c = static_cast<char>(std::tolower(static_cast<unsigned char>(c)));
+	std::string ext = toLower(p.extension().string());
 
 	if (ext == ".tcnf")
 	{
-		std::string baseName = p.stem().string();
-		for (char& c : baseName) c = static_cast<char>(std::tolower(static_cast<unsigned char>(c)));
-		std::vector<std::string> fileNameParts;
-		std::string token;
-		std::stringstream ss(baseName);
-		while (std::getline(ss, token, '_'))
-		{
-			if (!token.empty())
-				fileNameParts.push_back(token);
-		}
+		std::string baseName = toLower(p.stem().string());
+		std::vector<std::string> fileNameParts = split(baseName, '_', true);
 
 		if (fileNameParts.size() >= 3)
 		{
@@ -288,14 +271,9 @@ PlatformID _PlatformConfiguration::getUSBDescriptor(const std::string& usbDescri
 {
 	PlatformID result{0};
 
-	std::string test{usbDescriptorString};
-	for (char& c : test) c = static_cast<char>(std::tolower(static_cast<unsigned char>(c)));
-
 	for (const auto& [id, tacEntry]: _tacPlatformEntries)
 	{
-		std::string candidate{tacEntry._platformEntry->_usbDescriptor};
-		for (char& c : candidate) c = static_cast<char>(std::tolower(static_cast<unsigned char>(c)));
-		if (candidate == test)
+		if (equalsIgnoreCase(tacEntry._platformEntry->_usbDescriptor, usbDescriptorString))
 		{
 			result = tacEntry._platformEntry->_platformID;
 			break;
@@ -318,16 +296,11 @@ bool _PlatformConfiguration::containsUSBDescriptor
 {
 	bool result{false};
 
-	std::string test{usbDescriptorString};
-	for (char& c : test) c = static_cast<char>(std::tolower(static_cast<unsigned char>(c)));
-
 	initializeDynamicPlatform();
 
 	for (const auto& [id, tacEntry]: _tacPlatformEntries)
 	{
-		std::string candidate{tacEntry._platformEntry->_usbDescriptor};
-		for (char& c : candidate) c = static_cast<char>(std::tolower(static_cast<unsigned char>(c)));
-		if (candidate == test)
+		if (equalsIgnoreCase(tacEntry._platformEntry->_usbDescriptor, usbDescriptorString))
 		{
 			result = true;
 			break;
@@ -620,7 +593,22 @@ bool _PlatformConfiguration::setVariableDefaultValue(const std::string &variable
 	if (equalsCaseInsensitive(variableDefaultValue, kNoVariableValue) == false)
 	{
 		if (setVariableName(variableName))
-			_scriptVariables[variableName]._defaultValue = variableDefaultValue;
+		{
+			if (_scriptVariables[variableName]._type == eIntegerType)
+			{
+				uint32_t val = 0;
+				toUInt32(variableDefaultValue, val);
+				_scriptVariables[variableName]._defaultValue = val;
+			}
+			else if (_scriptVariables[variableName]._type == eBooleanType)
+			{
+				_scriptVariables[variableName]._defaultValue = (variableDefaultValue == "true" || variableDefaultValue == "1");
+			}
+			else
+			{
+				_scriptVariables[variableName]._defaultValue = variableDefaultValue;
+			}
+		}
 		else
 			result = false;
 	}
@@ -1034,31 +1022,8 @@ std::vector<uint32_t> _PlatformConfiguration::supportedFirmwareVer()
 void _PlatformConfiguration::setFilePath(const std::string &filePath)
 {
 	std::filesystem::path pathObj(filePath);
-	std::string absPath = std::filesystem::absolute(pathObj).lexically_normal().string();
-
-	std::string lowerPath = absPath;
-	for (char &c : lowerPath)
-		c = static_cast<char>(std::tolower(static_cast<unsigned char>(c)));
-
-	if (lowerPath.rfind("c:/programdata/qualcomm/qtac", 0) == 0 ||
-		lowerPath.rfind("c:\\programdata\\qualcomm\\qtac", 0) == 0)
-	{
-		if (_platform == ePSOC && _platformId < 255)
-		{
-			_platformPath = documentsDataPath("TAC Configurations");
-			_platformFile = pathObj.filename().string();
-		}
-		else if (_platform == eFTDI && _platformId < 90000)
-		{
-			_platformPath = documentsDataPath("TAC Configurations");
-			_platformFile = pathObj.filename().string();
-		}
-	}
-	else
-	{
-		_platformPath = pathObj.parent_path().string();
-		_platformFile = pathObj.filename().string();
-	}
+	_platformPath = AppCore::configurationSavePath(pathObj.parent_path().generic_string());
+	_platformFile = pathObj.filename().generic_string();
 }
 
 void _PlatformConfiguration::setUSBDescriptor(const std::string& usbDescriptor)
@@ -1095,27 +1060,14 @@ void _PlatformConfiguration::save()
 	_modifyDate = currentDateTimeString();
 
 	if (_platformPath.empty())
-	{
-		if (_platform == ePSOC)
-		{
-			if (_platformId < 255)
-				_platformPath = documentsDataPath("TAC Configurations");
-			else
-				_platformPath = tacConfigRoot();
-		}
-		else
-		{
-			if (_platformId < 90000)
-				_platformPath = documentsDataPath("TAC Configurations");
-			else
-				_platformPath = tacConfigRoot();
-		}
-	}
+		_platformPath = AppCore::userConfigurationsPath();
+	else
+		_platformPath = AppCore::configurationSavePath(_platformPath);
 
 	if (_platformFile.empty())
 		_platformFile = makeConfigName(getPlatformString(), _platformId);
 
-	std::string targetFilePath = (std::filesystem::path(_platformPath) / _platformFile).lexically_normal().string();
+	std::string targetFilePath = (std::filesystem::path(_platformPath) / _platformFile).lexically_normal().generic_string();
 
 	ConfigurationFile config;
 	writeConfig(config);
@@ -1185,8 +1137,9 @@ bool _PlatformConfiguration::readConfig(const ConfigurationFile& config)
 				int height = std::stoi(formStr.substr(commaPos + 1));
 				_formDimension = std::make_pair(width, height);
 			}
-			catch (...)
+			catch (const std::exception& e)
 			{
+				AppCore::writeToApplicationLogLine("PlatformConfiguration::readConfig: failed to parse formDimension '" + formStr + "': " + e.what());
 			}
 		}
 	}
@@ -1229,7 +1182,7 @@ bool _PlatformConfiguration::readConfig(const ConfigurationFile& config)
 				button._command = ConfigurationFile::getRecordString(buttonData, kCommand);
 				button._commandGroup = CommandGroups(ConfigurationFile::getRecordInt(buttonData, kCommandGroup));
 				button._tab = ConfigurationFile::getRecordString(buttonData, kTab);
-				button._cellLocation = toQPoint(ConfigurationFile::getRecordString(buttonData, kCellLocation));
+				button._cellLocation = toPoint(ConfigurationFile::getRecordString(buttonData, kCellLocation));
 				button._toolTip = ConfigurationFile::getRecordString(buttonData, kTooltip);
 
 				button._hash = Button::makeHash(button);
@@ -1253,8 +1206,22 @@ bool _PlatformConfiguration::readConfig(const ConfigurationFile& config)
 				scriptVariable._label = ConfigurationFile::getRecordString(scriptVarData, kDefaultScriptVarLabel);
 				scriptVariable._tooltip = ConfigurationFile::getRecordString(scriptVarData, kTooltip);
 				scriptVariable._type = VariableType(ConfigurationFile::getRecordInt(scriptVarData, kDefaultScriptVarType));
-				scriptVariable._defaultValue = ConfigurationFile::getRecordString(scriptVarData, kDefaultScriptDefaultValue);
-				scriptVariable._cellLocation = toQPoint(ConfigurationFile::getRecordString(scriptVarData, kCellLocation));
+				std::string defValStr = ConfigurationFile::getRecordString(scriptVarData, kDefaultScriptDefaultValue);
+				if (scriptVariable._type == eIntegerType)
+				{
+					uint32_t val = 0;
+					toUInt32(defValStr, val);
+					scriptVariable._defaultValue = val;
+				}
+				else if (scriptVariable._type == eBooleanType)
+				{
+					scriptVariable._defaultValue = (defValStr == "true" || defValStr == "1");
+				}
+				else
+				{
+					scriptVariable._defaultValue = defValStr;
+				}
+				scriptVariable._cellLocation = toPoint(ConfigurationFile::getRecordString(scriptVarData, kCellLocation));
 
 				_scriptVariables[scriptVariable._name] = scriptVariable;
 			}
@@ -1318,7 +1285,7 @@ void _PlatformConfiguration::writeConfig(ConfigurationFile& config)
 		element[kCommand] = button._command;
 		element[kCommandGroup] = std::to_string(static_cast<int>(button._commandGroup));
 		element[kTab] = button._tab;
-		element[kCellLocation] = fromQPoint(button._cellLocation);
+		element[kCellLocation] = fromPoint(button._cellLocation);
 		element[kTooltip] = button._toolTip;
 
 		buttonList.push_back(element);
@@ -1346,7 +1313,7 @@ void _PlatformConfiguration::writeConfig(ConfigurationFile& config)
 		element[kTooltip] = scriptVar._tooltip;
 		element[kDefaultScriptVarType] = std::to_string(static_cast<int>(scriptVar._type));
 		element[kDefaultScriptDefaultValue] = defaultValueString;
-		element[kCellLocation] = fromQPoint(scriptVar._cellLocation);
+		element[kCellLocation] = fromPoint(scriptVar._cellLocation);
 
 		scriptVarList.push_back(element);
 	}
@@ -1439,7 +1406,7 @@ void _PlatformConfiguration::defaultScriptVariables()
 		variable._label = "EDL timing (ms)";
 		variable._tooltip = "Configurable Boot to EDL timing in milliseconds";
 		variable._type = eIntegerType;
-		variable._defaultValue = 1300;
+		variable._defaultValue = 1300u;
 		variable._cellLocation = {0,0};
 
 		_scriptVariables.insert({variable._name, variable});
@@ -1448,7 +1415,7 @@ void _PlatformConfiguration::defaultScriptVariables()
 		variable._label = "UEFI timing (ms)";
 		variable._tooltip = "Configurable Boot to UEFI timing in milliseconds";
 		variable._type = eIntegerType;
-		variable._defaultValue = 8000;
+		variable._defaultValue = 8000u;
 		variable._cellLocation = {0,1};
 
 		_scriptVariables.insert({variable._name, variable});
@@ -1457,7 +1424,7 @@ void _PlatformConfiguration::defaultScriptVariables()
 		variable._label = "Fastboot timing (ms)";
 		variable._tooltip = "Configurable Boot to fastboot timing in milliseconds";
 		variable._type = eIntegerType;
-		variable._defaultValue = 8000;
+		variable._defaultValue = 8000u;
 		variable._cellLocation = {1,0};
 
 		_scriptVariables.insert({variable._name, variable});
@@ -1466,16 +1433,16 @@ void _PlatformConfiguration::defaultScriptVariables()
 
 PlatformConfiguration TACPlatformEntry::getConfiguration()
 {
-	if (_platformConfiguration.isNull())
+	if (!_platformConfiguration)
 	{
-		if (_platformEntry.isNull() == false)
+		if (_platformEntry != nullptr)
 		{
 			const std::string& platformPath = _platformEntry->_path;
 
 			if (platformPath.empty() == false)
 			{
 				_platformConfiguration = _PlatformConfiguration::openPlatformConfiguration(platformPath);
-				if (_platformConfiguration.isNull() == false)
+				if (_platformConfiguration != nullptr)
 				{
 					AppCore::writeToApplicationLog("TACPlatformEntry::getConfiguration() Platform " + platformPath + " loaded\n");
 				}
@@ -1487,7 +1454,7 @@ PlatformConfiguration TACPlatformEntry::getConfiguration()
 			else
 			{
 				_platformConfiguration = _PlatformConfiguration::createPlatformConfiguration(_platformEntry->_boardtype, 1);
-				if (_platformConfiguration.isNull() == false)
+				if (_platformConfiguration != nullptr)
 				{
 					AppCore::writeToApplicationLog("TACPlatformEntry::getConfiguration() Platform " + platformPath + " created\n");
 				}
@@ -1504,15 +1471,15 @@ PlatformConfiguration TACPlatformEntry::getConfiguration()
 
 void _PlatformConfiguration::cascadeTabDelete(const std::string &deleteMe)
 {
-	Q_UNUSED(deleteMe)
+	(void)deleteMe;
 
-	Q_ASSERT("This should never be executed");
+	assert(false && "This should never be executed");
 }
 
 void _PlatformConfiguration::cascadeTabRename(const std::string &oldName, const std::string &newName)
 {
-	Q_UNUSED(oldName)
-	Q_UNUSED(newName)
+	(void)oldName;
+	(void)newName;
 
-	Q_ASSERT("This should never be executed");
+	assert(false && "This should never be executed");
 }

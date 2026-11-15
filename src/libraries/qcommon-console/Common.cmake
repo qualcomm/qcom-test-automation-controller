@@ -2,15 +2,14 @@
 # SPDX-License-Identifier: BSD-3-Clause
 
 # Include version information
-include(${CMAKE_SOURCE_DIR}/src/libraries/qcommon-console/version.cmake)
+include(${CMAKE_CURRENT_LIST_DIR}/version.cmake)
 
 # Set path variables
-set(QCOMMONCONSOLE ${CMAKE_SOURCE_DIR}/src/libraries/qcommon-console)
+set(QCOMMONCONSOLE ${CMAKE_CURRENT_LIST_DIR})
 set(TACDEV ${CMAKE_SOURCE_DIR}/interfaces/C++/TACDev)
 
 # Common compile definitions
 set(QCOMMONCONSOLE_DEFINITIONS
-    QT_DISABLE_DEPRECATED_UP_TO=0x060900
     QTAC_STATIC
 )
 
@@ -95,7 +94,9 @@ else()
 endif()
 
 # Build paths
-set(BUILDROOT ${CMAKE_SOURCE_DIR}/__Builds/${CONFIGURATION})
+if(NOT DEFINED BUILDROOT)
+    set(BUILDROOT ${CMAKE_BINARY_DIR}/__Builds/${CONFIGURATION})
+endif()
 set(BINPATH ${BUILDROOT}/bin)
 set(STATIC_LIBPATH ${BUILDROOT}/lib)
 
@@ -115,6 +116,4 @@ function(QCommonConsoleSettings target_name)
     if(UNIX AND QCOMMONCONSOLE_LINK_FLAGS)
         target_link_options(${target_name} PRIVATE ${QCOMMONCONSOLE_LINK_FLAGS})
     endif()
-    
-    target_include_directories(${target_name} PRIVATE ${BUILDROOT}/ui/QCommon)
 endfunction()

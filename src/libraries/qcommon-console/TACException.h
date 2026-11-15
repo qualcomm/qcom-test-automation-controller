@@ -1,12 +1,9 @@
 #ifndef TACEXCEPTION_H
 #define TACEXCEPTION_H
-
 // Copyright (c) Qualcomm Technologies, Inc. and/or its subsidiaries.
 // SPDX-License-Identifier: BSD-3-Clause
 
-#include "QCommonConsoleGlobal.h"
-
-#include <QException>
+#include "QTACException.h"
 
 #include <cstdint>
 #include <string>
@@ -18,34 +15,25 @@ const uint32_t TAC_DEVICE_INACTIVE{5};
 const uint32_t TAC_SCRIPT_VARIABLE_NOT_FOUND{6};
 
 class QCOMMONCONSOLE_EXPORT TACException :
-	public QException
+	public QTACException
 {
 public:
-	TACException(uint32_t errorCode, std::string const& message)
+	TACException(uint32_t errorCode, const std::string& message) :
+		QTACException(message, errorCode)
 	{
-		_errorCode = errorCode;
-		_message = message;
 	}
-	~TACException() = default;
 
-	void raise() const
+	~TACException() override = default;
+
+	void raise() const override
 	{
 		throw *this;
 	}
 
-	uint32_t errorCode() const
+	TACException* clone() const override
 	{
-		return _errorCode;
+		return new TACException(*this);
 	}
-
-	std::string getMessage() const
-	{
-		return _message;
-	}
-
-private:
-	std::string             _message;
-	uint32_t					_errorCode;
 };
 
 #endif // TACEXCEPTION_H

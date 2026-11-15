@@ -9,27 +9,24 @@ else()
     set(LIBRARY_NAME QCommonConsole)
 endif()
 
-qt_add_library(${LIBRARY_NAME} STATIC
+add_library(${LIBRARY_NAME} STATIC
     AlpacaDefines.cpp AlpacaDefines.h
     AlpacaDevice.cpp AlpacaDevice.h
     AlpacaScript.cpp AlpacaScript.h
     AlpacaSettings.cpp AlpacaSettings.h
-    IniSettings.cpp IniSettings.h
+    INISettings.cpp INISettings.h
     ConfigurationFile.cpp ConfigurationFile.h
     AlpacaSharedLibrary.cpp AlpacaSharedLibrary.h
     AppCore.cpp AppCore.h
-    BasicColor.cpp BasicColor.h
     Button.cpp Button.h
     CharBit.cpp CharBit.h
     CommandGroup.h
     CommandLineParser.cpp CommandLineParser.h
     CommDevice.cpp CommDevice.h
     ConsoleApplicationEnhancements.cpp ConsoleApplicationEnhancements.h
-    DateCheckFailEvent.h
     DebugBoardType.cpp DebugBoardType.h
     DriveThread.cpp DriveThread.h
     EncryptedString.cpp EncryptedString.h
-    ErrorParameter.h
     FTDIChipset.cpp FTDIChipset.h
     FTDIDevice.cpp FTDIDevice.h
     FTDIPinData.h
@@ -48,18 +45,15 @@ qt_add_library(${LIBRARY_NAME} STATIC
     PlatformConfigurationException.cpp PlatformConfigurationException.h
     PlatformID.cpp PlatformID.h
     PreferencesBase.cpp PreferencesBase.h
+    ProcessUtilities.cpp ProcessUtilities.h
+    QTACException.cpp QTACException.h
     ProtocolInterface.cpp ProtocolInterface.h
     PIC32CXDevice.h PIC32CXDevice.cpp
 	PIC32CXPlatformConfiguration.h PIC32CXPlatformConfiguration.cpp
-	PIC32CXSerialTableModel.h PIC32CXSerialTableModel.cpp
 	PSOCDevice.h PSOCDevice.cpp
 	PSOCPlatformConfiguration.h PSOCPlatformConfiguration.cpp
-	PSOCSerialTableModel.h PSOCSerialTableModel.cpp
     QCommonConsole.cpp QCommonConsole.h
     QCommonConsoleGlobal.h
-    QualcommChartColor.cpp QualcommChartColor.h
-    QualcommColors.h
-    QuitAppEvent.cpp QuitAppEvent.h
     Range.h
     RangedContainer.h
     ReceiveInterface.h
@@ -68,11 +62,9 @@ qt_add_library(${LIBRARY_NAME} STATIC
     SendInterface.h
     SerialPort.cpp SerialPort.h
     SerialPortInfo.cpp SerialPortInfo.h
-    SerialTableModel.h SerialTableModel.cpp
     STM32Device.h STM32Device.cpp
     STM32PinData.h
     STM32PlatformConfiguration.h STM32PlatformConfiguration.cpp
-    StringProof.cpp StringProof.h
     StringUtilities.cpp StringUtilities.h
     SystemInformation.h
     SystemInformationWin.cpp
@@ -104,6 +96,7 @@ qt_add_library(${LIBRARY_NAME} STATIC
 	private/TACSTM32Command.h private/TACSTM32Command.cpp
 	private/TACSTM32DriveThread.h private/TACSTM32DriveThread.cpp
 	private/TACSTM32Protocol.h private/TACSTM32Protocol.cpp
+	private/hidapi.h
     version.h
 )
 
@@ -116,13 +109,19 @@ QCommonConsoleSettings(${LIBRARY_NAME})
 target_compile_definitions(${LIBRARY_NAME} PUBLIC
     QCOMMONCONSOLE_LIBRARY
     QTAC_STATIC
-    QT_DISABLE_DEPRECATED_UP_TO=0x060900
     $<$<CONFIG:Debug>:DEBUG;_DEBUG>
     $<$<NOT:$<CONFIG:Debug>>:NDEBUG;_NDEBUG;RELEASE>
     $<$<PLATFORM_ID:Windows>:FTD2XX_STATIC>
 )
 
-target_link_libraries(${LIBRARY_NAME} PUBLIC
-    ftd2xx
-    hidapi::hidapi
+target_include_directories(${LIBRARY_NAME} PUBLIC
+    ${CMAKE_CURRENT_SOURCE_DIR}
 )
+
+if (TARGET ftd2xx)
+    target_link_libraries(${LIBRARY_NAME} PUBLIC ftd2xx)
+endif()
+
+if (TARGET hidapi::hidapi)
+    target_link_libraries(${LIBRARY_NAME} PUBLIC hidapi::hidapi)
+endif()

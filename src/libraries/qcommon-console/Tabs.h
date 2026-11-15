@@ -23,13 +23,13 @@ struct QCOMMONCONSOLE_EXPORT Tab
 
 	static HashType makeHash(const Tab& tab);
 
-	static Tab find(HashType hash, Tabs& tabs);
+	static Tab find(HashType hash, const Tabs& tabs);
 	static void addTab(Tab& tab, Tabs& tabs);
 	static void removeTab(HashType hash, Tabs& tabs);
-	static void updateTabName(HashType hash, std::string& name, Tabs& tabs);
+	static void updateTabName(HashType hash, const std::string& name, Tabs& tabs);
 	static void setTabVisible(HashType hash, bool visible, Tabs& tabs);
 
-	static std::vector<std::string> toStringList(Tabs& tabs, bool configurableTabs = true);
+	static std::vector<std::string> toStringList(const Tabs& tabs, bool configurableTabs = true);
 
 	std::string					_name;
 	bool						_userTab{false};

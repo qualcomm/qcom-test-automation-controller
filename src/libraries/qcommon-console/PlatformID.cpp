@@ -7,17 +7,10 @@
 #include "AppCore.h"
 #include "ConsoleApplicationEnhancements.h"
 #include "RangedContainer.h"
+#include "StringUtilities.h"
 #include "USBDescriptors.h"
 
 #include <cctype>
-
-static std::string toLowerCopy(const std::string& value)
-{
-	std::string result{value};
-	for (char& c: result)
-		c = static_cast<char>(std::tolower(static_cast<unsigned char>(c)));
-	return result;
-}
 
 const PlatformID MICRO_EPM_BOARD_ID_SPMV4{1};
 const PlatformID MICRO_EPM_BOARD_ID_EPMV4{2};
@@ -55,6 +48,7 @@ void PlatformContainer::initialize()
 {
 	if (_platformIds.empty())
 	{
+		_platformIds[MICRO_EPM_BOARD_ID_UNKNOWN] = PlatformEntry(new _PlatformEntry(MICRO_EPM_BOARD_ID_UNKNOWN, ePSOC, "MicroEPM Generic", tacConfigRoot() + "TAC_PSOC_7.tcnf"));
 		_platformIds[MICRO_EPM_BOARD_ID_SPMV4] = PlatformEntry(new _PlatformEntry(MICRO_EPM_BOARD_ID_SPMV4, ePSOC, "SPM V4"));
 		_platformIds[MICRO_EPM_BOARD_ID_EPMV4] = PlatformEntry(new _PlatformEntry(MICRO_EPM_BOARD_ID_EPMV4, ePSOC, "EPM V4"));
 		_platformIds[MICRO_EPM_BOARD_ID_ALPACA] = PlatformEntry(new _PlatformEntry(MICRO_EPM_BOARD_ID_ALPACA, ePSOC, "Alpaca V1"));
@@ -173,15 +167,12 @@ PlatformID PlatformContainer::fromUSBDescriptor
 )
 {
 	PlatformID result{MICRO_EPM_BOARD_ID_UNKNOWN};
-	std::string descriptor{toLowerCopy(usbDescriptor)};
 
 	for (const auto& [id, platformEntry]: _platformIds)
 	{
-		std::string candidate = toLowerCopy(platformEntry->_usbDescriptor);
-		if (candidate == descriptor)
+		if (equalsIgnoreCase(platformEntry->_usbDescriptor, usbDescriptor))
 		{
 			result = platformEntry->_platformID;
-
 			break;
 		}
 	}

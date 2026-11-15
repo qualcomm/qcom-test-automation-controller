@@ -18,6 +18,9 @@ class QCOMMONCONSOLE_EXPORT TACPSOCCoder :
 	public FrameCoder
 {
 public:
+	TACPSOCCoder(const TACPSOCCoder&) = delete;
+	TACPSOCCoder& operator=(const TACPSOCCoder&) = delete;
+
 	TACPSOCCoder();
 	virtual ~TACPSOCCoder();
 
@@ -28,7 +31,6 @@ public:
 	virtual std::string encode(const std::string& encodeMe, const Arguments& arguments) override;
 
 private:
-	Q_DISABLE_COPY(TACPSOCCoder)
 	std::string					_recieveBuffer;
 };
 

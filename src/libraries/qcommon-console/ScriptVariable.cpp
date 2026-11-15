@@ -2,22 +2,9 @@
 // SPDX-License-Identifier: BSD-3-Clause
 
 #include "ScriptVariable.h"
+#include "StringUtilities.h"
 
 #include <cctype>
-
-static bool equalsCaseInsensitive(const std::string& left, const std::string& right)
-{
-	if (left.size() != right.size())
-		return false;
-
-	for (size_t index = 0; index < left.size(); index++)
-	{
-		if (std::tolower(static_cast<unsigned char>(left[index])) != std::tolower(static_cast<unsigned char>(right[index])))
-			return false;
-	}
-
-	return true;
-}
 
 std::string variableTypeToString(VariableType variableType)
 {

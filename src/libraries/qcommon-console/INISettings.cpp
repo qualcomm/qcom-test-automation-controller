@@ -1,7 +1,9 @@
 // Copyright (c) Qualcomm Technologies, Inc. and/or its subsidiaries.
 // SPDX-License-Identifier: BSD-3-Clause
 
-#include "IniSettings.h"
+#include "INISettings.h"
+#include "AppCore.h"
+#include "StringUtilities.h"
 
 #include <algorithm>
 #include <cctype>
@@ -10,61 +12,52 @@
 #include <fstream>
 #include <sstream>
 
-static std::string trim(const std::string& str)
-{
-	size_t first = str.find_first_not_of(" \t\r\n");
-	if (first == std::string::npos)
-		return "";
-	size_t last = str.find_last_not_of(" \t\r\n");
-	return str.substr(first, (last - first + 1));
-}
-
-IniSettings::Value::Value()
+INISettings::Value::Value()
 	: _val(""), _exists(false)
 {
 }
 
-IniSettings::Value::Value(const std::string& v, bool exists)
+INISettings::Value::Value(const std::string& v, bool exists)
 	: _val(v), _exists(exists)
 {
 }
 
-IniSettings::Value::Value(const char* v)
+INISettings::Value::Value(const char* v)
 	: _val(v ? v : ""), _exists(v != nullptr)
 {
 }
 
-IniSettings::Value::Value(int v)
+INISettings::Value::Value(int v)
 	: _val(std::to_string(v)), _exists(true)
 {
 }
 
-IniSettings::Value::Value(unsigned int v)
+INISettings::Value::Value(unsigned int v)
 	: _val(std::to_string(v)), _exists(true)
 {
 }
 
-IniSettings::Value::Value(int64_t v)
+INISettings::Value::Value(int64_t v)
 	: _val(std::to_string(v)), _exists(true)
 {
 }
 
-IniSettings::Value::Value(double v)
+INISettings::Value::Value(double v)
 	: _val(std::to_string(v)), _exists(true)
 {
 }
 
-IniSettings::Value::Value(bool v)
+INISettings::Value::Value(bool v)
 	: _val(v ? "true" : "false"), _exists(true)
 {
 }
 
-std::string IniSettings::Value::toString() const
+const std::string& INISettings::Value::toString() const
 {
 	return _val;
 }
 
-int IniSettings::Value::toInt(int defaultVal) const
+int INISettings::Value::toInt(int defaultVal) const
 {
 	if (!_exists || _val.empty())
 		return defaultVal;
@@ -78,7 +71,7 @@ int IniSettings::Value::toInt(int defaultVal) const
 	}
 }
 
-unsigned int IniSettings::Value::toUInt(unsigned int defaultVal) const
+unsigned int INISettings::Value::toUInt(unsigned int defaultVal) const
 {
 	if (!_exists || _val.empty())
 		return defaultVal;
@@ -92,7 +85,7 @@ unsigned int IniSettings::Value::toUInt(unsigned int defaultVal) const
 	}
 }
 
-int64_t IniSettings::Value::toLongLong(int64_t defaultVal) const
+int64_t INISettings::Value::toLongLong(int64_t defaultVal) const
 {
 	if (!_exists || _val.empty())
 		return defaultVal;
@@ -106,7 +99,7 @@ int64_t IniSettings::Value::toLongLong(int64_t defaultVal) const
 	}
 }
 
-double IniSettings::Value::toDouble(double defaultVal) const
+double INISettings::Value::toDouble(double defaultVal) const
 {
 	if (!_exists || _val.empty())
 		return defaultVal;
@@ -120,39 +113,30 @@ double IniSettings::Value::toDouble(double defaultVal) const
 	}
 }
 
-double IniSettings::Value::toReal(double defaultVal) const
+double INISettings::Value::toReal(double defaultVal) const
 {
 	return toDouble(defaultVal);
 }
 
-bool IniSettings::Value::toBool(bool defaultVal) const
+bool INISettings::Value::toBool(bool defaultVal) const
 {
-	if (!_exists || _val.empty())
+	if (!_exists)
 		return defaultVal;
 
-	std::string s = _val;
-	for (char &c : s)
-		c = static_cast<char>(std::tolower(static_cast<unsigned char>(c)));
-
-	if (s == "true" || s == "1" || s == "yes" || s == "on")
-		return true;
-	if (s == "false" || s == "0" || s == "no" || s == "off")
-		return false;
-
-	return defaultVal;
+	return ::toBool(_val, defaultVal);
 }
 
-bool IniSettings::Value::isNull() const
+bool INISettings::Value::isNull() const
 {
 	return !_exists;
 }
 
-bool IniSettings::Value::isValid() const
+bool INISettings::Value::isValid() const
 {
 	return _exists;
 }
 
-std::string IniSettings::defaultSettingsPath(const std::string& organization, const std::string& appName)
+std::string INISettings::defaultSettingsPath(const std::string& organization, const std::string& appName)
 {
 	std::string org = organization.empty() ? "Qualcomm" : organization;
 	std::string app = appName.empty() ? "Alpaca" : appName;
@@ -184,28 +168,28 @@ std::string IniSettings::defaultSettingsPath(const std::string& organization, co
 #endif
 }
 
-IniSettings::IniSettings()
+INISettings::INISettings()
 	: _appName("Alpaca"), _organization("Qualcomm")
 {
 	_filePath = defaultSettingsPath(_organization, _appName);
 	load();
 }
 
-IniSettings::IniSettings(const std::string& appName)
+INISettings::INISettings(const std::string& appName)
 	: _appName(appName.empty() ? "Alpaca" : appName), _organization("Qualcomm")
 {
 	_filePath = defaultSettingsPath(_organization, _appName);
 	load();
 }
 
-IniSettings::IniSettings(const std::string& organization, const std::string& appName)
+INISettings::INISettings(const std::string& organization, const std::string& appName)
 	: _appName(appName.empty() ? "Alpaca" : appName), _organization(organization.empty() ? "Qualcomm" : organization)
 {
 	_filePath = defaultSettingsPath(_organization, _appName);
 	load();
 }
 
-IniSettings::~IniSettings()
+INISettings::~INISettings()
 {
 	if (_dirty)
 	{
@@ -213,7 +197,7 @@ IniSettings::~IniSettings()
 	}
 }
 
-void IniSettings::setFilePath(const std::string& path)
+void INISettings::setFilePath(const std::string& path)
 {
 	if (_dirty)
 		save();
@@ -221,24 +205,24 @@ void IniSettings::setFilePath(const std::string& path)
 	load();
 }
 
-std::string IniSettings::filePath() const
+const std::string& INISettings::filePath() const
 {
 	return _filePath;
 }
 
-void IniSettings::beginGroup(const std::string& group)
+void INISettings::beginGroup(const std::string& group)
 {
 	if (!group.empty())
 		_groupStack.push_back(group);
 }
 
-void IniSettings::endGroup()
+void INISettings::endGroup()
 {
 	if (!_groupStack.empty())
 		_groupStack.pop_back();
 }
 
-std::string IniSettings::currentGroup() const
+std::string INISettings::currentGroup() const
 {
 	std::string grp;
 	for (size_t i = 0; i < _groupStack.size(); ++i)
@@ -249,7 +233,7 @@ std::string IniSettings::currentGroup() const
 	return grp;
 }
 
-std::string IniSettings::fullKey(const std::string& key) const
+std::string INISettings::fullKey(const std::string& key) const
 {
 	std::string k = key;
 	if (_inArray && !_arrayPrefix.empty())
@@ -259,7 +243,7 @@ std::string IniSettings::fullKey(const std::string& key) const
 	return k;
 }
 
-void IniSettings::setValue(const std::string& key, const std::string& value)
+void INISettings::setValue(const std::string& key, const std::string& value)
 {
 	std::string grp = currentGroup();
 	std::string k = fullKey(key);
@@ -277,37 +261,37 @@ void IniSettings::setValue(const std::string& key, const std::string& value)
 	}
 }
 
-void IniSettings::setValue(const std::string& key, const char* value)
+void INISettings::setValue(const std::string& key, const char* value)
 {
 	setValue(key, std::string(value ? value : ""));
 }
 
-void IniSettings::setValue(const std::string& key, int value)
+void INISettings::setValue(const std::string& key, int value)
 {
 	setValue(key, std::to_string(value));
 }
 
-void IniSettings::setValue(const std::string& key, unsigned int value)
+void INISettings::setValue(const std::string& key, unsigned int value)
 {
 	setValue(key, std::to_string(value));
 }
 
-void IniSettings::setValue(const std::string& key, int64_t value)
+void INISettings::setValue(const std::string& key, int64_t value)
 {
 	setValue(key, std::to_string(value));
 }
 
-void IniSettings::setValue(const std::string& key, double value)
+void INISettings::setValue(const std::string& key, double value)
 {
 	setValue(key, std::to_string(value));
 }
 
-void IniSettings::setValue(const std::string& key, bool value)
+void INISettings::setValue(const std::string& key, bool value)
 {
 	setValue(key, value ? std::string("true") : std::string("false"));
 }
 
-IniSettings::Value IniSettings::value(const std::string& key, const Value& defaultValue) const
+INISettings::Value INISettings::value(const std::string& key, const Value& defaultValue) const
 {
 	std::string grp = currentGroup();
 	std::string k = fullKey(key);
@@ -325,7 +309,7 @@ IniSettings::Value IniSettings::value(const std::string& key, const Value& defau
 	return defaultValue;
 }
 
-void IniSettings::remove(const std::string& key)
+void INISettings::remove(const std::string& key)
 {
 	std::string grp = currentGroup();
 	auto secIt = _sections.find(grp);
@@ -348,12 +332,12 @@ void IniSettings::remove(const std::string& key)
 	}
 }
 
-bool IniSettings::contains(const std::string& key) const
+bool INISettings::contains(const std::string& key) const
 {
 	return value(key).isValid();
 }
 
-int IniSettings::beginReadArray(const std::string& prefix)
+int INISettings::beginReadArray(const std::string& prefix)
 {
 	_arrayPrefix = prefix;
 	_inArray = true;
@@ -361,7 +345,7 @@ int IniSettings::beginReadArray(const std::string& prefix)
 	return value(_arrayPrefix + "/size", 0).toInt();
 }
 
-void IniSettings::beginWriteArray(const std::string& prefix, int size)
+void INISettings::beginWriteArray(const std::string& prefix, int size)
 {
 	_arrayPrefix = prefix;
 	_inArray = true;
@@ -372,35 +356,48 @@ void IniSettings::beginWriteArray(const std::string& prefix, int size)
 	}
 }
 
-void IniSettings::setArrayIndex(int i)
+void INISettings::setArrayIndex(int i)
 {
 	_arrayIndex = i;
 }
 
-void IniSettings::endArray()
+void INISettings::endArray()
 {
 	_inArray = false;
 	_arrayPrefix.clear();
 	_arrayIndex = -1;
 }
 
-void IniSettings::sync()
+void INISettings::sync()
 {
 	if (_dirty)
 		save();
 }
 
-void IniSettings::load()
+void INISettings::load()
 {
 	_sections.clear();
 	_dirty = false;
 
-	if (_filePath.empty() || !std::filesystem::exists(_filePath))
+	if (_filePath.empty())
 		return;
+
+	std::error_code ec;
+	if (!std::filesystem::exists(_filePath, ec))
+	{
+		if (ec)
+		{
+			AppCore::writeToApplicationLogLine("INISettings::load: exists() error for '" + _filePath + "': " + ec.message());
+		}
+		return;
+	}
 
 	std::ifstream file(_filePath);
 	if (!file.is_open())
+	{
+		AppCore::writeToApplicationLogLine("INISettings::load: unable to open file: '" + _filePath + "'");
 		return;
+	}
 
 	std::string line;
 	std::string currentSec;
@@ -428,7 +425,7 @@ void IniSettings::load()
 	}
 }
 
-void IniSettings::save()
+void INISettings::save()
 {
 	if (_filePath.empty())
 		return;
@@ -438,12 +435,20 @@ void IniSettings::save()
 		std::filesystem::path p(_filePath);
 		if (p.has_parent_path())
 		{
-			std::filesystem::create_directories(p.parent_path());
+			std::error_code ec;
+			std::filesystem::create_directories(p.parent_path(), ec);
+			if (ec)
+			{
+				AppCore::writeToApplicationLogLine("INISettings::save: create_directories failed for '" + p.parent_path().string() + "': " + ec.message());
+			}
 		}
 
 		std::ofstream file(_filePath, std::ios::trunc);
 		if (!file.is_open())
+		{
+			AppCore::writeToApplicationLogLine("INISettings::save: failed to open '" + _filePath + "' for writing");
 			return;
+		}
 
 		// Write global/empty section first
 		auto emptySec = _sections.find("");
@@ -472,8 +477,8 @@ void IniSettings::save()
 
 		_dirty = false;
 	}
-	catch (...)
+	catch (const std::exception& e)
 	{
-		// Silently catch filesystem exceptions
+		AppCore::writeToApplicationLogLine("INISettings::save: exception writing '" + _filePath + "': " + e.what());
 	}
 }

@@ -8,9 +8,6 @@
 // QCommon
 #include "SendInterface.h"
 
-// Qt
-#include <QObject>
-
 #include <string>
 
 class ProtocolInterface;
@@ -24,6 +21,9 @@ public:
 	FrameCoder() = default;
 	virtual ~FrameCoder() = default;
 
+	FrameCoder(const FrameCoder&) = delete;
+	FrameCoder& operator=(const FrameCoder&) = delete;
+
 	virtual void reset();
 
 	void setupCallbackFunctions(ProtocolInterface* userData, FrameCompleteFunc frameFunc, BadFrameFunc badFrameFunc);
@@ -32,8 +32,6 @@ public:
 	virtual std::string encode(const std::string& encodeMe, const Arguments& arguments);
 
 protected:
-	Q_DISABLE_COPY(FrameCoder)
-
 	std::string					_frame;
 
 	ProtocolInterface*			_protocolInterface{nullptr};

@@ -2,48 +2,18 @@
 // SPDX-License-Identifier: BSD-3-Clause
 
 #include "EncryptedString.h"
+#include "StringUtilities.h"
 
 #include <cassert>
-#include <cstdio>
-#include <cstdlib>
 
 std::string EncryptedString::_key;
-
-static std::string hexDecode(const std::string& hexString)
-{
-	std::string result;
-
-	for (size_t index = 0; index + 1 < hexString.size(); index += 2)
-	{
-		std::string byteString = hexString.substr(index, 2);
-		result.push_back(static_cast<char>(std::strtoul(byteString.c_str(), nullptr, 16)));
-	}
-
-	return result;
-}
-
-static std::string hexEncode(const std::string& rawString)
-{
-	std::string result;
-
-	for (const auto& rawChar: rawString)
-	{
-		char buffer[3];
-
-		std::snprintf(buffer, sizeof(buffer), "%02x", static_cast<unsigned char>(rawChar));
-
-		result += buffer;
-	}
-
-	return result;
-}
 
 EncryptedString::EncryptedString
 (
 	const std::string& encryptedString
 )
 {
-	_encryptedString = hexDecode(encryptedString);
+	_encryptedString = fromHexString(encryptedString);
 }
 
 EncryptedString::EncryptedString(const EncryptedString &copyMe)
@@ -76,7 +46,7 @@ std::string EncryptedString::encode
 			encoderIndex = 0;
 	}
 
-	return hexEncode(result);
+	return toHexString(result, false);
 }
 
 std::string EncryptedString::decode() const

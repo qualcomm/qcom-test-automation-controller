@@ -3,11 +3,12 @@
 
 #include "SystemInformation.h"
 #include "SystemUsername.h"
+#include "AppCore.h"
 
 #include <cstdio>
 #include <string>
 
-#if defined(_WIN32) || defined(Q_OS_WIN)
+#if defined(_WIN32) || defined(_WIN64)
 // windows
 #include <windows.h>
 #include <lmcons.h>
@@ -43,7 +44,7 @@ std::string GetLastErrorAsString()
 {
 	std::string result;
 
-#if defined(_WIN32) || defined(Q_OS_WIN)
+#if defined(_WIN32) || defined(_WIN64)
 	DWORD errorMessageID = ::GetLastError();
 	if(errorMessageID == 0) {
 		return result;
@@ -65,12 +66,17 @@ std::string SystemInformation::computerName()
 {
 	if (_computerName.empty())
 	{
-#if defined(_WIN32) || defined(Q_OS_WIN)
+#if defined(_WIN32) || defined(_WIN64)
 		char temp[CNLEN + 1];
 		DWORD tempLen = sizeof(temp);
-		GetComputerNameA(temp, &tempLen);
-
-		_computerName = std::string(temp);
+		if (GetComputerNameA(temp, &tempLen))
+		{
+			_computerName = std::string(temp);
+		}
+		else
+		{
+			AppCore::writeToApplicationLogLine("SystemInformation::computerName failed: " + GetLastErrorAsString());
+		}
 #endif
 	}
 
@@ -91,7 +97,7 @@ std::string SystemInformation::osName()
 {
 	if (_osName.empty())
 	{
-#if defined(_WIN32) || defined(Q_OS_WIN)
+#if defined(_WIN32) || defined(_WIN64)
 		_osName = queryRegistryString(HKEY_LOCAL_MACHINE, "SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion", "ProductName", "unknown");
 		_osVersion = queryRegistryString(HKEY_LOCAL_MACHINE, "SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion", "ReleaseId", "");
 #endif
@@ -104,7 +110,7 @@ std::string SystemInformation::osVersion()
 {
 	if (_osVersion.empty())
 	{
-#if defined(_WIN32) || defined(Q_OS_WIN)
+#if defined(_WIN32) || defined(_WIN64)
 		_osName = queryRegistryString(HKEY_LOCAL_MACHINE, "SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion", "ProductName", "unknown");
 		_osVersion = queryRegistryString(HKEY_LOCAL_MACHINE, "SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion", "ReleaseId", "");
 #endif
@@ -117,7 +123,7 @@ std::string SystemInformation::totalPhysicalMemory()
 {
 	if (_totalPhysicalMemory.empty())
 	{
-#if defined(_WIN32) || defined(Q_OS_WIN)
+#if defined(_WIN32) || defined(_WIN64)
 		ULONGLONG memoryInKilobytes;
 
 		if (::GetPhysicallyInstalledSystemMemory(&memoryInKilobytes) != FALSE)
@@ -129,6 +135,7 @@ std::string SystemInformation::totalPhysicalMemory()
 		}
 		else
 		{
+			AppCore::writeToApplicationLogLine("SystemInformation::totalPhysicalMemory failed: " + GetLastErrorAsString());
 			_totalPhysicalMemory = "unknown";
 		}
 #endif
@@ -141,7 +148,7 @@ std::string SystemInformation::totalVirtualMemory()
 {
 	std::string result("Unknown");
 
-#if defined(_WIN32) || defined(Q_OS_WIN)
+#if defined(_WIN32) || defined(_WIN64)
 	ULONGLONG memoryInKilobytes;
 
 	if (::GetPhysicallyInstalledSystemMemory(&memoryInKilobytes) != FALSE)
@@ -150,6 +157,10 @@ std::string SystemInformation::totalVirtualMemory()
 		char memBuf[64];
 		std::snprintf(memBuf, sizeof(memBuf), "%.2f", kiloBytes);
 		result = memBuf;
+	}
+	else
+	{
+		AppCore::writeToApplicationLogLine("SystemInformation::totalVirtualMemory failed: " + GetLastErrorAsString());
 	}
 #endif
 	return result;

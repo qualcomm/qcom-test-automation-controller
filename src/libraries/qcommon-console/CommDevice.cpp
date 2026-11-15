@@ -5,17 +5,17 @@
 
 // QCommon
 #include "AlpacaSettings.h"
-#include "Serial/SerialPreferences.h"
+#include "AppCore.h"
 #include "StringUtilities.h"
-
-// Qt
-#include <QDebug>
 
 #include <filesystem>
 #include <string>
 
-CommDevice::CommDevice() :
-	QObject(nullptr)
+const std::string kCOMSettingsGroup("COMSettings");
+const std::string kDumpCOMPortData("DumpCOMPortData");
+const std::string kDumpCOMPortPath("DumpCOMPortPath");
+
+CommDevice::CommDevice()
 {
 
 }
@@ -41,7 +41,7 @@ bool CommDevice::Open()
 
 		std::string name = _portName;
 		if (name.empty() && !_serialPortInfo.isNull())
-			name = _serialPortInfo.portName().toStdString();
+			name = _serialPortInfo.portName();
 
 		_serialPort->setPortName(name);
 
@@ -53,18 +53,22 @@ bool CommDevice::Open()
 		portSettings._flowControl = SerialFlowControl::NoFlowControl;
 		_serialPort->setSerialPortSettings(portSettings);
 
-		settings.beginGroup(kComSettingsGroup);
-		_logSerialData = settings.value(kDumpComPortData, false).toBool();
+		settings.beginGroup(kCOMSettingsGroup);
+		_logSerialData = settings.value(kDumpCOMPortData, false).toBool();
 
 		if (_logSerialData == true)
 		{
-			std::string path = settings.value(kDumpComPortPath, "").toString();
+			std::string path = settings.value(kDumpCOMPortPath, "").toString();
 			if (path.empty())
 				_logSerialData = false;
 			else
 			{
 				std::error_code ec;
 				std::filesystem::create_directories(path, ec);
+				if (ec)
+				{
+					AppCore::writeToApplicationLogLine("CommDevice: create_directories failed for " + path + ": " + ec.message());
+				}
 
 				path = (std::filesystem::path(path) / ("Serial_" + formatDateTime("%m%d_%H%M%S") + ".ssn")).string();
 				_logSerialPath = path;
@@ -73,7 +77,7 @@ bool CommDevice::Open()
 
 				if (!_logFile.is_open())
 				{
-					qDebug() << "Not able to open serial log file " << path.c_str() << " turning logging off";
+					AppCore::writeToApplicationLogLine("Not able to open serial log file " + path + " turning logging off");
 					_logSerialData = false;
 				}
 			}
@@ -147,8 +151,4 @@ uint64_t CommDevice::Read
 	}
 
 	return bytesAvailable;
-}
-
-void CommDevice::on_ReadyRead()
-{
 }

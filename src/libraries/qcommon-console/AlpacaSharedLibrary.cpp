@@ -49,12 +49,6 @@ bool AlpacaSharedLibrary::initialize
 	return result;
 }
 
-bool AlpacaSharedLibrary::licenseIsValid()
-{
-	// disallow license validation for open-source
-	return _validLicense;
-}
-
 void AlpacaSharedLibrary::setLoggingState(bool state)
 {
 	AppCore* appCore = getAppCore();

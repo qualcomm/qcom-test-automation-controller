@@ -85,11 +85,11 @@ uint32_t _FTDIChipset::getDeviceCount()
 	for (auto& device: _ftdiChipsetList)
 		device->reset();
 
-#ifdef Q_OS_WIN
+#if defined(_WIN32) || defined(_WIN64)
 	windowsTraversal();
 #endif
 
-#ifdef Q_OS_LINUX
+#if defined(__linux__)
 	linuxTraversal();
 #endif
 
@@ -653,7 +653,7 @@ void _FTDIChipset::linuxTraversal()
 
 							if (!serialNumber.empty())
 							{
-								uint portHash = hash(serialNumber);
+								uint32_t portHash = hash(serialNumber);
 								char segment = description.empty() ? '\0' : description.back();
 
 								FTDIChipset ftdiChipset;
@@ -707,8 +707,22 @@ void _FTDIChipset::linuxTraversal()
 					}
 				}
 			}
+			else
+			{
+				AppCore::writeToApplicationLog("FTDI linuxTraversal: FT_GetDeviceInfoList failed: " + _FTDIChipset::ftidStatusToString(ftStatus) + "\n");
+			}
+
+			delete[] devInfoList;
 		}
 	}
+	else
+	{
+		AppCore::writeToApplicationLog("FTDI linuxTraversal: FT_CreateDeviceInfoList failed: " + _FTDIChipset::ftidStatusToString(ftStatus) + "\n");
+	}
+}
+else
+{
+	AppCore::writeToApplicationLog("FTDI linuxTraversal: setCustomVIDPID failed: " + _FTDIChipset::ftidStatusToString(ftStatus) + "\n");
 }
 
 void _FTDIChipset::windowsTraversal()
@@ -717,7 +731,7 @@ void _FTDIChipset::windowsTraversal()
 }
 #endif
 
-#ifdef Q_OS_WIN
+#if defined(_WIN32) || defined(_WIN64)
 void _FTDIChipset::linuxTraversal()
 {
 
@@ -760,7 +774,7 @@ void _FTDIChipset::windowsTraversal()
 
 						if (!serialNumber.empty())
 						{
-							uint portHash = hash(serialNumber);
+							uint32_t portHash = hash(serialNumber);
 							char segment = description.empty() ? '\0' : description.back(); // This is 'r' for Bug Hopper devices
 
 							FTDIChipset ftdiChipset;
@@ -816,7 +830,17 @@ void _FTDIChipset::windowsTraversal()
 					}
 				}
 			}
+			else
+			{
+				AppCore::writeToApplicationLog("FTDI windowsTraversal: FT_GetDeviceInfoList failed: " + _FTDIChipset::ftidStatusToString(ftStatus) + "\n");
+			}
+
+			delete[] devInfoList;
 		}
+	}
+	else
+	{
+		AppCore::writeToApplicationLog("FTDI windowsTraversal: FT_CreateDeviceInfoList failed: " + _FTDIChipset::ftidStatusToString(ftStatus) + "\n");
 	}
 }
 

@@ -5,32 +5,11 @@
 
 // QCommon
 #include "AlpacaSettings.h"
+#include "AppCore.h"
+#include "StringUtilities.h"
 
 #include <cctype>
 #include <filesystem>
-
-static bool equalsCaseInsensitive(const std::string& a, const std::string& b)
-{
-	if (a.size() != b.size())
-		return false;
-	for (size_t i = 0; i < a.size(); ++i)
-	{
-		if (std::tolower(static_cast<unsigned char>(a[i])) != std::tolower(static_cast<unsigned char>(b[i])))
-			return false;
-	}
-	return true;
-}
-
-static int indexOfCaseInsensitive(const std::vector<std::string>& files, const std::string& filePath)
-{
-	for (size_t index = 0; index < files.size(); index++)
-	{
-		if (equalsCaseInsensitive(files[index], filePath))
-			return static_cast<int>(index);
-	}
-
-	return -1;
-}
 
 RecentFiles::RecentFiles
 (
@@ -192,7 +171,13 @@ void RecentFiles::load()
 		{
 			std::error_code ec;
 			if (std::filesystem::exists(recentFile, ec))
+			{
 				_recentFiles.push_back(recentFile);
+			}
+			else if (ec)
+			{
+				AppCore::writeToApplicationLogLine("RecentFiles::read: exists() check error for '" + recentFile + "': " + ec.message());
+			}
 		}
 	}
 

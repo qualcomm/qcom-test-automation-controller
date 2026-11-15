@@ -6,7 +6,7 @@
 
 #include <string>
 
-#ifdef Q_OS_WIN
+#if defined(_WIN32) || defined(_WIN64)
 #include <windows.h>
 #include <winevt.h>
 #pragma comment(lib, "wevtapi.lib")
@@ -14,7 +14,7 @@
 #define TIMEOUT 1000  // 1 second; Set and use in place of INFINITE in EvtNext call
 #endif
 
-#ifdef Q_OS_LINUX
+#if defined(__linux__)
 #include <unistd.h>
 #endif
 
@@ -30,7 +30,7 @@ private:
 	void getUserNameWin();
 	void getUserNameLinux();
 
-#ifdef Q_OS_WINDOWS
+#if defined(_WIN32) || defined(_WIN64)
 	DWORD fetchLatestEvent(EVT_HANDLE hResults);
 	DWORD parseEvent(EVT_HANDLE hEvent);
 #endif

@@ -8,6 +8,7 @@
 #include "Range.h"
 
 #include "ConfigurationFile.h"
+#include <algorithm>
 
 const std::string kPlatformEntries("pins");
 const std::string kTabOrderData("tabs");
@@ -458,7 +459,7 @@ bool _PIC32CXPlatformConfiguration::readConfig(const ConfigurationFile &config)
 			pinData._tabName = ConfigurationFile::getRecordString(pinEntry, kTabName);
 
 		if (pinEntry.find(kRunPriority) != pinEntry.end())
-			pinData._cellLocation = toQPoint(ConfigurationFile::getRecordString(pinEntry, kRunPriority));
+			pinData._cellLocation = toPoint(ConfigurationFile::getRecordString(pinEntry, kRunPriority));
 
 		_pinEntries[pinData._hash] = pinData;
 	}
@@ -486,7 +487,7 @@ void _PIC32CXPlatformConfiguration::writeConfig(ConfigurationFile &config)
 		pic32cxPinData[kCommand] = pinData._pinCommand;
 		pic32cxPinData[kCommmandGroup] = std::to_string(static_cast<int>(pinData._commandGroup));
 		// run_prority indicates cell_location (the location of the PinLED within TAC)
-		pic32cxPinData[kRunPriority] = fromQPoint(pinData._cellLocation);
+		pic32cxPinData[kRunPriority] = fromPoint(pinData._cellLocation);
 		pic32cxPinData[kTabName] = pinData._tabName;
 
 		jsonPlatformPinData.push_back(pic32cxPinData);
@@ -1240,7 +1241,7 @@ void _PIC32CXPlatformConfiguration ::initialize()
 	variable._label = "EDL timing (ms)";
 	variable._tooltip = "Configurable Boot to EDL timing in milliseconds";
 	variable._type = eIntegerType;
-	variable._defaultValue = 1500;
+	variable._defaultValue = 1500u;
 	variable._cellLocation = {0,0};
 
 	_scriptVariables.insert({variable._name, variable});
@@ -1249,7 +1250,7 @@ void _PIC32CXPlatformConfiguration ::initialize()
 	variable._label = "UEFI timing (ms)";
 	variable._tooltip = "Configurable Boot to UEFI timing in milliseconds";
 	variable._type = eIntegerType;
-	variable._defaultValue = 10000;
+	variable._defaultValue = 10000u;
 	variable._cellLocation = {0,1};
 
 	_scriptVariables.insert({variable._name, variable});
@@ -1258,7 +1259,7 @@ void _PIC32CXPlatformConfiguration ::initialize()
 	variable._label = "Fastboot timing (ms)";
 	variable._tooltip = "Configurable Boot to fastboot timing in milliseconds";
 	variable._type = eIntegerType;
-	variable._defaultValue = 10000;
+	variable._defaultValue = 10000u;
 	variable._cellLocation = {1,0};
 
 	_scriptVariables.insert({variable._name, variable});

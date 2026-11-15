@@ -65,9 +65,7 @@ struct FTDIBusData
 
 	static FTDIBusFunction fromString(const std::string& busFunction)
 	{
-		std::string temp{busFunction};
-		for (char& c: temp)
-			c = static_cast<char>(std::toupper(static_cast<unsigned char>(c)));
+		std::string temp = toUpper(busFunction);
 
 		if (temp == "VCP")
 			return eBusFunctionVCP;

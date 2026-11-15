@@ -74,30 +74,36 @@ HashType TACDriveThread::hash()
 
 void TACDriveThread::waitForCompletion()
 {
-	int count{0};
+	std::unique_lock<std::mutex> lock(_completionMutex);
+	bool completed = _completionCv.wait_for(lock, std::chrono::milliseconds(5000), [this]() {
+		return !_waitForCompletion || stopRequested();
+	});
 
-	while (_waitForCompletion)
+	if (!completed || _waitForCompletion)
 	{
-		std::this_thread::sleep_for(std::chrono::milliseconds(100));				// Give our high priority time to process
-		QCoreApplication::processEvents();  // Give the UI a timeslice to update
-
-		if (count++ > 50)
-		{
-			AppCore::writeToApplicationLogLine("Wait for completion timed out.");
-
-			_waitForCompletion = false;
-		}
+		AppCore::writeToApplicationLogLine("Wait for completion timed out.");
+		_waitForCompletion = false;
 	}
 }
 
 void TACDriveThread::setWaitForCompletion()
 {
+	std::lock_guard<std::mutex> lock(_completionMutex);
 	_waitForCompletion = true;
 }
 
 void TACDriveThread::clearWaitForCompletion()
 {
-	_waitForCompletion = false;
+	{
+		std::lock_guard<std::mutex> lock(_completionMutex);
+		_waitForCompletion = false;
+	}
+	_completionCv.notify_all();
+}
+
+void TACDriveThread::onStopping()
+{
+	clearWaitForCompletion();
 }
 
 bool TACDriveThread::waitForCompletionStatus()
@@ -105,48 +111,9 @@ bool TACDriveThread::waitForCompletionStatus()
 	return _waitForCompletion;
 }
 
-bool TACDriveThread::oldFirmware()
+bool TACDriveThread::oldFirmware() const
 {
 	return _oldFirmware;
-}
-
-static std::string trimString(const std::string& s)
-{
-	size_t first = s.find_first_not_of(" \t\r\n");
-	if (first == std::string::npos) return "";
-	size_t last = s.find_last_not_of(" \t\r\n");
-	return s.substr(first, (last - first + 1));
-}
-
-static std::string toLowerString(const std::string& s)
-{
-	std::string res = s;
-	for (char& c : res)
-		c = static_cast<char>(std::tolower(static_cast<unsigned char>(c)));
-	return res;
-}
-
-static bool startsWithCaseInsensitive(const std::string& str, const std::string& prefix)
-{
-	if (str.size() < prefix.size()) return false;
-	for (size_t i = 0; i < prefix.size(); ++i)
-	{
-		if (std::tolower(static_cast<unsigned char>(str[i])) != std::tolower(static_cast<unsigned char>(prefix[i])))
-			return false;
-	}
-	return true;
-}
-
-static bool endsWithCaseInsensitive(const std::string& str, const std::string& suffix)
-{
-	if (str.size() < suffix.size()) return false;
-	size_t offset = str.size() - suffix.size();
-	for (size_t i = 0; i < suffix.size(); ++i)
-	{
-		if (std::tolower(static_cast<unsigned char>(str[offset + i])) != std::tolower(static_cast<unsigned char>(suffix[i])))
-			return false;
-	}
-	return true;
 }
 
 std::string TACDriveThread::decodeCommand
@@ -155,60 +122,60 @@ std::string TACDriveThread::decodeCommand
 	Arguments& args
 )
 {
-	std::string result = trimString(toLowerString(command));
+	std::string result = trim(toLower(command));
 
-	if (endsWithCaseInsensitive(result, " on"))
+	if (endsWith(result, " on", false))
 	{
 		args.push_back(true);
 		result = result.substr(0, result.size() - 3);
 	}
-	else if (endsWithCaseInsensitive(result, " off"))
+	else if (endsWith(result, " off", false))
 	{
 		args.push_back(false);
 		result = result.substr(0, result.size() - 4);
 	}
-	else if (endsWithCaseInsensitive(result, " 1"))
+	else if (endsWith(result, " 1", false))
 	{
 		args.push_back(true);
 		result = result.substr(0, result.size() - 2);
 	}
-	else if (endsWithCaseInsensitive(result, " 0"))
+	else if (endsWith(result, " 0", false))
 	{
 		args.push_back(false);
 		result = result.substr(0, result.size() - 2);
 	}
 
-	if (startsWithCaseInsensitive(result, kSetNameCommand) || startsWithCaseInsensitive(result, "setname"))
+	if (startsWith(result, kSetNameCommand, false) || startsWith(result, "setname", false))
 	{
-		size_t prefixLen = startsWithCaseInsensitive(result, kSetNameCommand) ? kSetNameCommand.size() : std::string("setname").size();
-		result = trimString(result.substr(prefixLen));
+		size_t prefixLen = startsWith(result, kSetNameCommand, false) ? kSetNameCommand.size() : std::string("setname").size();
+		result = trim(result.substr(prefixLen));
 
 		args.push_back(result);
 		result = kSetNameCommand;
 	}
-	else if (startsWithCaseInsensitive(result, kSetButtonAssertTime) || startsWithCaseInsensitive(result, kSetButtonAssertTimeAlias))
+	else if (startsWith(result, kSetButtonAssertTime, false) || startsWith(result, kSetButtonAssertTimeAlias, false))
 	{
-		size_t prefixLen = startsWithCaseInsensitive(result, kSetButtonAssertTime) ? kSetButtonAssertTime.size() : kSetButtonAssertTimeAlias.size();
-		result = trimString(result.substr(prefixLen));
+		size_t prefixLen = startsWith(result, kSetButtonAssertTime, false) ? kSetButtonAssertTime.size() : kSetButtonAssertTimeAlias.size();
+		result = trim(result.substr(prefixLen));
 
 		try {
 			args.push_back(static_cast<uint32_t>(std::stoul(result)));
 		} catch (...) {}
 		result = kSetButtonAssertTime;
 	}
-	else if (startsWithCaseInsensitive(result, kSetPowerKeyDelay) || startsWithCaseInsensitive(result, kSetPowerKeyDelayAlias))
+	else if (startsWith(result, kSetPowerKeyDelay, false) || startsWith(result, kSetPowerKeyDelayAlias, false))
 	{
-		size_t prefixLen = startsWithCaseInsensitive(result, kSetPowerKeyDelay) ? kSetPowerKeyDelay.size() : kSetPowerKeyDelayAlias.size();
-		result = trimString(result.substr(prefixLen));
+		size_t prefixLen = startsWith(result, kSetPowerKeyDelay, false) ? kSetPowerKeyDelay.size() : kSetPowerKeyDelayAlias.size();
+		result = trim(result.substr(prefixLen));
 
 		try {
 			args.push_back(static_cast<uint32_t>(std::stoul(result)));
 		} catch (...) {}
 		result = kSetPowerKeyDelay;
 	}
-	else if (startsWithCaseInsensitive(result, kSetPinCommand))
+	else if (startsWith(result, kSetPinCommand, false))
 	{
-		result = trimString(result.substr(kSetPinCommand.size()));
+		result = trim(result.substr(kSetPinCommand.size()));
 
 		try {
 			args.push_back(static_cast<uint32_t>(std::stoul(result)));
@@ -302,32 +269,32 @@ std::string TACDriveThread::hardwareVersionString()
 	return PlatformContainer::toString(_platformID);
 }
 
-std::string TACDriveThread::firmwareVersion()
+const std::string& TACDriveThread::firmwareVersion() const
 {
 	return _firmwareString;
 }
 
-uint TACDriveThread::majorVersion()
+uint32_t TACDriveThread::majorVersion() const
 {
 	return _firmwareMajor;
 }
 
-uint TACDriveThread::chipVersion()
+uint32_t TACDriveThread::chipVersion() const
 {
 	return _firmwareChip;
 }
 
-uint TACDriveThread::minorVersion()
+uint32_t TACDriveThread::minorVersion() const
 {
 	return _firmwareMinor;
 }
 
-uint TACDriveThread::revisionVersion()
+uint32_t TACDriveThread::revisionVersion() const
 {
 	return _firmwareRevision;
 }
 
-std::string TACDriveThread::name() const
+const std::string& TACDriveThread::name() const
 {
 	return _name;
 }
@@ -337,7 +304,7 @@ void TACDriveThread::setName(const std::string &newName)
 	_name = newName;
 }
 
-std::string TACDriveThread::portName() const
+const std::string& TACDriveThread::portName() const
 {
 	return _portName;
 }
@@ -347,7 +314,7 @@ void TACDriveThread::setPortName(const std::string &portName)
 	_portName = portName;
 }
 
-std::string TACDriveThread::description() const
+const std::string& TACDriveThread::description() const
 {
 	return _description;
 }
@@ -357,7 +324,7 @@ void TACDriveThread::setDescription(const std::string &description)
 	_description = description;
 }
 
-std::string TACDriveThread::serialNumber() const
+const std::string& TACDriveThread::serialNumber() const
 {
 	return _serialNumber;
 }
@@ -367,12 +334,12 @@ void TACDriveThread::setSerialNumber(const std::string &serialNumber)
 	_serialNumber = serialNumber;
 }
 
-std::string TACDriveThread::uuid()
+const std::string& TACDriveThread::uuid() const
 {
 	return _uuid;
 }
 
-std::string TACDriveThread::macAddress()
+const std::string& TACDriveThread::macAddress() const
 {
 	return _macAddress;
 }
@@ -459,19 +426,17 @@ void TACDriveThread::timeStampLogMessage
 	std::string& timeStampMe
 )
 {
-	static uint64_t lastTimeStamp{0};
-
-	if (lastTimeStamp == 0)
+	if (_lastTimeStamp == 0)
 	{
-		lastTimeStamp = tickCount();
+		_lastTimeStamp = tickCount();
 	}
 
 	uint64_t current = tickCount();
-	timeStampMe += "Time: " + std::to_string(current) + " elapsed: " + std::to_string(current - lastTimeStamp) + " (ms)";
-	lastTimeStamp = current;
+	timeStampMe += "Time: " + std::to_string(current) + " elapsed: " + std::to_string(current - _lastTimeStamp) + " (ms)";
+	_lastTimeStamp = current;
 }
 
-void TACDriveThread::setThreadDelay(const uint delay)
+void TACDriveThread::setThreadDelay(const uint32_t delay)
 {
 	_delay = delay;
 }

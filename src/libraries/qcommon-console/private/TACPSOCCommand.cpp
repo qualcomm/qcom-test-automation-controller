@@ -7,22 +7,14 @@
 // QCommon
 #include "ReceiveInterface.h"
 #include "SendInterface.h"
+#include "StringUtilities.h"
 
-// Qt
-#include <QtGlobal>
-
+#include <cassert>
 #include <cstdio>
 #include <stdexcept>
 #include <string>
 
 const uint16_t kMaxI2CPins(8);
-
-static std::string hexByteString(uint32_t val)
-{
-	char buf[16];
-	std::snprintf(buf, sizeof(buf), "0x%02x", val & 0xff);
-	return std::string(buf);
-}
 
 TACPSOCCommand::TACPSOCCommand
 (
@@ -33,8 +25,8 @@ TACPSOCCommand::TACPSOCCommand
 	_sender(sender),
 	_ready(false)
 {
-	Q_ASSERT(_receiver != nullptr);
-	Q_ASSERT(_sender != nullptr);
+	assert(_receiver != nullptr);
+	assert(_sender != nullptr);
 
 	_ready = sender->ready();
 }
@@ -103,8 +95,8 @@ void TACPSOCCommand::i2CReadRegister
 	if (reg > 0xff)
 		throw std::out_of_range("Error: invalid register");
 
-	std::string addrString = hexByteString(addr);
-	std::string regString = hexByteString(reg);
+	std::string addrString = "0x" + toHexByte(static_cast<uint8_t>(addr), false);
+	std::string regString = "0x" + toHexByte(static_cast<uint8_t>(reg), false);
 
 	Arguments args;
 
@@ -133,9 +125,9 @@ void TACPSOCCommand::i2CWriteRegister
 	if (data > 0xff)
 		throw std::out_of_range("Error: invalid data");
 
-	std::string addrString = hexByteString(addr);
-	std::string regString = hexByteString(reg);
-	std::string dataString = hexByteString(data);
+	std::string addrString = "0x" + toHexByte(static_cast<uint8_t>(addr), false);
+	std::string regString = "0x" + toHexByte(static_cast<uint8_t>(reg), false);
+	std::string dataString = "0x" + toHexByte(static_cast<uint8_t>(data), false);
 
 	Arguments args;
 

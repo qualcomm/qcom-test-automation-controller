@@ -17,16 +17,9 @@
 class QCOMMONCONSOLE_EXPORT TACPIC32CXDriveThread :
 	public TACDriveThread
 {
-	Q_OBJECT
-
 public:
-	TACPIC32CXDriveThread(uint hash);
+	TACPIC32CXDriveThread(uint32_t hash);
 	~TACPIC32CXDriveThread();
-
-	std::string locked()
-	{
-		return std::string();
-	}
 
 	virtual void run() override;
 
@@ -57,20 +50,16 @@ public:
 protected:
 	bool openSerialDevice();
 
-protected slots:
 	void handleError(SerialPortError error);
-	void on_readyRead();
 
 private:
 	std::string serialPortError();
 	bool readSerialData();
 
-	static bool						_initialized;
 	bool							_connected{false};
 	TACPIC32CXProtocol				_tacProtocol;
 	SerialPortInfo					_tacPortInfo;
 	SerialPort*						_serialPort{nullptr};
-	bool							_readyRead{false};
 
 	std::string						_serialBuffer;
 

@@ -4,21 +4,13 @@
 #include "USBDescriptors.h"
 
 // QCommonConsole
+#include "AppCore.h"
 #include "ConsoleApplicationEnhancements.h"
 #include "Range.h"
 #include "StringUtilities.h"
 
 #include <cctype>
-
-static std::string toLowerCopy(const std::string& value)
-{
-	std::string result{value};
-
-	for (char& c: result)
-		c = static_cast<char>(std::tolower(static_cast<unsigned char>(c)));
-
-	return result;
-}
+#include <filesystem>
 
 // Parameters in the JSON TAC Configuration
 const std::string kModifyDate("modification_date");
@@ -90,11 +82,9 @@ PlatformID USBDescriptors::getPlatformId(const std::string& usbDescriptor)
 {
 	PlatformID result{0};
 
-	std::string lowerUsbDescriptor = toLowerCopy(usbDescriptor);
-
 	for (const auto& entry: _descriptorList)
 	{
-		if (lowerUsbDescriptor.find(toLowerCopy(entry._usbDescriptor)) != std::string::npos)
+		if (contains(usbDescriptor, entry._usbDescriptor, false))
 		{
 			result = entry._platformID;
 			break;
@@ -120,6 +110,7 @@ bool USBDescriptors::load(const std::string& filePath)
 	if (!config.load(filePath))
 	{
 		_lastError = "Unable to open platform configuration file " + filePath;
+		AppCore::writeToApplicationLogLine("USBDescriptors::load error: " + _lastError);
 		return false;
 	}
 
@@ -131,7 +122,13 @@ bool USBDescriptors::save(const std::string &filePath)
 {
 	ConfigurationFile config;
 	writeConfig(config);
-	return config.save(filePath, true);
+	bool success = config.save(filePath, true);
+	if (!success)
+	{
+		_lastError = "Unable to save configuration to " + filePath;
+		AppCore::writeToApplicationLogLine("USBDescriptors::save error: " + _lastError);
+	}
+	return success;
 }
 
 bool USBDescriptors::readConfig(const ConfigurationFile& config)
@@ -170,7 +167,20 @@ bool USBDescriptors::readConfig(const ConfigurationFile& config)
 					usbDescriptor._revision = ConfigurationFile::getRecordUInt(catalogData, kRevisionNumber);
 
 				if (catalogData.find(kConfigFilePath) != catalogData.end())
-					usbDescriptor._configurationFilePath = ConfigurationFile::getRecordString(catalogData, kConfigFilePath);
+				{
+					std::string rawPath = ConfigurationFile::getRecordString(catalogData, kConfigFilePath);
+					std::error_code ec;
+					if (!std::filesystem::exists(rawPath, ec) || ec)
+					{
+						std::string filename = std::filesystem::path(rawPath).filename().string();
+						std::string resolved = tacConfigRoot() + filename;
+						if (std::filesystem::exists(resolved, ec) && !ec)
+						{
+							rawPath = resolved;
+						}
+					}
+					usbDescriptor._configurationFilePath = rawPath;
+				}
 
 #if defined(__linux__) || defined(Q_OS_LINUX)
 				usbDescriptor._configurationFilePath = expandPath(usbDescriptor._configurationFilePath);

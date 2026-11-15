@@ -10,6 +10,7 @@
 #include "PlatformConfigurationException.h"
 #include "StringUtilities.h"
 
+#include <algorithm>
 #include <cstdint>
 #include <string>
 
@@ -238,7 +239,7 @@ void _FT232HPlatformConfiguration::initialize()
 	variable._label = "EDL timing (ms)";
 	variable._tooltip = "Configurable Boot to EDL timing in milliseconds";
 	variable._type = eIntegerType;
-	variable._defaultValue = 100;
+	variable._defaultValue = 100u;
 	variable._cellLocation = {0,0};
 
 	_scriptVariables.insert({variable._name, variable});
@@ -247,7 +248,7 @@ void _FT232HPlatformConfiguration::initialize()
 	variable._label = "Power on delay (ms)";
 	variable._tooltip = "Configurable power on delay in milliseconds";
 	variable._type = eIntegerType;
-	variable._defaultValue = 100;
+	variable._defaultValue = 100u;
 	variable._cellLocation = {1,0};
 
 	_scriptVariables.insert({variable._name, variable});
@@ -939,7 +940,7 @@ bool _FT232HPlatformConfiguration::readConfig(const ConfigurationFile& config)
 					std::string pointString = ConfigurationFile::getRecordString(pinEntry, kRunPriority);
 					if (pointString.size() > 0)
 					{
-						std::pair<int, int> point = toQPoint(pointString);
+						std::pair<int, int> point = toPoint(pointString);
 						if (point.first >= 0 && point.second >= 0)
 							pinData._cellLocation = point;
 					}
@@ -997,7 +998,7 @@ void _FT232HPlatformConfiguration::writeConfig(ConfigurationFile& config)
 		pinData[kInverted] = pinEntry._inverted ? "true" : "false";
 		pinData[kCommand] = pinEntry._pinCommand;
 		pinData[kCommandGroup] = std::to_string(static_cast<int>(pinEntry._commandGroup));
-		pinData[kRunPriority] = fromQPoint(pinEntry._cellLocation);
+		pinData[kRunPriority] = fromPoint(pinEntry._cellLocation);
 		pinData[kTabName] = pinEntry._tabName;
 
 		pinsArray.push_back(pinData);

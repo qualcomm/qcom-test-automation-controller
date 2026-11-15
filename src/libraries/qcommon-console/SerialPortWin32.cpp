@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: BSD-3-Clause
 
 #include "SerialPortWin32.h"
+#include "AppCore.h"
 
 #include <chrono>
 #include <thread>
@@ -73,6 +74,7 @@ bool SerialPortWin32::open(const std::string& portName)
 			_lastError = SerialPortError::OpenError;
 
 		_lastErrorString = "Failed to open serial port " + _portName + " (Win32 error: " + std::to_string(err) + ")";
+		AppCore::writeToApplicationLogLine(_lastErrorString);
 		return false;
 	}
 
@@ -99,7 +101,8 @@ bool SerialPortWin32::configureCommPort()
 	if (!GetCommState(_handle, &dcb))
 	{
 		_lastError = SerialPortError::UnsupportedOperationError;
-		_lastErrorString = "GetCommState failed (Win32 error: " + std::to_string(GetLastError()) + ")";
+		_lastErrorString = "GetCommState failed on " + _portName + " (Win32 error: " + std::to_string(GetLastError()) + ")";
+		AppCore::writeToApplicationLogLine(_lastErrorString);
 		return false;
 	}
 
@@ -180,7 +183,8 @@ bool SerialPortWin32::configureCommPort()
 	if (!SetCommState(_handle, &dcb))
 	{
 		_lastError = SerialPortError::UnsupportedOperationError;
-		_lastErrorString = "SetCommState failed (Win32 error: " + std::to_string(GetLastError()) + ")";
+		_lastErrorString = "SetCommState failed on " + _portName + " (Win32 error: " + std::to_string(GetLastError()) + ")";
+		AppCore::writeToApplicationLogLine(_lastErrorString);
 		return false;
 	}
 
@@ -194,7 +198,8 @@ bool SerialPortWin32::configureCommPort()
 	if (!SetCommTimeouts(_handle, &timeouts))
 	{
 		_lastError = SerialPortError::UnsupportedOperationError;
-		_lastErrorString = "SetCommTimeouts failed (Win32 error: " + std::to_string(GetLastError()) + ")";
+		_lastErrorString = "SetCommTimeouts failed on " + _portName + " (Win32 error: " + std::to_string(GetLastError()) + ")";
+		AppCore::writeToApplicationLogLine(_lastErrorString);
 		return false;
 	}
 
@@ -312,7 +317,8 @@ int64_t SerialPortWin32::write(const char* data, size_t size)
 	if (!WriteFile(_handle, data, static_cast<DWORD>(size), &bytesWritten, nullptr))
 	{
 		_lastError = SerialPortError::WriteError;
-		_lastErrorString = "WriteFile failed (Win32 error: " + std::to_string(GetLastError()) + ")";
+		_lastErrorString = "WriteFile failed on " + _portName + " (Win32 error: " + std::to_string(GetLastError()) + ")";
+		AppCore::writeToApplicationLogLine(_lastErrorString);
 		return -1;
 	}
 
@@ -333,7 +339,8 @@ int64_t SerialPortWin32::read(char* buffer, size_t maxSize)
 	if (!ReadFile(_handle, buffer, static_cast<DWORD>(maxSize), &bytesRead, nullptr))
 	{
 		_lastError = SerialPortError::ReadError;
-		_lastErrorString = "ReadFile failed (Win32 error: " + std::to_string(GetLastError()) + ")";
+		_lastErrorString = "ReadFile failed on " + _portName + " (Win32 error: " + std::to_string(GetLastError()) + ")";
+		AppCore::writeToApplicationLogLine(_lastErrorString);
 		return -1;
 	}
 
@@ -372,7 +379,16 @@ int64_t SerialPortWin32::bytesAvailable() const
 	DWORD errors = 0;
 	if (ClearCommError(_handle, &errors, &stat))
 	{
+		if (errors != 0)
+		{
+			AppCore::writeToApplicationLogLine("SerialPortWin32::bytesAvailable: ClearCommError flags on " + _portName + ": 0x" + std::to_string(errors));
+		}
 		return static_cast<int64_t>(stat.cbInQue);
+	}
+	else
+	{
+		DWORD err = GetLastError();
+		AppCore::writeToApplicationLogLine("SerialPortWin32::bytesAvailable: ClearCommError failed on " + _portName + " (Win32 error: " + std::to_string(err) + ")");
 	}
 
 	return 0;

@@ -10,6 +10,7 @@
 // QCommon
 #include "TickCount.h"
 
+#include <cassert>
 #include <string>
 
 TACLiteProtocol::TACLiteProtocol() :
@@ -33,7 +34,7 @@ void TACLiteProtocol::setTACDriveTrain
 	TACDriveThread* tacDriveTrain
 )
 {
-	Q_ASSERT(tacDriveTrain != nullptr);
+	assert(tacDriveTrain != nullptr);
 
 	_tacDriveTrain = tacDriveTrain;
 }

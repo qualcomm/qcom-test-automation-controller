@@ -3,17 +3,17 @@
 // Copyright (c) Qualcomm Technologies, Inc. and/or its subsidiaries.
 // SPDX-License-Identifier: BSD-3-Clause
 
-#include "QCommonConsoleGlobal.h"
+#include "QCommonGlobal.h"
 
 #include <QEvent>
 
 const QEvent::Type kQuitAppEvent(static_cast<QEvent::Type>(QEvent::User + 1));
 
-class QCOMMONCONSOLE_EXPORT QuitAppEvent :
+class QCOMMON_EXPORT QuitAppEvent :
 	public QEvent
 {
 public:
 	QuitAppEvent();
 };
 
-#endif // QUITTACEVENT_H
+#endif // QUITAPPEVENT_H

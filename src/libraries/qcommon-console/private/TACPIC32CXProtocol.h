@@ -16,14 +16,9 @@ class TACDriveThread;
 #include <string>
 
 class QCOMMONCONSOLE_EXPORT TACPIC32CXProtocol :
-  public QObject,
   public ProtocolInterface,
   public ReceiveInterface
 {
-	Q_OBJECT
-
-	Q_INTERFACES(ProtocolInterface)
-
 public:
 	TACPIC32CXProtocol();
 	virtual ~TACPIC32CXProtocol();

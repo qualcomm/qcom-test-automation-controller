@@ -17,18 +17,17 @@
 #include "ReceiveInterface.h"
 #include "StringUtilities.h"
 
-// Qt
-#include <QCoreApplication>
-
+// Standard C++
+#include <condition_variable>
 #include <cstdint>
+#include <functional>
+#include <mutex>
 #include <string>
 
 class QCOMMONCONSOLE_EXPORT TACDriveThread :
 	public DriveThread,
 	public ReceiveInterface
 {
-Q_OBJECT
-
 public:
 	TACDriveThread(HashType hash);
 	~TACDriveThread();
@@ -68,68 +67,55 @@ public:
 	virtual std::string hardwareVersionString();
 
 	// firmware properties
-	bool oldFirmware();
-	std::string firmwareVersion();
-	uint majorVersion();
-	uint chipVersion();
-	uint minorVersion();
-	uint revisionVersion();
+	bool oldFirmware() const;
+	const std::string& firmwareVersion() const;
+	uint32_t majorVersion() const;
+	uint32_t chipVersion() const;
+	uint32_t minorVersion() const;
+	uint32_t revisionVersion() const;
 
-	std::string name() const;
-	void setName(const std::string& newName);
+	const std::string& name() const;
+	virtual void setName(const std::string& newName);
 
-	std::string portName() const;
+	const std::string& portName() const;
 	void setPortName(const std::string& portName);
 
-	std::string description() const;
+	const std::string& description() const;
 	void setDescription(const std::string& description);
 
-	std::string serialNumber() const;
+	const std::string& serialNumber() const;
 	void setSerialNumber(const std::string& serialNumber);
 
-	std::string uuid();
+	const std::string& uuid() const;
 
-	std::string macAddress();
+	const std::string& macAddress() const;
 
 	// Send Interface
 	virtual uint32_t send(const std::string& sendMe, const Arguments& arguments, bool console, ReceiveInterface* recieveInterface, bool store = true) = 0;
 	virtual bool ready() = 0;
+	virtual bool connected() const { return false; }
 
 	// Receive Interface
 	virtual void receive(FramePackage& framePackage) = 0;
 
-	void setThreadDelay(const uint delay);
+	void setThreadDelay(const uint32_t delay);
 
-signals:
-	void pinStateChanged(uint64_t pin, bool state);
+	// Lifecycle hooks
+	virtual void onStopping() override;
 
-	void transactionEnded();
-	void progress(const uint8_t value=10, NotificationLevel level=eInfoNotification);
-
-	void deviceOpen();
-	void errorOnOpen(const std::string& errorString);
-
-	void deviceStatusChange(const std::string& deviceStatus);
-
-	void hardwareTypeUpdate(const std::string& hardwareType);
-	void hardwareVersionUpdate(const std::string& hardwareVersion);
-	void firmwareVersionUpdate(const std::string& firmwareVersion);
-	void nameUpdate(const std::string& name);
-	void uuidUpdate(const std::string& uuid);
-	void serialNumUpdate(const std::string& serialNumber);
-	void platformIDUpdate(int platformID);
-
-	void deviceConnected();
-	void deviceDisconnected();
-
-	void resetCountCleared();
-	void resetCountUpdate(uint32_t resetCount);
-
-	void i2CReadResult(const std::string& readResult, bool valid);
-	void i2CWriteResult(const std::string& readResult);
+	// Direct Event Callback Hooks
+	std::function<void(int pin, int state)> onPinStateChanged;
+	std::function<void()>                   onDeviceConnected;
+	std::function<void()>                   onDeviceDisconnected;
+	std::function<void()>                   onDeviceOpen;
+	std::function<void(int progress)>       onProgress;
+	std::function<void(const std::string&)> onError;
+	std::function<void(const std::string&)> onDeviceStatusChange;
 
 protected:
 	bool						_waitForCompletion{false};
+	std::condition_variable		_completionCv;
+	std::mutex					_completionMutex;
 	HashType					_hash{0};
 	bool						_oldFirmware{false};
 	std::string					_portName;
@@ -137,10 +123,10 @@ protected:
 	PlatformID					_platformID{MICRO_EPM_BOARD_ID_UNKNOWN};
 	std::string					_versionString;
 	std::string					_firmwareString;
-	uint						_firmwareMajor{0};
-	uint						_firmwareChip{0};
-	uint						_firmwareMinor{0};
-	uint						_firmwareRevision{0};
+	uint32_t					_firmwareMajor{0};
+	uint32_t					_firmwareChip{0};
+	uint32_t					_firmwareMinor{0};
+	uint32_t					_firmwareRevision{0};
 	std::string					_name;
 	std::string                 _macAddress;
 	std::string					_description;
@@ -150,7 +136,8 @@ protected:
 	std::string					_helpText;
 
 	int							_resetCount{0};
-	uint						_delay{0};
+	uint32_t					_delay{0};
+	uint64_t					_lastTimeStamp{0};
 
 	virtual void setupConnected() = 0;
 	virtual void setupDiscovery() = 0;

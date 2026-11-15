@@ -19,14 +19,11 @@ public:
 	_FramePackage() = default;
 	~_FramePackage() = default;
 
-	Argument getArgument(uint32_t index)
+	Argument getArgument(uint32_t index) const
 	{
-		Argument result;
-
-		if (_arguments.size() > index)
-			result = _arguments.at(index);
-
-		return result;
+		if (index < _arguments.size())
+			return _arguments[index];
+		return Argument{};
 	}
 
 	std::string                 _lastError;
@@ -47,8 +44,8 @@ public:
 	uint64_t					_tickcount{0};
 	uint32_t					_delayInMilliSeconds{0};
 
-private:
-	Q_DISABLE_COPY(_FramePackage)
+	_FramePackage(const _FramePackage&) = delete;
+	_FramePackage& operator=(const _FramePackage&) = delete;
 };
 
 typedef std::shared_ptr<_FramePackage> FramePackage;

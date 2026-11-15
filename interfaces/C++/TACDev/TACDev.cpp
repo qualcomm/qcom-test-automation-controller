@@ -5,23 +5,24 @@
 #include "TACDevCore.h"
 
 #include "TACDefines.h"
+#include "AlpacaDefines.h"
 #include "AlpacaDevice.h"
 #include "TACException.h"
+#include "StringUtilities.h"
 
 // QCommon
 #include "mymemcpy.h"
 #include "version.h"
 
-// QT
-#include <QMap>
-#include <QThread>
+#include <chrono>
+#include <string>
+#include <thread>
 
 DevTACCore gDevTACCore;
 
-const QByteArray kTACDevHandleNotOpen("TAC device is not open. Please reopen the TAC device");
-const QByteArray kTACDevBufferTooSmall("TACDev buffer is too small");
-const QByteArray kTACBadIndex("User provided invalid index");
-
+const std::string kTACDevHandleNotOpen("TAC device is not open. Please reopen the TAC device");
+const std::string kTACDevBufferTooSmall("TACDev buffer is too small");
+const std::string kTACBadIndex("User provided invalid index");
 
 TAC_RESULT InitializeTACDev()
 {
@@ -30,7 +31,7 @@ TAC_RESULT InitializeTACDev()
 
 	if (initialized == false)
 	{
-		if (gDevTACCore.initialize(kAppName.toLatin1(), kAppVersion.toLatin1()) == false)
+		if (gDevTACCore.initialize(kAppName, kProductVersion) == false)
 			result = TACDEV_INIT_FAILED;
 		else
 			initialized = true;
@@ -39,17 +40,17 @@ TAC_RESULT InitializeTACDev()
 	return result;
 }
 
-TAC_RESULT _getCommandState
+static TAC_RESULT _getCommandState
 (
 	TAC_HANDLE tacHandle,
-	const QByteArray& command,
+	const std::string& command,
 	bool *state
 )
 {
 	TAC_RESULT result{NO_TAC_ERROR};
 
 	AlpacaDevice alpacaDevice = gDevTACCore.getAlpacaDevice(tacHandle);
-	if (alpacaDevice.isNull() == false)
+	if (alpacaDevice != nullptr)
 	{
 		try
 		{
@@ -58,6 +59,8 @@ TAC_RESULT _getCommandState
 		catch (const TACException& e)
 		{
 			result = e.errorCode();
+			gDevTACCore.setLastError(e.getMessage());
+			AppCore::writeToApplicationLogLine("TACDev::_getCommandState failed for '" + command + "': " + e.getMessage() + " (code " + std::to_string(result) + ")");
 		}
 	}
 	else
@@ -69,10 +72,10 @@ TAC_RESULT _getCommandState
 	return result;
 }
 
-TAC_RESULT _setCommandState
+static TAC_RESULT _setCommandState
 (
 	TAC_HANDLE tacHandle,
-	const QByteArray& command,
+	const std::string& command,
 	bool state
 )
 {
@@ -80,7 +83,7 @@ TAC_RESULT _setCommandState
 	bool valid{false};
 
 	AlpacaDevice alpacaDevice = gDevTACCore.getAlpacaDevice(tacHandle);
-	if (alpacaDevice.isNull() == false)
+	if (alpacaDevice != nullptr)
 	{
 		try
 		{
@@ -91,12 +94,14 @@ TAC_RESULT _setCommandState
 			{
 				result = TACDEV_BAD_TAC_HANDLE;
 				gDevTACCore.setLastError(kTACDevHandleNotOpen);
+				AppCore::writeToApplicationLogLine("TACDev::_setCommandState: device handle not open for '" + command + "'");
 			}
 		}
 		catch (const TACException& e)
 		{
 			result = e.errorCode();
 			gDevTACCore.setLastError(e.getMessage());
+			AppCore::writeToApplicationLogLine("TACDev::_setCommandState failed for '" + command + "': " + e.getMessage() + " (code " + std::to_string(result) + ")");
 		}
 	}
 	else
@@ -108,16 +113,16 @@ TAC_RESULT _setCommandState
 	return result;
 }
 
-TAC_RESULT _quickCommand
+static TAC_RESULT _quickCommand
 (
 	TAC_HANDLE tacHandle,
-	const QByteArray& command
+	const std::string& command
 )
 {
 	TAC_RESULT result{NO_TAC_ERROR};
 
 	AlpacaDevice alpacaDevice = gDevTACCore.getAlpacaDevice(tacHandle);
-	if (alpacaDevice.isNull() == false)
+	if (alpacaDevice != nullptr)
 	{
 		try
 		{
@@ -127,6 +132,7 @@ TAC_RESULT _quickCommand
 		{
 			result = e.errorCode();
 			gDevTACCore.setLastError(e.getMessage());
+			AppCore::writeToApplicationLogLine("TACDev::_quickCommand failed for '" + command + "': " + e.getMessage() + " (code " + std::to_string(result) + ")");
 		}
 	}
 	else
@@ -145,16 +151,11 @@ TAC_RESULT GetAlpacaVersion
 )
 {
 	TAC_RESULT result{NO_TAC_ERROR};
+	std::string version{QTAC_VERSION};
 
-	QByteArray version{QTAC_VERSION};
-
-	if (version.size() < bufferSize)
+	if (!copyStringToBuffer(version, alpacaVersion, bufferSize))
 	{
-		my_memcpy(alpacaVersion, bufferSize, version.data(), version.size());
-	}
-	else
-	{
-		result = version.size();
+		result = static_cast<TAC_RESULT>(version.size() + 1);
 	}
 
 	return result;
@@ -163,16 +164,11 @@ TAC_RESULT GetAlpacaVersion
 TAC_RESULT GetTACVersion(char* tacVersion, int bufferSize)
 {
 	TAC_RESULT result{NO_TAC_ERROR};
+	std::string version{QTAC_VERSION};
 
-	QByteArray version{QTAC_VERSION};
-
-	if (version.size() < bufferSize)
+	if (!copyStringToBuffer(version, tacVersion, bufferSize))
 	{
-		my_memcpy(tacVersion, bufferSize, version.data(), version.size());
-	}
-	else
-	{
-		result = version.size();
+		result = static_cast<TAC_RESULT>(version.size() + 1);
 	}
 
 	return result;
@@ -185,13 +181,9 @@ TAC_RESULT GetLastTACError
 )
 {
 	TAC_RESULT result{NO_TAC_ERROR};
+	std::string lastErr = gDevTACCore.lastError();
 
-	QByteArray lastErrorBA = gDevTACCore.lastError();
-	if (lastErrorBA.size() < bufferSize)
-	{
-		my_memcpy(lastError, bufferSize, lastErrorBA.data(), lastErrorBA.size());
-	}
-	else
+	if (!copyStringToBuffer(lastErr, lastError, bufferSize))
 	{
 		result = TACDEV_BUFFER_TOO_SMALL;
 		gDevTACCore.setLastError(kTACDevBufferTooSmall);
@@ -205,7 +197,8 @@ TAC_RESULT GetLoggingState
 	bool* loggingState
 )
 {
-	*loggingState = gDevTACCore.getLoggingState();
+	if (loggingState)
+		*loggingState = gDevTACCore.getLoggingState();
 
 	return NO_TAC_ERROR;
 }
@@ -237,21 +230,18 @@ unsigned long GetPortData
 	int result{0};
 
 	const AlpacaDevices& alpacaDevices = gDevTACCore.GetAlpacaDevices();
-	if (deviceIndex < alpacaDevices.count())
+	if (deviceIndex >= 0 && deviceIndex < static_cast<int>(alpacaDevices.size()))
 	{
-		AlpacaDevice alpacaDevice =  alpacaDevices.at(deviceIndex);
-		QByteArray portData2;
+		AlpacaDevice alpacaDevice = alpacaDevices.at(deviceIndex);
+		std::string portData2 = alpacaDevice->portName() + ";" +
+								alpacaDevice->description() + ";" +
+								alpacaDevice->serialNumber() + ";" +
+								std::to_string(deviceIndex);
 
-		portData2 = alpacaDevice->portName();
-		portData2 += ";";
-		portData2 += alpacaDevice->description();
-		portData2 += ";";
-		portData2 += alpacaDevice->serialNumber();
-		portData2 += ";";
-		portData2 += QByteArray::number(deviceIndex);
-
-		my_memcpy(portData, bufferSize, portData2.constData(), portData2.size());
-		result = portData2.size();
+		if (copyStringToBuffer(portData2, portData, bufferSize))
+		{
+			result = static_cast<int>(portData2.size());
+		}
 	}
 
 	return result;
@@ -283,20 +273,19 @@ TAC_RESULT GetName
 	TAC_RESULT result{NO_TAC_ERROR};
 
 	AlpacaDevice alpacaDevice = gDevTACCore.getAlpacaDevice(tacHandle);
-	if (alpacaDevice.isNull() == false)
+	if (alpacaDevice != nullptr)
 	{
-		QByteArray name = alpacaDevice->name();
-		if (name.size() >= bufferSize)
+		std::string name = alpacaDevice->name();
+		if (!copyStringToBuffer(name, deviceName, bufferSize))
 		{
 			result = TACDEV_BUFFER_TOO_SMALL;
 			gDevTACCore.setLastError(kTACDevBufferTooSmall);
 		}
-		else
-			my_memcpy(deviceName, bufferSize, name, name.size());
 	}
 	else
 	{
-		my_memcpy(deviceName, bufferSize, "\0", 1);
+		if (deviceName && bufferSize > 0)
+			my_memcpy(deviceName, bufferSize, "\0", 1);
 
 		result = TACDEV_BAD_TAC_HANDLE;
 		gDevTACCore.setLastError(kTACDevHandleNotOpen);
@@ -315,20 +304,19 @@ TAC_RESULT GetFirmwareVersion
 	TAC_RESULT result{NO_TAC_ERROR};
 
 	AlpacaDevice alpacaDevice = gDevTACCore.getAlpacaDevice(tacHandle);
-	if (alpacaDevice.isNull() == false)
+	if (alpacaDevice != nullptr)
 	{
-		QByteArray firmwareVer = alpacaDevice->firmwareVersion().toLatin1();
-		if (firmwareVer.size() >= bufferSize)
+		std::string firmwareVer = alpacaDevice->firmwareVersion();
+		if (!copyStringToBuffer(firmwareVer, firmwareVersion, bufferSize))
 		{
 			result = TACDEV_BUFFER_TOO_SMALL;
 			gDevTACCore.setLastError(kTACDevBufferTooSmall);
 		}
-		else
-			my_memcpy(firmwareVersion, bufferSize, firmwareVer.data(), firmwareVer.size());
 	}
 	else
 	{
-		my_memcpy(firmwareVersion, bufferSize, "\0", 1);
+		if (firmwareVersion && bufferSize > 0)
+			my_memcpy(firmwareVersion, bufferSize, "\0", 1);
 
 		result = TACDEV_BAD_TAC_HANDLE;
 		gDevTACCore.setLastError(kTACDevHandleNotOpen);
@@ -336,7 +324,6 @@ TAC_RESULT GetFirmwareVersion
 
 	return result;
 }
-
 
 TAC_RESULT GetHardware
 (
@@ -348,20 +335,19 @@ TAC_RESULT GetHardware
 	TAC_RESULT result{NO_TAC_ERROR};
 
 	AlpacaDevice alpacaDevice = gDevTACCore.getAlpacaDevice(tacHandle);
-	if (alpacaDevice.isNull() == false)
+	if (alpacaDevice != nullptr)
 	{
-		QByteArray hardwareType = alpacaDevice->debugBoardTypeString().toLatin1();
-		if (hardwareType.size() >= bufferSize)
+		std::string hardwareType = alpacaDevice->debugBoardTypeString();
+		if (!copyStringToBuffer(hardwareType, hardware, bufferSize))
 		{
 			result = TACDEV_BUFFER_TOO_SMALL;
 			gDevTACCore.setLastError(kTACDevBufferTooSmall);
 		}
-		else
-			my_memcpy(hardware, bufferSize, hardwareType.data(), hardwareType.size());
 	}
 	else
 	{
-		my_memcpy(hardware, bufferSize, "\0", 1);
+		if (hardware && bufferSize > 0)
+			my_memcpy(hardware, bufferSize, "\0", 1);
 
 		result = TACDEV_BAD_TAC_HANDLE;
 		gDevTACCore.setLastError(kTACDevHandleNotOpen);
@@ -380,20 +366,20 @@ TAC_RESULT GetHardwareVersion
 	TAC_RESULT result{NO_TAC_ERROR};
 
 	AlpacaDevice alpacaDevice = gDevTACCore.getAlpacaDevice(tacHandle);
-	if (alpacaDevice.isNull() == false)
+	if (alpacaDevice != nullptr)
 	{
-		QByteArray hardwareVersionStr = alpacaDevice->hardwareVersionString().toLatin1();
-		if (hardwareVersionStr.size() >= bufferSize)
+		std::string hardwareVersionStr = alpacaDevice->hardwareVersionString();
+		if (!copyStringToBuffer(hardwareVersionStr, hardwareVersion, bufferSize))
 		{
 			result = TACDEV_BUFFER_TOO_SMALL;
 			gDevTACCore.setLastError(kTACDevBufferTooSmall);
 		}
-		else
-			my_memcpy(hardwareVersion, bufferSize, hardwareVersionStr.data(), hardwareVersionStr.size());
 	}
 	else
 	{
-		my_memcpy(hardwareVersion, bufferSize, "\0", 1);
+		if (hardwareVersion && bufferSize > 0)
+			my_memcpy(hardwareVersion, bufferSize, "\0", 1);
+
 		result = TACDEV_BAD_TAC_HANDLE;
 		gDevTACCore.setLastError(kTACDevHandleNotOpen);
 	}
@@ -411,20 +397,20 @@ TAC_RESULT GetUUID
 	TAC_RESULT result{NO_TAC_ERROR};
 
 	AlpacaDevice alpacaDevice = gDevTACCore.getAlpacaDevice(tacHandle);
-	if (alpacaDevice.isNull() == false)
+	if (alpacaDevice != nullptr)
 	{
-		QByteArray uuidStr = alpacaDevice->uuid().toLatin1();
-		if (uuidStr.size() >= bufferSize)
+		std::string uuidStr = alpacaDevice->uuid();
+		if (!copyStringToBuffer(uuidStr, uuid, bufferSize))
 		{
 			result = TACDEV_BUFFER_TOO_SMALL;
 			gDevTACCore.setLastError(kTACDevBufferTooSmall);
 		}
-		else
-			my_memcpy(uuid, bufferSize, uuidStr, uuidStr.size());
 	}
 	else
 	{
-		my_memcpy(uuid, bufferSize, "\0", 1);
+		if (uuid && bufferSize > 0)
+			my_memcpy(uuid, bufferSize, "\0", 1);
+
 		result = TACDEV_BAD_TAC_HANDLE;
 		gDevTACCore.setLastError(kTACDevHandleNotOpen);
 	}
@@ -441,7 +427,7 @@ TAC_ERROR SetExternalPowerControl
 	TAC_RESULT result{NO_TAC_ERROR};
 
 	AlpacaDevice alpacaDevice = gDevTACCore.getAlpacaDevice(tacHandle);
-	if (alpacaDevice.isNull() == false)
+	if (alpacaDevice != nullptr)
 	{
 		alpacaDevice->externalPowerControl(state);
 	}
@@ -454,11 +440,7 @@ TAC_ERROR SetExternalPowerControl
 	return result;
 }
 
-TAC_RESULT SetBatteryState
-(
-	TAC_HANDLE tacHandle,
-	bool state
-)
+TAC_RESULT SetBatteryState(TAC_HANDLE tacHandle, bool state)
 {
 	return _setCommandState(tacHandle, "battery", state);
 }
@@ -468,254 +450,142 @@ TAC_RESULT GetBatteryState(TAC_HANDLE tacHandle, bool *state)
 	return _getCommandState(tacHandle, "battery", state);
 }
 
-TAC_RESULT Usb0
-(
-	TAC_HANDLE tacHandle,
-	bool state
-)
+TAC_RESULT Usb0(TAC_HANDLE tacHandle, bool state)
 {
 	return _setCommandState(tacHandle, "usb0", state);
 }
 
-TAC_RESULT GetUsb0State
-(
-	TAC_HANDLE tacHandle,
-	bool* state
-)
+TAC_RESULT GetUsb0State(TAC_HANDLE tacHandle, bool* state)
 {
 	return _getCommandState(tacHandle, "usb0", state);
 }
 
-TAC_RESULT Usb1
-(
-	TAC_HANDLE tacHandle,
-	bool state
-)
+TAC_RESULT Usb1(TAC_HANDLE tacHandle, bool state)
 {
 	return _setCommandState(tacHandle, "usb1", state);
 }
 
-TAC_RESULT GetUsb1State
-(
-	TAC_HANDLE tacHandle,
-	bool* state
-)
+TAC_RESULT GetUsb1State(TAC_HANDLE tacHandle, bool* state)
 {
 	return _getCommandState(tacHandle, "usb1", state);
 }
 
-TAC_RESULT PowerKey
-(
-	TAC_HANDLE tacHandle,
-	bool state
-)
+TAC_RESULT PowerKey(TAC_HANDLE tacHandle, bool state)
 {
 	return _setCommandState(tacHandle, "pkey", state);
 }
 
-TAC_RESULT GetPowerKeyState
-(
-	TAC_HANDLE tacHandle,
-	bool* state
-)
+TAC_RESULT GetPowerKeyState(TAC_HANDLE tacHandle, bool* state)
 {
 	return _getCommandState(tacHandle, "pkey", state);
 }
 
-TAC_RESULT VolumeUp
-(
-	TAC_HANDLE tacHandle,
-	bool state
-)
+TAC_RESULT VolumeUp(TAC_HANDLE tacHandle, bool state)
 {
 	return _setCommandState(tacHandle, "volup", state);
 }
 
-TAC_RESULT GetVolumeUpState
-(
-	TAC_HANDLE tacHandle,
-	bool* state
-)
+TAC_RESULT GetVolumeUpState(TAC_HANDLE tacHandle, bool* state)
 {
 	return _getCommandState(tacHandle, "volup", state);
 }
 
-TAC_RESULT VolumeDown
-(
-	TAC_HANDLE tacHandle,
-	bool state
-)
+TAC_RESULT VolumeDown(TAC_HANDLE tacHandle, bool state)
 {
 	return _setCommandState(tacHandle, "voldn", state);
 }
 
-TAC_RESULT GetVolumeDownState
-(
-	TAC_HANDLE tacHandle,
-	bool* state
-)
+TAC_RESULT GetVolumeDownState(TAC_HANDLE tacHandle, bool* state)
 {
 	return _getCommandState(tacHandle, "voldn", state);
 }
 
-TAC_RESULT DisconnectUIM1
-(
-	TAC_HANDLE tacHandle,
-	bool state
-)
+TAC_RESULT DisconnectUIM1(TAC_HANDLE tacHandle, bool state)
 {
 	return _setCommandState(tacHandle, "uim1", state);
 }
 
-TAC_RESULT GetDisconnectUIM1State
-(
-	TAC_HANDLE tacHandle,
-	bool* state
-)
+TAC_RESULT GetDisconnectUIM1State(TAC_HANDLE tacHandle, bool* state)
 {	
 	return _getCommandState(tacHandle, "uim1", state);
 }
 
-TAC_RESULT DisconnectUIM2
-(
-	TAC_HANDLE tacHandle,
-	bool state
-)
+TAC_RESULT DisconnectUIM2(TAC_HANDLE tacHandle, bool state)
 {
 	return _setCommandState(tacHandle, "uim2", state);
 }
 
-TAC_RESULT GetDisconnectUIM2State
-(
-	TAC_HANDLE tacHandle,
-	bool* state
-)
+TAC_RESULT GetDisconnectUIM2State(TAC_HANDLE tacHandle, bool* state)
 {
 	return _getCommandState(tacHandle, "uim2", state);
 }
 
-TAC_RESULT DisconnectSDCard
-(
-	TAC_HANDLE tacHandle,
-	bool state
-)
+TAC_RESULT DisconnectSDCard(TAC_HANDLE tacHandle, bool state)
 {
 	return _setCommandState(tacHandle, "sdcard", state);
 }
 
-TAC_RESULT GetDisconnectSDCardState
-(
-	TAC_HANDLE tacHandle,
-	bool* state
-)
+TAC_RESULT GetDisconnectSDCardState(TAC_HANDLE tacHandle, bool* state)
 {
 	return _getCommandState(tacHandle, "sdcard", state);
 }
 
-TAC_RESULT PrimaryEDL
-(
-	TAC_HANDLE tacHandle,
-	bool state
-)
+TAC_RESULT PrimaryEDL(TAC_HANDLE tacHandle, bool state)
 {
 	return _setCommandState(tacHandle, "pedl", state);
 }
 
-TAC_RESULT GetPrimaryEDLState
-(
-	TAC_HANDLE tacHandle,
-	bool* state
-)
+TAC_RESULT GetPrimaryEDLState(TAC_HANDLE tacHandle, bool* state)
 {
 	return _getCommandState(tacHandle, "pedl", state);
 }
 
-TAC_RESULT ForcePSHoldHigh
-(
-	TAC_HANDLE tacHandle,
-	bool state
-)
+TAC_RESULT ForcePSHoldHigh(TAC_HANDLE tacHandle, bool state)
 {
 	return _setCommandState(tacHandle, "pshold", state);
 }
 
-TAC_RESULT GetForcePSHoldHighState
-(
-	TAC_HANDLE tacHandle,
-	bool* state
-)
+TAC_RESULT GetForcePSHoldHighState(TAC_HANDLE tacHandle, bool* state)
 {
 	return _getCommandState(tacHandle, "pshold", state);
 }
 
-TAC_RESULT SecondaryEDL
-(
-	TAC_HANDLE tacHandle,
-	bool state
-)
+TAC_RESULT SecondaryEDL(TAC_HANDLE tacHandle, bool state)
 {
 	return _setCommandState(tacHandle, "sedl", state);
 }
 
-TAC_RESULT GetSecondaryEDLState
-(
-	TAC_HANDLE tacHandle,
-	bool* state
-)
+TAC_RESULT GetSecondaryEDLState(TAC_HANDLE tacHandle, bool* state)
 {
 	return _getCommandState(tacHandle, "sedl", state);
 }
 
-TAC_RESULT SecondaryPmResinN
-(
-	TAC_HANDLE tacHandle,
-	bool state
-)
+TAC_RESULT SecondaryPmResinN(TAC_HANDLE tacHandle, bool state)
 {
 	return _setCommandState(tacHandle, "sresn", state);
 }
 
-TAC_RESULT GetSecondaryPmResinNState
-(
-	TAC_HANDLE tacHandle,
-	bool* state
-)
+TAC_RESULT GetSecondaryPmResinNState(TAC_HANDLE tacHandle, bool* state)
 {
 	return _getCommandState(tacHandle, "sresn", state);
 }
 
-TAC_RESULT Eud
-(
-	TAC_HANDLE tacHandle,
-	bool state
-)
+TAC_RESULT Eud(TAC_HANDLE tacHandle, bool state)
 {
 	return _setCommandState(tacHandle, "eud", state);
 }
 
-TAC_RESULT GetEUDState
-(
-	TAC_HANDLE tacHandle,
-	bool* state
-)
+TAC_RESULT GetEUDState(TAC_HANDLE tacHandle, bool* state)
 {
 	return _getCommandState(tacHandle, "eud", state);
 }
 
-TAC_RESULT HeadsetDisconnect
-(
-	TAC_HANDLE tacHandle,
-	bool state
-)
+TAC_RESULT HeadsetDisconnect(TAC_HANDLE tacHandle, bool state)
 {
 	return _setCommandState(tacHandle, "headset", state);
 }
 
-TAC_RESULT GetHeadsetDisconnectState
-(
-	TAC_HANDLE tacHandle,
-	bool* state
-)
+TAC_RESULT GetHeadsetDisconnectState(TAC_HANDLE tacHandle, bool* state)
 {
 	return _getCommandState(tacHandle, "headset", state);
 }
@@ -729,10 +599,10 @@ TAC_RESULT SetName
 	TAC_RESULT result{NO_TAC_ERROR};
 
 	AlpacaDevice alpacaDevice = gDevTACCore.getAlpacaDevice(tacHandle);
-	if (alpacaDevice.isNull() == false)
+	if (alpacaDevice != nullptr)
 	{
 		alpacaDevice->setWaitForCompletion();
-		alpacaDevice->setName(QByteArray(newName));
+		alpacaDevice->setName(newName ? std::string(newName) : std::string());
 	}
 	else
 	{
@@ -752,10 +622,11 @@ TAC_RESULT GetResetCount
 	TAC_RESULT result{NO_TAC_ERROR};
 
 	AlpacaDevice alpacaDevice = gDevTACCore.getAlpacaDevice(tacHandle);
-	if (alpacaDevice.isNull() == false)
+	if (alpacaDevice != nullptr)
 	{
 		alpacaDevice->setWaitForCompletion();
-		*resetCount = alpacaDevice->getResetCount();
+		if (resetCount)
+			*resetCount = alpacaDevice->getResetCount();
 	}
 	else
 	{
@@ -771,7 +642,7 @@ TAC_RESULT ClearResetCount(TAC_HANDLE tacHandle)
 	TAC_RESULT result{NO_TAC_ERROR};
 
 	AlpacaDevice alpacaDevice = gDevTACCore.getAlpacaDevice(tacHandle);
-	if (alpacaDevice.isNull() == false)
+	if (alpacaDevice != nullptr)
 	{
 		alpacaDevice->setWaitForCompletion();
 		alpacaDevice->clearResetCount();
@@ -785,50 +656,32 @@ TAC_RESULT ClearResetCount(TAC_HANDLE tacHandle)
 	return result;
 }
 
-TAC_RESULT PowerOnButton
-(
-	TAC_HANDLE tacHandle
-)
+TAC_RESULT PowerOnButton(TAC_HANDLE tacHandle)
 {
 	return _quickCommand(tacHandle, "powerOn");
 }
 
-TAC_RESULT PowerOffButton
-(
-	TAC_HANDLE tacHandle
-)
+TAC_RESULT PowerOffButton(TAC_HANDLE tacHandle)
 {
 	return _quickCommand(tacHandle, "powerOff");
 }
 
-TAC_RESULT BootToFastBootButton
-(
-	TAC_HANDLE tacHandle
-)
+TAC_RESULT BootToFastBootButton(TAC_HANDLE tacHandle)
 {
 	return _quickCommand(tacHandle, "bootToFastboot");
 }
 
-TAC_RESULT BootToUEFIMenuButton
-(
-	TAC_HANDLE tacHandle
-)
+TAC_RESULT BootToUEFIMenuButton(TAC_HANDLE tacHandle)
 {
 	return _quickCommand(tacHandle, "bootToUEFI");
 }
 
-TAC_RESULT BootToEDLButton
-(
-	TAC_HANDLE tacHandle
-)
+TAC_RESULT BootToEDLButton(TAC_HANDLE tacHandle)
 {
 	return _quickCommand(tacHandle, "bootToEDL");
 }
 
-TAC_RESULT BootToSecondaryEDLButton
-(
-	TAC_HANDLE tacHandle
-)
+TAC_RESULT BootToSecondaryEDLButton(TAC_HANDLE tacHandle)
 {
 	return _quickCommand(tacHandle, "bootToSecondaryEDL");
 }
@@ -843,7 +696,7 @@ TAC_ERROR SetPinState
 	TAC_RESULT result{NO_TAC_ERROR};
 
 	AlpacaDevice alpacaDevice = gDevTACCore.getAlpacaDevice(tacHandle);
-	if (alpacaDevice.isNull() == false)
+	if (alpacaDevice != nullptr)
 	{
 		alpacaDevice->setWaitForCompletion();
 		alpacaDevice->setPinState(pin, state);
@@ -865,11 +718,14 @@ TAC_ERROR GetCommandCount
 {
 	TAC_RESULT result{NO_TAC_ERROR};
 
-	*commandCount = 0;
+	if (commandCount)
+		*commandCount = 0;
+
 	AlpacaDevice alpacaDevice = gDevTACCore.getAlpacaDevice(tacHandle);
-	if (alpacaDevice.isNull() == false)
+	if (alpacaDevice != nullptr)
 	{
-		*commandCount = alpacaDevice->commandCount();
+		if (commandCount)
+			*commandCount = alpacaDevice->commandCount();
 	}
 	else
 	{
@@ -891,30 +747,27 @@ TAC_ERROR GetCommand
 	TAC_RESULT result{NO_TAC_ERROR};
 
 	AlpacaDevice alpacaDevice = gDevTACCore.getAlpacaDevice(tacHandle);
-	if (alpacaDevice.isNull() == false)
+	if (alpacaDevice != nullptr)
 	{
 		TACCommand commandEntry = alpacaDevice->commandEntry(commandIndex);
 		if (commandEntry._pin != 0)
 		{
-			QByteArray commandData;
+			std::string commandData = commandEntry._command + ";" +
+									  commandEntry._helpText + ";" +
+									  std::to_string(commandEntry._pin) + ";" +
+									  commandEntry._tabName + ";" +
+									  commandEntry._groupName + ";" +
+									  commandEntry._cellLocation;
 
-			commandData = commandEntry._command.toLatin1();
-			commandData += ";";
-			commandData += commandEntry._helpText.toLatin1();
-			commandData += ";";
-			commandData += QByteArray::number(commandEntry._pin);
-			commandData += ";";
-			commandData += commandEntry._tabName;
-			commandData += ";";
-			commandData += commandEntry._groupName;
-			commandData += ";";
-			commandData += commandEntry._cellLocation;
-
-			my_memcpy(commandBuffer, bufferSize, commandData.constData(), commandData.size());
+			if (!copyStringToBuffer(commandData, commandBuffer, bufferSize))
+			{
+				result = TACDEV_BUFFER_TOO_SMALL;
+				gDevTACCore.setLastError(kTACDevBufferTooSmall);
+			}
 		}
 		else
 		{
-			result = TAC_BAD_INDEX;
+			result = TACDEV_BAD_INDEX;
 			gDevTACCore.setLastError(kTACBadIndex);
 		}
 	}
@@ -935,11 +788,14 @@ TAC_ERROR GetQuickCommandCount
 {
 	TAC_RESULT result{NO_TAC_ERROR};
 
-	*commandCount = 0;
+	if (commandCount)
+		*commandCount = 0;
+
 	AlpacaDevice alpacaDevice = gDevTACCore.getAlpacaDevice(tacHandle);
-	if (alpacaDevice.isNull() == false)
+	if (alpacaDevice != nullptr)
 	{
-		*commandCount = alpacaDevice->quickCommandCount();
+		if (commandCount)
+			*commandCount = alpacaDevice->quickCommandCount();
 	}
 	else
 	{
@@ -961,16 +817,20 @@ TAC_ERROR GetQuickCommand
 	TAC_RESULT result{NO_TAC_ERROR};
 
 	AlpacaDevice alpacaDevice = gDevTACCore.getAlpacaDevice(tacHandle);
-	if (alpacaDevice.isNull() == false)
+	if (alpacaDevice != nullptr)
 	{
-		QByteArray commandData = alpacaDevice->getQuickCommand(commandIndex);
-		if (commandData.isEmpty() == false)
+		std::string commandData = alpacaDevice->getQuickCommand(commandIndex);
+		if (!commandData.empty())
 		{
-			my_memcpy(commandBuffer, bufferSize, commandData.constData(), commandData.size());
+			if (!copyStringToBuffer(commandData, commandBuffer, bufferSize))
+			{
+				result = TACDEV_BUFFER_TOO_SMALL;
+				gDevTACCore.setLastError(kTACDevBufferTooSmall);
+			}
 		}
 		else
 		{
-			result = TAC_BAD_INDEX;
+			result = TACDEV_BAD_INDEX;
 			gDevTACCore.setLastError(kTACBadIndex);
 		}
 	}
@@ -992,8 +852,11 @@ TAC_ERROR GetCommandState
 {
 	TAC_RESULT result{NO_TAC_ERROR};
 
+	if (!command || !state)
+		return TACDEV_BAD_INDEX;
+
 	AlpacaDevice alpacaDevice = gDevTACCore.getAlpacaDevice(tacHandle);
-	if (alpacaDevice.isNull() == false)
+	if (alpacaDevice != nullptr)
 	{
 		try
 		{
@@ -1001,8 +864,7 @@ TAC_ERROR GetCommandState
 		}
 		catch (const TACException& e)
 		{
-			Q_UNUSED(e)
-
+			(void)e;
 			result = TACDEV_COMMAND_NOT_FOUND;
 		}
 	}
@@ -1024,8 +886,11 @@ TAC_ERROR SendCommand
 {
 	TAC_RESULT result{NO_TAC_ERROR};
 
+	if (!command)
+		return TACDEV_BAD_INDEX;
+
 	AlpacaDevice alpacaDevice = gDevTACCore.getAlpacaDevice(tacHandle);
-	if (alpacaDevice.isNull() == false)
+	if (alpacaDevice != nullptr)
 	{
 		bool valid;
 
@@ -1042,6 +907,19 @@ TAC_ERROR SendCommand
 		{
 			result = e.errorCode();
 			gDevTACCore.setLastError(e.getMessage());
+			AppCore::writeToApplicationLogLine("TACDev::SendCommand failed for '" + std::string(command) + "': " + e.getMessage() + " (code " + std::to_string(result) + ")");
+		}
+		catch (const std::exception& e)
+		{
+			result = TACDEV_COMMAND_NOT_FOUND;
+			gDevTACCore.setLastError(e.what());
+			AppCore::writeToApplicationLogLine("TACDev::SendCommand exception for '" + std::string(command) + "': " + e.what());
+		}
+		catch (...)
+		{
+			result = TACDEV_COMMAND_NOT_FOUND;
+			gDevTACCore.setLastError("Unknown exception");
+			AppCore::writeToApplicationLogLine("TACDev::SendCommand unknown exception for '" + std::string(command) + "'");
 		}
 	}
 	else
@@ -1052,7 +930,6 @@ TAC_ERROR SendCommand
 
 	return result;
 }
-
 
 TAC_ERROR GetHelpText
 (
@@ -1065,23 +942,24 @@ TAC_ERROR GetHelpText
 	TAC_RESULT result{NO_TAC_ERROR};
 
 	AlpacaDevice alpacaDevice = gDevTACCore.getAlpacaDevice(tacHandle);
-	if (alpacaDevice.isNull() == false)
+	if (alpacaDevice != nullptr)
 	{
-		// todo
-		QByteArray helpText = alpacaDevice->getHelp();
-		if (helpText.size() >= bufferSize)
+		std::string helpText = alpacaDevice->getHelp();
+		if (actualSize)
+			*actualSize = static_cast<int>(helpText.size());
+
+		if (!copyStringToBuffer(helpText, helpBuffer, bufferSize))
 		{
 			result = TACDEV_BUFFER_TOO_SMALL;
 			gDevTACCore.setLastError(kTACDevBufferTooSmall);
-			*actualSize = helpText.size();
 		}
-		else
-			my_memcpy(helpBuffer, bufferSize, helpText, helpText.size());
 	}
 	else
 	{
-		my_memcpy(helpBuffer, bufferSize, "\0", 1);
-		*actualSize = 0;
+		if (helpBuffer && bufferSize > 0)
+			my_memcpy(helpBuffer, bufferSize, "\0", 1);
+		if (actualSize)
+			*actualSize = 0;
 
 		result = TACDEV_BAD_TAC_HANDLE;
 		gDevTACCore.setLastError(kTACDevHandleNotOpen);
@@ -1090,14 +968,16 @@ TAC_ERROR GetHelpText
 	return result;
 }
 
-
 TAC_ERROR GetScriptVariableCount(TAC_HANDLE tacHandle, unsigned long *scriptVariableCount)
 {
 	TAC_RESULT result{NO_TAC_ERROR};
 	AlpacaDevice alpacaDevice = gDevTACCore.getAlpacaDevice(tacHandle);
 
-	if (alpacaDevice.isNull() == false)
-		*scriptVariableCount = alpacaDevice->scriptVariableCount();
+	if (alpacaDevice != nullptr)
+	{
+		if (scriptVariableCount)
+			*scriptVariableCount = alpacaDevice->scriptVariableCount();
+	}
 	else
 	{
 		result = TACDEV_BAD_TAC_HANDLE;
@@ -1112,20 +992,20 @@ TAC_ERROR GetScriptVariable(TAC_HANDLE tacHandle, unsigned long scriptVariableIn
 	TAC_RESULT result{NO_TAC_ERROR};
 	AlpacaDevice alpacaDevice = gDevTACCore.getAlpacaDevice(tacHandle);
 
-	if (alpacaDevice.isNull() == false)
+	if (alpacaDevice != nullptr)
 	{
-		QByteArray variableData = alpacaDevice->getScriptVariable(scriptVariableIndex);
-		if (variableData.size() >= bufferSize)
+		std::string variableData = alpacaDevice->getScriptVariable(scriptVariableIndex);
+		if (!copyStringToBuffer(variableData, scriptVariableBuffer, bufferSize))
 		{
 			result = TACDEV_BUFFER_TOO_SMALL;
 			gDevTACCore.setLastError(kTACDevBufferTooSmall);
 		}
-		else
-			my_memcpy(scriptVariableBuffer, bufferSize, variableData, variableData.size());
 	}
 	else
 	{
-		my_memcpy(scriptVariableBuffer, bufferSize, "\0", 1);
+		if (scriptVariableBuffer && bufferSize > 0)
+			my_memcpy(scriptVariableBuffer, bufferSize, "\0", 1);
+
 		result = TACDEV_BAD_TAC_HANDLE;
 		gDevTACCore.setLastError(kTACDevHandleNotOpen);
 	}
@@ -1139,9 +1019,9 @@ TAC_ERROR UpdateScriptVariableValue(TAC_HANDLE tacHandle, const char *scriptVari
 
 	try
 	{
-		if (alpacaDevice.isNull() == false)
+		if (alpacaDevice != nullptr)
 		{
-			alpacaDevice->updateScriptVariableValue(scriptVariable, scriptVariableValue);
+			alpacaDevice->updateScriptVariableValue(scriptVariable ? scriptVariable : "", scriptVariableValue ? scriptVariableValue : "");
 		}
 		else
 		{
@@ -1163,29 +1043,32 @@ TAC_ERROR IsCommandQueueClear(TAC_HANDLE tacHandle, bool* status)
 	TAC_RESULT result{NO_TAC_ERROR};
 
 	AlpacaDevice alpacaDevice = gDevTACCore.getAlpacaDevice(tacHandle);
-	if (alpacaDevice.isNull() == false)
+	if (alpacaDevice != nullptr)
 	{
 		try
 		{
-            // if false, queue is clear
-            *status = !alpacaDevice->isCommandQueueClear();
+			// if false, queue is clear
+			if (status)
+				*status = !alpacaDevice->isCommandQueueClear();
 
 			// We're limited by the PIC32CX firmware.
 			// The firmware does not actually send us an acknowledgement for the command execution.
 			// It receives the commands and processes them later. Hardcoded delay can help some automation use-cases.
 			if (alpacaDevice->debugBoardType() == ePIC32CXAuto)
-				QThread::msleep(10000);
+				std::this_thread::sleep_for(std::chrono::milliseconds(10000));
 		}
 		catch (TACException& e)
 		{
 			result = e.errorCode();
 			gDevTACCore.setLastError(e.getMessage());
+			AppCore::writeToApplicationLogLine("TACDev::_quickCommandWithDelay failed: " + e.getMessage() + " (code " + std::to_string(result) + ")");
 		}
 	}
 	else
 	{
 		result = TACDEV_BAD_TAC_HANDLE;
 		gDevTACCore.setLastError(kTACDevHandleNotOpen);
+		AppCore::writeToApplicationLogLine("TACDev::_quickCommandWithDelay failed: " + std::string(kTACDevHandleNotOpen) + " (code " + std::to_string(result) + ")");
 	}
 
 	return result;

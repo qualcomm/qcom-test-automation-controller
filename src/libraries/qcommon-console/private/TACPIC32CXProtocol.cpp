@@ -12,6 +12,7 @@
 #include "TACCommandHashes.h"
 #include "TickCount.h"
 
+#include <cassert>
 #include <string>
 #include <vector>
 
@@ -36,7 +37,7 @@ void TACPIC32CXProtocol::setTACDriveTrain
 	TACDriveThread* tacDriveTrain
 )
 {
-	Q_ASSERT(tacDriveTrain != nullptr);
+	assert(tacDriveTrain != nullptr);
 
 	_tacDriveTrain = tacDriveTrain;
 }

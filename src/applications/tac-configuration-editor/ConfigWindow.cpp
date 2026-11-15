@@ -612,7 +612,7 @@ void ConfigWindow::on__platformId_textChanged(const QString& newText)
 		if (_platformConfiguration->getPlatform() == DebugBoardType::ePSOC)
 		{
 			if (_platformConfiguration->getPlatformId() == 255)
-				_nwgt->insertNotification("The PSOC platform id 255 is experimental. Configuration with this platform id will be saved at: " + tacConfigRoot());
+				_nwgt->insertNotification("The PSOC platform id 255 is experimental.");
 
 			else if (_platformConfiguration->getPlatformId() > 255)
 				_nwgt->insertNotification("A PSOC platform id above 255 is invalid and can crash the debug board upon programming", eWarnNotification);

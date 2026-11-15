@@ -11,7 +11,9 @@
 
 // QCommon
 #include "TickCount.h"
+#include "StringUtilities.h"
 
+#include <cassert>
 #include <cctype>
 #include <string>
 #include <vector>
@@ -37,7 +39,7 @@ void TACPSOCProtocol::setTACDriveTrain
 	TACDriveThread* tacDriveTrain
 )
 {
-	Q_ASSERT(tacDriveTrain != nullptr);
+	assert(tacDriveTrain != nullptr);
 
 	_tacDriveTrain = tacDriveTrain;
 }
@@ -96,23 +98,6 @@ void TACPSOCProtocol::idle()
 {
 }
 
-static std::string trimString(const std::string& s)
-{
-	size_t first = s.find_first_not_of(" \t\r\n");
-	if (first == std::string::npos) return "";
-	size_t last = s.find_last_not_of(" \t\r\n");
-	return s.substr(first, last - first + 1);
-}
-
-static bool equalsIgnoreCase(const std::string& a, const std::string& b)
-{
-	if (a.size() != b.size()) return false;
-	for (size_t i = 0; i < a.size(); ++i)
-		if (std::tolower(static_cast<unsigned char>(a[i])) != std::tolower(static_cast<unsigned char>(b[i])))
-			return false;
-	return true;
-}
-
 void TACPSOCProtocol::frameComplete
 (
 	const std::string& completedFrame
@@ -133,7 +118,7 @@ void TACPSOCProtocol::frameComplete
 		if (framePackage != nullptr)
 		{
 			framePackage->_responses = frames;
-			framePackage->_valid = !frames.empty() && equalsIgnoreCase(trimString(frames.back()), "ok");
+			framePackage->_valid = !frames.empty() && equalsIgnoreCase(trim(frames.back()), "ok");
 
 			if (framePackage->_recieveInterface != nullptr)
 			{

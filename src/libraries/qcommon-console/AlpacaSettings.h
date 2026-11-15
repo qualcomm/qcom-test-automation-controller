@@ -5,12 +5,12 @@
 
 // QCommon
 #include "QCommonConsoleGlobal.h"
-#include "IniSettings.h"
+#include "INISettings.h"
 
 #include <string>
 
 class QCOMMONCONSOLE_EXPORT AlpacaSettings :
-	public IniSettings
+	public INISettings
 {
 public:
 	AlpacaSettings();

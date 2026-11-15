@@ -1,5 +1,5 @@
-#ifndef QCOMMONCONSOLEGLOBAL_H
-#define QCOMMONCONSOLEGLOBAL_H
+#ifndef QCOMMONGLOBAL_H
+#define QCOMMONGLOBAL_H
 // Copyright (c) Qualcomm Technologies, Inc. and/or its subsidiaries.
 // SPDX-License-Identifier: BSD-3-Clause
 

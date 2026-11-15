@@ -24,6 +24,9 @@ qt_add_library(${LIBRARY_NAME} STATIC
     MediaPlaybackFrame.cpp MediaPlaybackFrame.h MediaPlaybackFrame.ui
     NotificationWidget.cpp NotificationWidget.h NotificationWidget.ui
     ProgressDialog.cpp ProgressDialog.h ProgressDialog.ui
+    SerialTableModel.cpp SerialTableModel.h
+    PIC32CXSerialTableModel.cpp PIC32CXSerialTableModel.h
+    PSOCSerialTableModel.cpp PSOCSerialTableModel.h
     TACFrame.cpp TACFrame.h TACFrame.ui
     UIGlobalLib.h
     UILib.cpp UILib.h

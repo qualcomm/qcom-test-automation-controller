@@ -18,10 +18,8 @@ class STM32Device;
 class QCOMMONCONSOLE_EXPORT TACSTM32DriveThread :
 	public TACDriveThread
 {
-Q_OBJECT
-
 public:
-	TACSTM32DriveThread(uint hash);
+	TACSTM32DriveThread(uint32_t hash);
 	~TACSTM32DriveThread();
 
 	virtual void run() override;

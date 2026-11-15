@@ -8,9 +8,7 @@
 #include "FramePackage.h"
 #include "QCommonConsoleGlobal.h"
 
-// Qt
-#include <QObject>
-
+// Standard C++
 #include <chrono>
 #include <cstdint>
 #include <mutex>
@@ -75,9 +73,5 @@ private:
 	std::recursive_mutex		_outQueueMutex;
 	FramePackageList			_outboundData;
 };
-
-#define ProtocolInterface_iid "com.qualcomm.simpson.ProtocolInterface"
-
-Q_DECLARE_INTERFACE(ProtocolInterface, ProtocolInterface_iid)
 
 #endif // PROTOCOLINTERFACE_H

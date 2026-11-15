@@ -11,6 +11,7 @@
 
 #include "ConfigurationFile.h"
 
+#include <algorithm>
 #include <string>
 
 const std::string kPin("pin");
@@ -198,7 +199,7 @@ void _STM32PlatformConfiguration::initialize()
 	variable._label = "EDL timing (ms)";
 	variable._tooltip = "Configurable Boot to EDL timing in milliseconds";
 	variable._type = eIntegerType;
-	variable._defaultValue = 100;
+	variable._defaultValue = 100u;
 	variable._cellLocation = {0,0};
 
 	_scriptVariables.insert({variable._name, variable});
@@ -207,7 +208,7 @@ void _STM32PlatformConfiguration::initialize()
 	variable._label = "Power on delay (ms)";
 	variable._tooltip = "Configurable power on delay in milliseconds";
 	variable._type = eIntegerType;
-	variable._defaultValue = 500;
+	variable._defaultValue = 500u;
 	variable._cellLocation = {1,0};
 
 	_scriptVariables.insert({variable._name, variable});
@@ -320,7 +321,7 @@ bool _STM32PlatformConfiguration::getPinEnableState(const PinID pin) const
 
 	if (_pinEntries.find(hash) != _pinEntries.end())
 	{
-		const auto pinData = _pinEntries[hash];
+		const auto pinData = _pinEntries.at(hash);
 		result = pinData._enabled;
 	}
 
@@ -353,7 +354,7 @@ bool _STM32PlatformConfiguration::getPinInvertedState(const PinID pin) const
 
 	if (_pinEntries.find(hash) != _pinEntries.end())
 	{
-		const auto pinData = _pinEntries[hash];
+		const auto pinData = _pinEntries.at(hash);
 		result = pinData._inverted;
 	}
 
@@ -473,7 +474,7 @@ CommandGroups _STM32PlatformConfiguration::getPinGroup(const PinID pin) const
 
 	if (_pinEntries.find(hash) != _pinEntries.end())
 	{
-		const auto pinData = _pinEntries[hash];
+		const auto pinData = _pinEntries.at(hash);
 		result = pinData._commandGroup;
 	}
 
@@ -634,7 +635,7 @@ bool _STM32PlatformConfiguration::readConfig(const ConfigurationFile& config)
 					std::string pointString = ConfigurationFile::getRecordString(pinEntry, kRunPriority);
 					if (pointString.size() > 0)
 					{
-						std::pair<int, int> point = toQPoint(pointString);
+						std::pair<int, int> point = toPoint(pointString);
 						if (point.first >= 0 && point.second >= 0)
 							pinData._cellLocation = point;
 					}
@@ -669,7 +670,7 @@ void _STM32PlatformConfiguration::writeConfig(ConfigurationFile& config)
 		pinData[kInverted] = pinEntry._inverted ? "true" : "false";
 		pinData[kCommand] = pinEntry._pinCommand;
 		pinData[kCommandGroup] = std::to_string(static_cast<int>(pinEntry._commandGroup));
-		pinData[kRunPriority] = fromQPoint(pinEntry._cellLocation);
+		pinData[kRunPriority] = fromPoint(pinEntry._cellLocation);
 		pinData[kTabName] = pinEntry._tabName;
 
 		pinsArray.push_back(pinData);

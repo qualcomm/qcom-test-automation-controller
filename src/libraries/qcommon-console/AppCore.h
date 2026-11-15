@@ -30,8 +30,6 @@ public:
 		return _appVersion;
 	}
 
-	uint32_t daysSinceInstall();
-
 	PreferencesBase* getPreferences()
 	{
 		return _preferences;
@@ -55,12 +53,12 @@ public:
 
 	std::string loggingPath();
 
-	bool checkLicense(const std::string& productID, const std::string& featureID);
-	bool isLicenseManagerValid();
-
-	void postStartEvent();
-	void postAutomationEvent();
-	void postMetric(const std::string& metricID, double metric);
+	// --- Critical Application Paths (Cannot be configured per user preferences) ---
+	static std::string applicationBinPath();
+	static std::string applicationDataPath();
+	static std::string configurationsPath();
+	static std::string userConfigurationsPath();
+	static std::string configurationSavePath(const std::string& currentPath = "");
 
 	void writeToAppLog(const std::string& writeMe);
 

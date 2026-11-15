@@ -2,6 +2,8 @@
 // SPDX-License-Identifier: BSD-3-Clause
 
 #include "ConfigurationFile.h"
+#include "AppCore.h"
+#include "StringUtilities.h"
 #include "private/nlohmann/json.hpp"
 
 #include <cctype>
@@ -11,25 +13,6 @@
 const ConfigurationTable ConfigurationFile::_emptyTable;
 const std::vector<int> ConfigurationFile::_emptyIntList;
 const std::vector<std::string> ConfigurationFile::_emptyStringList;
-
-static bool isIntegerString(const std::string& s)
-{
-	if (s.empty())
-		return false;
-	size_t start = 0;
-	if (s[0] == '-' || s[0] == '+')
-	{
-		if (s.length() == 1)
-			return false;
-		start = 1;
-	}
-	for (size_t i = start; i < s.length(); ++i)
-	{
-		if (!std::isdigit(static_cast<unsigned char>(s[i])))
-			return false;
-	}
-	return true;
-}
 
 static void parseValueToRecord(const std::string& key, const nlohmann::json& val, ConfigurationRecord& record)
 {
@@ -77,6 +60,72 @@ static void addFieldToJson(nlohmann::json& obj, const std::string& key, const st
 	}
 }
 
+static bool parseJsonToConfig(const nlohmann::json& root,
+                              std::map<std::string, std::string>& properties,
+                              std::map<std::string, ConfigurationTable>& tables,
+                              std::map<std::string, std::vector<int>>& intLists,
+                              std::map<std::string, std::vector<std::string>>& stringLists)
+{
+	for (auto it = root.begin(); it != root.end(); ++it)
+	{
+		const std::string& key = it.key();
+		const auto& val = it.value();
+
+		if (val.is_array())
+		{
+			if (val.empty())
+			{
+				tables[key] = ConfigurationTable();
+			}
+			else if (val[0].is_object())
+			{
+				ConfigurationTable table;
+				table.reserve(val.size());
+				for (const auto& item : val)
+				{
+					if (item.is_object())
+					{
+						ConfigurationRecord record;
+						for (auto fieldIt = item.begin(); fieldIt != item.end(); ++fieldIt)
+						{
+							parseValueToRecord(fieldIt.key(), fieldIt.value(), record);
+						}
+						table.push_back(std::move(record));
+					}
+				}
+				tables[key] = std::move(table);
+			}
+			else if (val[0].is_number_integer() || val[0].is_number_unsigned())
+			{
+				std::vector<int> intList;
+				intList.reserve(val.size());
+				for (const auto& item : val)
+				{
+					if (item.is_number())
+						intList.push_back(item.get<int>());
+				}
+				intLists[key] = std::move(intList);
+			}
+			else if (val[0].is_string())
+			{
+				std::vector<std::string> strList;
+				strList.reserve(val.size());
+				for (const auto& item : val)
+				{
+					if (item.is_string())
+						strList.push_back(item.get<std::string>());
+				}
+				stringLists[key] = std::move(strList);
+			}
+		}
+		else if (val.is_primitive())
+		{
+			parseValueToRecord(key, val, properties);
+		}
+	}
+	return true;
+}
+
 bool ConfigurationFile::load(const std::string& filePath)
 {
 	clear();
@@ -89,67 +138,16 @@ bool ConfigurationFile::load(const std::string& filePath)
 	{
 		nlohmann::json root = nlohmann::json::parse(file, nullptr, false);
 		if (root.is_discarded() || !root.is_object())
-			return false;
-
-		for (auto it = root.begin(); it != root.end(); ++it)
 		{
-			const std::string& key = it.key();
-			const auto& val = it.value();
-
-			if (val.is_array())
-			{
-				if (val.empty())
-				{
-					_tables[key] = ConfigurationTable();
-				}
-				else if (val[0].is_object())
-				{
-					ConfigurationTable table;
-					for (const auto& item : val)
-					{
-						if (item.is_object())
-						{
-							ConfigurationRecord record;
-							for (auto fieldIt = item.begin(); fieldIt != item.end(); ++fieldIt)
-							{
-								parseValueToRecord(fieldIt.key(), fieldIt.value(), record);
-							}
-							table.push_back(record);
-						}
-					}
-					_tables[key] = table;
-				}
-				else if (val[0].is_number_integer() || val[0].is_number_unsigned())
-				{
-					std::vector<int> intList;
-					for (const auto& item : val)
-					{
-						if (item.is_number())
-							intList.push_back(item.get<int>());
-					}
-					_intLists[key] = intList;
-				}
-				else if (val[0].is_string())
-				{
-					std::vector<std::string> strList;
-					for (const auto& item : val)
-					{
-						if (item.is_string())
-							strList.push_back(item.get<std::string>());
-					}
-					_stringLists[key] = strList;
-				}
-			}
-			else if (val.is_primitive())
-			{
-				parseValueToRecord(key, val, _properties);
-			}
+			AppCore::writeToApplicationLogLine("ConfigurationFile::load: failed to parse JSON from '" + filePath + "'");
+			return false;
 		}
 
-		return true;
+		return parseJsonToConfig(root, _properties, _tables, _intLists, _stringLists);
 	}
-	catch (...)
+	catch (const std::exception& e)
 	{
+		AppCore::writeToApplicationLogLine("ConfigurationFile::load: exception loading '" + filePath + "': " + e.what());
 		clear();
 		return false;
 	}
@@ -159,16 +157,25 @@ bool ConfigurationFile::save(const std::string& filePath, bool indented) const
 {
 	std::ofstream file(filePath);
 	if (!file.is_open())
+	{
+		AppCore::writeToApplicationLogLine("ConfigurationFile::save: unable to open file for writing: '" + filePath + "'");
 		return false;
+	}
 
 	try
 	{
 		std::string jsonStr = writeToString(indented);
 		file << jsonStr << "\n";
-		return file.good();
+		if (!file.good())
+		{
+			AppCore::writeToApplicationLogLine("ConfigurationFile::save: stream write error for '" + filePath + "'");
+			return false;
+		}
+		return true;
 	}
-	catch (...)
+	catch (const std::exception& e)
 	{
+		AppCore::writeToApplicationLogLine("ConfigurationFile::save: exception writing to '" + filePath + "': " + e.what());
 		return false;
 	}
 }
@@ -180,67 +187,16 @@ bool ConfigurationFile::readFromString(const std::string& content)
 	{
 		nlohmann::json root = nlohmann::json::parse(content, nullptr, false);
 		if (root.is_discarded() || !root.is_object())
-			return false;
-
-		for (auto it = root.begin(); it != root.end(); ++it)
 		{
-			const std::string& key = it.key();
-			const auto& val = it.value();
-
-			if (val.is_array())
-			{
-				if (val.empty())
-				{
-					_tables[key] = ConfigurationTable();
-				}
-				else if (val[0].is_object())
-				{
-					ConfigurationTable table;
-					for (const auto& item : val)
-					{
-						if (item.is_object())
-						{
-							ConfigurationRecord record;
-							for (auto fieldIt = item.begin(); fieldIt != item.end(); ++fieldIt)
-							{
-								parseValueToRecord(fieldIt.key(), fieldIt.value(), record);
-							}
-							table.push_back(record);
-						}
-					}
-					_tables[key] = table;
-				}
-				else if (val[0].is_number_integer() || val[0].is_number_unsigned())
-				{
-					std::vector<int> intList;
-					for (const auto& item : val)
-					{
-						if (item.is_number())
-							intList.push_back(item.get<int>());
-					}
-					_intLists[key] = intList;
-				}
-				else if (val[0].is_string())
-				{
-					std::vector<std::string> strList;
-					for (const auto& item : val)
-					{
-						if (item.is_string())
-							strList.push_back(item.get<std::string>());
-					}
-					_stringLists[key] = strList;
-				}
-			}
-			else if (val.is_primitive())
-			{
-				parseValueToRecord(key, val, _properties);
-			}
+			AppCore::writeToApplicationLogLine("ConfigurationFile::readFromString: failed to parse JSON content");
+			return false;
 		}
 
-		return true;
+		return parseJsonToConfig(root, _properties, _tables, _intLists, _stringLists);
 	}
-	catch (...)
+	catch (const std::exception& e)
 	{
+		AppCore::writeToApplicationLogLine("ConfigurationFile::readFromString: exception: " + std::string(e.what()));
 		clear();
 		return false;
 	}

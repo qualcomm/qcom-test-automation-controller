@@ -14,8 +14,7 @@ std::map<HashType, oldCommandEntry> gCommandMap;
 std::map<std::string, HashType> gAliasMap;
 
 static void InitializeCommandMap();
-static std::string CommandToCompressedCommand(const std::string& compressMe);
-static oldCommandEntry makeCommandEntry(HashType hash, const std::string& longCommand, const std::string& alias, const std::string& helpText, bool setter = false, QMetaType::Type _argType = QMetaType::UnknownType);
+static oldCommandEntry makeCommandEntry(HashType hash, const std::string& longCommand, const std::string& alias, const std::string& helpText, bool setter = false, ArgumentType _argType = ArgumentType::UnknownType);
 
 HashType AddCommandToEntries
 (
@@ -29,7 +28,7 @@ HashType AddCommandToEntries
 	if (gCommandMap.empty())
 		InitializeCommandMap();
 
-	std::string compressedCommand = CommandToCompressedCommand(commandToAdd);
+	std::string compressedCommand = compressString(commandToAdd);
 
 	result = CommandStringToHash(commandToAdd);
 	if (result == 0)
@@ -39,20 +38,6 @@ HashType AddCommandToEntries
 		gCommandMap[hash] = makeCommandEntry(hash, commandToAdd, alias, helpText);
 	}
 
-	return result;
-}
-
-std::string CommandToCompressedCommand(const std::string& compressMe)
-{
-	std::string result;
-	result.reserve(compressMe.size());
-	for (char ch : compressMe)
-	{
-		if (!std::isspace(static_cast<unsigned char>(ch)))
-		{
-			result.push_back(static_cast<char>(std::tolower(static_cast<unsigned char>(ch))));
-		}
-	}
 	return result;
 }
 
@@ -70,7 +55,7 @@ HashType CommandStringToHash(const std::string& commandString)
 	}
 	else
 	{
-		std::string compressedCommand = CommandToCompressedCommand(commandString);
+		std::string compressedCommand = compressString(commandString);
 		HashType hash = arrayHash(compressedCommand);
 		if (gCommandMap.find(hash) != gCommandMap.end())
 			result = hash;
@@ -103,13 +88,13 @@ oldCommandEntry makeCommandEntry
 	const std::string& alias,
 	const std::string& helpText,
 	bool setter,
-	QMetaType::Type _argType
+	ArgumentType _argType
 )
 {
 	oldCommandEntry commandEntry;
 
 	commandEntry._longCommand = longCommand;
-	commandEntry._compressedCommand = CommandToCompressedCommand(longCommand);
+	commandEntry._compressedCommand = compressString(longCommand);
 	commandEntry._hash = hash;
 	commandEntry._alias = alias;
 	commandEntry._helpText = helpText;
@@ -129,7 +114,7 @@ void InitializeCommandMap()
 	gCommandMap[kGetNameCommandHash] = makeCommandEntry(kGetNameCommandHash, kGetNameCommand, "getname",
 		"Returns the name of the QTAC board");
 	gCommandMap[kSetNameCommandHash] = makeCommandEntry(kSetNameCommandHash, kSetNameCommand, "setname",
-		"Sets the name of the QTAC board ex. setname foobar", true, QMetaType::QByteArray);
+		"Sets the name of the QTAC board ex. setname foobar", true, ArgumentType::ByteArray);
 
 	gCommandMap[kGetUUIDCommandHash] = makeCommandEntry(kGetUUIDCommandHash, kGetUUIDCommand, "uuid",
 		"Returns the UUID of the QTAC board");

@@ -8,9 +8,7 @@
 #include "ReceiveInterface.h"
 #include "SendInterface.h"
 
-// Qt
-#include <QtGlobal>
-
+#include <cassert>
 #include <string>
 
 TACPIC32CXCommand::TACPIC32CXCommand(SendInterface* sender, ReceiveInterface* receiver) :
@@ -18,8 +16,8 @@ TACPIC32CXCommand::TACPIC32CXCommand(SendInterface* sender, ReceiveInterface* re
 	_sender(sender),
 	_ready(false)
 {
-	Q_ASSERT(_receiver != nullptr);
-	Q_ASSERT(_sender != nullptr);
+	assert(_receiver != nullptr);
+	assert(_sender != nullptr);
 
 	_ready = sender->ready();
 }

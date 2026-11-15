@@ -10,6 +10,7 @@
 // QCommon
 #include "TickCount.h"
 
+#include <cassert>
 #include <string>
 
 TACSTM32Protocol::TACSTM32Protocol() :
@@ -32,7 +33,7 @@ void TACSTM32Protocol::setTACDriveTrain
 	TACDriveThread* tacDriveTrain
 )
 {
-	Q_ASSERT(tacDriveTrain != nullptr);
+	assert(tacDriveTrain != nullptr);
 
 	_tacDriveTrain = tacDriveTrain;
 }

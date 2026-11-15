@@ -4,17 +4,16 @@
 #include "PIC32CXDevice.h"
 
 #include "private/TACPIC32CXDriveThread.h"
-#include "PIC32CXSerialTableModel.h"
+#include "SerialPortInfo.h"
 
 #include "AppCore.h"
-#include "Range.h"
+#include "StringUtilities.h"
 
 #include <chrono>
 #include <string>
 #include <thread>
 
 const std::string kPIC32CXDescription{"ALPACA PIC32CX Debug Board"};
-PIC32CXSerialTableModel* gPIC32CXTACSerialTableModel{nullptr};
 
 PIC32CXDevice::~PIC32CXDevice()
 {
@@ -22,23 +21,19 @@ PIC32CXDevice::~PIC32CXDevice()
 
 uint32_t PIC32CXDevice::updateAlpacaDevices()
 {
-	if (gPIC32CXTACSerialTableModel == nullptr)
-		gPIC32CXTACSerialTableModel = new PIC32CXSerialTableModel;
-
-	if (gPIC32CXTACSerialTableModel == nullptr)
-		return 0;
-
-	gPIC32CXTACSerialTableModel->refresh();
-
-	int deviceCount = gPIC32CXTACSerialTableModel->rowCount(QModelIndex());
-	for (auto deviceIndex : range(deviceCount))
+	SerialPortInfos availablePorts = SerialPortInfo::availablePorts();
+	for (const auto& serialInfo : availablePorts)
 	{
-		AlpacaDevice alpacaDevice;
+		if (serialInfo.hasVendorIdentifier() && serialInfo.hasProductIdentifier())
+		{
+			if (serialInfo.vendorIdentifier() != 0x04D8 || serialInfo.productIdentifier() != 0x000A)
+				continue;
+		}
 
-		std::string portName = gPIC32CXTACSerialTableModel->rowData(deviceIndex, kPortNameCol);
+		std::string portName = serialInfo.portName();
 		HashType hash = ::arrayHash(portName);
 
-		alpacaDevice = _AlpacaDevice::findAlpacaDevice(hash);
+		AlpacaDevice alpacaDevice = _AlpacaDevice::findAlpacaDevice(hash);
 		if (alpacaDevice == nullptr)
 		{
 			PIC32CXDevice* pic32cxDevice = new PIC32CXDevice;
@@ -51,7 +46,7 @@ uint32_t PIC32CXDevice::updateAlpacaDevices()
 			pic32cxDevice->_platformID = ALPACA_PIC32CX_ID;
 			pic32cxDevice->_description = kPIC32CXDescription;
 
-			std::string serialNumber = gPIC32CXTACSerialTableModel->rowData(deviceIndex, kSerialNumberCol);
+			std::string serialNumber = serialInfo.serialNumber();
 			pic32cxDevice->_serialNumber = serialNumber;
 
 			size_t xxPos = serialNumber.find("XX");
@@ -98,8 +93,18 @@ bool PIC32CXDevice::open()
 			result = _driveThread->isRunning();
 			if (result == true)
 				break;
-			else
-				std::this_thread::sleep_for(std::chrono::milliseconds(300));
+			if (_driveThread->hasFinished())
+				break;
+			std::this_thread::sleep_for(std::chrono::milliseconds(300));
+		}
+
+		if (result == false)
+		{
+			std::string threadErr = _driveThread->lastErrorMessage();
+			if (!threadErr.empty())
+				_lastError = threadErr;
+			else if (_lastError.empty())
+				_lastError = "Failed to communicate with device on port " + portName();
 		}
 	}
 
@@ -109,7 +114,22 @@ bool PIC32CXDevice::open()
 
 		buildMapping();
 
-		connect(_driveThread, &TACPIC32CXDriveThread::pinStateChanged, this, &PIC32CXDevice::on_pinStateChanged, Qt::DirectConnection);
+		_driveThread->onPinStateChanged = [this](int pin, int state) {
+			on_pinStateChanged(static_cast<uint64_t>(pin), state != 0);
+		};
+		_driveThread->onDeviceDisconnected = [this]() {
+			onDeviceDisconnect();
+		};
+		_driveThread->onProgress = [this](int val) {
+			if (onProgress) onProgress(val);
+		};
+		_driveThread->onError = [this](const std::string& err) {
+			_lastError = err;
+			if (onError) onError(err);
+		};
+		_driveThread->onDeviceStatusChange = [this](const std::string& status) {
+			if (onDeviceStatusChange) onDeviceStatusChange(status);
+		};
 	}
 
 	_macAddress = _driveThread->macAddress();
@@ -134,7 +154,7 @@ void PIC32CXDevice::buildMapping()
 			tacCommand._tabName = pin._tabName;
 			tacCommand._groupName = CommandGroup::toString(pin._commandGroup);
 
-			tacCommand._cellLocation = pin._cellLocation;
+			tacCommand._cellLocation = fromPoint(pin._cellLocation);
 
 			_commands[tacCommand._command] = tacCommand;
 			_commandList.push_back(tacCommand);

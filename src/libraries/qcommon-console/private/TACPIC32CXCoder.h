@@ -20,6 +20,9 @@ class QCOMMONCONSOLE_EXPORT TACPIC32CXCoder :
 	public FrameCoder
 {
 public:
+	TACPIC32CXCoder(const TACPIC32CXCoder&) = delete;
+	TACPIC32CXCoder& operator=(const TACPIC32CXCoder&) = delete;
+
 	TACPIC32CXCoder();
 	virtual ~TACPIC32CXCoder();
 
@@ -30,7 +33,6 @@ public:
 	virtual std::string encode(const std::string& encodeMe, const Arguments& arguments) override;
 
 private:
-	Q_DISABLE_COPY(TACPIC32CXCoder)
 	std::string					_recieveBuffer;
 };
 

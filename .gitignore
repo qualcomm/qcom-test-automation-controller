@@ -43,3 +43,7 @@ ftd2xx.lib
 
 # BRF documents
 *.xml
+
+# temp dirs
+build*/
+cmake/

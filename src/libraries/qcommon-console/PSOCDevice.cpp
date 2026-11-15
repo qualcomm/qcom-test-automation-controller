@@ -3,19 +3,17 @@
 
 #include "PSOCDevice.h"
 #include "private/TACPSOCDriveThread.h"
+#include "SerialPortInfo.h"
 
 // QCommonConsole
 #include "AppCore.h"
 #include "PSOCPlatformConfiguration.h"
-#include "Range.h"
-#include "PSOCSerialTableModel.h"
+#include "StringUtilities.h"
 
 #include <algorithm>
 #include <chrono>
 #include <string>
 #include <thread>
-
-PSOCSerialTableModel* gPSOCTACSerialTableModel{nullptr};
 
 PSOCDevice::~PSOCDevice()
 {
@@ -23,28 +21,27 @@ PSOCDevice::~PSOCDevice()
 
 uint32_t PSOCDevice::updateAlpacaDevices()
 {
-	if (gPSOCTACSerialTableModel == nullptr)
-		gPSOCTACSerialTableModel = new PSOCSerialTableModel;
-
-	if (gPSOCTACSerialTableModel == nullptr)
-		return 0;
-
 	for (auto& alpacaDevice: _AlpacaDevice::_alpacaDevices)
 	{
 		alpacaDevice->setActive(false);
 	}
 
-	gPSOCTACSerialTableModel->refresh();
-
-	int deviceCount = gPSOCTACSerialTableModel->rowCount(QModelIndex());
-	for (auto deviceIndex : range(deviceCount))
+	SerialPortInfos availablePorts = SerialPortInfo::availablePorts();
+	for (const auto& serialInfo : availablePorts)
 	{
-		AlpacaDevice alpacaDevice;
+		// Filter by PSoC VID/PID: (0x05C6, 0x9302) or (0x16C0, 0x0483)
+		if (serialInfo.hasVendorIdentifier() && serialInfo.hasProductIdentifier())
+		{
+			bool match = (serialInfo.vendorIdentifier() == 0x05C6 && serialInfo.productIdentifier() == 0x9302) ||
+			             (serialInfo.vendorIdentifier() == 0x16C0 && serialInfo.productIdentifier() == 0x0483);
+			if (!match)
+				continue;
+		}
 
-		std::string portName = gPSOCTACSerialTableModel->rowData(deviceIndex, kPortNameCol);
+		std::string portName = serialInfo.portName();
 		HashType hash = ::arrayHash(portName);
 
-		alpacaDevice = _AlpacaDevice::findAlpacaDevice(hash);
+		AlpacaDevice alpacaDevice = _AlpacaDevice::findAlpacaDevice(hash);
 		if (alpacaDevice == nullptr)
 		{
 			PSOCDevice* psocDevice = new PSOCDevice;
@@ -55,8 +52,8 @@ uint32_t PSOCDevice::updateAlpacaDevices()
 			psocDevice->_active = true;
 			psocDevice->_boardType = ePSOC;
 			psocDevice->_platformID = MICRO_EPM_BOARD_ID_UNKNOWN;
-			psocDevice->_description = gPSOCTACSerialTableModel->rowData(deviceIndex, kDescriptionCol);
-			psocDevice->_serialNumber = gPSOCTACSerialTableModel->rowData(deviceIndex, kSerialNumberCol);
+			psocDevice->_description = serialInfo.description();
+			psocDevice->_serialNumber = serialInfo.serialNumber();
 
 			_AlpacaDevice::_alpacaDevices.push_back(std::shared_ptr<PSOCDevice>(psocDevice));
 
@@ -87,8 +84,9 @@ bool PSOCDevice::open()
 			result = _driveThread->isRunning();
 			if (result == true)
 				break;
-			else
-				std::this_thread::sleep_for(std::chrono::milliseconds(300));
+			if (_driveThread->hasFinished())
+				break;
+			std::this_thread::sleep_for(std::chrono::milliseconds(300));
 		}
 
 		result = false;
@@ -124,13 +122,52 @@ bool PSOCDevice::open()
 				}
 			}
 		}
+
+		if (!result && _driveThread->connected())
+		{
+			// The board responded to commands, but board ID is unprogrammed (0).
+			// Use MICRO_EPM_BOARD_ID_UNKNOWN / generic PSoC configuration so the user can interact with the device.
+			_platformID = MICRO_EPM_BOARD_ID_UNKNOWN;
+			TACPlatformEntry platformEntry = _PlatformConfiguration::getEntry(_platformID);
+			if (platformEntry._platformEntry != nullptr)
+			{
+				_description = platformEntry._platformEntry->_description;
+				_platformConfiguration = platformEntry.getConfiguration();
+				_psocPlatformConfiguration = static_cast<_PSOCPlatformConfiguration*>(_platformConfiguration.get());
+				result = true;
+			}
+		}
+
+		if (result == false)
+		{
+			std::string threadErr = _driveThread->lastErrorMessage();
+			if (!threadErr.empty())
+				_lastError = threadErr;
+			else if (_lastError.empty())
+				_lastError = "Failed to communicate with device on port " + portName();
+		}
 	}
 
 	if (result == true)
 	{
 		buildMapping();
 
-		connect(_driveThread, &TACPSOCDriveThread::pinStateChanged, this, &PSOCDevice::on_pinStateChanged, Qt::DirectConnection);
+		_driveThread->onPinStateChanged = [this](int pin, int state) {
+			on_pinStateChanged(static_cast<uint64_t>(pin), state != 0);
+		};
+		_driveThread->onDeviceDisconnected = [this]() {
+			onDeviceDisconnect();
+		};
+		_driveThread->onProgress = [this](int val) {
+			if (onProgress) onProgress(val);
+		};
+		_driveThread->onError = [this](const std::string& err) {
+			_lastError = err;
+			if (onError) onError(err);
+		};
+		_driveThread->onDeviceStatusChange = [this](const std::string& status) {
+			if (onDeviceStatusChange) onDeviceStatusChange(status);
+		};
 
 		Pins initialPins;
 		Pins pins = _platformConfiguration->getPins();
@@ -190,7 +227,7 @@ void PSOCDevice::buildMapping()
 			tacCommand._tabName = pin._tabName;
 			tacCommand._groupName = CommandGroup::toString(pin._commandGroup);
 
-			tacCommand._cellLocation = pin._cellLocation;
+			tacCommand._cellLocation = fromPoint(pin._cellLocation);
 
 			_commands[tacCommand._command] = tacCommand;
 			_commandList.push_back(tacCommand);

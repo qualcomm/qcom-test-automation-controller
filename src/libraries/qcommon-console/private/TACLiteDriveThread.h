@@ -18,10 +18,8 @@
 class QCOMMONCONSOLE_EXPORT TACLiteDriveThread :
 	public TACDriveThread
 {
-Q_OBJECT
-
 public:
-	TACLiteDriveThread(uint hash);
+	TACLiteDriveThread(uint32_t hash);
 	~TACLiteDriveThread();
 
 	void setPinSets(FTDIPinSets pinsets)
@@ -67,10 +65,8 @@ protected:
 	bool openFTDIDevice();
 
 private:
-	static bool					_initialized;
 	TACLiteProtocol				_tacProtocol;
 	bool						_connected{false};
-	bool						_readyRead{false};
 	FTDIPinSets					_pinsets{eC | eD};
 	FTDIChipset					_ftdiChipset;
 
