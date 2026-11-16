@@ -24,6 +24,11 @@ namespace Paths
 		return toQString(AppCore::applicationDataPath());
 	}
 
+	QString firmwarePath()
+	{
+		return toQString(AppCore::firmwarePath());
+	}
+
 	QString tacConfigRoot()
 	{
 		return toQString(AppCore::configurationsPath());

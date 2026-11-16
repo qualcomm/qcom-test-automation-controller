@@ -1020,6 +1020,8 @@ void _PlatformConfiguration::setAlpacaScript
 
 std::string _PlatformConfiguration::filePath()
 {
+	if (_platformFile.empty())
+		return std::string();
 	return (std::filesystem::path(_platformPath) / _platformFile).lexically_normal().string();
 }
 

@@ -4,6 +4,7 @@
 #include "AlpacaSharedLibrary.h"
 
 // QCommon
+#include "AppCore.h"
 #include "QCommonConsole.h"
 
 AppCore* AlpacaSharedLibrary::_appCore{nullptr};

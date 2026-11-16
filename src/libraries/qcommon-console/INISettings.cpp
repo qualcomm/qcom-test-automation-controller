@@ -12,6 +12,20 @@
 #include <fstream>
 #include <sstream>
 
+#if defined(_WIN32) || defined(_WIN64)
+	#ifndef WIN32_LEAN_AND_MEAN
+	#define WIN32_LEAN_AND_MEAN
+	#endif
+	#include <windows.h>
+	#include <shlobj.h>
+	#pragma comment(lib, "shell32")
+#endif
+
+#if defined(__linux__)
+	#include <pwd.h>
+	#include <unistd.h>
+#endif
+
 INISettings::Value::Value()
 	: _val(""), _exists(false)
 {
@@ -141,30 +155,22 @@ std::string INISettings::defaultSettingsPath(const std::string& organization, co
 	std::string org = organization.empty() ? "Qualcomm" : organization;
 	std::string app = appName.empty() ? "Alpaca" : appName;
 
-#if defined(_WIN32)
-	const char* appData = std::getenv("APPDATA");
-	if (appData && *appData)
+#if defined(_WIN32) || defined(_WIN64)
+	char appDataPath[MAX_PATH];
+	if (SUCCEEDED(SHGetFolderPathA(NULL, CSIDL_APPDATA, NULL, 0, appDataPath)))
 	{
-		return (std::filesystem::path(appData) / org / app / "settings.ini").string();
+		return (std::filesystem::path(appDataPath) / org / app / "settings.ini").generic_string();
 	}
-	const char* userProfile = std::getenv("USERPROFILE");
-	if (userProfile && *userProfile)
+	return (std::filesystem::path("C:/ProgramData") / org / app / "settings.ini").generic_string();
+#elif defined(__linux__)
+	const struct passwd* pw = getpwuid(getuid());
+	if (pw != nullptr && pw->pw_dir != nullptr && pw->pw_dir[0] != '\0')
 	{
-		return (std::filesystem::path(userProfile) / "AppData" / "Roaming" / org / app / "settings.ini").string();
+		return (std::filesystem::path(pw->pw_dir) / ".config" / org / app / "settings.ini").generic_string();
 	}
-	return (std::filesystem::path(".") / org / app / "settings.ini").string();
+	return (std::filesystem::path("/etc") / org / app / "settings.ini").generic_string();
 #else
-	const char* xdgConfig = std::getenv("XDG_CONFIG_HOME");
-	if (xdgConfig && *xdgConfig)
-	{
-		return (std::filesystem::path(xdgConfig) / org / app / "settings.ini").string();
-	}
-	const char* home = std::getenv("HOME");
-	if (home && *home)
-	{
-		return (std::filesystem::path(home) / ".config" / org / app / "settings.ini").string();
-	}
-	return (std::filesystem::path(".") / ".config" / org / app / "settings.ini").string();
+	return (std::filesystem::path(".") / org / app / "settings.ini").generic_string();
 #endif
 }
 

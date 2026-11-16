@@ -271,22 +271,6 @@ std::string AppCore::applicationDataPath()
 {
 	std::error_code ec;
 
-	// 1. Environment variable override
-	const char* envPath = std::getenv("QTAC_DEVICELIST");
-	if (envPath && *envPath)
-	{
-		std::filesystem::path p(envPath);
-		if (std::filesystem::exists(p, ec) && !ec)
-		{
-			if (std::filesystem::is_directory(p, ec))
-				return p.lexically_normal().generic_string();
-			auto parent = p.parent_path();
-			if (parent.filename() == "configurations")
-				return parent.parent_path().lexically_normal().generic_string();
-			return parent.lexically_normal().generic_string();
-		}
-	}
-
 	// Installed production data path
 #if defined(_WIN32) || defined(_WIN64)
 	const std::string installedPath = "C:/ProgramData/Qualcomm/" + kDefaultAppName;
@@ -355,6 +339,15 @@ std::string AppCore::applicationDataPath()
 	}
 
 	return installedPath;
+}
+
+std::string AppCore::firmwarePath()
+{
+#if defined(_WIN32) || defined(_WIN64)
+	return "C:/ProgramData/Qualcomm/Alpaca/firmware";
+#else
+	return "/var/lib/qcom/data/Alpaca/firmware";
+#endif
 }
 
 std::string AppCore::configurationsPath()

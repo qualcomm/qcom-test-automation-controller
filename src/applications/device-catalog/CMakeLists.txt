@@ -52,9 +52,8 @@ target_link_libraries(${APP_NAME} PRIVATE
     Qt6::Widgets
     ftd2xx
 
-    QCommonBridge
-    "$<$<CONFIG:Debug>:UId;QCommond;QCommonConsoled>"
-    "$<$<NOT:$<CONFIG:Debug>>:UI;QCommon;QCommonConsole>"
+    "$<$<CONFIG:Debug>:UId;QCommond;QCommonBridged;QCommonConsoled>"
+    "$<$<NOT:$<CONFIG:Debug>>:UI;QCommon;QCommonBridge;QCommonConsole>"
 )
 
 if(WIN32)

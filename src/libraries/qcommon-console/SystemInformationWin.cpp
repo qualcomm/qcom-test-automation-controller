@@ -33,6 +33,10 @@ static std::string queryRegistryString(HKEY rootKey, const char* subKey, const c
 	}
 	return defaultValue;
 }
+#elif defined(__linux__)
+#include <unistd.h>
+#include <sys/utsname.h>
+#include <sys/sysinfo.h>
 #endif
 
 SystemInformation::SystemInformation()
@@ -77,6 +81,12 @@ std::string SystemInformation::computerName()
 		{
 			AppCore::writeToApplicationLogLine("SystemInformation::computerName failed: " + GetLastErrorAsString());
 		}
+#elif defined(__linux__)
+		char temp[256];
+		if (gethostname(temp, sizeof(temp)) == 0)
+		{
+			_computerName = std::string(temp);
+		}
 #endif
 	}
 
@@ -100,6 +110,13 @@ std::string SystemInformation::osName()
 #if defined(_WIN32) || defined(_WIN64)
 		_osName = queryRegistryString(HKEY_LOCAL_MACHINE, "SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion", "ProductName", "unknown");
 		_osVersion = queryRegistryString(HKEY_LOCAL_MACHINE, "SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion", "ReleaseId", "");
+#elif defined(__linux__)
+		struct utsname buf;
+		if (uname(&buf) == 0)
+		{
+			_osName = buf.sysname;
+			_osVersion = buf.release;
+		}
 #endif
 	}
 
@@ -113,6 +130,13 @@ std::string SystemInformation::osVersion()
 #if defined(_WIN32) || defined(_WIN64)
 		_osName = queryRegistryString(HKEY_LOCAL_MACHINE, "SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion", "ProductName", "unknown");
 		_osVersion = queryRegistryString(HKEY_LOCAL_MACHINE, "SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion", "ReleaseId", "");
+#elif defined(__linux__)
+		struct utsname buf;
+		if (uname(&buf) == 0)
+		{
+			_osName = buf.sysname;
+			_osVersion = buf.release;
+		}
 #endif
 	}
 
@@ -138,6 +162,15 @@ std::string SystemInformation::totalPhysicalMemory()
 			AppCore::writeToApplicationLogLine("SystemInformation::totalPhysicalMemory failed: " + GetLastErrorAsString());
 			_totalPhysicalMemory = "unknown";
 		}
+#elif defined(__linux__)
+		struct sysinfo info;
+		if (sysinfo(&info) == 0)
+		{
+			double gb = static_cast<double>(info.totalram * info.mem_unit) / 1024.0 / 1024.0 / 1024.0;
+			char memBuf[64];
+			std::snprintf(memBuf, sizeof(memBuf), "%.2f", gb);
+			_totalPhysicalMemory = memBuf;
+		}
 #endif
 	}
 
@@ -161,6 +194,15 @@ std::string SystemInformation::totalVirtualMemory()
 	else
 	{
 		AppCore::writeToApplicationLogLine("SystemInformation::totalVirtualMemory failed: " + GetLastErrorAsString());
+	}
+#elif defined(__linux__)
+	struct sysinfo info;
+	if (sysinfo(&info) == 0)
+	{
+		double gb = static_cast<double>((info.totalram + info.totalswap) * info.mem_unit) / 1024.0 / 1024.0 / 1024.0;
+		char memBuf[64];
+		std::snprintf(memBuf, sizeof(memBuf), "%.2f", gb);
+		result = memBuf;
 	}
 #endif
 	return result;

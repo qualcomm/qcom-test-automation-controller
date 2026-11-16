@@ -1,7 +1,6 @@
 # Getting started
 
-Thank you for downloading the QTAC Software Suite. Let us learn more about
-each of the softwares/tools provided by QTAC.
+Thank you for using QTAC. Here is an overview of the tools provided:
 
 Here is the summary of the different tools that were installed:
 

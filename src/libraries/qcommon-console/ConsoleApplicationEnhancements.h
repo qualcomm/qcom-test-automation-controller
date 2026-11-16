@@ -26,6 +26,7 @@ std::string QCOMMONCONSOLE_EXPORT tacConfigRoot();
 // --- Critical Path Forwarders for Console Enhancements Compatibility ---
 std::string QCOMMONCONSOLE_EXPORT applicationBinPath();
 std::string QCOMMONCONSOLE_EXPORT applicationDataPath();
+std::string QCOMMONCONSOLE_EXPORT firmwarePath();
 std::string QCOMMONCONSOLE_EXPORT userConfigurationsPath();
 
 void cleanIt(const std::string& pathToClean);

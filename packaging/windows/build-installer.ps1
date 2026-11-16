@@ -131,15 +131,6 @@ if (Test-Path $cppHeaderSrc) {
     Write-Warning "No interfaces\C++\TACDev directory found; C++ headers will be absent from the installer."
 }
 
-foreach ($lang in @('Python', 'Java')) {
-    $srcLang = Join-Path $SourceRoot "interfaces\$lang"
-    if (Test-Path $srcLang) {
-        Copy-Item $srcLang (Join-Path $interfacesDest $lang) -Recurse -Force
-    } else {
-        Write-Warning "No interfaces\$lang directory found; $lang interface will be absent from the installer."
-    }
-}
-
 $ftdiZip = Get-ChildItem (Join-Path $SourceRoot 'third-party') -Filter $ftdiZipGlob -ErrorAction SilentlyContinue |
     Select-Object -First 1
 if ($ftdiZip) {

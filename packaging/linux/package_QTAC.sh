@@ -30,7 +30,6 @@ SRC_DIR="$(realpath "$BASE_DIR/../../__Builds/Linux/Release")"
 CONFIG_SRC_DIR="$(realpath "$BASE_DIR/../../configurations")"
 DOCS_SRC_DIR="$(realpath "$BASE_DIR/../../docs")"
 EXAMPLES_SRC_DIR="$(realpath "$BASE_DIR/../../examples")"
-PYTHON_SRC_DIR="$(realpath "$BASE_DIR/../../interfaces/Python")"
 INTERFACES_SRC_DIR="$(realpath "$BASE_DIR/../../interfaces")"
 UDEV_RULES_SRC_DIR="$(realpath "$BASE_DIR/../../udev-rules")"
 PLUGINS_SRC_DIR="$SRC_DIR/plugins"
@@ -88,11 +87,6 @@ if [ ! -d "$EXAMPLES_SRC_DIR" ]; then
     missing=1
 fi
 
-if [ ! -d "$PYTHON_SRC_DIR" ]; then
-    echo "ERROR: Missing python directory: $PYTHON_SRC_DIR" >&2
-    missing=1
-fi
-
 if [ ! -d "$INTERFACES_SRC_DIR" ]; then
     echo "ERROR: Missing interfaces directory: $INTERFACES_SRC_DIR" >&2
     missing=1
@@ -122,7 +116,6 @@ mkdir -p "$BUILDROOT$INSTALL_PREFIX/bin"
 mkdir -p "$BUILDROOT$INSTALL_PREFIX/lib"
 mkdir -p "$BUILDROOT$INSTALL_PREFIX/docs/QTAC"
 mkdir -p "$BUILDROOT$INSTALL_PREFIX/examples"
-mkdir -p "$BUILDROOT$INSTALL_PREFIX/python"
 mkdir -p "$BUILDROOT$INSTALL_PREFIX/plugins"
 mkdir -p "$BUILDROOT$INSTALL_PREFIX/utils"
 mkdir -p "$BUILDROOT$CONFIG_INSTALL_DIR/configurations"
@@ -148,10 +141,6 @@ cp -a "$DOCS_SRC_DIR/." \
 echo "Copying examples..."
 cp -a "$EXAMPLES_SRC_DIR/." \
       "$BUILDROOT$INSTALL_PREFIX/examples/"
-	  
-echo "Copying Python..."
-cp -a "$PYTHON_SRC_DIR/." \
-      "$BUILDROOT$INSTALL_PREFIX/python/"
 
 echo "Copying interfaces..."
 
@@ -167,16 +156,6 @@ else
     echo "WARNING: Missing interfaces/C++/TACDev; C++ headers will be absent." >&2
 fi
 
-for lang in Python Java; do
-    if [ -d "$INTERFACES_SRC_DIR/$lang" ]; then
-        mkdir -p "$BUILDROOT$CONFIG_INSTALL_DIR/interfaces/$lang"
-        cp -a "$INTERFACES_SRC_DIR/$lang/." \
-              "$BUILDROOT$CONFIG_INSTALL_DIR/interfaces/$lang/"
-    else
-        echo "WARNING: Missing interfaces/$lang; $lang interface will be absent." >&2
-    fi
-done
-
 echo "Copying plugins..."
 cp -a "$PLUGINS_SRC_DIR/." \
       "$BUILDROOT$INSTALL_PREFIX/plugins/"
@@ -191,7 +170,6 @@ find "$BUILDROOT$INSTALL_PREFIX/lib" -type f -exec chmod 755 {} \;
 find "$BUILDROOT$INSTALL_PREFIX/docs/QTAC" -type f -exec chmod 644 {} \; || true
 find "$BUILDROOT$INSTALL_PREFIX/examples" -type f -exec chmod 644 {} \; || true
 find "$BUILDROOT$INSTALL_PREFIX/plugins" -type f -exec chmod 644 {} \; || true
-find "$BUILDROOT$INSTALL_PREFIX/python" -type f -exec chmod 644 {} \; || true
 
 find "$BUILDROOT$CONFIG_INSTALL_DIR/configurations" -type f -exec chmod 644 {} \; || true
 
@@ -208,7 +186,7 @@ echo "Validating interfaces payload..."
 INTERFACES_STAGE_DIR="$BUILDROOT$CONFIG_INSTALL_DIR/interfaces"
 interfaces_invalid=0
 
-for rel in "C++/TACDev" "Python" "Java"; do
+for rel in "C++/TACDev"; do
 
     staged="$INTERFACES_STAGE_DIR/$rel"
 
@@ -566,7 +544,7 @@ expected_paths=(
     "$CONFIG_INSTALL_DIR/interfaces/"
 )
 
-for lang_rel in "C++/TACDev" "Python" "Java"; do
+for lang_rel in "C++/TACDev"; do
     if [ -d "$INTERFACES_SRC_DIR/$lang_rel" ]; then
         expected_paths+=("$CONFIG_INSTALL_DIR/interfaces/$lang_rel/")
     fi

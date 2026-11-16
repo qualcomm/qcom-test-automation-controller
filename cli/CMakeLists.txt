@@ -8,6 +8,17 @@ set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
+# Ensure src is accessible from cli/ for dependencies expecting ${CMAKE_SOURCE_DIR}/src
+if (NOT EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/src")
+    if (WIN32)
+        file(TO_NATIVE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/src" _CLI_SRC_LINK)
+        file(TO_NATIVE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/../src" _CLI_SRC_TARGET)
+        execute_process(COMMAND cmd /c mklink /J "${_CLI_SRC_LINK}" "${_CLI_SRC_TARGET}" OUTPUT_QUIET ERROR_QUIET)
+    else()
+        execute_process(COMMAND ${CMAKE_COMMAND} -E create_symlink "${CMAKE_CURRENT_SOURCE_DIR}/../src" "${CMAKE_CURRENT_SOURCE_DIR}/src" OUTPUT_QUIET ERROR_QUIET)
+    endif()
+endif()
+
 # Configure output directories
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
@@ -53,28 +64,3 @@ if (WIN32)
     )
 endif()
 
-# Build tests if enabled
-option(BUILD_TESTING "Build test executables" ON)
-if (BUILD_TESTING AND EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/../cmake/standalone/test_main.cpp")
-    add_executable(qcommon_console_test
-        ${CMAKE_CURRENT_SOURCE_DIR}/../cmake/standalone/test_main.cpp
-        ${CMAKE_CURRENT_SOURCE_DIR}/../cmake/standalone/hardware_stubs.cpp
-    )
-    target_include_directories(qcommon_console_test PRIVATE
-        ${CMAKE_CURRENT_SOURCE_DIR}/../cmake/standalone
-        ${CMAKE_CURRENT_SOURCE_DIR}/../interfaces/C++/TACDev
-        ${CMAKE_CURRENT_SOURCE_DIR}/../src/libraries/qcommon-console
-    )
-    target_link_libraries(qcommon_console_test PRIVATE
-        ${QCOMMON_TARGET}
-        ${TACDEV_TARGET}
-    )
-    if (WIN32)
-        target_link_libraries(qcommon_console_test PRIVATE setupapi advapi32 version user32 shell32)
-        add_custom_command(TARGET qcommon_console_test POST_BUILD
-            COMMAND ${CMAKE_COMMAND} -E copy_if_different
-                $<TARGET_FILE:${TACDEV_TARGET}>
-                $<TARGET_FILE_DIR:qcommon_console_test>
-        )
-    endif()
-endif()

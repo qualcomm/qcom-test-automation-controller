@@ -1,11 +1,7 @@
 # Copyright (c) Qualcomm Technologies, Inc. and/or its subsidiaries.
 # SPDX-License-Identifier: BSD-3-Clause
 
-if (EXISTS "${CMAKE_CURRENT_LIST_DIR}/../../../src/libraries/qcommon-console/Common.cmake")
-    include(${CMAKE_CURRENT_LIST_DIR}/../../../src/libraries/qcommon-console/Common.cmake)
-else()
-    include(${CMAKE_SOURCE_DIR}/src/libraries/qcommon-console/Common.cmake)
-endif()
+include(${CMAKE_SOURCE_DIR}/src/libraries/qcommon-console/Common.cmake)
 
 if (CMAKE_BUILD_TYPE STREQUAL "Debug")
     set(LIBRARY_NAME TACDevd)
@@ -21,7 +17,7 @@ add_library(${LIBRARY_NAME} SHARED
 )
 
 target_include_directories(${LIBRARY_NAME} PUBLIC
-    ${CMAKE_CURRENT_SOURCE_DIR}
+    ${CMAKE_SOURCE_DIR}/src/libraries/qcommon-console
 )
 
 target_link_directories(${LIBRARY_NAME} PRIVATE

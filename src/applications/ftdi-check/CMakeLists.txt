@@ -36,7 +36,8 @@ target_link_directories(${APP_NAME} PRIVATE
 target_link_libraries(${APP_NAME} PRIVATE
     Qt6::Core
     ftd2xx
-    QCommonBridge
+    $<$<CONFIG:Debug>:QCommonBridged>
+    $<$<NOT:$<CONFIG:Debug>>:QCommonBridge>
     $<$<CONFIG:Debug>:QCommonConsoled>
     $<$<NOT:$<CONFIG:Debug>>:QCommonConsole>
 )

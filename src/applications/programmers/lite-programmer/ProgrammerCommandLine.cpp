@@ -4,6 +4,7 @@
 #include "ProgrammerCommandLine.h"
 
 // QCommon
+#include "AppCore.h"
 #include "QCommonTypes.h"
 #include "StringUtilities.h"
 #include "version.h"
@@ -88,8 +89,9 @@ uint32_t ProgrammerCommandLine::platformID()
 		{
 			result = static_cast<uint32_t>(std::stoul(_platformID));
 		}
-		catch (...)
+		catch (const std::exception& e)
 		{
+			AppCore::writeToApplicationLogLine("ProgrammerCommandLine::platformID: failed parsing '" + _platformID + "': " + e.what());
 			result = 0;
 		}
 	}

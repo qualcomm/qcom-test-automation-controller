@@ -14,6 +14,7 @@ namespace Paths
 {
 	QCOMMONBRIDGE_EXPORT QString applicationBinPath();
 	QCOMMONBRIDGE_EXPORT QString applicationDataPath();
+	QCOMMONBRIDGE_EXPORT QString firmwarePath();
 	QCOMMONBRIDGE_EXPORT QString tacConfigRoot();
 	QCOMMONBRIDGE_EXPORT QString configurationsPath();
 	QCOMMONBRIDGE_EXPORT QString userConfigurationsPath();
@@ -31,6 +32,7 @@ namespace Logging
 
 using QTAC::Paths::applicationBinPath;
 using QTAC::Paths::applicationDataPath;
+using QTAC::Paths::firmwarePath;
 using QTAC::Paths::tacConfigRoot;
 using QTAC::Paths::configurationsPath;
 using QTAC::Paths::userConfigurationsPath;

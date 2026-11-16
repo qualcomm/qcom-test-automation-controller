@@ -17,6 +17,7 @@
 #endif
 
 #if defined(__linux__)
+	#include <pwd.h>
 	#include <unistd.h>
 #endif
 
@@ -43,23 +44,24 @@ std::string documentsDataPath(const std::string& append)
 	std::filesystem::path basePath;
 
 #if defined(_WIN32) || defined(_WIN64)
-	const char* userProfile = std::getenv("USERPROFILE");
-	if (userProfile != nullptr && *userProfile != '\0')
-		basePath = std::filesystem::path(userProfile) / "Documents";
+	char docPath[MAX_PATH];
+	if (SUCCEEDED(SHGetFolderPathA(NULL, CSIDL_MYDOCUMENTS, NULL, 0, docPath)))
+	{
+		basePath = docPath;
+	}
 	else
+	{
 		basePath = "C:/Documents";
-
-	// Apply killOneDrive behavior enhancement to avoid OneDrive synchronization corruption
-	std::string revertPath = (userProfile != nullptr && *userProfile != '\0')
-		? (std::filesystem::path(userProfile) / "Documents").generic_string()
-		: "C:/Documents";
-	basePath = killOneDrive(basePath.generic_string(), revertPath);
-#else
-	const char* home = std::getenv("HOME");
-	if (home != nullptr && *home != '\0')
-		basePath = std::filesystem::path(home) / "Documents";
+	}
+	basePath = killOneDrive(basePath.generic_string(), "C:/Documents");
+#elif defined(__linux__)
+	const struct passwd* pw = getpwuid(getuid());
+	if (pw != nullptr && pw->pw_dir != nullptr && pw->pw_dir[0] != '\0')
+		basePath = std::filesystem::path(pw->pw_dir) / "Documents";
 	else
 		basePath = "/root/Documents";
+#else
+	basePath = "Documents";
 #endif
 
 	std::filesystem::path result = (basePath / rootDir).lexically_normal();
@@ -116,8 +118,10 @@ std::string expandPath(const std::string& filePath)
 #if defined(__linux__)
 	if (!result.empty() && result[0] == '~')
 	{
-		const char* home = std::getenv("HOME");
-		std::string homeStr = (home != nullptr && *home != '\0') ? home : "/root";
+		const struct passwd* pw = getpwuid(getuid());
+		std::string homeStr = (pw != nullptr && pw->pw_dir != nullptr && pw->pw_dir[0] != '\0')
+			? pw->pw_dir
+			: "/root";
 		result.replace(0, 1, homeStr);
 	}
 #endif
@@ -158,6 +162,11 @@ std::string applicationBinPath()
 std::string applicationDataPath()
 {
 	return AppCore::applicationDataPath();
+}
+
+std::string firmwarePath()
+{
+	return AppCore::firmwarePath();
 }
 
 std::string userConfigurationsPath()

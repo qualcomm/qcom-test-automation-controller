@@ -16,6 +16,7 @@
 
 #if defined(__linux__)
 #include <unistd.h>
+#include <pwd.h>
 #endif
 
 /**

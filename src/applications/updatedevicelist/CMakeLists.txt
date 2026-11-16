@@ -25,7 +25,8 @@ target_link_libraries(${APP_NAME} PRIVATE
     Qt6::Core
     Qt6::SerialPort
     Qt6::Xml
-    QCommonBridge
+    $<$<CONFIG:Debug>:QCommonBridged>
+    $<$<NOT:$<CONFIG:Debug>>:QCommonBridge>
     $<$<CONFIG:Debug>:QCommonConsoled>
     $<$<NOT:$<CONFIG:Debug>>:QCommonConsole>
 )

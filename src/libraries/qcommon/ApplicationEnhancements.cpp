@@ -129,7 +129,9 @@ void launchFolder
 	if (QDir().exists(folderName))
 	{
 #ifdef Q_OS_WIN
-	ShellExecuteA(NULL, "open", folderName.toLatin1().data(), NULL, NULL, SW_SHOWMINIMIZED);
+		ShellExecuteA(NULL, "open", folderName.toLatin1().data(), NULL, NULL, SW_SHOWMINIMIZED);
+#else
+		QDesktopServices::openUrl(QUrl::fromLocalFile(folderName));
 #endif
 	}
 }

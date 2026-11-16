@@ -546,7 +546,7 @@ void _FTDIChipset::setSerialNumber
 unsigned long long _FTDIChipset::setCustomVIDPID()
 {
 	unsigned long long ftStatus = !FT_OK;
-#ifdef Q_OS_LINUX
+#if defined(__linux__) || defined(Q_OS_LINUX)
 	ftStatus = FT_SetVIDPID(1027, 6552);
 	if (ftStatus == FT_OK)
 		AppCore::writeToApplicationLog("Configured FTDI to detect VID: 0403 and PID: 1998\n");
@@ -602,11 +602,11 @@ PlatformID _FTDIChipset::nameToPlatform
 	return PlatformContainer::fromUSBDescriptor(deviceName);
 }
 
-#ifdef Q_OS_LINUX
+#if defined(__linux__) || defined(Q_OS_LINUX)
 void _FTDIChipset::linuxTraversal()
 {
 	FT_STATUS ftStatus;
-	DWORD deviceCount;
+	DWORD deviceCount = 0;
 
 	ftStatus = setCustomVIDPID();
 	if (ftStatus == FT_OK)
@@ -617,9 +617,7 @@ void _FTDIChipset::linuxTraversal()
 		{
 			if (deviceCount > 0)
 			{
-				FT_DEVICE_LIST_INFO_NODE* devInfoList{nullptr};
-
-				devInfoList = new FT_DEVICE_LIST_INFO_NODE[deviceCount];
+				FT_DEVICE_LIST_INFO_NODE* devInfoList = new FT_DEVICE_LIST_INFO_NODE[deviceCount];
 
 				ftStatus = FT_GetDeviceInfoList(devInfoList, &deviceCount);
 				if (ftStatus == FT_OK)
@@ -706,23 +704,23 @@ void _FTDIChipset::linuxTraversal()
 						}
 					}
 				}
-			}
-			else
-			{
-				AppCore::writeToApplicationLog("FTDI linuxTraversal: FT_GetDeviceInfoList failed: " + _FTDIChipset::ftidStatusToString(ftStatus) + "\n");
-			}
+				else
+				{
+					AppCore::writeToApplicationLog("FTDI linuxTraversal: FT_GetDeviceInfoList failed: " + _FTDIChipset::ftidStatusToString(ftStatus) + "\n");
+				}
 
-			delete[] devInfoList;
+				delete[] devInfoList;
+			}
+		}
+		else
+		{
+			AppCore::writeToApplicationLog("FTDI linuxTraversal: FT_CreateDeviceInfoList failed: " + _FTDIChipset::ftidStatusToString(ftStatus) + "\n");
 		}
 	}
 	else
 	{
-		AppCore::writeToApplicationLog("FTDI linuxTraversal: FT_CreateDeviceInfoList failed: " + _FTDIChipset::ftidStatusToString(ftStatus) + "\n");
+		AppCore::writeToApplicationLog("FTDI linuxTraversal: setCustomVIDPID failed: " + _FTDIChipset::ftidStatusToString(ftStatus) + "\n");
 	}
-}
-else
-{
-	AppCore::writeToApplicationLog("FTDI linuxTraversal: setCustomVIDPID failed: " + _FTDIChipset::ftidStatusToString(ftStatus) + "\n");
 }
 
 void _FTDIChipset::windowsTraversal()

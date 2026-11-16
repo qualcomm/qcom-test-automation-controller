@@ -10,6 +10,7 @@
 #include <QDir>
 
 // C++
+#include <filesystem>
 #include <iostream>
 #include <iomanip>
 
@@ -41,7 +42,13 @@ int main(int argc, char *argv[])
 				std::cout << std::setw(35) << "-";
 
 			std::cout << std::setw(9) << descriptor._revision;
-			std::cout << " " << descriptor._configurationFilePath;
+			std::error_code ec;
+			if (!descriptor._configurationFilePath.empty() &&
+			    !std::filesystem::is_directory(descriptor._configurationFilePath, ec) &&
+			    !std::filesystem::path(descriptor._configurationFilePath).filename().empty())
+				std::cout << " " << descriptor._configurationFilePath;
+			else
+				std::cout << " -";
 			std::cout << std::endl;
 		}
 	}

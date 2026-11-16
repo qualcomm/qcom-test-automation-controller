@@ -99,9 +99,11 @@ DeviceCatalog::DeviceCatalog(QWidget* parent) :QDialog(parent)
 				_deviceTable->setItem(row, 4, twi);
 			}
 
-			if (descriptor._configurationFilePath.isEmpty() == false)
+			QString configFilePath = descriptor._configurationFilePath;
+			QFileInfo fileInfo(configFilePath);
+			if (!configFilePath.isEmpty() && !fileInfo.isDir() && !fileInfo.fileName().isEmpty())
 			{
-				twi = new QTableWidgetItem(descriptor._configurationFilePath);
+				twi = new QTableWidgetItem(configFilePath);
 				twi->setToolTip("Click to open the configuration in TAC Configuration Editor");
 				_deviceTable->setItem(row, 5, twi);
 			}
@@ -119,7 +121,7 @@ DeviceCatalog::DeviceCatalog(QWidget* parent) :QDialog(parent)
 		_deviceTable->resizeColumnsToContents();
 	}
 
-	_firmwareDir = applicationDataPath().toLatin1() + QDir::separator().toLatin1() + "firmware/1.x.15.0";
+	_firmwareDir = (firmwarePath() + "/1.x.15.0").toUtf8();
 
 	connect(_infoCloseBtn, &QPushButton::clicked, this, &::DeviceCatalog::onInfoGroupCloseBtnClicked);
 	connect(_infoLabelText, &QLabel::linkActivated, this, &::DeviceCatalog::onInfoGroupLinkClicked);
@@ -258,7 +260,7 @@ void DeviceCatalog::onConfigurationLinkClicked(QTableWidgetItem* twi)
 	if (twi->column() == 5)
 	{
 		QString configPath = twi->text();
-		if (configPath.compare("-", Qt::CaseInsensitive) != 0)
+		if (configPath.compare("-", Qt::CaseInsensitive) != 0 && !QFileInfo(configPath).isDir())
 		{
 			QStringList arguments;
 			arguments << configPath;
@@ -350,14 +352,14 @@ void DeviceCatalog::on__firmwareUpdateBtn_clicked()
 {
 	for (const auto& variant : kVariants)
 	{
-		QString firmwarePath = QString(_firmwareDir) + QDir::separator() + variant + QDir::separator() + "MicroEpm.cyacd";
+		QString firmwareFile = QString(_firmwareDir) + QDir::separator() + variant + QDir::separator() + "MicroEpm.cyacd";
 
-		if (QFile::exists(firmwarePath) == false)
+		if (QFile::exists(firmwareFile) == false)
 			continue;
 
 		QString program = applicationBinPath() + "FWUpdate";
 		QStringList arguments;
-		arguments << "path=" + firmwarePath;
+		arguments << "path=" + firmwareFile;
 
 		QProcess* process = new QProcess(Q_NULLPTR);
 
@@ -369,7 +371,7 @@ void DeviceCatalog::on__firmwareUpdateBtn_clicked()
 		if (process->exitCode() == 0)
 		{
 			QMessageBox::information(this, "Firmware Update Complete",
-				QString("The device has been programmed with firmware from %1.").arg(firmwarePath));
+				QString("The device has been programmed with firmware from %1.").arg(firmwareFile));
 			process->deleteLater();
 			return;
 		}
@@ -413,27 +415,27 @@ void DeviceCatalog::on__firmwareSelect_currentTextChanged(const QString &firmwar
 		switch (version)
 		{
 		case 15:
-			_firmwareDir = applicationDataPath().toLatin1() + QDir::separator().toLatin1() + "firmware/1.x.15.0";
+			_firmwareDir = (firmwarePath() + "/1.x.15.0").toUtf8();
 			_infoLabelText->setText(kDefaultNotice);
 			_infoGroupBox->hide();
 			break;
 		case 16:
-			_firmwareDir = applicationDataPath().toLatin1() + QDir::separator().toLatin1() + "firmware/1.x.16.0";
+			_firmwareDir = (firmwarePath() + "/1.x.16.0").toUtf8();
 			_infoLabelText->setText(kv16FirmwareNotice);
 			_infoGroupBox->show();
 			break;
 		case 17:
-			_firmwareDir = applicationDataPath().toLatin1() + QDir::separator().toLatin1() + "firmware/1.x.17.0";
+			_firmwareDir = (firmwarePath() + "/1.x.17.0").toUtf8();
 			_infoLabelText->setText(kv17FirmwareNotice);
 			_infoGroupBox->show();
 			break;
 		case 18:
-			_firmwareDir = applicationDataPath().toLatin1() + QDir::separator().toLatin1() + "firmware/1.x.18.0";
+			_firmwareDir = (firmwarePath() + "/1.x.18.0").toUtf8();
 			_infoLabelText->setText(kv17FirmwareNotice);
 			_infoGroupBox->show();
 			break;
 		case 19:
-			_firmwareDir = applicationDataPath().toLatin1() + QDir::separator().toLatin1() + "firmware/1.x.19.0";
+			_firmwareDir = (firmwarePath() + "/1.x.19.0").toUtf8();
 			_infoLabelText->setText(kv17FirmwareNotice);
 			_infoGroupBox->show();
 		}

@@ -3,6 +3,7 @@
 
 #include "ProcessUtilities.h"
 #include "StringUtilities.h"
+#include "AppCore.h"
 
 #include <algorithm>
 #include <cctype>

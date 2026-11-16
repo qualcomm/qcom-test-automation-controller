@@ -30,19 +30,24 @@ std::string SystemUsername::userName()
 
 void SystemUsername::getUserNameLinux()
 {
-	char buffer[1024];
-	int result(-1);
 #if defined(__linux__)
-	result = getlogin_r(buffer, 1024);
-#endif
-	if (result == 0)
+	char buffer[1024];
+	int result = getlogin_r(buffer, sizeof(buffer));
+	if (result == 0 && buffer[0] != '\0')
 	{
 		_userName = std::string(buffer);
+		return;
 	}
-	else
+
+	struct passwd* pw = getpwuid(geteuid());
+	if (pw && pw->pw_name)
 	{
-		AppCore::writeToApplicationLogLine("SystemUsername::getUserNameLinux: getlogin_r failed with error code " + std::to_string(result));
+		_userName = std::string(pw->pw_name);
+		return;
 	}
+
+	AppCore::writeToApplicationLogLine("SystemUsername::getUserNameLinux: getlogin_r failed with error code " + std::to_string(result));
+#endif
 }
 
 void SystemUsername::getUserNameWin()

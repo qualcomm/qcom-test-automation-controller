@@ -56,6 +56,7 @@ public:
 	// --- Critical Application Paths (Cannot be configured per user preferences) ---
 	static std::string applicationBinPath();
 	static std::string applicationDataPath();
+	static std::string firmwarePath();
 	static std::string configurationsPath();
 	static std::string userConfigurationsPath();
 	static std::string configurationSavePath(const std::string& currentPath = "");

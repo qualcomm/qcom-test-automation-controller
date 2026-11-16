@@ -49,7 +49,7 @@ void UpdateDeviceList::save(const QString &filePath)
 		usbDescriptor._name = platformID->_description;
 		usbDescriptor._description = platformID->_description;
 		for (int i{0}; i < kMaxPinSetCount; i++)
-			usbDescriptor._pinSets[0] = platformID->_pinSets[0];
+			usbDescriptor._pinSets[i] = platformID->_pinSets[i];
 
 		usbDescriptorMap[usbDescriptor._platformID] = usbDescriptor;
 
