@@ -261,7 +261,10 @@ bool PSOCDevice::open()
                     return a._initializationPriority < b._initializationPriority;
                 });
             for (const auto& pin : initialPins)
+            {
+                _serialDriveThread->setWaitForCompletion();
                 _serialDriveThread->setPinState(static_cast<uint16_t>(pin._pin), true);
+            }
         }
 
         TACPSOCDriveThread* thread = static_cast<TACPSOCDriveThread*>(_serialDriveThread);

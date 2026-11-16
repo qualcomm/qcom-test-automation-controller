@@ -396,7 +396,12 @@ void _AlpacaDevice::setPinState(PinID pin, bool state)
 {
 	qtac::TACDriveThread* dt = _driveThread ? _driveThread : _serialDriveThread;
 	if (dt != nullptr && active())
+	{
+		// Direct callers such as TACFrame::onPinTriggered bypass
+		// _setCommandState(), so arm the completion wait here as well.
+		dt->setWaitForCompletion();
 		dt->setPinState(pin, state);
+	}
 }
 
 bool _AlpacaDevice::setPinStateWithResult(PinID pin, bool state)

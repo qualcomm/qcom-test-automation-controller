@@ -331,7 +331,10 @@ bool FTDIDevice::open()
 				});
 
 			for (const auto& initPin : initialFtdiPins)
+			{
+				_driveThread->setWaitForCompletion();
 				_driveThread->setPinState(initPin._setPin, initPin._initialValue);
+			}
 		}
 	}
 
