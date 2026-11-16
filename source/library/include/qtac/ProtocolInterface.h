@@ -42,6 +42,7 @@
 #include <qtac/FrameCoder.h>
 #include <qtac/FramePackage.h>
 
+#include <atomic>
 #include <cstdint>
 #include <mutex>
 #include <string>
@@ -81,7 +82,12 @@ public:
         _timeout = (timeout < 750) ? _timeout : 750;
     }
 
+    // When set, pending delays are skipped in 50 ms slices so a disconnect
+    // ends promptly rather than waiting for the full script delay.
+    void setSkipDelays(bool skip) { _skipDelays.store(skip); }
+
 protected:
+    std::atomic<bool> _skipDelays{false};
     FrameCoder* _frameCoder{nullptr};
     uint64_t    _timeout{750};
 

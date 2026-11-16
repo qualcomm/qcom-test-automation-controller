@@ -136,6 +136,7 @@ void ProtocolInterface::queueEndTransaction(ReceiveInterface* receiveInterface)
 FramePackage ProtocolInterface::getNextFramePackage()
 {
     FramePackage result;
+    uint32_t delayMs{0};
 
     bool noPendingFrame;
     {
@@ -154,8 +155,10 @@ FramePackage ProtocolInterface::getNextFramePackage()
 
             if (fp->delayInMilliSeconds != 0)
             {
-                std::this_thread::sleep_for(
-                    std::chrono::milliseconds(fp->delayInMilliSeconds));
+                // Sleep outside the queue lock (below) so a disconnect can
+                // set _skipDelays and end the wait promptly without being
+                // blocked by this thread holding _outQueueMutex.
+                delayMs = fp->delayInMilliSeconds;
                 result = fp;
             }
             else if (fp->endTransaction || !fp->comment.isEmpty())
@@ -170,6 +173,21 @@ FramePackage ProtocolInterface::getNextFramePackage()
                 std::lock_guard<std::recursive_mutex> plock(_pendingFramePackageMutex);
                 _pendingFramePackage = fp;
             }
+        }
+    }
+
+    if (delayMs != 0)
+    {
+        // Sliced so a requestStop() / setSkipDelays(true) ends the wait
+        // promptly rather than holding for the full script delay.
+        constexpr uint32_t kSliceMs{50};
+        uint32_t remaining{delayMs};
+
+        while (remaining > 0 && !_skipDelays.load())
+        {
+            const uint32_t slice = (remaining < kSliceMs) ? remaining : kSliceMs;
+            std::this_thread::sleep_for(std::chrono::milliseconds(slice));
+            remaining -= slice;
         }
     }
 

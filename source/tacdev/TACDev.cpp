@@ -462,8 +462,11 @@ TAC_ERROR SetPinState(TAC_HANDLE tacHandle, int pin, bool state)
 {
     AlpacaDevice dev = gCore.getAlpacaDevice(tacHandle);
     if (!dev) { gCore.setLastError(kHandleNotOpen); return TACDEV_BAD_TAC_HANDLE; }
-    dev->setWaitForCompletion();
-    dev->setPinState(static_cast<PinID>(pin), state);
+    if (!dev->setPinStateWithResult(static_cast<PinID>(pin), state))
+    {
+        gCore.setLastError(qtac::ByteArray("SetPinState timed out waiting for device acknowledgement"));
+        return TACDEV_COMMAND_TIMEOUT;
+    }
     return NO_TAC_ERROR;
 }
 

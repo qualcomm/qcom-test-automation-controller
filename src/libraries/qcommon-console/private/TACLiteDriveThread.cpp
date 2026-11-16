@@ -219,7 +219,13 @@ void TACLiteDriveThread::sendCommandSequence
 		}
 	}
 
-	waitForCompletion();
+	// No wait here. The caller (_AlpacaDevice::quickCommand) waits with an
+	// allowance for the script's own delays. A default-length wait here ran
+	// first, gave up after ~5 s and cleared the shared completion flag, so
+	// the caller saw "complete" while a long script (e.g. a 120 s UEFI hold)
+	// was still running. That hid real timeouts from the recovery path and
+	// re-enabled the UI while the board was busy. receive() clears the flag
+	// at End Transaction, which is what the caller's wait is waiting for.
 }
 
 int TACLiteDriveThread::getResetCount()

@@ -38,7 +38,11 @@ public:
 
 	HashType hash();
 
-	bool waitForCompletion();
+	// expectedDurationMs is how long the queued work is known to take (for
+	// example the delays in a quick command script). The timeout is extended
+	// by that amount so a long but healthy sequence is not reported as a
+	// stalled board. Zero keeps the default timeout.
+	bool waitForCompletion(quint32 expectedDurationMs = 0);
 	void setWaitForCompletion();
 	void clearWaitForCompletion();
 	bool waitForCompletionStatus();
@@ -46,6 +50,7 @@ public:
 	// Names the operation in progress so a timeout can report which command
 	// stalled, rather than leaving it to be inferred from nearby log lines.
 	void setLastCommandDescription(const QString& description);
+	QString lastCommandDescription() const;
 
 	QByteArray decodeCommand(const QByteArray& command, Arguments& arg);
 	bool checkLocalStore(FramePackage& framePackage);
@@ -106,7 +111,12 @@ public:
 	uint revisionVersion();
 
 	QByteArray name() const;
-	void setName(const QByteArray& newName);
+
+	// Virtual so a call through TACDriveThread* (as _AlpacaDevice holds it)
+	// reaches the board-specific override that sends the set-name command.
+	// Without this only the cached name changed and the board kept its old
+	// name, so a rename was lost on reconnect.
+	virtual void setName(const QByteArray& newName);
 
 	QByteArray portName() const;
 	void setPortName(const QByteArray& portName);
@@ -188,6 +198,10 @@ protected:
 	int							_resetCount{0};
 	uint						_delay{0};
 
+	// Written by the command-issuing thread and read when a wait times out;
+	// guarded so a concurrent update cannot leave a half-built string (QA's
+	// "lastCommand=???   @ dS" log line).
+	mutable QMutex				_lastCommandMutex;
 	QString						_lastCommandDescription;
 
 	// Transport reset hand-off from the caller thread to the drive thread.

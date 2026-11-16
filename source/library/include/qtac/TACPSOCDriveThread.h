@@ -58,6 +58,10 @@ public:
 
     qtac::String locked() { return {}; }
 
+    // Returns the serial-port open error message (if any) from the last
+    // openSerialDevice() call.  Empty if no error occurred.
+    qtac::ByteArray portOpenError() const;
+
     // --- DriveThread ---
     void run() override;
 
@@ -108,6 +112,9 @@ private:
     std::unique_ptr<SerialPort>  _serialPort;
     bool                         _readyRead{false};
     int                          _versionRetryCount{1};
+
+    mutable std::mutex           _portOpenErrorMutex;
+    qtac::ByteArray              _portOpenError;
 
     bool readSerialData();
 

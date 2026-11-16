@@ -14,6 +14,9 @@
 #include <QRecursiveMutex>
 #include <QObject>
 
+// std
+#include <atomic>
+
 const quint32 kBadQueueValue(0xFFFFFFFF);
 
 class QCOMMONCONSOLE_EXPORT ProtocolInterface
@@ -35,6 +38,16 @@ public:
 
 	FramePackage getNextFramePackage();
 	quint32 queueSize();
+
+	// While set, queued script delays are skipped (and one already in progress
+	// ends within a slice), so the remaining commands of a script - such as
+	// releasing a held power key - still run, just without the waits. Used to
+	// stop a long script (quick command delays can be up to 120 s) when the
+	// device is being disconnected, instead of blocking until it finishes.
+	void setSkipDelays(bool skipDelays)
+	{
+		_skipDelays.store(skipDelays);
+	}
 
 	// Data incoming
 	bool handleRecievedData(const QByteArray& receivedData);
@@ -72,6 +85,8 @@ private:
 
 	QRecursiveMutex				_outQueueMutex;
 	FramePackageList			_outboundData;
+
+	std::atomic<bool>			_skipDelays{false};
 };
 
 #define ProtocolInterface_iid "com.qualcomm.simpson.ProtocolInterface"

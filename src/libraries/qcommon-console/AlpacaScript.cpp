@@ -28,7 +28,10 @@ QByteArray AlpacaScript::defaultScript(DebugBoardType boardType)
 
 	Q_UNUSED(boardType);
 
-	scriptPath = tacConfigRoot() + "DefaultScript.txt";
+	if (boardType == ePIC32CXAuto)
+		scriptPath = tacConfigRoot() + "DefaultPIC32CXScript.txt";
+	else
+		scriptPath = tacConfigRoot() + "DefaultScript.txt";
 
 	QFile file(scriptPath);
 	if (file.open(QIODevice::ReadOnly) == true)

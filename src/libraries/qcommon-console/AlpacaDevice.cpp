@@ -23,6 +23,35 @@ const QByteArray kCommandStatusError("commandQueueStatus error: Attempted operat
 QMutex _AlpacaDevice::_mutex;
 AlpacaDevices _AlpacaDevice::_alpacaDevices;
 
+// ----------------------------------------------------------------------------
+// AlpacaCommandScope
+//
+/// Marks a device command (quick command, pin command) as running for its
+/// lifetime. The wait inside those commands runs processEvents(), so a close()
+/// can arrive re-entrantly; it is deferred until the outermost scope ends, so
+/// the drive thread is never deleted under a running command.
+// ----------------------------------------------------------------------------
+class AlpacaCommandScope
+{
+public:
+	explicit AlpacaCommandScope(_AlpacaDevice* device) :
+		_device(device)
+	{
+		_device->beginCommand();
+	}
+
+	~AlpacaCommandScope()
+	{
+		_device->endCommand();
+	}
+
+	AlpacaCommandScope(const AlpacaCommandScope&) = delete;
+	AlpacaCommandScope& operator=(const AlpacaCommandScope&) = delete;
+
+private:
+	_AlpacaDevice*	_device;
+};
+
 namespace
 {
 
@@ -234,15 +263,58 @@ bool _AlpacaDevice::isOpen()
 
 void _AlpacaDevice::close()
 {
-	if (_driveThread != Q_NULLPTR)
+	if (_driveThread == Q_NULLPTR)
 	{
-		_driveThread->shutDown();
-
-		if (_driveThread != Q_NULLPTR)
-			_driveThread->deleteLater();
-
-		_driveThread = Q_NULLPTR;
+		_closePending = false;
+		return;
 	}
+
+	if (_commandDepth > 0)
+	{
+		// Re-entered from a running command's wait loop (Disconnect, window
+		// close, auto shutdown). Stopping the thread without waiting ends that
+		// wait within one poll and skips the remaining script delays; the
+		// blocking shutdown and the delete happen in endCommand() once the
+		// command has unwound and nothing is using the drive thread.
+		if (_closePending == false)
+			AppCore::writeToApplicationLogLine("_AlpacaDevice::close: command in progress, close deferred until it returns");
+
+		_closePending = true;
+		_driveThread->requestStop();
+		return;
+	}
+
+	_closePending = false;
+
+	_driveThread->shutDown();
+	_driveThread->deleteLater();
+	_driveThread = Q_NULLPTR;
+}
+
+void _AlpacaDevice::beginCommand()
+{
+	if (_commandDepth++ == 0)
+		emit commandBusyChanged(true);
+}
+
+void _AlpacaDevice::endCommand()
+{
+	if (--_commandDepth > 0)
+		return;
+
+	_commandDepth = 0;
+
+	if (_closePending)
+	{
+		close();
+
+		// The controls stay locked: the device is gone, and the owner tears
+		// the UI down when it handles this (queued) signal.
+		emit deferredCloseDone();
+		return;
+	}
+
+	emit commandBusyChanged(false);
 }
 
 void _AlpacaDevice::buildQuickSettings()
@@ -421,6 +493,12 @@ bool _AlpacaDevice::sendCommand
 		{
 			_driveThread->clearWaitForCompletion();
 		}
+		else
+		{
+			// The device was closed while the command was running.
+			AppCore::writeToApplicationLogLine(QString("_AlpacaDevice::sendCommand(%1): device closed during the command").arg(command));
+			throw TACException(TAC_DEVICE_INACTIVE, kSendCommandError);
+		}
 
 		if (result == false)
 		{
@@ -450,6 +528,17 @@ bool _AlpacaDevice::quickCommand
 
 	if (_driveThread != Q_NULLPTR)
 	{
+		if (_commandDepth > 0 || _closePending)
+		{
+			// Issued from the event loop of a command that is still waiting.
+			// Queueing it would interleave two scripts on the board and nest a
+			// second wait inside the first.
+			AppCore::writeToApplicationLogLine(QString("_AlpacaDevice::quickCommand(%1) rejected: another command is in progress").arg(command));
+			throw TACException(TAC_DEVICE_BUSY, "quickCommand error: another command is still in progress");
+		}
+
+		AlpacaCommandScope commandScope(this);
+
 		if (active() == true)
 		{
 			if (_alpacaScript.hasCommand(command))
@@ -482,13 +571,49 @@ bool _AlpacaDevice::quickCommand
 						.arg(substitutedCommandEntries.count())
 						.arg(_driveThread->waitForCompletionStatus() ? "yes" : "NO"));
 
+				// The script's own delays (for example an 8 s power key hold
+				// for UEFI) are part of a healthy run, so the wait has to
+				// allow for them. Without this the default ~5 s timeout fired
+				// part way through every long script and the recovery below
+				// reset the transport and replayed the whole power sequence.
+				quint32 scriptDurationMs{0};
+				for (const auto& entry: std::as_const(substitutedCommandEntries))
+				{
+					if (entry->_commandAction == _CommandEntry::eDelay)
+					{
+						bool isNumber{false};
+						const quint32 delayMs = entry->_arguement.toUInt(&isNumber);
+						if (isNumber)
+							scriptDurationMs += delayMs;
+					}
+				}
+
+				// Lets the UI say how long the locked controls may stay locked.
+				emit quickCommandStarted(scriptDurationMs);
+
 				_driveThread->sendCommandSequence(substitutedCommandEntries);
-				result = _driveThread->waitForCompletion();
+				result = _driveThread->waitForCompletion(scriptDurationMs);
 
 				AppCore::writeToApplicationLogLine(
 					QString("_AlpacaDevice::quickCommand(%1): completion %2")
 						.arg(command)
 						.arg(result ? "confirmed" : "timed out"));
+
+				// The wait ended because the device is being closed or the drive
+				// thread stopped itself (transport write failure). Resetting and
+				// replaying a power sequence on a device that is going away is
+				// what must not happen here.
+				if (result == false && _closePending)
+				{
+					AppCore::writeToApplicationLogLine(QString("_AlpacaDevice::quickCommand(%1): abandoned, device is being closed").arg(command));
+					return false;
+				}
+
+				if (result == false && _driveThread->weAreRunning() == false)
+				{
+					AppCore::writeToApplicationLogLine(QString("_AlpacaDevice::quickCommand(%1): drive thread stopped, device lost").arg(command));
+					throw TACException(TAC_DEVICE_INACTIVE, kQuickCommandError);
+				}
 
 				if (result == false)
 				{
@@ -508,7 +633,7 @@ bool _AlpacaDevice::quickCommand
 
 						CommandEntries retryEntries = _alpacaScript.replaceTokens(scriptVariables, commandEntries);
 						_driveThread->sendCommandSequence(retryEntries);
-						result = _driveThread->waitForCompletion();
+						result = _driveThread->waitForCompletion(scriptDurationMs);
 					}
 
 					// One line carrying the whole outcome, so support does not
@@ -519,6 +644,12 @@ bool _AlpacaDevice::quickCommand
 							.arg(resetOk ? "succeeded" : "failed")
 							.arg(resetOk ? (result ? "succeeded" : "failed") : "skipped")
 							.arg(_portName.isEmpty() ? QByteArray("unknown") : _portName));
+				}
+
+				if (result == false && _closePending)
+				{
+					AppCore::writeToApplicationLogLine(QString("_AlpacaDevice::quickCommand(%1): abandoned, device is being closed").arg(command));
+					return false;
 				}
 
 				if (result == false)
@@ -622,6 +753,14 @@ bool _AlpacaDevice::setPinState
 {
 	if (_driveThread != Q_NULLPTR)
 	{
+		if (_commandDepth > 0 || _closePending)
+		{
+			AppCore::writeToApplicationLogLine(QString("_AlpacaDevice::setPinState(%1) rejected: another command is in progress").arg(QString::number(pin)));
+			throw TACException(TAC_DEVICE_BUSY, "setPinState error: another command is still in progress");
+		}
+
+		AlpacaCommandScope commandScope(this);
+
 		if (active() == true)
 		{
 			bool result = _driveThread->setPinState(pin, state);
@@ -631,6 +770,19 @@ bool _AlpacaDevice::setPinState
 
 				AppCore::writeToApplicationLogLine("_AlpacaDevice::setPinState(" + QString::number(pin) +")  Command:" + tacCommand._command);
 			}
+
+			if (result == false && _closePending)
+			{
+				AppCore::writeToApplicationLogLine(QString("_AlpacaDevice::setPinState(%1): abandoned, device is being closed").arg(QString::number(pin)));
+				return false;
+			}
+
+			if (result == false && _driveThread->weAreRunning() == false)
+			{
+				AppCore::writeToApplicationLogLine(QString("_AlpacaDevice::setPinState(%1): drive thread stopped, device lost").arg(QString::number(pin)));
+				throw TACException(TAC_DEVICE_INACTIVE, kSetPinError);
+			}
+
 			if (result == false)
 			{
 				// The board stopped acknowledging. Reopening the TACDev handle
@@ -969,6 +1121,19 @@ void _AlpacaDevice::on_pinStateChanged
 
 void _AlpacaDevice::onDeviceDisconnect()
 {
+	// Connected with Qt::DirectConnection, so this runs on the drive thread at
+	// the end of its run(). Closing here would make the drive thread wait for
+	// itself in shutDown() (deadlock) or, as before, null and deleteLater()
+	// _driveThread while the owner thread may still be inside a wait on it.
+	// Hand the close to the thread that owns the device instead; run() is
+	// free to return, and close() there either shuts down normally or defers
+	// until a running command has unwound.
+	if (QThread::currentThread() != thread())
+	{
+		QMetaObject::invokeMethod(this, &_AlpacaDevice::close, Qt::QueuedConnection);
+		return;
+	}
+
 	close();
 }
 

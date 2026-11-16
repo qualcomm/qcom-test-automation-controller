@@ -70,6 +70,7 @@ if(NOT WIN32)
 #define HAVE_DECL_BOTHER 1
 #define HAVE_REALPATH 1
 #define HAVE_FLOCK 1
+#include <sys/file.h>
 ]=])
 endif()
 

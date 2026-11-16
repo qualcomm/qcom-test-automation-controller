@@ -94,6 +94,7 @@ void TACFrame::setDevice
 	_alpacaDevice = alpacaDevice;
 
 	connect(_alpacaDevice.data(), &_AlpacaDevice::pinStateChanged, this, &TACFrame::onPinResponse);
+	connect(_alpacaDevice.data(), &_AlpacaDevice::commandBusyChanged, this, &TACFrame::onCommandBusyChanged);
 
 	setPlatformConfiguration(alpacaDevice->platformConfiguration());
 
@@ -608,21 +609,55 @@ QWidget* TACFrame::getTabWidget(const QString& tabName)
 	return result;
 }
 
+void TACFrame::onCommandBusyChanged(bool busy)
+{
+	// Everything the configuration put on the frame that can issue a device
+	// command. The Disconnect button lives in the window and stays enabled:
+	// it is how a long script is stopped.
+	const bool enable = (busy == false) && (_alpacaDevice.isNull() == false);
+
+	for (CommandButton* button: findChildren<CommandButton*>())
+		button->setEnabled(enable);
+
+	for (VariableInput* input: findChildren<VariableInput*>())
+		input->setEnabled(enable);
+
+	for (PinLED* pinLED: findChildren<PinLED*>())
+		pinLED->setEnabled(enable);
+
+	_ui->_renameButton->setEnabled(enable);
+	if (enable)
+		updateRenameButton();
+}
+
 void TACFrame::onPinTriggered
 (
 	PinID pin,
 	bool state
 )
 {
-	if (_alpacaDevice != Q_NULLPTR)
+	// Local strong reference: a Disconnect handled inside the command's wait
+	// loop must not free the device under this call.
+	AlpacaDevice device = _alpacaDevice;
+
+	if (device.isNull() == false)
 	{
 		try
 		{
 			AppCore::writeToApplicationLogLine("TACFrame::onPinTriggered(" + QString::number(pin) +")");
-			_alpacaDevice->setPinState(pin, !state);
+			device->setPinState(pin, !state);
 		}
 		catch(TACException& e)
 		{
+			if (e.errorCode() == TAC_DEVICE_BUSY)
+			{
+				AppCore::writeToApplicationLogLine("TACFrame::onPinTriggered: ignored, another command is in progress");
+				return;
+			}
+
+			if (device->closePending())
+				return;
+
 			if (e.errorCode() == TAC_DEVICE_INACTIVE)
 			{
 				QMessageBox::critical(this, "TAC Device disconnected", "TAC was unable to communicate with the TAC device. "
@@ -666,9 +701,42 @@ void TACFrame::onI2CPinTriggered
 
 void TACFrame::onCommandTriggered(const QString &command)
 {
-	if (_alpacaDevice.isNull() == false)
+	// Local strong reference: Disconnect, window close or auto shutdown can be
+	// handled inside quickCommand()'s wait loop and drop the frame's and the
+	// window's references; the device must outlive this call.
+	AlpacaDevice device = _alpacaDevice;
+
+	if (device.isNull() == false)
 	{
-		_alpacaDevice->quickCommand(command.toLatin1());
+		// quickCommand() throws on a timeout or an inactive device. This is a
+		// Qt slot, so an exception escaping it terminates the application;
+		// report the failure instead and keep the window usable.
+		try
+		{
+			device->quickCommand(command.toLatin1());
+		}
+		catch (TACException& e)
+		{
+			AppCore::writeToApplicationLogLine(
+				QString("TACFrame::onCommandTriggered(%1): %2").arg(command, e.what()));
+
+			// A second click while a command runs, or the user disconnecting
+			// mid-command, is not an error worth a dialog.
+			if (e.errorCode() == TAC_DEVICE_BUSY || device->closePending())
+				return;
+
+			if (e.errorCode() == TAC_DEVICE_INACTIVE)
+			{
+				QMessageBox::critical(this, "TAC Device disconnected", "TAC was unable to communicate with the TAC device. "
+																	   "The TAC device may have been disconnected from host. "
+																	   "Reconnect to the TAC device to fix the problem");
+			}
+			else
+			{
+				QMessageBox::warning(this, "Quick Settings",
+					QString("\"%1\" did not complete: the TAC device did not confirm the command in time.").arg(command));
+			}
+		}
 	}
 }
 
@@ -691,7 +759,10 @@ void TACFrame::on__tabs_tabBarClicked(int index)
 			// Only some boards report a MAC address.
 			const QByteArray macAddress = _alpacaDevice->macAddress().trimmed();
 			_ui->_macAddress->setText(macAddress.isEmpty() ? QStringLiteral("N/A") : QString::fromLatin1(macAddress));
-			_ui->_configurationFile->setText(_platformConfiguration->name());
+			// Like the MAC address, show "N/A" rather than a blank field when
+			// the configuration has no name.
+			const QString configurationName = _platformConfiguration->name().trimmed();
+			_ui->_configurationFile->setText(configurationName.isEmpty() ? QStringLiteral("N/A") : configurationName);
 			_ui->_configurationDate->setText(_platformConfiguration->modificationDate());
 			_ui->_configurationFileVersion->setText(_platformConfiguration->getFileVersion());
 		}

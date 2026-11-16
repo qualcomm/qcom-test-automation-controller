@@ -41,6 +41,31 @@
 #include <mutex>
 
 // -----------------------------------------------------------------------
+// AlpacaCommandScope
+//
+// RAII guard: marks a device command (quickCommand, setPinState) as running
+// for its lifetime. If close() is called re-entrantly while this guard is
+// alive, it is deferred until the outermost scope exits.
+// -----------------------------------------------------------------------
+
+class AlpacaCommandScope
+{
+public:
+    explicit AlpacaCommandScope(_AlpacaDevice* device) : _device(device)
+    {
+        _device->beginCommand();
+    }
+    ~AlpacaCommandScope()
+    {
+        _device->endCommand();
+    }
+    AlpacaCommandScope(const AlpacaCommandScope&)            = delete;
+    AlpacaCommandScope& operator=(const AlpacaCommandScope&) = delete;
+private:
+    _AlpacaDevice* _device;
+};
+
+// -----------------------------------------------------------------------
 // Static members
 // -----------------------------------------------------------------------
 
@@ -229,8 +254,44 @@ bool _AlpacaDevice::isOpen()
 	return _driveThread != nullptr || _serialDriveThread != nullptr;
 }
 
+void _AlpacaDevice::beginCommand()
+{
+	++_commandDepth;
+}
+
+void _AlpacaDevice::endCommand()
+{
+	if (--_commandDepth > 0)
+		return;
+
+	_commandDepth = 0;
+
+	if (_closePending)
+		close();
+}
+
 void _AlpacaDevice::close()
 {
+	if (_driveThread == nullptr && _serialDriveThread == nullptr)
+	{
+		_closePending = false;
+		return;
+	}
+
+	if (_commandDepth > 0)
+	{
+		// Re-entered from a running command's wait. Stop the drive thread so the
+		// wait exits promptly, then defer the actual shutdown until endCommand().
+		_closePending = true;
+		if (_driveThread != nullptr)
+			_driveThread->requestStop();
+		if (_serialDriveThread != nullptr && _serialDriveThread != _driveThread)
+			_serialDriveThread->requestStop();
+		return;
+	}
+
+	_closePending = false;
+
 	// Remember the injected drive thread pointer before clearing it, so we can
 	// detect the PSoC GUI aliasing case (where open() stored _driveThread into
 	// _serialDriveThread) and avoid a double-free/double-shutdown.
@@ -336,6 +397,14 @@ void _AlpacaDevice::setPinState(PinID pin, bool state)
 	qtac::TACDriveThread* dt = _driveThread ? _driveThread : _serialDriveThread;
 	if (dt != nullptr && active())
 		dt->setPinState(pin, state);
+}
+
+bool _AlpacaDevice::setPinStateWithResult(PinID pin, bool state)
+{
+	qtac::TACDriveThread* dt = _driveThread ? _driveThread : _serialDriveThread;
+	if (dt != nullptr && active())
+		return dt->setPinState(pin, state);
+	return false;
 }
 
 void _AlpacaDevice::setAddressPinState(const qtac::ByteArray& i2cAddress, uint16_t pin, bool state)

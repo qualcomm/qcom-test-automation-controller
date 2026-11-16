@@ -31,7 +31,9 @@
 
 // Qt
 #include <QCloseEvent>
+#include <QDir>
 #include <QFileDialog>
+#include <QFileInfo>
 #include <QMessageBox>
 #include <QProcess>
 #include <QWhatsThis>
@@ -45,6 +47,58 @@ const QString kFirmware15HelpText("<html><body><p><span style=\" font-size:12pt;
 const QString kFirmware16HelpText("<html><body><p><span style=\" font-size:12pt; font-weight:600;\">v16</span></p></body></html>- Firmware for Monaco MCULess design(s)<br/>- Pins 48, 49 can be configured<br/>- Pin 49 is active high");
 const QString kFirmware17HelpText("<html><body><p><span style=\" font-size:12pt; font-weight:600;\">v17</span></p></body></html>- Firmware for Hawi and future platforms<br/>- Pin 49 can be configured. Pin 48 is unavailable<br/>- Pin 49 is active low");
 const QString kFirmware19HelpText("<html><body><p><span style=\" font-size:12pt; font-weight:600;\">v19</span></p></body></html>- To be updated");
+
+namespace
+{
+
+// Chooses the folder the Open dialog starts in.
+//  1. lastPath, if it still exists. A stored file path is reduced to its folder, so
+//     values written by older versions (which stored the file) keep working.
+//  2. The first candidate folder that already contains files matching nameFilter,
+//     so a first-time user lands where the configuration files actually are.
+//  3. The first candidate folder that exists.
+//  4. The home folder.
+// Opening an installed configuration does not risk changing it: Save redirects
+// installed configurations to the user's documents (see setFilePath()).
+QString pickDialogFolder
+(
+	const QString& lastPath,
+	const QStringList& candidates,
+	const QString& nameFilter
+)
+{
+	if (lastPath.isEmpty() == false)
+	{
+		const QFileInfo info(lastPath);
+
+		if (info.isDir())
+			return QDir::cleanPath(info.absoluteFilePath());
+
+		// A file that still exists, or a stale file path whose folder is still there.
+		if ((info.isFile() || info.suffix().isEmpty() == false) && info.dir().exists())
+			return QDir::cleanPath(info.absolutePath());
+	}
+
+	for (const QString& candidate : candidates)
+	{
+		if (candidate.isEmpty())
+			continue;
+
+		const QDir dir(candidate);
+		if (dir.exists() && dir.entryList(QStringList(nameFilter), QDir::Files).isEmpty() == false)
+			return QDir::cleanPath(dir.absolutePath());
+	}
+
+	for (const QString& candidate : candidates)
+	{
+		if (candidate.isEmpty() == false && QDir(candidate).exists())
+			return QDir::cleanPath(QDir(candidate).absolutePath());
+	}
+
+	return QDir::homePath();
+}
+
+} // namespace
 
 ConfigWindow::ConfigWindow(QWidget* parent) :
 	  QMainWindow(parent),
@@ -522,7 +576,15 @@ bool ConfigWindow::open()
 	{
 		AlpacaSettings settings(kAppName);
 
-		QString initialDir = settings.value(kTACConfigPath, documentsDataPath(kAppName)).toString();
+		// Start in the last folder used. On first use, prefer the user configuration folder if it
+		// holds configurations, otherwise the installed configurations folder.
+		QStringList candidates;
+		ConfigEditorApplication* app = ConfigEditorApplication::appInstance();
+		if (app != Q_NULLPTR)
+			candidates << app->preferences()->tacEditorConfigLocation();
+		candidates << tacConfigRoot() << documentsDataPath(kAppName);
+
+		QString initialDir = pickDialogFolder(settings.value(kTACConfigPath).toString(), candidates, QStringLiteral("*.tcnf"));
 
 		QString filters = "TAC Configuration File (*.tcnf)";
 

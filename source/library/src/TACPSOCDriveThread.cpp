@@ -81,6 +81,12 @@ TACPSOCDriveThread::TACPSOCDriveThread(HashType hash)
 
 TACPSOCDriveThread::~TACPSOCDriveThread() = default;
 
+qtac::ByteArray TACPSOCDriveThread::portOpenError() const
+{
+    std::lock_guard<std::mutex> lk(_portOpenErrorMutex);
+    return _portOpenError;
+}
+
 // -----------------------------------------------------------------------
 // openSerialDevice
 // -----------------------------------------------------------------------
@@ -122,6 +128,10 @@ bool TACPSOCDriveThread::openSerialDevice()
         std::ostringstream oss;
         oss << "Unable to open TAC Port. " << _serialPort->errorString().toStdString();
         writeLogLine(oss.str());
+        {
+            std::lock_guard<std::mutex> lk(_portOpenErrorMutex);
+            _portOpenError = qtac::ByteArray(oss.str().c_str());
+        }
         if (onErrorOnOpen)
             onErrorOnOpen(qtac::ByteArray("PSOC Device Open Failed, Check the Application Log"));
         _serialPort.reset();
@@ -261,6 +271,7 @@ void TACPSOCDriveThread::setName(const qtac::ByteArray& newName)
     const std::string s = newName.toStdString();
     if (s.size() <= 32 && s != _name.toStdString() && isAlphaNumeric(newName))
     {
+        setWaitForCompletion();
         {
             TACPSOCCommand cmd(this, this);
             cmd.setName(newName);
@@ -556,7 +567,7 @@ void TACPSOCDriveThread::handleUUIDResponse(FramePackage& framePackage)
 {
     if (framePackage->responses.size() > 1)
     {
-        _uuid = qtac::String(framePackage->responses.at(1).toStdString());
+        _uuid = uuidFromResponse(framePackage->responses.at(1));
         if (onUuidUpdate) onUuidUpdate(_uuid);
     }
 }

@@ -71,19 +71,53 @@ HashType TACDriveThread::hash()
 	return _hash;
 }
 
-bool TACDriveThread::waitForCompletion()
+bool TACDriveThread::waitForCompletion
+(
+	quint32 expectedDurationMs
+)
 {
 	const int kMaxPolls{50};
 	const int kPollIntervalMs{100};
 
+	// Work that is known to take a while, such as a quick command script with
+	// an 8 s button hold, gets that time on top of the normal allowance.
+	// Without this every such script hit the timeout part way through, and
+	// the recovery path then reset the transport and replayed the script.
+	const int expectedPolls = static_cast<int>(
+		(expectedDurationMs + kPollIntervalMs - 1) / kPollIntervalMs);
+	const int maxPolls{kMaxPolls + expectedPolls};
+
 	int count{0};
+
+	// Only a thread that was running when the wait began can be seen to stop;
+	// waits issued while the device is still opening keep the old behaviour.
+	const bool wasRunning = weAreRunning();
 
 	while (_waitForCompletion)
 	{
 		QThread::msleep(kPollIntervalMs);	// Give our high priority time to process
 		QCoreApplication::processEvents();  // Give the UI a timeslice to update
 
-		if (count++ > kMaxPolls)
+		// The drive thread stops itself on a transport failure (for example
+		// "FTDI Write Failed" on a Hawi power off) or because the device is
+		// being closed. Nothing will clear the flag after that, so waiting on
+		// would only run out the timeout - which, with a script delay of up to
+		// 120 s added on, kept the UI re-entering processEvents() long after
+		// the device had gone, with the caller still using it.
+		if (wasRunning && weAreRunning() == false)
+		{
+			AppCore::writeToApplicationLogLine(
+				QString("Wait for completion abandoned: drive thread stopped after %1 ms"
+						" (port=%2, lastCommand=%3)")
+					.arg(count * kPollIntervalMs)
+					.arg(_portName.isEmpty() ? QByteArray("unknown") : _portName)
+					.arg(lastCommandDescription()));
+
+			_waitForCompletion = false;
+			return false;
+		}
+
+		if (count++ > maxPolls)
 		{
 			// The leading text must stay exactly "Wait for completion timed out"
 			// because downstream consumers (TacService) match on that substring
@@ -95,7 +129,7 @@ bool TACDriveThread::waitForCompletion()
 					.arg(count * kPollIntervalMs)
 					.arg(_portName.isEmpty() ? QByteArray("unknown") : _portName)
 					.arg(_driveTrainName)
-					.arg(_lastCommandDescription.isEmpty() ? QString("unknown") : _lastCommandDescription));
+					.arg(lastCommandDescription()));
 
 			_waitForCompletion = false;
 			return false;
@@ -106,13 +140,13 @@ bool TACDriveThread::waitForCompletion()
 	// warning of the same fault. Without this the duration is only visible
 	// buried in a frame dump, which is easy to miss.
 	const int kSlowCommandPolls{10};
-	if (count > kSlowCommandPolls)
+	if (count > kSlowCommandPolls + expectedPolls)
 	{
 		AppCore::writeToApplicationLogLine(
 			QString("Slow command completion: %1 ms (port=%2, lastCommand=%3)")
 				.arg(count * kPollIntervalMs)
 				.arg(_portName.isEmpty() ? QByteArray("unknown") : _portName)
-				.arg(_lastCommandDescription.isEmpty() ? QString("unknown") : _lastCommandDescription));
+				.arg(lastCommandDescription()));
 	}
 
 	return true;
@@ -129,7 +163,14 @@ bool TACDriveThread::waitForCompletion()
 // ----------------------------------------------------------------------------
 void TACDriveThread::setLastCommandDescription(const QString& description)
 {
+	QMutexLocker lock(&_lastCommandMutex);
 	_lastCommandDescription = description;
+}
+
+QString TACDriveThread::lastCommandDescription() const
+{
+	QMutexLocker lock(&_lastCommandMutex);
+	return _lastCommandDescription.isEmpty() ? QString("unknown") : _lastCommandDescription;
 }
 
 // ----------------------------------------------------------------------------

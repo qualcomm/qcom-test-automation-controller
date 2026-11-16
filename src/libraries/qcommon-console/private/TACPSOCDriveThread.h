@@ -15,6 +15,7 @@
 
 // Qt
 #include <QFile>
+#include <QMutex>
 
 class QCOMMONCONSOLE_EXPORT TACPSOCDriveThread :
 	public TACDriveThread
@@ -62,6 +63,14 @@ public:
 		return &_legacyCommands;
 	}
 
+	// Why the serial port could not be opened, or empty. Kept apart from
+	// lastErrorMessage(), which run() clears when it emits errorOnOpen.
+	QByteArray portOpenError()
+	{
+		QMutexLocker lock(&_portOpenErrorMutex);
+		return _portOpenError;
+	}
+
 protected:
 	bool openSerialDevice();
 
@@ -81,6 +90,8 @@ private:
 	SerialPortInfo				_tacPortInfo;
 	SerialPort*					_serialPort{Q_NULLPTR};
 	bool						_readyRead{false};
+	QMutex						_portOpenErrorMutex;
+	QByteArray					_portOpenError;
 
 	void handleGetNameResponse(FramePackage& framePackage);
 	void handleGetResetCount(FramePackage& framePackage);
