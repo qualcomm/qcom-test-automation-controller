@@ -617,9 +617,9 @@ void _FTDIChipset::linuxTraversal()
 		{
 			if (deviceCount > 0)
 			{
-				FT_DEVICE_LIST_INFO_NODE* devInfoList = new FT_DEVICE_LIST_INFO_NODE[deviceCount];
+				std::vector<FT_DEVICE_LIST_INFO_NODE> devInfoList(deviceCount);
 
-				ftStatus = FT_GetDeviceInfoList(devInfoList, &deviceCount);
+				ftStatus = FT_GetDeviceInfoList(devInfoList.data(), &deviceCount);
 				if (ftStatus == FT_OK)
 				{
 					FT_HANDLE ftHandleTemp;
@@ -708,8 +708,6 @@ void _FTDIChipset::linuxTraversal()
 				{
 					AppCore::writeToApplicationLog("FTDI linuxTraversal: FT_GetDeviceInfoList failed: " + _FTDIChipset::ftidStatusToString(ftStatus) + "\n");
 				}
-
-				delete[] devInfoList;
 			}
 		}
 		else
@@ -746,11 +744,9 @@ void _FTDIChipset::windowsTraversal()
 	{
 		if (deviceCount > 0)
 		{
-			FT_DEVICE_LIST_INFO_NODE* devInfoList{nullptr};
+			std::vector<FT_DEVICE_LIST_INFO_NODE> devInfoList(deviceCount);
 
-			devInfoList = new FT_DEVICE_LIST_INFO_NODE[deviceCount];
-
-			ftStatus = FT_GetDeviceInfoList(devInfoList, &deviceCount);
+			ftStatus = FT_GetDeviceInfoList(devInfoList.data(), &deviceCount);
 			if (ftStatus == FT_OK)
 			{
 				for (auto i: range(deviceCount))
@@ -832,8 +828,6 @@ void _FTDIChipset::windowsTraversal()
 			{
 				AppCore::writeToApplicationLog("FTDI windowsTraversal: FT_GetDeviceInfoList failed: " + _FTDIChipset::ftidStatusToString(ftStatus) + "\n");
 			}
-
-			delete[] devInfoList;
 		}
 	}
 	else

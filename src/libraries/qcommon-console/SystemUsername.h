@@ -10,7 +10,6 @@
 #include <windows.h>
 #include <winevt.h>
 #pragma comment(lib, "wevtapi.lib")
-#define ARRAY_SIZE 1
 #define TIMEOUT 1000  // 1 second; Set and use in place of INFINITE in EvtNext call
 #endif
 

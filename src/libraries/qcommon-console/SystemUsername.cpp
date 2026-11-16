@@ -139,31 +139,32 @@ DWORD SystemUsername::parseEvent(EVT_HANDLE hEvent)
 DWORD SystemUsername::fetchLatestEvent(EVT_HANDLE hResults)
 {
 	DWORD status = ERROR_SUCCESS;
-	EVT_HANDLE hEvents[ARRAY_SIZE];
+	EVT_HANDLE hEvent{NULL};
 	DWORD dwReturned = 0;
 
-	// Get a block of the latest event from the result set.
-	if (!EvtNext(hResults, ARRAY_SIZE, hEvents, TIMEOUT, 0, &dwReturned))
+	// Get the latest event from the result set.
+	if (!EvtNext(hResults, 1, &hEvent, TIMEOUT, 0, &dwReturned))
 	{
 		status = GetLastError();
 		if (status != ERROR_NO_MORE_ITEMS)
 		{
 			AppCore::writeToApplicationLogLine("SystemUsername::fetchLatestEvent: EvtNext failed with error code " + std::to_string(status));
 		}
-		if (dwReturned > 0 && hEvents[0] != NULL)
-			EvtClose(hEvents[0]);
+		if (dwReturned > 0 && hEvent != NULL)
+		{
+			EvtClose(hEvent);
+			hEvent = NULL;
+		}
+		return status;
 	}
 
-	if (dwReturned > 0 && ERROR_SUCCESS == (status = parseEvent(hEvents[0])))
+	if (dwReturned > 0 && hEvent != NULL)
 	{
-		EvtClose(hEvents[0]);
-		hEvents[0] = NULL;
+		status = parseEvent(hEvent);
+		EvtClose(hEvent);
+		hEvent = NULL;
 	}
-	else
-	{
-		if (dwReturned > 0 && NULL != hEvents[0])
-			EvtClose(hEvents[0]);
-	}
+
 	return status;
 }
 #endif

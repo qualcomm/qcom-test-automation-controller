@@ -353,7 +353,7 @@ std::string SerialPortWin32::read(size_t maxSize)
 		return {};
 
 	std::string buffer(maxSize, '\0');
-	int64_t bytesRead = read(&buffer[0], maxSize);
+	int64_t bytesRead = read(buffer.data(), maxSize);
 	if (bytesRead > 0)
 	{
 		buffer.resize(static_cast<size_t>(bytesRead));
