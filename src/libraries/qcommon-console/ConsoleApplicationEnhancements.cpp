@@ -38,10 +38,7 @@ std::string killOneDrive(const std::string& testPath, const std::string& revertP
 
 std::string documentsDataPath(const std::string& append)
 {
-	std::string appName = kProductName;
-	AppCore* appCore = AppCore::getAppCore();
-	if (appCore != nullptr && !appCore->appName().empty())
-		appName = appCore->appName();
+	const std::string rootDir = kProductName;
 
 	std::filesystem::path basePath;
 
@@ -65,7 +62,7 @@ std::string documentsDataPath(const std::string& append)
 		basePath = "/root/Documents";
 #endif
 
-	std::filesystem::path result = (basePath / appName).lexically_normal();
+	std::filesystem::path result = (basePath / rootDir).lexically_normal();
 	if (!append.empty())
 	{
 		result = (result / append).lexically_normal();

@@ -15,6 +15,7 @@
 #include <algorithm>
 #include <cassert>
 #include <chrono>
+#include <cstring>
 #include <thread>
 
 // FTDI

@@ -4,6 +4,8 @@
 #include "SystemUsername.h"
 #include "AppCore.h"
 
+#include <cstring>
+
 // Windows
 #if defined(_WIN32) || defined(_WIN64)
 #include "lmcons.h"
