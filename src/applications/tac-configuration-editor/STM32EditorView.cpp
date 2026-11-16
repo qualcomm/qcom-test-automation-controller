@@ -82,7 +82,7 @@ bool STM32EditorView::read()
 			twi = new QTableWidgetItem();
 			if (twi != Q_NULLPTR)
 			{
-				twi->setData(kHashRole, pinData._hash);
+				twi->setData(kHashRole, toQVariant(pinData._hash));
 				twi->setText(QString::number(pinData._pin));
 				twi->setTextAlignment(Qt::AlignHCenter | Qt::AlignVCenter);
 				twi->setFlags(twi->flags() & ~Qt::ItemIsEditable);
@@ -92,7 +92,7 @@ bool STM32EditorView::read()
 			tableCheckBox = new TableCheckBox(tableWidget);
 			if (tableCheckBox != Q_NULLPTR)
 			{
-				tableCheckBox->setProperty(kHash, pinData._hash);
+				tableCheckBox->setProperty(kHash, toQVariant(pinData._hash));
 				tableCheckBox->setCheckState(pinData._enabled);
 				connect(tableCheckBox, SIGNAL(checkStateChanged(bool)), this, SLOT(onEnableCheckChanged(bool)));
 				tableWidget->setCellWidget(row, kEnabledColumn, tableCheckBox);
@@ -101,7 +101,7 @@ bool STM32EditorView::read()
 			tableCheckBox = new TableCheckBox(tableWidget);
 			if (tableCheckBox != Q_NULLPTR)
 			{
-				tableCheckBox->setProperty(kHash, pinData._hash);
+				tableCheckBox->setProperty(kHash, toQVariant(pinData._hash));
 				tableCheckBox->setCheckState(pinData._inverted);
 				connect(tableCheckBox, SIGNAL(checkStateChanged(bool)), this, SLOT(onInvertCheckChanged(bool)));
 				tableWidget->setCellWidget(row, kInvertColumn, tableCheckBox);
@@ -110,7 +110,7 @@ bool STM32EditorView::read()
 			twi = new QTableWidgetItem();
 			if (twi != Q_NULLPTR)
 			{
-				twi->setData(kHashRole, pinData._hash);
+				twi->setData(kHashRole, toQVariant(pinData._hash));
 				twi->setText(pinData._pinLabel.empty() ? kDefaultPinLabel : toQString(pinData._pinLabel));
 				twi->setTextAlignment(Qt::AlignHCenter | Qt::AlignVCenter);
 				tableWidget->setItem(row, kPinLabelColumn, twi);
@@ -119,7 +119,7 @@ bool STM32EditorView::read()
 			twi = new QTableWidgetItem();
 			if (twi != Q_NULLPTR)
 			{
-				twi->setData(kHashRole, pinData._hash);
+				twi->setData(kHashRole, toQVariant(pinData._hash));
 				twi->setText(pinData._pinTooltip.empty() ? kDefaultPinTooltip : toQString(pinData._pinTooltip));
 				twi->setTextAlignment(Qt::AlignHCenter | Qt::AlignVCenter);
 				tableWidget->setItem(row, kPinTooltipColumn, twi);
@@ -128,7 +128,7 @@ bool STM32EditorView::read()
 			twi = new QTableWidgetItem();
 			if (twi != Q_NULLPTR)
 			{
-				twi->setData(kHashRole, pinData._hash);
+				twi->setData(kHashRole, toQVariant(pinData._hash));
 				twi->setText(pinData._pinCommand.empty() ? kDefaultPinCommand : toQString(pinData._pinCommand));
 				twi->setTextAlignment(Qt::AlignHCenter | Qt::AlignVCenter);
 				tableWidget->setItem(row, kPinCommandColumn, twi);
@@ -137,7 +137,7 @@ bool STM32EditorView::read()
 			tableComboBox = new TableComboBox(Q_NULLPTR);
 			if (tableComboBox != Q_NULLPTR)
 			{
-				tableComboBox->setProperty(kHash, pinData._hash);
+				tableComboBox->setProperty(kHash, toQVariant(pinData._hash));
 				tableComboBox->setupItems(QCommandGroup::toStringList());
 				tableComboBox->setCurrentText(QCommandGroup::toString(pinData._commandGroup));
 
@@ -148,7 +148,7 @@ bool STM32EditorView::read()
 			tableComboBox = new TableComboBox(Q_NULLPTR);
 			if (tableComboBox != Q_NULLPTR)
 			{
-				tableComboBox->setProperty(kHash, pinData._hash);
+				tableComboBox->setProperty(kHash, toQVariant(pinData._hash));
 				tableComboBox->setupItems(QTabs::toStringList(_configurableTabs));
 				tableComboBox->setCurrentText(toQString(pinData._tabName));
 
@@ -159,7 +159,7 @@ bool STM32EditorView::read()
 			twi = new QTableWidgetItem();
 			if (twi != Q_NULLPTR)
 			{
-				twi->setData(kHashRole, pinData._hash);
+				twi->setData(kHashRole, toQVariant(pinData._hash));
 				twi->setText(QString::number(pinData._cellLocation.first) + "," + QString::number(pinData._cellLocation.second));
 				twi->setTextAlignment(Qt::AlignHCenter | Qt::AlignVCenter);
 				tableWidget->setItem(row, kCellLocationColumn, twi);

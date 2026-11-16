@@ -254,7 +254,7 @@ void ManageTabsDialog::setupTabs()
 			QTableWidgetItem* lwi = new QTableWidgetItem;
 
 			lwi->setText(toQString(tab._newText.empty() ? tab._name : tab._newText));
-			lwi->setData(kHashRole, tab._hash);
+			lwi->setData(kHashRole, toQVariant(tab._hash));
             lwi->setFlags(lwi->flags() & ~Qt::ItemIsEditable);
 			_tabsTable->setItem(row, kTabNameColumn, lwi);
 
@@ -262,26 +262,26 @@ void ManageTabsDialog::setupTabs()
 
 			tableCheckBox = new TableCheckBox(Q_NULLPTR);
 			tableCheckBox->setCheckState(tab._visible);
-			tableCheckBox->setProperty(kHash, tab._hash);
+			tableCheckBox->setProperty(kHash, toQVariant(tab._hash));
 			connect(tableCheckBox, SIGNAL(checkStateChanged(bool)), this, SLOT(onTabVisibleChecked(bool)));
 			_tabsTable->setCellWidget(row, kVisibleColumn, tableCheckBox);
 
 			tableCheckBox = new TableCheckBox(Q_NULLPTR);
 			tableCheckBox->setEnabled(false);
 			tableCheckBox->setCheckState(tab._userTab);
-			tableCheckBox->setProperty(kHash, tab._hash);
+			tableCheckBox->setProperty(kHash, toQVariant(tab._hash));
 			_tabsTable->setCellWidget(row, kUserDefinedColumn, tableCheckBox);
 
 			tableCheckBox = new TableCheckBox(Q_NULLPTR);
 			tableCheckBox->setEnabled(false);
 			tableCheckBox->setCheckState(tab._configurable);
-			tableCheckBox->setProperty(kHash, tab._hash);
+			tableCheckBox->setProperty(kHash, toQVariant(tab._hash));
 			_tabsTable->setCellWidget(row, kConfigureableColumn, tableCheckBox);
 
 			tableCheckBox = new TableCheckBox(Q_NULLPTR);
 			tableCheckBox->setEnabled(false);
 			tableCheckBox->setCheckState(tab._moveable);
-			tableCheckBox->setProperty(kHash, tab._hash);
+			tableCheckBox->setProperty(kHash, toQVariant(tab._hash));
 			_tabsTable->setCellWidget(row, kMoveableColumn, tableCheckBox);
 
 			row++;

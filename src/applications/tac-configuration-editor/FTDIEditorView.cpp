@@ -423,7 +423,7 @@ void FTDIEditorView::setupFunctionRows(ChipIndex chipIndex)
 			tableComboBox = new TableComboBox(chipTable);
 			busFunctionString = toQString(FTDIBusData::toString(busFunction._busFunction));
 			tableComboBox->setupItems(gComboBoxItems, busFunctionString);
-			tableComboBox->setProperty(kHash, busFunction._hash);
+			tableComboBox->setProperty(kHash, toQVariant(busFunction._hash));
 			tableComboBox->setProperty(kChipIndex, chipIndex);
 			connect(tableComboBox, SIGNAL(currentTextChanged(QString)), this, SLOT(onBusFunctionChanged(QString)));
 			chipTable->setCellWidget(kARow, kFunctionColumn, tableComboBox);
@@ -437,7 +437,7 @@ void FTDIEditorView::setupFunctionRows(ChipIndex chipIndex)
 			tableComboBox = new TableComboBox(chipTable);
 			busFunctionString = toQString(FTDIBusData::toString(busFunction._busFunction));
 			tableComboBox->setupItems(gComboBoxItems, busFunctionString);
-			tableComboBox->setProperty(kHash, busFunction._hash);
+			tableComboBox->setProperty(kHash, toQVariant(busFunction._hash));
 			tableComboBox->setProperty(kChipIndex, chipIndex);
 			connect(tableComboBox, SIGNAL(currentTextChanged(QString)), this, SLOT(onBusFunctionChanged(QString)));
 			chipTable->setCellWidget(kBRow, kFunctionColumn, tableComboBox);
@@ -451,7 +451,7 @@ void FTDIEditorView::setupFunctionRows(ChipIndex chipIndex)
 			tableComboBox = new TableComboBox(chipTable);
 			busFunctionString = toQString(FTDIBusData::toString(busFunction._busFunction));
 			tableComboBox->setupItems(gComboBoxItems, busFunctionString);
-			tableComboBox->setProperty(kHash, busFunction._hash);
+			tableComboBox->setProperty(kHash, toQVariant(busFunction._hash));
 			tableComboBox->setProperty(kChipIndex, chipIndex);
 			connect(tableComboBox, SIGNAL(currentTextChanged(QString)), this, SLOT(onBusFunctionChanged(QString)));
 			chipTable->setCellWidget(kCRow, kFunctionColumn, tableComboBox);
@@ -465,7 +465,7 @@ void FTDIEditorView::setupFunctionRows(ChipIndex chipIndex)
 			tableComboBox = new TableComboBox(chipTable);
 			busFunctionString = toQString(FTDIBusData::toString(busFunction._busFunction));
 			tableComboBox->setupItems(gComboBoxItems, busFunctionString);
-			tableComboBox->setProperty(kHash, busFunction._hash);
+			tableComboBox->setProperty(kHash, toQVariant(busFunction._hash));
 			tableComboBox->setProperty(kChipIndex, chipIndex);
 			connect(tableComboBox, SIGNAL(currentTextChanged(QString)), this, SLOT(onBusFunctionChanged(QString)));
 			chipTable->setCellWidget(kDRow, kFunctionColumn, tableComboBox);
@@ -482,7 +482,7 @@ void FTDIEditorView::setupFunctionRows(ChipIndex chipIndex)
 			tableComboBox = new TableComboBox(chipTable);
 			busFunctionString = toQString(FTDIBusData::toString(busFunction._busFunction));
 			tableComboBox->setupItems(gComboBoxItems, busFunctionString);
-			tableComboBox->setProperty(kHash, busFunction._hash);
+			tableComboBox->setProperty(kHash, toQVariant(busFunction._hash));
 			tableComboBox->setProperty(kChipIndex, chipIndex);
 			connect(tableComboBox, SIGNAL(currentTextChanged(QString)), this, SLOT(onBusFunctionChanged(QString)));
 			chipTable->setCellWidget(kCRow, kFunctionColumn, tableComboBox);
@@ -496,7 +496,7 @@ void FTDIEditorView::setupFunctionRows(ChipIndex chipIndex)
 			tableComboBox = new TableComboBox(chipTable);
 			busFunctionString = toQString(FTDIBusData::toString(busFunction._busFunction));
 			tableComboBox->setupItems(gComboBoxItems, busFunctionString);
-			tableComboBox->setProperty(kHash, busFunction._hash);
+			tableComboBox->setProperty(kHash, toQVariant(busFunction._hash));
 			tableComboBox->setProperty(kChipIndex, chipIndex);
 			connect(tableComboBox, SIGNAL(currentTextChanged(QString)), this, SLOT(onBusFunctionChanged(QString)));
 			chipTable->setCellWidget(kDRow, kFunctionColumn, tableComboBox);
@@ -558,83 +558,83 @@ void FTDIEditorView::setupPinRows(ChipIndex chipIndex, const Bus& bus)
 					HashType hash{static_cast<HashType>(pinData._hash)};
 
 					twi = new QTableWidgetItem();
-					twi->setData(kHashRole, hash);
+					twi->setData(kHashRole, toQVariant(hash));
 					twi->setTextAlignment(Qt::AlignHCenter | Qt::AlignVCenter);
 					twi->setText(QString::number(pinData._chipPin));
 					twi->setFlags(twi->flags() & ~Qt::ItemIsEditable);
 					chipTable->setItem(row, kPinColumn, twi);
 
 					twi = new QTableWidgetItem();
-					twi->setData(kHashRole, hash);
+					twi->setData(kHashRole, toQVariant(hash));
 					twi->setTextAlignment(Qt::AlignHCenter | Qt::AlignVCenter);
 					twi->setText(getSetPinIndex(chipIndex, bus, pinId));
 					twi->setFlags(twi->flags() & ~Qt::ItemIsEditable);
 					chipTable->setItem(row, kSetPinColumn, twi);
 
 					tableCheckBox = new TableCheckBox(Q_NULLPTR);
-					tableCheckBox->setProperty(kHash, hash);
+					tableCheckBox->setProperty(kHash, toQVariant(hash));
 					tableCheckBox->setCheckState(pinData._enabled);
 					connect(tableCheckBox, SIGNAL(checkStateChanged(bool)), this, SLOT(onEnableCheckChanged(bool)));
 					chipTable->setCellWidget(row, kEnabledColumn, tableCheckBox);
 
 					tableCheckBox = new TableCheckBox(Q_NULLPTR);
-					tableCheckBox->setProperty(kHash, hash);
+					tableCheckBox->setProperty(kHash, toQVariant(hash));
 					tableCheckBox->setCheckState(pinData._input);
 					connect(tableCheckBox, SIGNAL(checkStateChanged(bool)), this, SLOT(onInputCheckChanged(bool)));
 					chipTable->setCellWidget(row, kInputColumn, tableCheckBox);
 
 					tableCheckBox = new TableCheckBox(Q_NULLPTR);
-					tableCheckBox->setProperty(kHash, hash);
+					tableCheckBox->setProperty(kHash, toQVariant(hash));
 					tableCheckBox->setCheckState(pinData._initialValue);
 					connect(tableCheckBox, SIGNAL(checkStateChanged(bool)), this, SLOT(onInitialPinValueChanged(bool)));
 					chipTable->setCellWidget(row, kInitialPinValueColumn, tableCheckBox);
 
 					twi = new QTableWidgetItem();
-					twi->setData(kHashRole, hash);
+					twi->setData(kHashRole, toQVariant(hash));
 					twi->setTextAlignment(Qt::AlignHCenter | Qt::AlignVCenter);
 					twi->setText(QString::number(pinData._initializationPriority));
 					chipTable->setItem(row, kInitializationPriorityColumn, twi);
 
 					tableCheckBox = new TableCheckBox(Q_NULLPTR);
 					tableCheckBox->setCheckState(pinData._inverted);
-					tableCheckBox->setProperty(kHash, hash);
+					tableCheckBox->setProperty(kHash, toQVariant(hash));
 					connect(tableCheckBox, SIGNAL(checkStateChanged(bool)), this, SLOT(onInvertCheckChanged(bool)));
 					chipTable->setCellWidget(row, kInvertColumn, tableCheckBox);
 
 					twi = new QTableWidgetItem();
-					twi->setData(kHashRole, hash);
+					twi->setData(kHashRole, toQVariant(hash));
 					twi->setText(pinData._pinLabel.empty() ? kDefaultPinLabel : toQString(pinData._pinLabel));
 					twi->setTextAlignment(Qt::AlignHCenter | Qt::AlignVCenter);
 					chipTable->setItem(row, kPinLabelColumn, twi);
 
 					twi = new QTableWidgetItem();
-					twi->setData(kHashRole, hash);
+					twi->setData(kHashRole, toQVariant(hash));
 					twi->setText(pinData._pinTooltip.empty() ? kDefaultPinTooltip : toQString(pinData._pinTooltip));
 					twi->setTextAlignment(Qt::AlignHCenter | Qt::AlignVCenter);
 					chipTable->setItem(row, kPinTooltipColumn, twi);
 
 					twi = new QTableWidgetItem();
-					twi->setData(kHashRole, hash);
+					twi->setData(kHashRole, toQVariant(hash));
 					twi->setText(pinData._pinCommand.empty() ? kDefaultPinCommand : toQString(pinData._pinCommand));
 					twi->setTextAlignment(Qt::AlignHCenter | Qt::AlignVCenter);
 					chipTable->setItem(row, kPinCommandColumn, twi);
 
 					tableComboBox = new TableComboBox(Q_NULLPTR);
-					tableComboBox->setProperty(kHash, hash);
+					tableComboBox->setProperty(kHash, toQVariant(hash));
 					tableComboBox->setupItems(QCommandGroup::toStringList());
 					tableComboBox->setCurrentText(QCommandGroup::toString(pinData._commandGroup));
 					connect(tableComboBox, SIGNAL(currentTextChanged(QString)), this, SLOT(onGroupChanged(QString)));
 					chipTable->setCellWidget(row, kCommandGroupColumn, tableComboBox);
 
 					tableComboBox = new TableComboBox(Q_NULLPTR);
-					tableComboBox->setProperty(kHash, hash);
+					tableComboBox->setProperty(kHash, toQVariant(hash));
 					tableComboBox->setupItems(QTabs::toStringList(_configurableTabs));
 					tableComboBox->setCurrentText(toQString(pinData._tabName));
 					connect(tableComboBox, SIGNAL(currentTextChanged(QString)), this, SLOT(onTabsChanged(QString)));
 					chipTable->setCellWidget(row, kTabsColumn, tableComboBox);
 
 					twi = new QTableWidgetItem();
-					twi->setData(kHashRole, hash);
+					twi->setData(kHashRole, toQVariant(hash));
 					twi->setText(QString::number(pinData._cellLocation.first) + "," + QString::number(pinData._cellLocation.second));
 					twi->setTextAlignment(Qt::AlignHCenter | Qt::AlignVCenter);
 					chipTable->setItem(row, kCellLocationColumn, twi);

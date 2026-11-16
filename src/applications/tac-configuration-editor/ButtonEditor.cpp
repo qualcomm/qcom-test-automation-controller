@@ -99,25 +99,25 @@ void ButtonEditor::on__addButton_clicked()
 
 		twi = new QTableWidgetItem();
 		twi->setText(kDefaultLabel);
-		twi->setData(kHashRole, Button::makeHash(button));
+		twi->setData(kHashRole, toQVariant(Button::makeHash(button)));
 		twi->setTextAlignment(Qt::AlignHCenter | Qt::AlignVCenter);
 		_buttonsTable->setItem(row, kLabelColumn, twi);
 
 		twi = new QTableWidgetItem();
 		twi->setText(kDefaultTooltip);
-		twi->setData(kHashRole, Button::makeHash(button));
+		twi->setData(kHashRole, toQVariant(Button::makeHash(button)));
 		twi->setTextAlignment(Qt::AlignHCenter | Qt::AlignVCenter);
 		_buttonsTable->setItem(row, kTooltipColumn, twi);
 
 		twi = new QTableWidgetItem();
 		twi->setText(kDefaultCommand);
-		twi->setData(kHashRole, Button::makeHash(button));
+		twi->setData(kHashRole, toQVariant(Button::makeHash(button)));
 		twi->setTextAlignment(Qt::AlignHCenter | Qt::AlignVCenter);
 		_buttonsTable->setItem(row, kCommandColumn, twi);
 
 		tableComboBox = new TableComboBox(Q_NULLPTR);
 		tableComboBox->setupItems(QCommandGroup::toStringList());
-		tableComboBox->setProperty(kHash, Button::makeHash(button));
+		tableComboBox->setProperty(kHash, toQVariant(Button::makeHash(button)));
 		tableComboBox->setProperty(kRow, row);
 		tableComboBox->setCurrentText(kDefaultGroup);
 		connect(tableComboBox, SIGNAL(currentTextChanged(QString)), this, SLOT(onGroupChanged(QString)));
@@ -125,14 +125,14 @@ void ButtonEditor::on__addButton_clicked()
 
 		tableComboBox = new TableComboBox(Q_NULLPTR);
 		tableComboBox->setupItems(QTabs::toStringList(tabs));
-		tableComboBox->setProperty(kHash, Button::makeHash(button));
+		tableComboBox->setProperty(kHash, toQVariant(Button::makeHash(button)));
 		tableComboBox->setCurrentText(kDefaultTab);
 		connect(tableComboBox, SIGNAL(currentTextChanged(QString)), this, SLOT(onTabsChanged(QString)));
 		_buttonsTable->setCellWidget(row, kTabsColumn, tableComboBox);
 
 		twi = new QTableWidgetItem();
 		twi->setText(kDefaultCellLocation);
-		twi->setData(kHashRole, Button::makeHash(button));
+		twi->setData(kHashRole, toQVariant(Button::makeHash(button)));
 		twi->setTextAlignment(Qt::AlignHCenter | Qt::AlignVCenter);
 		_buttonsTable->setItem(row, kCellLocationColumn, twi);
 
@@ -202,39 +202,39 @@ void ButtonEditor::read()
 			twi = new QTableWidgetItem();
 			twi->setText(toQString(button._label));
 			twi->setTextAlignment(Qt::AlignHCenter | Qt::AlignVCenter);
-			twi->setData(kHashRole, button._hash);
+			twi->setData(kHashRole, toQVariant(button._hash));
 			_buttonsTable->setItem(row, kLabelColumn, twi);
 
 			twi = new QTableWidgetItem();
 			twi->setText(toQString(button._toolTip));
 			twi->setTextAlignment(Qt::AlignHCenter | Qt::AlignVCenter);
-			twi->setData(kHashRole, button._hash);
+			twi->setData(kHashRole, toQVariant(button._hash));
 			_buttonsTable->setItem(row, kTooltipColumn, twi);
 
 			twi = new QTableWidgetItem();
 			twi->setText(toQString(button._command));
 			twi->setTextAlignment(Qt::AlignHCenter | Qt::AlignVCenter);
-			twi->setData(kHashRole, button._hash);
+			twi->setData(kHashRole, toQVariant(button._hash));
 			_buttonsTable->setItem(row, kCommandColumn, twi);
 
 			tableComboBox = new TableComboBox(Q_NULLPTR);
 			tableComboBox->setupItems(QCommandGroup::toStringList());
 			tableComboBox->setCurrentText(QCommandGroup::toString(button._commandGroup));
-			tableComboBox->setProperty(kHash, button._hash);
+			tableComboBox->setProperty(kHash, toQVariant(button._hash));
 			connect(tableComboBox, SIGNAL(currentTextChanged(QString)), this, SLOT(onGroupChanged(QString)));
 			_buttonsTable->setCellWidget(row, kGroupColumn, tableComboBox);
 
 			tableComboBox = new TableComboBox(Q_NULLPTR);
 			tableComboBox->setupItems(QTabs::toStringList(tabs));
 			tableComboBox->setCurrentText(toQString(button._tab));
-			tableComboBox->setProperty(kHash, button._hash);
+			tableComboBox->setProperty(kHash, toQVariant(button._hash));
 			connect(tableComboBox, SIGNAL(currentTextChanged(QString)), this, SLOT(onTabsChanged(QString)));
 			_buttonsTable->setCellWidget(row, kTabsColumn, tableComboBox);
 
 			twi = new QTableWidgetItem();
 			twi->setText(toQString(fromQPoint(button._cellLocation)));
 			twi->setTextAlignment(Qt::AlignHCenter | Qt::AlignVCenter);
-			twi->setData(kHashRole, button._hash);
+			twi->setData(kHashRole, toQVariant(button._hash));
 			_buttonsTable->setItem(row, kCellLocationColumn, twi);
 
 			row++;
@@ -315,7 +315,7 @@ void ButtonEditor::onGroupChanged(const QString& newText)
 			if (!result)
 			{
 				hash = _platformConfiguration->addButtonCommandGroup(toStdString(labelName), toStdString(tabName), QCommandGroup::fromString(newText));
-				obj->setProperty(kHash, hash);
+				obj->setProperty(kHash, toQVariant(hash));
 			}
 		}
 		catch (const PlatformConfigurationException& e)
@@ -343,7 +343,7 @@ void ButtonEditor::onTabsChanged(const QString& newText)
 			if (!result)
 			{
 				hash = _platformConfiguration->addButtonTab(toStdString(labelName), toStdString(newText));
-				obj->setProperty(kHash, hash);
+				obj->setProperty(kHash, toQVariant(hash));
 			}
 		}
 		catch (const PlatformConfigurationException& e)
@@ -379,7 +379,7 @@ void ButtonEditor::onTableItemChanged(QTableWidgetItem* twi)
 			if (!result)
 			{
 				hash = _platformConfiguration->addButtonLabel(toStdString(itemText), toStdString(tabName));
-				twi->setData(kHashRole, hash);
+				twi->setData(kHashRole, toQVariant(hash));
 			}
 			break;
 		case kTooltipColumn:
@@ -387,7 +387,7 @@ void ButtonEditor::onTableItemChanged(QTableWidgetItem* twi)
 			if (!result)
 			{
 				hash = _platformConfiguration->addButtonTooltip(toStdString(labelName), toStdString(tabName), toStdString(itemText));
-				twi->setData(kHashRole, hash);
+				twi->setData(kHashRole, toQVariant(hash));
 			}
 			break;
 		case kCommandColumn:
@@ -395,7 +395,7 @@ void ButtonEditor::onTableItemChanged(QTableWidgetItem* twi)
 			if (!result)
 			{
 				hash = _platformConfiguration->addButtonCommand(toStdString(labelName), toStdString(tabName), toStdString(itemText));
-				twi->setData(kHashRole, hash);
+				twi->setData(kHashRole, toQVariant(hash));
 			}
 			break;
 		case kCellLocationColumn:
@@ -419,7 +419,7 @@ void ButtonEditor::onTableItemChanged(QTableWidgetItem* twi)
 				if (!result)
 				{
 					hash = _platformConfiguration->addButtonCellLocation(toStdString(labelName), toStdString(tabName), {row, col});
-					twi->setData(kHashRole, hash);
+					twi->setData(kHashRole, toQVariant(hash));
 				}
 			}
 			break;

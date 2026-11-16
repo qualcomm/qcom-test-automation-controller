@@ -79,7 +79,7 @@ bool PIC32CXEditorView::read()
 			twi = new QTableWidgetItem();
 			if (twi != Q_NULLPTR)
 			{
-				twi->setData(kHashRole, pinData._hash);
+				twi->setData(kHashRole, toQVariant(pinData._hash));
 				twi->setText(QString::number(pinData._setPin));
 				twi->setTextAlignment(Qt::AlignHCenter | Qt::AlignVCenter);
 				_pic32CXTable->setItem(row, kSetPinColumn, twi);
@@ -88,7 +88,7 @@ bool PIC32CXEditorView::read()
 			tableCheckBox = new TableCheckBox(_pic32CXTable);
 			if (tableCheckBox != Q_NULLPTR)
 			{
-				tableCheckBox->setProperty(kHash, pinData._hash);
+				tableCheckBox->setProperty(kHash, toQVariant(pinData._hash));
 				tableCheckBox->setCheckState(pinData._enabled);
 				connect(tableCheckBox, SIGNAL(checkStateChanged(bool)), this, SLOT(onEnableCheckChanged(bool)));
 				_pic32CXTable->setCellWidget(row, kEnabledColumn, tableCheckBox);
@@ -98,7 +98,7 @@ bool PIC32CXEditorView::read()
 			if (tableCheckBox != Q_NULLPTR)
 			{
 				tableCheckBox->setCheckState(pinData._inverted);
-				tableCheckBox->setProperty(kHash, pinData._hash);
+				tableCheckBox->setProperty(kHash, toQVariant(pinData._hash));
 				connect(tableCheckBox, SIGNAL(checkStateChanged(bool)), this, SLOT(onInvertCheckChanged(bool)));
 				_pic32CXTable->setCellWidget(row, kInvertColumn, tableCheckBox);
 			}
@@ -106,7 +106,7 @@ bool PIC32CXEditorView::read()
 			twi = new QTableWidgetItem();
 			if (twi != Q_NULLPTR)
 			{
-				twi->setData(kHashRole, pinData._hash);
+				twi->setData(kHashRole, toQVariant(pinData._hash));
 				twi->setText(pinData._pinLabel.empty() ? kDefaultPinLabel : toQString(pinData._pinLabel));
 				twi->setTextAlignment(Qt::AlignHCenter | Qt::AlignVCenter);
 				_pic32CXTable->setItem(row, kPinLabelColumn, twi);
@@ -115,7 +115,7 @@ bool PIC32CXEditorView::read()
 			twi = new QTableWidgetItem();
 			if (twi != Q_NULLPTR)
 			{
-				twi->setData(kHashRole, pinData._hash);
+				twi->setData(kHashRole, toQVariant(pinData._hash));
 				twi->setText(pinData._pinTooltip.empty() ? kDefaultPinTooltip : toQString(pinData._pinTooltip));
 				twi->setTextAlignment(Qt::AlignHCenter | Qt::AlignVCenter);
 				_pic32CXTable->setItem(row, kPinTooltipColumn, twi);
@@ -124,7 +124,7 @@ bool PIC32CXEditorView::read()
 			twi = new QTableWidgetItem();
 			if (twi != Q_NULLPTR)
 			{
-				twi->setData(kHashRole, pinData._hash);
+				twi->setData(kHashRole, toQVariant(pinData._hash));
 				twi->setText(pinData._pinCommand.empty() ? kDefaultPinCommand : toQString(pinData._pinCommand));
 				twi->setTextAlignment(Qt::AlignHCenter | Qt::AlignVCenter);
 				_pic32CXTable->setItem(row, kPinCommandColumn, twi);
@@ -133,7 +133,7 @@ bool PIC32CXEditorView::read()
 			tableComboBox = new TableComboBox(Q_NULLPTR);
 			if (tableComboBox != Q_NULLPTR)
 			{
-				tableComboBox->setProperty(kHash, pinData._hash);
+				tableComboBox->setProperty(kHash, toQVariant(pinData._hash));
 				tableComboBox->setupItems(QCommandGroup::toStringList());
 				tableComboBox->setCurrentText(QCommandGroup::toString(pinData._commandGroup));
 
@@ -144,7 +144,7 @@ bool PIC32CXEditorView::read()
 			tableComboBox = new TableComboBox(Q_NULLPTR);
 			if (tableComboBox != Q_NULLPTR)
 			{
-				tableComboBox->setProperty(kHash, pinData._hash);
+				tableComboBox->setProperty(kHash, toQVariant(pinData._hash));
 				tableComboBox->setupItems(QTabs::toStringList(_configurableTabs));
 				tableComboBox->setCurrentText(toQString(pinData._tabName));
 
@@ -155,7 +155,7 @@ bool PIC32CXEditorView::read()
 			twi = new QTableWidgetItem();
 			if (twi != Q_NULLPTR)
 			{
-				twi->setData(kHashRole, pinData._hash);
+				twi->setData(kHashRole, toQVariant(pinData._hash));
 				twi->setText(QString::number(pinData._cellLocation.first) + "," + QString::number(pinData._cellLocation.second));
 				twi->setTextAlignment(Qt::AlignHCenter | Qt::AlignVCenter);
 				_pic32CXTable->setItem(row, kCellLocationColumn, twi);

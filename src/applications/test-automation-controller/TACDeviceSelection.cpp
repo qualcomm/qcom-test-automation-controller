@@ -3,6 +3,7 @@
 
 #include "TACDeviceSelection.h"
 #include "QAlpacaDevice.h"
+#include "QCommonTypes.h"
 
 // QCommon
 #include "Range.h"
@@ -118,7 +119,7 @@ void TACDeviceSelection::timer_timeout()
 
 		// Portname
 		twi = new QTableWidgetItem(alpacaDevice.portName());
-		twi->setData(Qt::UserRole, alpacaDevice.hash());
+		twi->setData(Qt::UserRole, toQVariant(alpacaDevice.hash()));
 		_tacDevices->setItem(deviceIndex, 0, twi);
 
 		// Description

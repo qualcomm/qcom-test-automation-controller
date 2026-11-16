@@ -18,6 +18,8 @@
 #include <string_view>
 #include <vector>
 #include <utility>
+#include <type_traits>
+#include <cstdint>
 
 // QCommonConsole
 #include "ScriptVariable.h"
@@ -97,6 +99,26 @@ namespace Types
 	// ScriptVariable conversions
 	QCOMMONBRIDGE_EXPORT QVariant toQVariant(const ScriptVariableValue& val);
 	QCOMMONBRIDGE_EXPORT ScriptVariableValue toScriptVariableValue(const QVariant& qval, VariableType type);
+
+	// Integer conversions to QVariant (resolves LP64/LLP64 ambiguity for 64-bit integers on Linux)
+	template <typename T, typename = std::enable_if_t<std::is_integral_v<T> && !std::is_same_v<T, bool>>>
+	inline QVariant toQVariant(T val)
+	{
+		if constexpr (std::is_signed_v<T>)
+		{
+			if constexpr (sizeof(T) <= sizeof(int))
+				return QVariant(static_cast<int>(val));
+			else
+				return QVariant(static_cast<qlonglong>(val));
+		}
+		else
+		{
+			if constexpr (sizeof(T) <= sizeof(unsigned int))
+				return QVariant(static_cast<unsigned int>(val));
+			else
+				return QVariant(static_cast<qulonglong>(val));
+		}
+	}
 
 	inline PSOCVariant psocVariantFromString(const QString& str)
 	{

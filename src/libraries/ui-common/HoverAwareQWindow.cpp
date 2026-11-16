@@ -4,6 +4,7 @@
 #include "ui_HoverAwareQWindow.h"
 #include "HoverAwareQWindow.h"
 #include "ColorConversion.h"
+#include "QCommonTypes.h"
 
 #include <QClipboard>
 #include <QCursor>
@@ -124,7 +125,7 @@ void HoverAwareQWindow::buildListView()
 		QListWidgetItem* lwi = new QListWidgetItem(_ui->_notificationListContainer);
 		lwi->setText(text);
 		lwi->setSizeHint(kLabelSize);
-		lwi->setData(Qt::UserRole, notification.getId());
+		lwi->setData(Qt::UserRole, toQVariant(notification.getId()));
 
 		QColor labelColor = ColorConversion::getLabelColor(notification.getLevel());
 		lwi->setBackground(QBrush(labelColor));

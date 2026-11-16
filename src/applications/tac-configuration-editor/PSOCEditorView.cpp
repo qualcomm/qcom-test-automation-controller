@@ -466,63 +466,63 @@ bool PSOCEditorView::read()
 			HashType hash{static_cast<HashType>(pin._pin)};
 
 			twi = new QTableWidgetItem();
-			twi->setData(kHashRole, hash);
+			twi->setData(kHashRole, toQVariant(hash));
 			twi->setTextAlignment(Qt::AlignHCenter | Qt::AlignVCenter);
 			twi->setText(QString::number(static_cast<quint16>(pin._pin)));
 			twi->setFlags(twi->flags() & ~Qt::ItemIsEditable);
 			_psocTable->setItem(row, kPinColumn, twi);
 
 			tableCheckBox = new TableCheckBox(Q_NULLPTR);
-			tableCheckBox->setProperty(kHash, hash);
+			tableCheckBox->setProperty(kHash, toQVariant(hash));
 			tableCheckBox->setCheckState(pin._enabled);
 			connect(tableCheckBox, SIGNAL(checkStateChanged(bool)), this, SLOT(onEnableCheckChanged(bool)));
 			_psocTable->setCellWidget(row, kEnabledColumn, tableCheckBox);
 
 			tableCheckBox = new TableCheckBox(Q_NULLPTR);
-			tableCheckBox->setProperty(kHash, hash);
+			tableCheckBox->setProperty(kHash, toQVariant(hash));
 			tableCheckBox->setCheckState(pin._initialValue);
 			connect(tableCheckBox, SIGNAL(checkStateChanged(bool)), this, SLOT(onInitialPinValueChanged(bool)));
 			_psocTable->setCellWidget(row, kInitialPinValueColumn, tableCheckBox);
 
 			twi = new QTableWidgetItem();
-			twi->setData(kHashRole, hash);
+			twi->setData(kHashRole, toQVariant(hash));
 			twi->setTextAlignment(Qt::AlignHCenter | Qt::AlignVCenter);
 			twi->setText(QString::number(pin._initializationPriority));
 			_psocTable->setItem(row, kInitializationPriorityColumn, twi);
 
 			tableCheckBox = new TableCheckBox(Q_NULLPTR);
 			tableCheckBox->setCheckState(pin._inverted);
-			tableCheckBox->setProperty(kHash, hash);
+			tableCheckBox->setProperty(kHash, toQVariant(hash));
 			connect(tableCheckBox, SIGNAL(checkStateChanged(bool)), this, SLOT(onInvertCheckChanged(bool)));
 			_psocTable->setCellWidget(row, kInvertColumn, tableCheckBox);
 
 			twi = new QTableWidgetItem();
-			twi->setData(kHashRole, hash);
+			twi->setData(kHashRole, toQVariant(hash));
 			twi->setText(pin._pinLabel.empty() ? kDefaultPinLabel : toQString(pin._pinLabel));
 			twi->setTextAlignment(Qt::AlignHCenter | Qt::AlignVCenter);
 			_psocTable->setItem(row, kPinLabelColumn, twi);
 
 			twi = new QTableWidgetItem();
-			twi->setData(kHashRole, hash);
+			twi->setData(kHashRole, toQVariant(hash));
 			twi->setText(pin._pinTooltip.empty() ? kDefaultPinTooltip : toQString(pin._pinTooltip));
 			twi->setTextAlignment(Qt::AlignHCenter | Qt::AlignVCenter);
 			_psocTable->setItem(row, kPinTooltipColumn, twi);
 
 			twi = new QTableWidgetItem();
-			twi->setData(kHashRole, hash);
+			twi->setData(kHashRole, toQVariant(hash));
 			twi->setText(pin._pinCommand.empty() ? kDefaultPinCommand : toQString(pin._pinCommand));
 			twi->setTextAlignment(Qt::AlignHCenter | Qt::AlignVCenter);
 			_psocTable->setItem(row, kPinCommandColumn, twi);
 
 			tableComboBox = new TableComboBox(Q_NULLPTR);
-			tableComboBox->setProperty(kHash, hash);
+			tableComboBox->setProperty(kHash, toQVariant(hash));
 			tableComboBox->setupItems(toQStringList(CommandGroup::toStringList()));
 			tableComboBox->setCurrentText(toQString(CommandGroup::toString(pin._commandGroup)));
 			connect(tableComboBox, SIGNAL(currentTextChanged(QString)), this, SLOT(onGroupChanged(QString)));
 			_psocTable->setCellWidget(row, kCommandGroupColumn, tableComboBox);
 
 			tableComboBox = new TableComboBox(Q_NULLPTR);
-			tableComboBox->setProperty(kHash, hash);
+			tableComboBox->setProperty(kHash, toQVariant(hash));
 
 			tableComboBox->setupItems(toQStringList(Tab::toStringList(_configurableTabs)));
 			tableComboBox->setCurrentText(toQString(pin._tabName));
@@ -530,14 +530,14 @@ bool PSOCEditorView::read()
 			_psocTable->setCellWidget(row, kTabsColumn, tableComboBox);
 
 			twi = new QTableWidgetItem();
-			twi->setData(kHashRole, hash);
+			twi->setData(kHashRole, toQVariant(hash));
 			twi->setText(toQString(pin._classicAction));
 			twi->setTextAlignment(Qt::AlignHCenter | Qt::AlignVCenter);
 			twi->setFlags(twi->flags() & ~Qt::ItemIsEditable);
 			_psocTable->setItem(row, kClassicActionColumn, twi);
 
 			twi = new QTableWidgetItem();
-			twi->setData(kHashRole, hash);
+			twi->setData(kHashRole, toQVariant(hash));
 			twi->setText(QString::number(pin._cellLocation.first) + "," + QString::number(pin._cellLocation.second));
 			twi->setTextAlignment(Qt::AlignHCenter | Qt::AlignVCenter);
 			_psocTable->setItem(row, kCellLocationColumn, twi);
@@ -620,64 +620,64 @@ void PSOCEditorView::populateI2CTable(QTableWidget* table, const std::vector<PSO
 		HashType hash{i2cData._hash};
 
 		twi = new QTableWidgetItem();
-		twi->setData(kHashRole, hash);
+		twi->setData(kHashRole, toQVariant(hash));
 		twi->setTextAlignment(Qt::AlignHCenter | Qt::AlignVCenter);
 		twi->setText(QString::number(static_cast<quint16>(i2cData._pin)));
 		twi->setFlags(twi->flags() & ~Qt::ItemIsEditable);
 		table->setItem(row, kI2CPinColumn, twi);
 
 		tableCheckBox = new TableCheckBox(Q_NULLPTR);
-		tableCheckBox->setProperty(kHash, hash);
+		tableCheckBox->setProperty(kHash, toQVariant(hash));
 		tableCheckBox->setCheckState(i2cData._enabled);
 		connect(tableCheckBox, SIGNAL(checkStateChanged(bool)), this, SLOT(onI2CEnableCheckChanged(bool)));
 		table->setCellWidget(row, kI2CEnabledColumn, tableCheckBox);
 
 		tableCheckBox = new TableCheckBox(Q_NULLPTR);
 		tableCheckBox->setCheckState(i2cData._inverted);
-		tableCheckBox->setProperty(kHash, hash);
+		tableCheckBox->setProperty(kHash, toQVariant(hash));
 		connect(tableCheckBox, SIGNAL(checkStateChanged(bool)), this, SLOT(onI2CInvertCheckChanged(bool)));
 		table->setCellWidget(row, kI2CInvertColumn, tableCheckBox);
 
 		twi = new QTableWidgetItem();
-		twi->setData(kHashRole, hash);
+		twi->setData(kHashRole, toQVariant(hash));
 		twi->setText(QString::number(i2cData._writeAddress, 16));
 		twi->setTextAlignment(Qt::AlignHCenter | Qt::AlignVCenter);
 		table->setItem(row, kI2CWriteAddressColumn, twi);
 
 		twi = new QTableWidgetItem();
-		twi->setData(kHashRole, hash);
+		twi->setData(kHashRole, toQVariant(hash));
 		twi->setText(i2cData._pinLabel.empty() ? kDefaultPinLabel : toQString(i2cData._pinLabel));
 		twi->setTextAlignment(Qt::AlignHCenter | Qt::AlignVCenter);
 		table->setItem(row, kI2CPinLabelColumn, twi);
 
 		twi = new QTableWidgetItem();
-		twi->setData(kHashRole, hash);
+		twi->setData(kHashRole, toQVariant(hash));
 		twi->setText(i2cData._pinTooltip.empty() ? kDefaultPinTooltip : toQString(i2cData._pinTooltip));
 		twi->setTextAlignment(Qt::AlignHCenter | Qt::AlignVCenter);
 		table->setItem(row, kI2CPinTooltipColumn, twi);
 
 		twi = new QTableWidgetItem();
-		twi->setData(kHashRole, hash);
+		twi->setData(kHashRole, toQVariant(hash));
 		twi->setText(i2cData._pinCommand.empty() ? kDefaultPinCommand : toQString(i2cData._pinCommand));
 		twi->setTextAlignment(Qt::AlignHCenter | Qt::AlignVCenter);
 		table->setItem(row, kI2CPinCommandColumn, twi);
 
 		tableComboBox = new TableComboBox(Q_NULLPTR);
-		tableComboBox->setProperty(kHash, hash);
+		tableComboBox->setProperty(kHash, toQVariant(hash));
 		tableComboBox->setupItems(QCommandGroup::toStringList());
 		tableComboBox->setCurrentText(QCommandGroup::toString(i2cData._commandGroup));
 		connect(tableComboBox, SIGNAL(currentTextChanged(QString)), this, SLOT(onI2CGroupChanged(QString)));
 		table->setCellWidget(row, kI2CCommandGroupColumn, tableComboBox);
 
 		tableComboBox = new TableComboBox(Q_NULLPTR);
-		tableComboBox->setProperty(kHash, hash);
+		tableComboBox->setProperty(kHash, toQVariant(hash));
 		tableComboBox->setupItems(QTabs::toStringList(_configurableTabs));
 		tableComboBox->setCurrentText(toQString(i2cData._tabName));
 		connect(tableComboBox, SIGNAL(currentTextChanged(QString)), this, SLOT(onI2CTabsChanged(QString)));
 		table->setCellWidget(row, kI2CTabsColumn, tableComboBox);
 
 		twi = new QTableWidgetItem();
-		twi->setData(kHashRole, hash);
+		twi->setData(kHashRole, toQVariant(hash));
 		twi->setText(QString::number(i2cData._cellLocation.first) + "," + QString::number(i2cData._cellLocation.second));
 		twi->setTextAlignment(Qt::AlignHCenter | Qt::AlignVCenter);
 		table->setItem(row, kI2CCellLocationColumn, twi);
