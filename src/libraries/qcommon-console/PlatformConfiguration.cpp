@@ -20,6 +20,7 @@
 #include "ConfigurationFile.h"
 #include "StringUtilities.h"
 
+#include <algorithm>
 #include <cassert>
 #include <cctype>
 #include <filesystem>
