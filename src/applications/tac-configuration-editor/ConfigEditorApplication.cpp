@@ -4,7 +4,7 @@
 #include "ConfigEditorApplication.h"
 #include "ConfigWindow.h"
 
-#include "TACDefines.h"
+#include "QTACDefines.h"
 
 // QCommon
 #include "AboutDialog.h"
@@ -20,7 +20,7 @@ ConfigEditorApplication::ConfigEditorApplication
 ) :
 	AlpacaApplication (argc, argv, kTACConfigEditorApp, kTACConfigEditorVersion)
 {
-	_preferences.setAppName(kTACConfigEditorApp.toLatin1(), kTACConfigEditorVersion.toLatin1());
+	_preferences.setAppName(kTACConfigEditorApp, kTACConfigEditorVersion);
 
 	// TODO: do we need a preference for the configuration editor, Michael?
 	// _preferences.setLoggingActive(true);

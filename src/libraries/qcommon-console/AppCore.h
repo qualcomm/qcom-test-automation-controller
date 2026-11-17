@@ -8,9 +8,6 @@
 #include "PreferencesBase.h"
 #include "ThreadedLog.h"
 
-// QT
-#include <QString>
-
 #include <cstdint>
 #include <string>
 
@@ -33,8 +30,6 @@ public:
 		return _appVersion;
 	}
 
-	uint32_t daysSinceInstall();
-
 	PreferencesBase* getPreferences()
 	{
 		return _preferences;
@@ -46,24 +41,25 @@ public:
 
 	std::string currentAppLog()
 	{
-		return _appThreadedLog->currentLogPath().toStdString();
+		return _appThreadedLog ? _appThreadedLog->currentLogPath() : std::string();
 	}
 
 	void setRunLogging(bool loggingState);
 	bool runLoggingActive();
 	std::string currentRunLog()
 	{
-		return _runThreadedLog->currentLogPath().toStdString();
+		return _runThreadedLog ? _runThreadedLog->currentLogPath() : std::string();
 	}
 
 	std::string loggingPath();
 
-	bool checkLicense(const std::string& productID, const std::string& featureID);
-	bool isLicenseManagerValid();
-
-	void postStartEvent();
-	void postAutomationEvent();
-	void postMetric(const std::string& metricID, double metric);
+	// --- Critical Application Paths (Cannot be configured per user preferences) ---
+	static std::string applicationBinPath();
+	static std::string applicationDataPath();
+	static std::string firmwarePath();
+	static std::string configurationsPath();
+	static std::string userConfigurationsPath();
+	static std::string configurationSavePath(const std::string& currentPath = "");
 
 	void writeToAppLog(const std::string& writeMe);
 
@@ -83,7 +79,7 @@ private:
 	std::string					_appName;
 	std::string					_appVersion;
 
-	PreferencesBase*			_preferences{Q_NULLPTR};
+	PreferencesBase*			_preferences{nullptr};
 	ThreadedLog					_appThreadedLog;
 	ThreadedLog					_runThreadedLog;
 };

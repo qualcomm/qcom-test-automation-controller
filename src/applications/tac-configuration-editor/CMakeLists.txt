@@ -39,6 +39,7 @@ endif()
 
 target_include_directories(${APP_NAME} PRIVATE
     ${CMAKE_SOURCE_DIR}/src/libraries/qcommon-console
+    ${CMAKE_SOURCE_DIR}/src/libraries/qcommon-bridge
     ${CMAKE_SOURCE_DIR}/src/libraries/qcommon
     ${CMAKE_SOURCE_DIR}/src/libraries/ui-common
 )
@@ -69,8 +70,8 @@ target_link_libraries(${APP_NAME} PRIVATE
     # single item. An unquoted $<...> containing ';' is split by CMake before the
     # expression is evaluated; that split is only tolerated since CMake 3.23,
     # whereas quoting works on the 3.22 minimum too.
-    "$<$<CONFIG:Debug>:UId;QCommond;QCommonConsoled>"
-    "$<$<NOT:$<CONFIG:Debug>>:UI;QCommon;QCommonConsole>"
+    "$<$<CONFIG:Debug>:UId;QCommond;QCommonBridged;QCommonConsoled>"
+    "$<$<NOT:$<CONFIG:Debug>>:UI;QCommon;QCommonBridge;QCommonConsole>"
 )
 
 if(WIN32)

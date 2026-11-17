@@ -5,18 +5,35 @@
 
 // QCommon
 #include "AlpacaDefines.h"
+#include "AlpacaSettings.h"
 #include "ConsoleApplicationEnhancements.h"
+#include "StringUtilities.h"
 
-// Qt
-#include <QDate>
-#include <QDir>
-#include <QJsonDocument>
-#include <QJsonObject>
+#if defined(_WIN32) || defined(_WIN64)
+#ifndef WIN32_LEAN_AND_MEAN
+#define WIN32_LEAN_AND_MEAN
+#endif
+#include <windows.h>
+#endif
 
-const QString kWindowsInternalBuildPath(QStringLiteral("C:\\Program Files (x86)\\Qualcomm\\QTAC\\ib.conf"));
-const QString kLinuxInternalBuildPath(QStringLiteral("/opt/qcom/QTAC/bin/ib.conf"));
+#if defined(__linux__)
+#include <unistd.h>
+#endif
 
-AppCore* AppCore::_appCore{Q_NULLPTR};
+#include <cassert>
+#include <chrono>
+#include <cstdlib>
+#include <ctime>
+#include <filesystem>
+#include <iomanip>
+#include <sstream>
+
+static const std::string kDefaultAppName("QTAC");
+
+const std::string kWindowsInternalBuildPath("C:\\Program Files (x86)\\Qualcomm\\QTAC\\ib.conf");
+const std::string kLinuxInternalBuildPath("/opt/qcom/QTAC/bin/ib.conf");
+
+AppCore* AppCore::_appCore{nullptr};
 
 class AppCoreDestructor
 {
@@ -27,53 +44,47 @@ public:
 
 	~AppCoreDestructor()
 	{
-		if (AppCore::_appCore != Q_NULLPTR)
+		if (AppCore::_appCore != nullptr)
 		{
 			delete AppCore::_appCore;
-			AppCore::_appCore = Q_NULLPTR;
+			AppCore::_appCore = nullptr;
 		}
 	}
 } gAppCoreDestructor;
 
 AppCore::AppCore()
 {
-	initializeStringProof();
+	assert(AppCore::_appCore == nullptr);
 
-	Q_ASSERT(AppCore::_appCore == Q_NULLPTR); // <--- Only functions in debug
-
-	if (AppCore::_appCore == Q_NULLPTR) // <--- Check for release?
+	if (AppCore::_appCore == nullptr)
 		AppCore::_appCore = this;
 
-#ifdef Q_OS_WINDOWS
-	_internalBuild = QFile::exists(kWindowsInternalBuildPath);
+#if defined(_WIN32) || defined(Q_OS_WINDOWS)
+	_internalBuild = std::filesystem::exists(kWindowsInternalBuildPath);
 #endif
-#ifdef Q_OS_LINUX
-	_internalBuild = QFile::exists(kLinuxInternalBuildPath);
+#if defined(__linux__) || defined(Q_OS_LINUX)
+	_internalBuild = std::filesystem::exists(kLinuxInternalBuildPath);
 #endif
 }
 
 AppCore::~AppCore()
 {
-	ThreadedLog nullLog(Q_NULLPTR);
+	if (_runThreadedLog)
+	{
+		_runThreadedLog->close();
+		_runThreadedLog = nullptr;
+	}
 
-    if (_runThreadedLog.isNull() == false)
-    {
-        _runThreadedLog->close();
-        _appThreadedLog->deleteLater();
-        _runThreadedLog = nullLog;
-    }
-
-    if (_appThreadedLog.isNull() == false)
-    {
-        _appThreadedLog->close();
-        _appThreadedLog->deleteLater();
-        _appThreadedLog = nullLog;
-    }
+	if (_appThreadedLog)
+	{
+		_appThreadedLog->close();
+		_appThreadedLog = nullptr;
+	}
 }
 
 AppCore *AppCore::getAppCore()
 {
-	if (AppCore::_appCore == Q_NULLPTR)
+	if (AppCore::_appCore == nullptr)
 	{
 		AppCore::_appCore = new AppCore;
 	}
@@ -93,172 +104,114 @@ void AppCore::setPreferences
 	setAppLogging(_preferences->loggingActive());
 }
 
-uint32_t AppCore::daysSinceInstall()
-{
-	uint32_t result{0};
-
-	QString buildDateStr = QString::fromStdString(kCompileDate).trimmed();
-
-	buildDateStr = buildDateStr.replace("  ", " ");
-
-#ifdef _DEBUG
-	//buildDateStr = "JAN 1 2021";
-#endif
-
-	QDate buildDateTime = QDate::fromString(buildDateStr,"MMM d yyyy");
-	result = buildDateTime.daysTo(QDate::currentDate());
-
-	if (result > 90)
-	{
-		QString message = "Current Date:" + QDate::currentDate().toString();
-		writeToAppLog(message.toStdString());
-
-		message = "Build Date:" + buildDateTime.toString();
-		writeToAppLog(message.toStdString());
-
-		QSettings alpacaSettings;
-		alpacaSettings.setValue("dateCheckNotified", false);
-
-		result = false;
-	}
-
-	return result;
-}
-
 void AppCore::setAppLogging
 (
 	bool loggingState
 )
 {
-	if (_appThreadedLog.isNull() == false)
+	if (_appThreadedLog)
 	{
 		_appThreadedLog->close();
-		_appThreadedLog = ThreadedLog(Q_NULLPTR);
+		_appThreadedLog = nullptr;
 	}
 
 	if (loggingState == true)
 	{
-		QString logPath;
+		std::string logPath;
 
-		if (_preferences != Q_NULLPTR)
+		if (_preferences != nullptr)
 		{
-			logPath = QDir::cleanPath(QString::fromStdString(_preferences->appLogPath()) + QDir::separator() + _ThreadedLog::createLogName(QString::fromStdString(_appName + "_")));
+			std::filesystem::path p = std::filesystem::path(_preferences->appLogPath()) / _ThreadedLog::createLogName(_appName + "_");
+			logPath = p.lexically_normal().string();
 		}
 		else
 		{
-			logPath = QDir::cleanPath(QString::fromStdString(defaultGlobalLoggingPath()) + QDir::separator() + _ThreadedLog::createLogName(QString::fromStdString(_appName + "_")));
+			std::filesystem::path p = std::filesystem::path(defaultGlobalLoggingPath()) / _ThreadedLog::createLogName(_appName + "_");
+			logPath = p.lexically_normal().string();
 		}
 
 		_appThreadedLog = _ThreadedLog::createThreadedLog();
 		_appThreadedLog->open(logPath);
 
 		writeToAppLog(_appName + " Application log started\n");
-		writeToAppLog("QTAC Version: " + QString(QTAC_VERSION).toStdString() + "\n");
+		writeToAppLog("QTAC Version: " + std::string(QTAC_VERSION) + "\n");
 		writeToAppLog(_appName + " Version: " + _appVersion + "\n");
 	}
 }
 
 bool AppCore::appLoggingActive()
 {
-	return _appThreadedLog.isNull() == false;
+	return _appThreadedLog != nullptr;
 }
 
 void AppCore::setRunLogging(bool loggingState)
 {
-	if (_runThreadedLog.isNull() == false)
+	if (_runThreadedLog)
 	{
 		_runThreadedLog->close();
-		_runThreadedLog = ThreadedLog(Q_NULLPTR);
+		_runThreadedLog = nullptr;
 	}
 
 	if (loggingState == true)
 	{
-		QString logPath;
+		std::string logPath;
 
-		if (_preferences != Q_NULLPTR)
+		if (_preferences != nullptr)
 		{
-			logPath = QDir::cleanPath(QString::fromStdString(_preferences->runLogPath()) + QDir::separator() + _ThreadedLog::createLogName(QString::fromStdString(_appName + "_")));
+			std::filesystem::path p = std::filesystem::path(_preferences->runLogPath()) / _ThreadedLog::createLogName(_appName + "_");
+			logPath = p.lexically_normal().string();
 		}
 		else
 		{
-			logPath = QDir::cleanPath(QString::fromStdString(defaultLoggingPath(_appName)) + QDir::separator() + _ThreadedLog::createLogName(QString::fromStdString(_appName + "_")));
+			std::filesystem::path p = std::filesystem::path(defaultLoggingPath(_appName)) / _ThreadedLog::createLogName(_appName + "_");
+			logPath = p.lexically_normal().string();
 		}
-
 		_runThreadedLog = _ThreadedLog::createThreadedLog();
 		_runThreadedLog->open(logPath);
-		_runThreadedLog->addLogEntry("Starting Log: " + QDateTime::currentDateTime().toString() + "\n");
+		_runThreadedLog->addLogEntry("Starting Log: " + currentDateTimeString() + "\n");
 	}
 }
 
 bool AppCore::runLoggingActive()
 {
-	return _runThreadedLog.isNull() == false;
+	return _runThreadedLog != nullptr;
 }
 
 std::string AppCore::loggingPath()
 {
 	std::string result{defaultLoggingPath(_appName)};
 
-	if (_preferences != Q_NULLPTR)
+	if (_preferences != nullptr)
 		result = _preferences->runLogPath();
 
 	return result;
 }
 
-bool AppCore::checkLicense
-(
-		const std::string& productID,
-		const std::string& featureID
-)
-{
-	bool result{true};
-
-	Q_UNUSED(productID)
-	Q_UNUSED(featureID)
-
-	return result;
-}
-
-bool AppCore::isLicenseManagerValid()
-{
-	return true;
-}
-
-void AppCore::postStartEvent()
-{
-
-}
-
-void AppCore::postAutomationEvent()
-{
-
-}
-
-void AppCore::postMetric
-(
-	const std::string& metricID,
-	double metric
-)
-{
-	Q_UNUSED(metricID)
-	Q_UNUSED(metric)
-
-	// if (_telematicsManager != Q_NULLPTR)
-	// {
-	//     _telematicsManager->trackMetric(metricID, metric);
-	// }
-}
-
 void AppCore::writeToAppLog(const std::string &writeMe)
 {
-	if (_appThreadedLog.isNull() == false)
-		_appThreadedLog->addLogEntry("[" + QTime::currentTime().toString("hh:mm:ss:zzz") + "]: " + QString::fromStdString(writeMe));
+	if (_appThreadedLog)
+	{
+		auto now = std::chrono::system_clock::now();
+		auto timeT = std::chrono::system_clock::to_time_t(now);
+		auto ms = std::chrono::duration_cast<std::chrono::milliseconds>(now.time_since_epoch()) % 1000;
+		std::tm localTm{};
+#if defined(_WIN32)
+		localtime_s(&localTm, &timeT);
+#else
+		localtime_r(&timeT, &localTm);
+#endif
+		char timeBuf[64];
+		std::snprintf(timeBuf, sizeof(timeBuf), "%04d-%02d-%02d %02d:%02d:%02d:%03d",
+			localTm.tm_year + 1900, localTm.tm_mon + 1, localTm.tm_mday,
+			localTm.tm_hour, localTm.tm_min, localTm.tm_sec, static_cast<int>(ms.count()));
+		_appThreadedLog->addLogEntry(std::string("[") + timeBuf + "]: " + writeMe);
+	}
 }
 
 void AppCore::writeToApplicationLog(const std::string& writeMe)
 {
 	AppCore* appCore = AppCore::getAppCore();
-	if (appCore != Q_NULLPTR)
+	if (appCore != nullptr)
 		appCore->writeToAppLog(writeMe);
 }
 
@@ -272,13 +225,197 @@ void AppCore::writeToApplicationLogLine
 
 void AppCore::writeToRunLog(const std::string& writeMe)
 {
-	if (_runThreadedLog.isNull() == false)
-		_runThreadedLog->addLogEntry(QString::fromStdString(writeMe));
+	if (_runThreadedLog)
+		_runThreadedLog->addLogEntry(writeMe);
 }
 
 void AppCore::writeToRuntimeLog(const std::string& writeMe)
 {
 	AppCore* appCore = AppCore::getAppCore();
-	if (appCore != Q_NULLPTR)
+	if (appCore != nullptr)
 		appCore->writeToRunLog(writeMe);
 }
+
+// --- Central Path Management (Single Source of Truth) ---
+
+std::string AppCore::applicationBinPath()
+{
+	std::string binDir;
+#if defined(_WIN32) || defined(_WIN64)
+	char buffer[MAX_PATH];
+	DWORD len = GetModuleFileNameA(NULL, buffer, MAX_PATH);
+	if (len > 0)
+	{
+		binDir = std::filesystem::path(buffer).parent_path().generic_string();
+	}
+#elif defined(__linux__)
+	char buffer[1024];
+	ssize_t len = readlink("/proc/self/exe", buffer, sizeof(buffer) - 1);
+	if (len != -1)
+	{
+		buffer[len] = '\0';
+		binDir = std::filesystem::path(buffer).parent_path().generic_string();
+	}
+#endif
+	if (binDir.empty())
+		binDir = ".";
+
+	std::filesystem::path p = std::filesystem::path(binDir).lexically_normal();
+	std::string result = p.generic_string();
+	if (result.empty() || result.back() != '/')
+		result += '/';
+	return result;
+}
+
+std::string AppCore::applicationDataPath()
+{
+	std::error_code ec;
+
+	// Installed production data path
+#if defined(_WIN32) || defined(_WIN64)
+	const std::string installedPath = "C:/ProgramData/Qualcomm/" + kDefaultAppName;
+#elif defined(__linux__)
+	const std::string installedPath = "/var/lib/qcom/data/" + kDefaultAppName;
+#else
+	const std::string installedPath = "./";
+#endif
+
+	// 2. If running as installed software (e.g. Program Files / /opt)
+	std::string binPath = applicationBinPath();
+	std::string lowerBin = toLower(binPath);
+	bool isInstalledBin = (lowerBin.find("program files") != std::string::npos ||
+	                       lowerBin.find("/opt/qcom") != std::string::npos);
+
+	if (isInstalledBin)
+	{
+		return installedPath;
+	}
+
+	// Helper to check a candidate directory
+	auto checkCandidate = [&](const std::filesystem::path& dir) -> std::string {
+		if (std::filesystem::exists(dir / "configurations" / "devicelist.json", ec) && !ec)
+			return dir.lexically_normal().generic_string();
+		if (std::filesystem::exists(dir / "devicelist.json", ec) && !ec)
+		{
+			if (dir.filename() == "configurations")
+				return dir.parent_path().lexically_normal().generic_string();
+			return dir.lexically_normal().generic_string();
+		}
+		return "";
+	};
+
+	// 3. Dev builds: Walk upward from executable directory (up to 12 levels)
+	std::filesystem::path current = std::filesystem::path(binPath).lexically_normal();
+	for (int depth = 0; depth < 12 && !current.empty() && current != current.parent_path(); ++depth, current = current.parent_path())
+	{
+		std::string found = checkCandidate(current);
+		if (!found.empty())
+			return found;
+	}
+
+	// 4. Walk upward from current working directory (up to 12 levels)
+	current = std::filesystem::current_path(ec);
+	if (!ec)
+	{
+		for (int depth = 0; depth < 12 && !current.empty() && current != current.parent_path(); ++depth, current = current.parent_path())
+		{
+			std::string found = checkCandidate(current);
+			if (!found.empty())
+				return found;
+		}
+	}
+
+	// 5. Classic 4-levels-up relative check (as used in fd2892c)
+	std::filesystem::path relCheck("../../../../configurations/devicelist.json");
+	if (std::filesystem::exists(relCheck, ec) && !ec)
+	{
+		return std::filesystem::path("../../../../").lexically_normal().generic_string();
+	}
+
+	// 6. Check if installed path exists
+	if (std::filesystem::exists(installedPath + "/configurations/devicelist.json", ec) && !ec)
+	{
+		return installedPath;
+	}
+
+	return installedPath;
+}
+
+std::string AppCore::firmwarePath()
+{
+#if defined(_WIN32) || defined(_WIN64)
+	return "C:/ProgramData/Qualcomm/Alpaca/firmware";
+#else
+	return "/var/lib/qcom/data/Alpaca/firmware";
+#endif
+}
+
+std::string AppCore::configurationsPath()
+{
+	std::string dataPath = applicationDataPath();
+	std::filesystem::path p(dataPath);
+	std::string result;
+	std::error_code ec;
+
+	if (p.filename() == "configurations")
+	{
+		result = p.lexically_normal().generic_string();
+	}
+	else if (std::filesystem::exists(p / "configurations", ec) && !ec)
+	{
+		result = (p / "configurations").lexically_normal().generic_string();
+	}
+	else if (std::filesystem::exists(p / "devicelist.json", ec) && !ec)
+	{
+		result = p.lexically_normal().generic_string();
+	}
+	else
+	{
+		result = (p / "configurations").lexically_normal().generic_string();
+	}
+
+	if (result.empty() || result.back() != '/')
+		result += '/';
+	return result;
+}
+
+std::string AppCore::userConfigurationsPath()
+{
+	return documentsDataPath("TAC Configurations");
+}
+
+std::string AppCore::configurationSavePath(const std::string& currentPath)
+{
+	if (currentPath.empty())
+	{
+		return userConfigurationsPath();
+	}
+
+	std::error_code ec;
+	std::filesystem::path currentP = std::filesystem::absolute(currentPath, ec).lexically_normal();
+	std::string currentNorm = toLower(currentP.generic_string());
+
+	// Check against system configurations path (e.g. C:/ProgramData/Qualcomm/QTAC/configurations or repo/configurations)
+	std::filesystem::path sysP = std::filesystem::absolute(configurationsPath(), ec).lexically_normal();
+	std::string sysNorm = toLower(sysP.generic_string());
+	if (!sysNorm.empty() && sysNorm.back() == '/')
+		sysNorm.pop_back();
+
+	// Check against installed production data root as well
+#if defined(_WIN32) || defined(_WIN64)
+	std::string prodNorm = "c:/programdata/qualcomm/" + toLower(kDefaultAppName);
+#elif defined(__linux__)
+	std::string prodNorm = "/var/lib/qcom/data/" + toLower(kDefaultAppName);
+#else
+	std::string prodNorm = "./";
+#endif
+
+	if (currentNorm.rfind(sysNorm, 0) == 0 || currentNorm.rfind(prodNorm, 0) == 0)
+	{
+		// Configurations should be saved in the user's documents location irrespective of configuration version
+		return userConfigurationsPath();
+	}
+
+	return std::filesystem::path(currentPath).lexically_normal().generic_string();
+}
+

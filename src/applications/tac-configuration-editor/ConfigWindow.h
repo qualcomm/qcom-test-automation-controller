@@ -14,7 +14,7 @@
 #include "PlatformConfiguration.h"
 
 // QCommon
-#include "RecentFiles.h"
+#include "QRecentFiles.h"
 
 // Qt
 #include <QTableWidgetItem>
@@ -86,7 +86,7 @@ protected slots:
 	void onMetaSplitterMoved(int pos, int index);
 
 private:
-	RecentFiles					_recentConfigFiles;
+	QRecentFiles				_recentConfigFiles;
 	QMenu*						_recentFilesMenu{Q_NULLPTR};
 	bool						_inUse{false};
 	PlatformConfiguration		_platformConfiguration;

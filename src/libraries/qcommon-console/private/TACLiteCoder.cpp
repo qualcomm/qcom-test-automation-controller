@@ -6,6 +6,7 @@
 #include "TACCommandHashes.h"
 
 #include <cstdint>
+#include <string>
 
 static uint32_t designToPin(uint32_t designPin)
 {
@@ -71,26 +72,26 @@ void TACLiteCoder::reset()
 
 void TACLiteCoder::decode
 (
-	const QByteArray& decodeMe
+	const std::string& decodeMe
 )
 {
-	Q_UNUSED(decodeMe)
+	(void)decodeMe;
 }
 
-QByteArray TACLiteCoder::encode
+std::string TACLiteCoder::encode
 (
-	const QByteArray& encodeMe,
+	const std::string& encodeMe,
 	const Arguments &arguments
 )
 {
-	Q_UNUSED(arguments)
+	(void)arguments;
 
-	QByteArray result(encodeMe);
+	std::string result(encodeMe);
 
-	switch (CommandStringToHash(encodeMe.toStdString()))
+	switch (CommandStringToHash(encodeMe))
 	{
 	case kSetPinCommandHash:
-		result = QByteArray::number(std::get<uint32_t>(arguments.at(1)));
+		result = std::to_string(std::get<uint32_t>(arguments.at(1)));
 		break;
 
 	default:

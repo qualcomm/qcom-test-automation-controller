@@ -13,7 +13,7 @@ QTAC on Linux can be downloaded using [Qualcomm Package Manager](https://qpm.qua
 using the qpm-cli by issuing the command `qpm-cli --install QTAC`
 
 > It is important to execute the `postinstall.sh` script present at ~/QTAC/postinstall.sh. The postinstall
-script contains ruels that help the host machine recognize the connected TAC devices.
+script contains rules that help the host machine recognize the connected TAC devices.
 
 > After executing the `postinstall.sh` script, the rules get only applied on the devices yet to be connected to the setup.
 If the TAC device you're using is already connected to the machine, you will have to physically disconnect and reconnect it.
@@ -46,16 +46,11 @@ good idea to execute `sudo apt update` and `sudo apt upgrade -y` before trying t
 ## Application install location
 
 Once installed, the application binaries are present at **/opt/qcom/QTAC/bin**. The offline documentation is
-present at /opt/qcom/QTAC/docs. The python APIs are present at **/opt/qcom/QTAC/python** and
-example programs are in **/opt/qcom/QTAC/examples**.
+present at **/opt/qcom/QTAC/docs** and example programs are in **/opt/qcom/QTAC/examples**.
 
 ## Examples
 
-Refer the documentation for example tutorials on:
-- TACDev: Python library for QTAC automation control
-- EPMDev: Python library for QTAC power measurements. You will need a PSOC debug board
-- UDASDev: Python library for QTAC interpreting and parsing EPM data. A physical connection to the debug board
-is not required in order to work with this library
+Refer to the C++ API documentation for tutorials and example usage of `TACDev`.
 
 ## Troubleshooting
 In case you are facing issues with the debug board and QTAC, you can perform the following basic triage to decide

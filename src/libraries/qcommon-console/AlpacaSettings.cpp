@@ -3,18 +3,38 @@
 
 #include "AlpacaSettings.h"
 
-// Qt
-#include <QCoreApplication>
+AlpacaSettings::AlpacaSettings()
+	: INISettings("Alpaca")
+{
+}
 
 AlpacaSettings::AlpacaSettings
 (
 	const std::string& appName
-)
+) :
+	INISettings(appName)
 {
-	beginGroup(QString::fromStdString(appName));
+	if (!appName.empty())
+	{
+		beginGroup(appName);
+		_scopedGroup = true;
+	}
+}
+
+AlpacaSettings::AlpacaSettings
+(
+	const std::string& organization,
+	const std::string& appName
+) :
+	INISettings(organization, appName)
+{
 }
 
 AlpacaSettings::~AlpacaSettings()
 {
-	endGroup(); // QTAC
+	if (_scopedGroup)
+	{
+		endGroup();
+	}
+	sync();
 }

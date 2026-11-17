@@ -4,8 +4,6 @@
 // SPDX-License-Identifier: BSD-3-Clause
 
 #include "QCommonGlobal.h"
-#include "BasicColor.h"
-
 #include "Notification.h"
 
 #include <QColor>
@@ -13,8 +11,6 @@
 class QCOMMON_EXPORT ColorConversion
 {
 public:
-	static QColor BasicToColor(const BasicColor& convertMe);
-	static BasicColor ColorToBasic(const QColor& convertMe);
 	static QColor getLabelColor(const NotificationLevel level);
 };
 

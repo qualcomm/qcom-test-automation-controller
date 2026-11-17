@@ -8,12 +8,10 @@ class ReceiveInterface;
 #include "QCommonConsoleGlobal.h"
 #include "SendInterface.h"
 
-// Qt
-#include <QByteArray>
-#include <QList>
-#include <QSharedPointer>
-
 #include <cstdint>
+#include <memory>
+#include <string>
+#include <vector>
 
 class QCOMMONCONSOLE_EXPORT _FramePackage
 {
@@ -21,39 +19,36 @@ public:
 	_FramePackage() = default;
 	~_FramePackage() = default;
 
-	Argument getArgument(uint32_t index)
+	Argument getArgument(uint32_t index) const
 	{
-		Argument result;
-
-		if (_arguments.size() > index)
-			result = _arguments.at(index);
-
-		return result;
+		if (index < _arguments.size())
+			return _arguments[index];
+		return Argument{};
 	}
 
-	QByteArray                  _lastError;
-	QByteArray					_request;
-	uint						_requestHash{0};
+	std::string                 _lastError;
+	std::string					_request;
+	uint32_t					_requestHash{0};
 	Arguments					_arguments;
-	QByteArray					_synonym;
-	QByteArray					_codedRequest;
-	QList<QByteArray>			_responses;
+	std::string					_synonym;
+	std::string					_codedRequest;
+	std::vector<std::string>	_responses;
 	uint32_t					_packetID{0};
-	QByteArray					_comment;
+	std::string					_comment;
 
 	bool						_endTransaction{false};
 	bool						_valid{true};
 	bool						_console{false};
 	bool						_shouldStore{false};
-	ReceiveInterface*			_recieveInterface{Q_NULLPTR};
+	ReceiveInterface*			_recieveInterface{nullptr};
 	uint64_t					_tickcount{0};
 	uint32_t					_delayInMilliSeconds{0};
 
-private:
-	Q_DISABLE_COPY(_FramePackage)
+	_FramePackage(const _FramePackage&) = delete;
+	_FramePackage& operator=(const _FramePackage&) = delete;
 };
 
-typedef QSharedPointer<_FramePackage> FramePackage;
-typedef QList<FramePackage> FramePackageList;
+typedef std::shared_ptr<_FramePackage> FramePackage;
+typedef std::vector<FramePackage> FramePackageList;
 
 #endif // FRAMEPACKAGE_H

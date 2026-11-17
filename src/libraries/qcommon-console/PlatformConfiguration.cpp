@@ -17,85 +17,68 @@
 #include "Range.h"
 #include "StringUtilities.h"
 
-// Qt
-#include <QDateTime>
-#include <QDir>
-#include <QFile>
-#include <QFileInfo>
-#include <QJsonArray>
-#include <QJsonDocument>
-#include <QJsonObject>
-#include <QTime>
+#include "ConfigurationFile.h"
+#include "StringUtilities.h"
 
+#include <algorithm>
+#include <cassert>
 #include <cctype>
-
-static bool equalsCaseInsensitive(const std::string& left, const std::string& right)
-{
-	if (left.size() != right.size())
-		return false;
-
-	for (size_t index = 0; index < left.size(); index++)
-	{
-		if (std::tolower(static_cast<unsigned char>(left[index])) != std::tolower(static_cast<unsigned char>(right[index])))
-			return false;
-	}
-
-	return true;
-}
+#include <filesystem>
+#include <sstream>
 
 // Parameters in the JSON TAC Configuration
-const QString kName(QStringLiteral("name"));
-const QString kAuthor(QStringLiteral("author"));
-const QString kDescription(QStringLiteral("description"));
-const QString kPlatformType(QStringLiteral("platform_type"));
-const QString kFileVersion(QStringLiteral("fileVersion"));
-const QString kPlatformId(QStringLiteral("platform_id"));
-const QString kCreationDate(QStringLiteral("creation_date"));
-const QString kModifyDate(QStringLiteral("modification_date"));
-const QString kUSBDescriptor(QStringLiteral("usb_descriptor"));
-const QString kI2cEnabled(QStringLiteral("i2c_enabled"));
-const QString kResetEnabled(QStringLiteral("reset_enabled"));
-const QString kFormDimension(QStringLiteral("form_dimension"));
+const std::string kName("name");
+const std::string kAuthor("author");
+const std::string kDescription("description");
+const std::string kPlatformType("platform_type");
+const std::string kFileVersion("fileVersion");
+const std::string kPlatformId("platform_id");
+const std::string kCreationDate("creation_date");
+const std::string kModifyDate("modification_date");
+const std::string kUSBDescriptor("usb_descriptor");
+const std::string kI2cEnabled("i2c_enabled");
+const std::string kResetEnabled("reset_enabled");
+const std::string kFormDimension("form_dimension");
 
 // Tabs dictionary parameters in JSON
-const QString kTabs(QStringLiteral("tabs"));
+const std::string kTabs("tabs");
 // name is already defined
-const QString kUserTab(QStringLiteral("user_tab"));
-const QString kMoveable(QStringLiteral("moveable"));
-const QString kVisible(QStringLiteral("visible"));
-const QString kConfigurable(QStringLiteral("configurable"));
-const QString kOrdinal(QStringLiteral("ordinal"));
+const std::string kUserTab("user_tab");
+const std::string kMoveable("moveable");
+const std::string kVisible("visible");
+const std::string kConfigurable("configurable");
+const std::string kOrdinal("ordinal");
 
 // Buttons dictionary parameters in JSON
-const QString kButtons(QStringLiteral("buttons"));
+const std::string kButtons("buttons");
 // name already defined
-const QString kCommand(QStringLiteral("command"));
-const QString kTab(QStringLiteral("tab"));
-const QString kCommandGroup(QStringLiteral("command_group"));
-const QString kCellLocation(QStringLiteral("cellLocation"));
-const QString kTooltip(QStringLiteral("tooltip"));
+const std::string kCommand("command");
+const std::string kTab("tab");
+const std::string kCommandGroup("command_group");
+const std::string kCellLocation("cellLocation");
+const std::string kTooltip("tooltip");
 
 // ScriptVariables dictionary parameters in JSON
-const QString kScriptVariables(QStringLiteral("variables"));
+const std::string kScriptVariables("variables");
 // name is already defined
-const QString kDefaultScriptVarLabel(QStringLiteral("label"));
+const std::string kDefaultScriptVarLabel("label");
 // tooltip is already defined
-const QString kDefaultScriptVarType(QStringLiteral("type"));
-const QString kDefaultScriptDefaultValue(QStringLiteral("default_value"));
+const std::string kDefaultScriptVarType("type");
+const std::string kDefaultScriptDefaultValue("default_value");
 // cell location is already defined
 
-const QString kScript(QStringLiteral("script"));
+const std::string kScript("script");
 
 const std::string kDefaultLabel("<type a label name>");
 const std::string kDefaultTooltip("<add a tooltip>");
 const std::string kDefaultCommand("<type a command>");
-const QString kDefaultGroup(QStringLiteral("<Select Pin Group>"));
+const std::string kDefaultGroup("<Select Pin Group>");
 const std::string kDefaultTab("General");
 const std::pair<int, int> kDefaultCellLocation(-1,-1);
 
 const std::string kNoVariableValue{"<no value>"};
 
-QString _PlatformConfiguration::_lastError;
+std::string _PlatformConfiguration::_lastError;
 Buttons _PlatformConfiguration::_classicButtons;
 bool _PlatformConfiguration::_dynamicConfigurationsInitialized{false};
 TACPlatformEntries _PlatformConfiguration::_tacPlatformEntries;
@@ -110,8 +93,8 @@ _PlatformConfiguration::_PlatformConfiguration()
 	defaultAlpacaScript();
 	defaultScriptVariables();
 
-	_creationDate = QDateTime::currentDateTime().toString();
-	_modifyDate = QDateTime::currentDateTime().toString();
+	_creationDate = currentDateTimeString();
+	_modifyDate = currentDateTimeString();
 }
 
 _PlatformConfiguration::~_PlatformConfiguration()
@@ -152,33 +135,48 @@ PlatformConfiguration _PlatformConfiguration::createPlatformConfiguration(DebugB
 
 PlatformConfiguration _PlatformConfiguration::openPlatformConfiguration
 (
-	const QString& filePath
+	const std::string& filePath
 )
 {
 	PlatformConfiguration result;
 
-	QFileInfo fileInfo(filePath);
-
-	if (fileInfo.isFile())
+	std::error_code ec;
+	std::string actualPath = filePath;
+	if (!std::filesystem::is_regular_file(actualPath, ec))
 	{
-		QString fileName = fileInfo.fileName();
-		if (fileName.contains("_psoc_", Qt::CaseInsensitive))
+		std::string fileName = std::filesystem::path(filePath).filename().string();
+		if (!fileName.empty())
+		{
+			std::string fallback = AppCore::configurationsPath() + fileName;
+			if (std::filesystem::is_regular_file(fallback, ec))
+			{
+				actualPath = fallback;
+			}
+		}
+	}
+
+	if (std::filesystem::is_regular_file(actualPath, ec))
+	{
+		std::string fileName = std::filesystem::path(actualPath).filename().string();
+		std::string lowerFileName = toLower(fileName);
+
+		if (lowerFileName.find("_psoc_") != std::string::npos)
 		{
 			result = PlatformConfiguration(new _PSOCPlatformConfiguration(ePSOCUnknown));
 		}
-		else if (fileName.contains("_ftdi_", Qt::CaseInsensitive))
+		else if (lowerFileName.find("_ftdi_") != std::string::npos)
 		{
 			result = PlatformConfiguration(new _FTDIPlatformConfiguration(0));
 		}
-		else if (fileName.contains("_pic32cxauto_", Qt::CaseInsensitive))
+		else if (lowerFileName.find("_pic32cxauto_") != std::string::npos)
 		{
 			result = PlatformConfiguration(new _PIC32CXPlatformConfiguration);
 		}
-		else if (fileName.contains("_ft232h_", Qt::CaseInsensitive))
+		else if (lowerFileName.find("_ft232h_") != std::string::npos)
 		{
 			result = PlatformConfiguration(new _FT232HPlatformConfiguration);
 		}
-		else if (fileName.contains("_stm32_", Qt::CaseInsensitive))
+		else if (lowerFileName.find("_stm32_") != std::string::npos)
 		{
 			result = PlatformConfiguration(new _STM32PlatformConfiguration);
 		}
@@ -189,18 +187,24 @@ PlatformConfiguration _PlatformConfiguration::openPlatformConfiguration
 
 		if (result)
 		{
-			result->load(filePath);
+			result->load(actualPath);
 		}
+	}
+	else if (ec)
+	{
+		_PlatformConfiguration::_lastError = "PlatformConfiguration: file check error for '" + filePath + "': " + ec.message();
+		AppCore::writeToApplicationLogLine(_PlatformConfiguration::_lastError);
 	}
 
 	return result;
 }
 
-QList<PlatformID> _PlatformConfiguration::platformEntryIds()
+std::vector<PlatformID> _PlatformConfiguration::platformEntryIds()
 {
-	QList<PlatformID> result;
+	std::vector<PlatformID> result;
 
-	result = _tacPlatformEntries.keys();
+	for (const auto& [id, entry] : _tacPlatformEntries)
+		result.push_back(id);
 
 	return result;
 }
@@ -241,32 +245,34 @@ void _PlatformConfiguration::initializeDynamicPlatform()
 	}
 }
 
-QString _PlatformConfiguration::makeConfigName(const QString &chip, PlatformID platformID)
+std::string _PlatformConfiguration::makeConfigName(const std::string &chip, PlatformID platformID)
 {
-	return QString("TAC_") + chip + "_" + QString::number(platformID) + ".tcnf";
+	return "TAC_" + chip + "_" + std::to_string(platformID) + ".tcnf";
 }
 
 bool _PlatformConfiguration::parseConfigName
 (
-	const QString& fileName,
+	const std::string& fileName,
 	DebugBoardType& debugBoardType,
 	PlatformID& platformID
 )
 {
 	bool result{false};
 
-	QFileInfo fileInfo(fileName);
+	std::filesystem::path p(fileName);
+	std::string ext = toLower(p.extension().string());
 
-	if (fileInfo.suffix().toLower() == "tcnf")
+	if (ext == ".tcnf")
 	{
-		QStringList fileNameParts = fileInfo.baseName().toLower().split("_");
-		if (fileNameParts.count() >= 3)
+		std::string baseName = toLower(p.stem().string());
+		std::vector<std::string> fileNameParts = split(baseName, '_', true);
+
+		if (fileNameParts.size() >= 3)
 		{
 			if (fileNameParts.at(0) == "tac")
 			{
-				QString chip = fileNameParts.at(1);
-				debugBoardType = debugBoardTypeFromString(chip.toStdString());
-				platformID = fileNameParts.at(2).toLong();
+				debugBoardType = debugBoardTypeFromString(fileNameParts.at(1));
+				platformID = std::stol(fileNameParts.at(2));
 
 				result = true;
 			}
@@ -276,16 +282,13 @@ bool _PlatformConfiguration::parseConfigName
 	return result;
 }
 
-PlatformID _PlatformConfiguration::getUSBDescriptor(const QByteArray& usbDescriptorString)
+PlatformID _PlatformConfiguration::getUSBDescriptor(const std::string& usbDescriptorString)
 {
 	PlatformID result{0};
 
-	QString test{usbDescriptorString.toLower()};
-
-	for (const auto& tacEntry: std::as_const(_tacPlatformEntries))
+	for (const auto& [id, tacEntry]: _tacPlatformEntries)
 	{
-		QString candidate = QString::fromStdString(tacEntry._platformEntry->_usbDescriptor).toLower();
-		if (candidate == test)
+		if (equalsIgnoreCase(tacEntry._platformEntry->_usbDescriptor, usbDescriptorString))
 		{
 			result = tacEntry._platformEntry->_platformID;
 			break;
@@ -294,7 +297,7 @@ PlatformID _PlatformConfiguration::getUSBDescriptor(const QByteArray& usbDescrip
 
 	if (result == 0)
 	{
-		if (usbDescriptorString.startsWith("ALPACA-LITE "))
+		if (usbDescriptorString.rfind("ALPACA-LITE ", 0) == 0)
 			result = ALPACA_LITE_ID;
 	}
 
@@ -303,19 +306,16 @@ PlatformID _PlatformConfiguration::getUSBDescriptor(const QByteArray& usbDescrip
 
 bool _PlatformConfiguration::containsUSBDescriptor
 (
-	const QByteArray &usbDescriptorString
+	const std::string &usbDescriptorString
 )
 {
 	bool result{false};
 
-	QString test{usbDescriptorString.toLower()};
-
 	initializeDynamicPlatform();
 
-	for (const auto& tacEntry: std::as_const(_tacPlatformEntries))
+	for (const auto& [id, tacEntry]: _tacPlatformEntries)
 	{
-		QString candidate = QString::fromStdString(tacEntry._platformEntry->_usbDescriptor).toLower();
-		if (candidate == test)
+		if (equalsIgnoreCase(tacEntry._platformEntry->_usbDescriptor, usbDescriptorString))
 		{
 			result = true;
 			break;
@@ -325,9 +325,9 @@ bool _PlatformConfiguration::containsUSBDescriptor
 	return result;
 }
 
-QString _PlatformConfiguration::lastError()
+std::string _PlatformConfiguration::lastError()
 {
-	QString result{_PlatformConfiguration::_lastError};
+	std::string result{_PlatformConfiguration::_lastError};
 
 	_PlatformConfiguration::_lastError.clear();
 
@@ -336,7 +336,7 @@ QString _PlatformConfiguration::lastError()
 
 void _PlatformConfiguration::setName
 (
-	const QString& name
+	const std::string& name
 )
 {
 	if (_name != name)
@@ -348,7 +348,7 @@ void _PlatformConfiguration::setName
 
 void _PlatformConfiguration::setAuthor
 (
-	const QString& author
+	const std::string& author
 )
 {
 	if (_author != author)
@@ -360,7 +360,7 @@ void _PlatformConfiguration::setAuthor
 
 void _PlatformConfiguration::setDescription
 (
-	const QString& description
+	const std::string& description
 )
 {
 	if (_description != description)
@@ -416,13 +416,13 @@ void _PlatformConfiguration::updateTabs
 	_dirty = true;
 }
 
-void _PlatformConfiguration::setPlatform(const QString& platform)
+void _PlatformConfiguration::setPlatform(const std::string& platform)
 {
-	if (platform.compare("psoc", Qt::CaseInsensitive) == 0)
+	if (platform == "psoc" || platform == "PSOC")
 		_platform = ePSOC;
-	else if (platform.compare("ftdi", Qt::CaseInsensitive) == 0)
+	else if (platform == "ftdi" || platform == "FTDI")
 		_platform = eFTDI;
-	else if (platform.compare("pic32cx (automotive)", Qt::CaseInsensitive) == 0)
+	else if (platform == "pic32cx (automotive)" || platform == "PIC32CX (AUTOMOTIVE)")
 		_platform = ePIC32CXAuto;
 }
 
@@ -436,9 +436,9 @@ PlatformID _PlatformConfiguration::getPlatformId()
 	return _platformId;
 }
 
-QString _PlatformConfiguration::getFileVersion()
+std::string _PlatformConfiguration::getFileVersion()
 {
-	return QString::number(_fileVersion);
+	return std::to_string(_fileVersion);
 }
 
 uint32_t _PlatformConfiguration::fileVersion()
@@ -446,9 +446,9 @@ uint32_t _PlatformConfiguration::fileVersion()
 	return _fileVersion;
 }
 
-QString _PlatformConfiguration::getPlatformString()
+std::string _PlatformConfiguration::getPlatformString()
 {
-	return QString::fromStdString(debugBoardTypeToString(_platform));
+	return debugBoardTypeToString(_platform);
 }
 
 void _PlatformConfiguration::setPlatformID(PlatformID platformId)
@@ -462,26 +462,26 @@ Tabs _PlatformConfiguration::getTabs()
 	return _tabs;
 }
 
-QStringList _PlatformConfiguration::getAllTabs()
+std::vector<std::string> _PlatformConfiguration::getAllTabs()
 {
-	QStringList result;
+	std::vector<std::string> result;
 
 	for (auto& tab: _tabs)
 	{
-		result.append(QString::fromStdString(tab._name));
+		result.push_back(tab._name);
 	}
 
 	return result;
 }
 
-QStringList _PlatformConfiguration::getVisibleTabs()
+std::vector<std::string> _PlatformConfiguration::getVisibleTabs()
 {
-	QStringList result;
+	std::vector<std::string> result;
 
 	for (auto& tab: _tabs)
 	{
 		if (tab._visible)
-			result.append(QString::fromStdString(tab._name));
+			result.push_back(tab._name);
 	}
 
 	return result;
@@ -608,7 +608,22 @@ bool _PlatformConfiguration::setVariableDefaultValue(const std::string &variable
 	if (equalsCaseInsensitive(variableDefaultValue, kNoVariableValue) == false)
 	{
 		if (setVariableName(variableName))
-			_scriptVariables[variableName]._defaultValue = variableDefaultValue;
+		{
+			if (_scriptVariables[variableName]._type == eIntegerType)
+			{
+				uint32_t val = 0;
+				toUInt32(variableDefaultValue, val);
+				_scriptVariables[variableName]._defaultValue = val;
+			}
+			else if (_scriptVariables[variableName]._type == eBooleanType)
+			{
+				_scriptVariables[variableName]._defaultValue = (variableDefaultValue == "true" || variableDefaultValue == "1");
+			}
+			else
+			{
+				_scriptVariables[variableName]._defaultValue = variableDefaultValue;
+			}
+		}
 		else
 			result = false;
 	}
@@ -950,9 +965,9 @@ bool _PlatformConfiguration::setButtonCellLocation(HashType hash, const std::pai
 	return result;
 }
 
-QSize _PlatformConfiguration::getFormDimension()
+std::pair<int, int> _PlatformConfiguration::getFormDimension()
 {
-	if (_formDimension.isValid())
+	if (_formDimension.first > 0 && _formDimension.second > 0)
 		return _formDimension;
 
 	return kClassicDimension;
@@ -960,10 +975,10 @@ QSize _PlatformConfiguration::getFormDimension()
 
 void _PlatformConfiguration::setFormDimension
 (
-	const QSize& formDimension
+	const std::pair<int, int>& formDimension
 )
 {
-	if (formDimension.isValid())
+	if (formDimension.first > 0 && formDimension.second > 0)
 	{
 		if (formDimension != kClassicDimension)
 			_formDimension = formDimension;
@@ -984,7 +999,7 @@ void _PlatformConfiguration::setResetEnabledState(bool newState)
 	}
 }
 
-QByteArray _PlatformConfiguration::getUSBDescriptor()
+std::string _PlatformConfiguration::getUSBDescriptor()
 {
 	return _usbDescriptor;
 }
@@ -1004,46 +1019,31 @@ void _PlatformConfiguration::setAlpacaScript
 	_dirty = true;
 }
 
-QString _PlatformConfiguration::filePath()
+std::string _PlatformConfiguration::filePath()
 {
-	return QDir::cleanPath(_platformPath + QDir::separator() + _platformFile);
+	if (_platformFile.empty())
+		return std::string();
+	return (std::filesystem::path(_platformPath) / _platformFile).lexically_normal().string();
 }
 
-void _PlatformConfiguration::setSupportedFirmwareVer(const QList<uint32_t> &firmwareList)
+void _PlatformConfiguration::setSupportedFirmwareVer(const std::vector<uint32_t> &firmwareList)
 {
 	_supportedFirmwareVer = firmwareList;
 }
 
-QList<uint32_t> _PlatformConfiguration::supportedFirmwareVer()
+std::vector<uint32_t> _PlatformConfiguration::supportedFirmwareVer()
 {
 	return _supportedFirmwareVer;
 }
 
-void _PlatformConfiguration::setFilePath(const QString &filePath)
+void _PlatformConfiguration::setFilePath(const std::string &filePath)
 {
-	QFileInfo fileInfo(filePath);
-
-	if (fileInfo.absoluteFilePath().startsWith("C:/ProgramData/Qualcomm/QTAC", Qt::CaseInsensitive))
-	{
-		if (_platform == ePSOC && _platformId < 255)
-		{
-			_platformPath = QString::fromStdString(documentsDataPath("TAC Configurations"));
-			_platformFile = fileInfo.fileName();
-		}
-		else if (_platform == eFTDI && _platformId < 90000)
-		{
-			_platformPath = QString::fromStdString(documentsDataPath("TAC Configurations"));
-			_platformFile = fileInfo.fileName();
-		}
-	}
-	else
-	{
-		_platformPath = fileInfo.absolutePath();
-		_platformFile = fileInfo.fileName();
-	}
+	std::filesystem::path pathObj(filePath);
+	_platformPath = AppCore::configurationSavePath(pathObj.parent_path().generic_string());
+	_platformFile = pathObj.filename().generic_string();
 }
 
-void _PlatformConfiguration::setUSBDescriptor(const QByteArray& usbDescriptor)
+void _PlatformConfiguration::setUSBDescriptor(const std::string& usbDescriptor)
 {
 	if (usbDescriptor != _usbDescriptor)
 	{
@@ -1052,46 +1052,21 @@ void _PlatformConfiguration::setUSBDescriptor(const QByteArray& usbDescriptor)
 	}
 }
 
-bool _PlatformConfiguration::load(const QString& filePath)
+bool _PlatformConfiguration::load(const std::string& filePath)
 {
-	bool result(false);
+	bool result{false};
 
-	QJsonDocument document;
-	QFile jsonFile(filePath);
-
-	if (jsonFile.open(QIODevice::ReadOnly))
+	ConfigurationFile config;
+	if (!config.load(filePath))
 	{
-		QByteArray jsonFileContents = jsonFile.readAll();
-		if (jsonFileContents.isEmpty() == false)
-		{
-			QJsonParseError parserError;
-
-			document = QJsonDocument::fromJson(jsonFileContents, &parserError);
-			if (parserError.error == QJsonParseError::NoError)
-			{
-				if (document.isNull() == false)
-				{
-					result = true;
-
-					QJsonObject rootLevel = document.object();
-					read(rootLevel);
-
-					setFilePath(filePath);
-				}
-				else
-				{
-					_lastError = QObject::tr("JSON Document is NULL") ;
-				}
-			}
-			else
-			{
-				_lastError = QObject::tr("Error parsing configuration file") + parserError.errorString();
-			}
-		}
+		_lastError = "Unable to open platform configuration file " + filePath;
+		return false;
 	}
-	else
+
+	result = readConfig(config);
+	if (result)
 	{
-		_lastError = QObject::tr("Unable to open platform configuration file ") + filePath;
+		setFilePath(filePath);
 	}
 
 	return result;
@@ -1099,151 +1074,109 @@ bool _PlatformConfiguration::load(const QString& filePath)
 
 void _PlatformConfiguration::save()
 {
-	_modifyDate = QDateTime::currentDateTime().toString();
+	_modifyDate = currentDateTimeString();
 
-	if (_platformPath.isEmpty())
-	{
-		if (_platform == ePSOC)
-		{
-			if (_platformId < 255)
-				_platformPath = QString::fromStdString(documentsDataPath("TAC Configurations"));
-			else
-				_platformPath = QString::fromStdString(tacConfigRoot());
-		}
-		else
-		{
-			if (_platformId < 90000)
-				_platformPath = QString::fromStdString(documentsDataPath("TAC Configurations"));
-			else
-				_platformPath = QString::fromStdString(tacConfigRoot());
-		}
-	}
+	if (_platformPath.empty())
+		_platformPath = AppCore::userConfigurationsPath();
+	else
+		_platformPath = AppCore::configurationSavePath(_platformPath);
 
-	if (_platformFile.isEmpty())
+	if (_platformFile.empty())
 		_platformFile = makeConfigName(getPlatformString(), _platformId);
 
-	QString targetFilePath = QDir::cleanPath(_platformPath + QDir::separator() + _platformFile);
+	std::string targetFilePath = (std::filesystem::path(_platformPath) / _platformFile).lexically_normal().generic_string();
 
-	QFile targetFile(targetFilePath);
-	if (targetFile.open(QIODevice::WriteOnly) == true)
+	ConfigurationFile config;
+	writeConfig(config);
+
+	if (config.save(targetFilePath, true))
 	{
-		QJsonObject rootLevel;
-		QJsonDocument document;
-
-		write(rootLevel);
-
-		document = QJsonDocument(rootLevel);
-
-		if (document.isNull() == false)
-		{
-			QByteArray jsonDocument = document.toJson(QJsonDocument::Indented);
-			if (jsonDocument.isEmpty() == false)
-			{
-				QFile jsonFile(targetFilePath);
-
-				if (jsonFile.open(QIODevice::WriteOnly) == true)
-				{
-					jsonFile.write(jsonDocument);
-					jsonFile.close();
-
-					_dirty = false;
-
-					setFilePath(targetFilePath);
-				}
-			}
-		}
+		_dirty = false;
+		setFilePath(targetFilePath);
+	}
+	else
+	{
+		_lastError = "Unable to write configuration file " + targetFilePath;
 	}
 }
 
-bool _PlatformConfiguration::read(QJsonObject& parentLevel)
+bool _PlatformConfiguration::readConfig(const ConfigurationFile& config)
 {
 	bool result{false};
-	QJsonValue jsonValue;
 
-	jsonValue = parentLevel.value(kName);
-	if (jsonValue.isNull() == false)
-		_name = jsonValue.toString();
+	if (config.hasProperty(kName))
+		_name = config.getProperty(kName);
 
-	jsonValue = parentLevel.value(kAuthor);
-	if (jsonValue.isNull() == false)
-		_author = jsonValue.toString();
+	if (config.hasProperty(kAuthor))
+		_author = config.getProperty(kAuthor);
 
-	jsonValue = parentLevel.value(kDescription);
-	if (jsonValue.isNull() == false)
-		_description = jsonValue.toString();
+	if (config.hasProperty(kDescription))
+		_description = config.getProperty(kDescription);
 
-	jsonValue = parentLevel.value(kPlatformId);
-	if (jsonValue.isNull() == false)
+	if (config.hasProperty(kPlatformId))
 	{
-		_platformId = static_cast<uint32_t>(jsonValue.toInt());
+		_platformId = config.getUInt(kPlatformId);
 		result = true;
 	}
 
-	jsonValue = parentLevel.value(kPlatformType);
-	if (jsonValue.isNull() == false)
+	if (config.hasProperty(kPlatformType))
 	{
-		setPlatform(jsonValue.toString());
+		setPlatform(config.getProperty(kPlatformType));
 		result = true;
 	}
 
-	jsonValue = parentLevel.value(kFileVersion);
-	if (jsonValue.isNull() == false)
+	if (config.hasProperty(kFileVersion))
 	{
-		_fileVersion = static_cast<uint32_t>(jsonValue.toInt());
+		_fileVersion = config.getUInt(kFileVersion);
 	}
 
-	jsonValue = parentLevel.value(kCreationDate);
-	if (jsonValue.isNull() == false)
-		_creationDate = jsonValue.toString();
+	if (config.hasProperty(kCreationDate))
+		_creationDate = config.getProperty(kCreationDate);
 
-	jsonValue = parentLevel.value(kModifyDate);
-	if (jsonValue.isNull() == false)
-		_modifyDate = jsonValue.toString();
+	if (config.hasProperty(kModifyDate))
+		_modifyDate = config.getProperty(kModifyDate);
 
-	jsonValue = parentLevel.value(kUSBDescriptor);
-	if (jsonValue.isNull() == false)
-		_usbDescriptor = jsonValue.toString().toLatin1();
+	if (config.hasProperty(kUSBDescriptor))
+		_usbDescriptor = config.getProperty(kUSBDescriptor);
 
-	jsonValue = parentLevel.value(kResetEnabled);
-	if (jsonValue.isNull() == false)
-		_resetEnabled = jsonValue.toBool();
+	if (config.hasProperty(kResetEnabled))
+		_resetEnabled = config.getBool(kResetEnabled);
 
-	jsonValue = parentLevel.value(kFormDimension);
-	if (jsonValue.isNull() == false)
+	if (config.hasProperty(kFormDimension))
 	{
-		QString formStr = jsonValue.toString();
-		auto parts = formStr.split(",", Qt::SkipEmptyParts);
-		if (parts.size() >= 2)
+		std::string formStr = config.getProperty(kFormDimension);
+		size_t commaPos = formStr.find(',');
+		if (commaPos != std::string::npos)
 		{
-			bool okay;
-			int width = parts.at(0).toInt(&okay);
-			if (okay)
+			try
 			{
-				int height = parts.at(1).toInt(&okay);
-				if (okay)
-					_formDimension = QSize(width, height);
+				int width = std::stoi(formStr.substr(0, commaPos));
+				int height = std::stoi(formStr.substr(commaPos + 1));
+				_formDimension = std::make_pair(width, height);
+			}
+			catch (const std::exception& e)
+			{
+				AppCore::writeToApplicationLogLine("PlatformConfiguration::readConfig: failed to parse formDimension '" + formStr + "': " + e.what());
 			}
 		}
 	}
 
-	QJsonArray tabs = parentLevel.value(kTabs).toArray();
-	if (tabs.count() > 0)
+	const ConfigurationTable& tabs = config.getTable(kTabs);
+	if (!tabs.empty())
 	{
 		_tabs.clear();
 
-		for (auto tabIndex: range(tabs.count()))
+		for (const auto& tabData : tabs)
 		{
-			Tab tab;
-
-			QJsonObject tabData = tabs.at(tabIndex).toObject();
-			if (tabData.isEmpty() == false)
+			if (!tabData.empty())
 			{
-				tab._name = tabData[kName].toString().toStdString();
-				tab._userTab = tabData[kUserTab].toBool();
-				tab._moveable = tabData[kMoveable].toBool();
-				tab._visible = tabData[kVisible].toBool();
-				tab._configurable = tabData[kConfigurable].toBool();
-				tab._ordinal = tabData[kOrdinal].toInt();
+				Tab tab;
+				tab._name = ConfigurationFile::getRecordString(tabData, kName);
+				tab._userTab = ConfigurationFile::getRecordBool(tabData, kUserTab);
+				tab._moveable = ConfigurationFile::getRecordBool(tabData, kMoveable);
+				tab._visible = ConfigurationFile::getRecordBool(tabData, kVisible);
+				tab._configurable = ConfigurationFile::getRecordBool(tabData, kConfigurable);
+				tab._ordinal = ConfigurationFile::getRecordInt(tabData, kOrdinal);
 
 				tab._hash = Tab::makeHash(tab);
 
@@ -1252,25 +1185,22 @@ bool _PlatformConfiguration::read(QJsonObject& parentLevel)
 		}
 	}
 
-	QJsonArray buttons = parentLevel.value(kButtons).toArray();
-
+	const ConfigurationTable& buttons = config.getTable(kButtons);
 	_buttons.clear();
 
-	if (buttons.count() > 0)
+	if (!buttons.empty())
 	{
-		for (auto buttonIndex: range(buttons.count()))
+		for (const auto& buttonData : buttons)
 		{
-			Button button;
-
-			QJsonObject buttonData = buttons.at(buttonIndex).toObject();
-			if (buttonData.isEmpty() == false)
+			if (!buttonData.empty())
 			{
-				button._label = buttonData[kName].toString().toStdString();
-				button._command = buttonData[kCommand].toString().toStdString();
-				button._commandGroup = CommandGroups(buttonData.value(kCommandGroup).toInt());
-				button._tab = buttonData[kTab].toString().toStdString();
-				button._cellLocation = toQPoint(buttonData[kCellLocation].toString().toStdString());
-				button._toolTip = buttonData[kTooltip].toString().toStdString();
+				Button button;
+				button._label = ConfigurationFile::getRecordString(buttonData, kName);
+				button._command = ConfigurationFile::getRecordString(buttonData, kCommand);
+				button._commandGroup = CommandGroups(ConfigurationFile::getRecordInt(buttonData, kCommandGroup));
+				button._tab = ConfigurationFile::getRecordString(buttonData, kTab);
+				button._cellLocation = toPoint(ConfigurationFile::getRecordString(buttonData, kCellLocation));
+				button._toolTip = ConfigurationFile::getRecordString(buttonData, kTooltip);
 
 				button._hash = Button::makeHash(button);
 
@@ -1279,39 +1209,46 @@ bool _PlatformConfiguration::read(QJsonObject& parentLevel)
 		}
 	}
 
-	QJsonArray scriptVariables = parentLevel.value(kScriptVariables).toArray();
-
+	const ConfigurationTable& scriptVariables = config.getTable(kScriptVariables);
 	_scriptVariables.clear();
 
-	if (scriptVariables.count() > 0)
+	if (!scriptVariables.empty())
 	{
-		for (auto scriptVarIdx: range(scriptVariables.count()))
+		for (const auto& scriptVarData : scriptVariables)
 		{
-			ScriptVariable scriptVariable;
-
-			QJsonObject scriptVarData = scriptVariables.at(scriptVarIdx).toObject();
-			if (scriptVarData.isEmpty() == false)
+			if (!scriptVarData.empty())
 			{
-				// TODO: Use inbuilt functions to populate the variable
-				scriptVariable._name = scriptVarData[kName].toString().toStdString();
-				scriptVariable._label = scriptVarData[kDefaultScriptVarLabel].toString().toStdString();
-				scriptVariable._tooltip = scriptVarData[kTooltip].toString().toStdString();
-				scriptVariable._type = VariableType(scriptVarData[kDefaultScriptVarType].toInt());
-				scriptVariable._defaultValue = scriptVarData[kDefaultScriptDefaultValue].toString().toStdString();
-				scriptVariable._cellLocation = toQPoint(scriptVarData[kCellLocation].toString().toStdString());
+				ScriptVariable scriptVariable;
+				scriptVariable._name = ConfigurationFile::getRecordString(scriptVarData, kName);
+				scriptVariable._label = ConfigurationFile::getRecordString(scriptVarData, kDefaultScriptVarLabel);
+				scriptVariable._tooltip = ConfigurationFile::getRecordString(scriptVarData, kTooltip);
+				scriptVariable._type = VariableType(ConfigurationFile::getRecordInt(scriptVarData, kDefaultScriptVarType));
+				std::string defValStr = ConfigurationFile::getRecordString(scriptVarData, kDefaultScriptDefaultValue);
+				if (scriptVariable._type == eIntegerType)
+				{
+					uint32_t val = 0;
+					toUInt32(defValStr, val);
+					scriptVariable._defaultValue = val;
+				}
+				else if (scriptVariable._type == eBooleanType)
+				{
+					scriptVariable._defaultValue = (defValStr == "true" || defValStr == "1");
+				}
+				else
+				{
+					scriptVariable._defaultValue = defValStr;
+				}
+				scriptVariable._cellLocation = toPoint(ConfigurationFile::getRecordString(scriptVarData, kCellLocation));
 
 				_scriptVariables[scriptVariable._name] = scriptVariable;
 			}
 		}
 	}
 
-	jsonValue = parentLevel.value(kScript);
-
 	_alpacaScript.clear();
-
-	if (jsonValue.isNull() == false)
+	if (config.hasProperty(kScript))
 	{
-		_alpacaScript = jsonValue.toVariant().toByteArray().toStdString();
+		_alpacaScript = config.getProperty(kScript);
 	}
 
 	_dirty = false;
@@ -1319,66 +1256,66 @@ bool _PlatformConfiguration::read(QJsonObject& parentLevel)
 	return result;
 }
 
-void _PlatformConfiguration::write(QJsonObject& parentLevel)
+void _PlatformConfiguration::writeConfig(ConfigurationFile& config)
 {
-	parentLevel[kPlatformId] = static_cast<int>(_platformId);
-	parentLevel[kName] = _name;
-	parentLevel[kAuthor] = _author;
-	parentLevel[kDescription] = _description;
-	parentLevel[kFileVersion] = static_cast<int>(++_fileVersion);
-	parentLevel[kCreationDate] = _creationDate;
-	parentLevel[kModifyDate] = _modifyDate;
-	parentLevel[kPlatformType] = QString::fromStdString(debugBoardTypeToString(_platform));
-	parentLevel[kUSBDescriptor] = QString(_usbDescriptor);
-	parentLevel[kResetEnabled] = _resetEnabled;
-	parentLevel[kScript] = QString::fromStdString(_alpacaScript);
+	config.setUInt(kPlatformId, _platformId);
+	config.setProperty(kName, _name);
+	config.setProperty(kAuthor, _author);
+	config.setProperty(kDescription, _description);
+	config.setUInt(kFileVersion, ++_fileVersion);
+	config.setProperty(kCreationDate, _creationDate);
+	config.setProperty(kModifyDate, _modifyDate);
+	config.setProperty(kPlatformType, debugBoardTypeToString(_platform));
+	config.setProperty(kUSBDescriptor, _usbDescriptor);
+	config.setBool(kResetEnabled, _resetEnabled);
+	config.setProperty(kScript, _alpacaScript);
 
-	if (_formDimension.isValid() && _formDimension != kClassicDimension)
-		parentLevel[kFormDimension] = QString("%1,%2").arg(_formDimension.width()).arg(_formDimension.height());
+	if (_formDimension.first > 0 && _formDimension.second > 0 && _formDimension != kClassicDimension)
+		config.setProperty(kFormDimension, std::to_string(_formDimension.first) + "," + std::to_string(_formDimension.second));
 
-	QJsonArray tabList;
+	ConfigurationTable tabList;
 
 	for (const auto& tab : std::as_const(_tabs))
 	{
-		QJsonObject element;
+		ConfigurationRecord element;
 
-		element[kName] = QString::fromStdString(tab._name);
-		element[kUserTab] = tab._userTab;
-		element[kMoveable] = tab._moveable;
-		element[kVisible] = tab._visible;
-		element[kConfigurable] = tab._configurable;
-		element[kOrdinal] = tab._ordinal;
+		element[kName] = tab._name;
+		element[kUserTab] = tab._userTab ? "true" : "false";
+		element[kMoveable] = tab._moveable ? "true" : "false";
+		element[kVisible] = tab._visible ? "true" : "false";
+		element[kConfigurable] = tab._configurable ? "true" : "false";
+		element[kOrdinal] = std::to_string(tab._ordinal);
 
-		tabList.append(element);
+		tabList.push_back(element);
 	}
 
-	parentLevel.insert(kTabs, tabList);
+	config.setTable(kTabs, tabList);
 
-	QJsonArray buttonList;
+	ConfigurationTable buttonList;
 
 	for (const auto& entry: std::as_const(_buttons))
 	{
 		const Button& button = entry.second;
-		QJsonObject element;
+		ConfigurationRecord element;
 
-		element[kName] = QString::fromStdString(button._label);
-		element[kCommand] = QString::fromStdString(button._command);
-		element[kCommandGroup] = button._commandGroup;
-		element[kTab] = QString::fromStdString(button._tab);
-		element[kCellLocation] = QString::fromStdString(fromQPoint(button._cellLocation));
-		element[kTooltip] = QString::fromStdString(button._toolTip);
+		element[kName] = button._label;
+		element[kCommand] = button._command;
+		element[kCommandGroup] = std::to_string(static_cast<int>(button._commandGroup));
+		element[kTab] = button._tab;
+		element[kCellLocation] = fromPoint(button._cellLocation);
+		element[kTooltip] = button._toolTip;
 
-		buttonList.append(element);
+		buttonList.push_back(element);
 	}
 
-	parentLevel.insert(kButtons, buttonList);
+	config.setTable(kButtons, buttonList);
 
-	QJsonArray scriptVarList;
+	ConfigurationTable scriptVarList;
 
 	for (const auto& entry: _scriptVariables)
 	{
 		const ScriptVariable& scriptVar = entry.second;
-		QJsonObject element;
+		ConfigurationRecord element;
 
 		std::string defaultValueString;
 		if (std::holds_alternative<bool>(scriptVar._defaultValue))
@@ -1388,18 +1325,17 @@ void _PlatformConfiguration::write(QJsonObject& parentLevel)
 		else if (std::holds_alternative<std::string>(scriptVar._defaultValue))
 			defaultValueString = std::get<std::string>(scriptVar._defaultValue);
 
-		element[kName] = QString::fromStdString(scriptVar._name);
-		element[kDefaultScriptVarLabel] = QString::fromStdString(scriptVar._label);
-		element[kTooltip] = QString::fromStdString(scriptVar._tooltip);
-		element[kDefaultScriptVarType] = scriptVar._type;
-		element[kDefaultScriptDefaultValue] = QString::fromStdString(defaultValueString);
-		element[kCellLocation] = QString::fromStdString(fromQPoint(scriptVar._cellLocation));
+		element[kName] = scriptVar._name;
+		element[kDefaultScriptVarLabel] = scriptVar._label;
+		element[kTooltip] = scriptVar._tooltip;
+		element[kDefaultScriptVarType] = std::to_string(static_cast<int>(scriptVar._type));
+		element[kDefaultScriptDefaultValue] = defaultValueString;
+		element[kCellLocation] = fromPoint(scriptVar._cellLocation);
 
-		scriptVarList.append(element);
+		scriptVarList.push_back(element);
 	}
 
-	parentLevel.insert(kScriptVariables, scriptVarList);
-
+	config.setTable(kScriptVariables, scriptVarList);
 }
 
 void _PlatformConfiguration::initialize()
@@ -1487,7 +1423,7 @@ void _PlatformConfiguration::defaultScriptVariables()
 		variable._label = "EDL timing (ms)";
 		variable._tooltip = "Configurable Boot to EDL timing in milliseconds";
 		variable._type = eIntegerType;
-		variable._defaultValue = 1300;
+		variable._defaultValue = 1300u;
 		variable._cellLocation = {0,0};
 
 		_scriptVariables.insert({variable._name, variable});
@@ -1496,7 +1432,7 @@ void _PlatformConfiguration::defaultScriptVariables()
 		variable._label = "UEFI timing (ms)";
 		variable._tooltip = "Configurable Boot to UEFI timing in milliseconds";
 		variable._type = eIntegerType;
-		variable._defaultValue = 8000;
+		variable._defaultValue = 8000u;
 		variable._cellLocation = {0,1};
 
 		_scriptVariables.insert({variable._name, variable});
@@ -1505,7 +1441,7 @@ void _PlatformConfiguration::defaultScriptVariables()
 		variable._label = "Fastboot timing (ms)";
 		variable._tooltip = "Configurable Boot to fastboot timing in milliseconds";
 		variable._type = eIntegerType;
-		variable._defaultValue = 8000;
+		variable._defaultValue = 8000u;
 		variable._cellLocation = {1,0};
 
 		_scriptVariables.insert({variable._name, variable});
@@ -1514,16 +1450,16 @@ void _PlatformConfiguration::defaultScriptVariables()
 
 PlatformConfiguration TACPlatformEntry::getConfiguration()
 {
-	if (_platformConfiguration.isNull())
+	if (!_platformConfiguration)
 	{
-		if (_platformEntry.isNull() == false)
+		if (_platformEntry != nullptr)
 		{
 			const std::string& platformPath = _platformEntry->_path;
 
 			if (platformPath.empty() == false)
 			{
-				_platformConfiguration = _PlatformConfiguration::openPlatformConfiguration(QString::fromStdString(platformPath));
-				if (_platformConfiguration.isNull() == false)
+				_platformConfiguration = _PlatformConfiguration::openPlatformConfiguration(platformPath);
+				if (_platformConfiguration != nullptr)
 				{
 					AppCore::writeToApplicationLog("TACPlatformEntry::getConfiguration() Platform " + platformPath + " loaded\n");
 				}
@@ -1535,7 +1471,7 @@ PlatformConfiguration TACPlatformEntry::getConfiguration()
 			else
 			{
 				_platformConfiguration = _PlatformConfiguration::createPlatformConfiguration(_platformEntry->_boardtype, 1);
-				if (_platformConfiguration.isNull() == false)
+				if (_platformConfiguration != nullptr)
 				{
 					AppCore::writeToApplicationLog("TACPlatformEntry::getConfiguration() Platform " + platformPath + " created\n");
 				}
@@ -1552,15 +1488,15 @@ PlatformConfiguration TACPlatformEntry::getConfiguration()
 
 void _PlatformConfiguration::cascadeTabDelete(const std::string &deleteMe)
 {
-	Q_UNUSED(deleteMe)
+	(void)deleteMe;
 
-	Q_ASSERT("This should never be executed");
+	assert(false && "This should never be executed");
 }
 
 void _PlatformConfiguration::cascadeTabRename(const std::string &oldName, const std::string &newName)
 {
-	Q_UNUSED(oldName)
-	Q_UNUSED(newName)
+	(void)oldName;
+	(void)newName;
 
-	Q_ASSERT("This should never be executed");
+	assert(false && "This should never be executed");
 }

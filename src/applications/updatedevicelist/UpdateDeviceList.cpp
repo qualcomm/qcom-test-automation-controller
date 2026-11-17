@@ -8,13 +8,14 @@
 #include "FTDIPlatformConfiguration.h"
 #include "PlatformConfiguration.h"
 #include "USBDescriptors.h"
+#include "QCommonTypes.h"
 
 // Qt
 #include <QDir>
 
 // C++
 #include <iostream>
-
+#include <map>
 
 UpdateDeviceList::UpdateDeviceList()
 {
@@ -33,7 +34,7 @@ void UpdateDeviceList::setVerbosity(bool verbose)
 
 void UpdateDeviceList::save(const QString &filePath)
 {
-	QMap<PlatformID, USBDescriptor> usbDescriptorMap;
+	std::map<PlatformID, USBDescriptor> usbDescriptorMap;
 
 	if (_verbose)
 		std::cout << std::endl << std::endl << "Platform ID: " << std::endl;
@@ -48,12 +49,12 @@ void UpdateDeviceList::save(const QString &filePath)
 		usbDescriptor._name = platformID->_description;
 		usbDescriptor._description = platformID->_description;
 		for (int i{0}; i < kMaxPinSetCount; i++)
-			usbDescriptor._pinSets[0] = platformID->_pinSets[0];
+			usbDescriptor._pinSets[i] = platformID->_pinSets[i];
 
 		usbDescriptorMap[usbDescriptor._platformID] = usbDescriptor;
 
 		if (_verbose)
-			std::cout << "   Found Platform ID: " << usbDescriptor._name.toLatin1().data() << std::endl;
+			std::cout << "   Found Platform ID: " << usbDescriptor._name << std::endl;
 	}
 
 	QDir configurationDir(filePath);
@@ -67,32 +68,34 @@ void UpdateDeviceList::save(const QString &filePath)
 	QFileInfoList entryInfoList = configurationDir.entryInfoList(nameFilters, QDir::Files, QDir::Name);
 	for (const auto& entryInfo: entryInfoList)
 	{
-		PlatformConfiguration platformConfiguration = _PlatformConfiguration::openPlatformConfiguration(entryInfo.filePath());
+		PlatformConfiguration platformConfiguration = _PlatformConfiguration::openPlatformConfiguration(entryInfo.filePath().toStdString());
 
 		if (_verbose)
 			std::cout << "   Entry: " << entryInfo.filePath().toLatin1().constData() << std::endl;
 
-		if (platformConfiguration.isNull() == false)
+		if (platformConfiguration != nullptr)
 		{
 			USBDescriptor usbDescriptor;
 
-			const QString kUSBDescriptorPath = _fileDir.isEmpty() ? tacConfigRoot() : QDir::cleanPath(filePath) + QDir::separator();
+			const std::string kUSBDescriptorPath = _fileDir.isEmpty() ? tacConfigRoot() : (QDir::cleanPath(filePath) + QDir::separator()).toStdString();
 
 			usbDescriptor._platformID = platformConfiguration->getPlatformId();
 			usbDescriptor._debugBoardType = platformConfiguration->getPlatform();
 			usbDescriptor._name = platformConfiguration->name();
 			usbDescriptor._description = platformConfiguration->description();
 			usbDescriptor._revision = platformConfiguration->fileVersion();
-			usbDescriptor._configurationFilePath = QDir::cleanPath(QString(kUSBDescriptorPath + entryInfo.fileName())).toLatin1();
+			usbDescriptor._configurationFilePath = kUSBDescriptorPath + entryInfo.fileName().toStdString();
 			usbDescriptor._usbDescriptor = platformConfiguration->getUSBDescriptor();
 
 			if (usbDescriptor._debugBoardType == eFTDI)
 			{
-				_FTDIPlatformConfiguration* fpc = static_cast<_FTDIPlatformConfiguration*>(platformConfiguration.data());
-
-				for (int i = 0; i < 4; i++)
+				_FTDIPlatformConfiguration* fpc = dynamic_cast<_FTDIPlatformConfiguration*>(platformConfiguration.get());
+				if (fpc != nullptr)
 				{
-					usbDescriptor._pinSets[i] = fpc->getPinSet(i);
+					for (int i = 0; i < 4; i++)
+					{
+						usbDescriptor._pinSets[i] = fpc->getPinSet(i);
+					}
 				}
 			}
 
@@ -110,13 +113,13 @@ void UpdateDeviceList::save(const QString &filePath)
 
 	USBDescriptors usbDescriptors;
 
-	for (const auto& usbDescriptor: std::as_const(usbDescriptorMap))
+	for (const auto& [id, usbDescriptor]: usbDescriptorMap)
 	{
 		usbDescriptors.addUSBDescriptor(usbDescriptor);
 	}
 
-	QString savePath = QDir::cleanPath(filePath + QDir::separator() + kUSBDescriptorFileName);
-	if (usbDescriptors.save(savePath) == true)
+	QString savePath = QDir::cleanPath(filePath + QDir::separator() + toQString(kUSBDescriptorFileName));
+	if (usbDescriptors.save(savePath.toStdString()) == true)
 	{
 		if (_verbose)
 			std::cout<< std::endl << "   Entry: " << savePath.toLatin1().constData() << " saved" << std::endl;
@@ -149,7 +152,7 @@ void UpdateDeviceList::write()
 	}
 	else
 	{
-		configFilePath = QDir::cleanPath(tacConfigRoot());
+		configFilePath = QDir::cleanPath(toQString(tacConfigRoot()));
 		if (QDir(configFilePath).exists())
 		{
 			if (_verbose)

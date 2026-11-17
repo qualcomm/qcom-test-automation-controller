@@ -28,10 +28,9 @@ target_compile_definitions(${APP_NAME} PRIVATE
 target_link_libraries(${APP_NAME} PRIVATE
     Qt6::Core
     Qt6::SerialPort
-
-
-    "$<$<CONFIG:Debug>:QCommonConsoled;ftd2xx>"
-    "$<$<NOT:$<CONFIG:Debug>>:QCommonConsole;ftd2xx>"
+    ftd2xx
+    "$<$<CONFIG:Debug>:QCommonConsoled>"
+    "$<$<NOT:$<CONFIG:Debug>>:QCommonConsole>"
 )
 
 if(WIN32)

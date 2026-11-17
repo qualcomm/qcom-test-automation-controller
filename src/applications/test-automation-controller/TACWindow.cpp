@@ -10,14 +10,15 @@
 #include "TACDeviceSelection.h"
 #include "PreferencesDialog.h"
 
-#include "TACDefines.h"
-#include "TACPreferences.h"
+#include "QTACDefines.h"
+#include "QTACPreferences.h"
 
 // QCommon
-#include "AlpacaDefines.h"
-#include "AlpacaSettings.h"
+#include "QAlpacaSettings.h"
 #include "ApplicationEnhancements.h"
-#include "ConsoleApplicationEnhancements.h"
+#include "QCommonTypes.h"
+#include "QAlpacaDevice.h"
+#include "QAppPaths.h"
 
 // QT
 #include <QDir>
@@ -61,7 +62,7 @@ TACWindow::~TACWindow()
 
 void TACWindow::saveSettings()
 {
-	AlpacaSettings settings(kAppName);
+	QAlpacaSettings settings(kAppName);
 	settings.beginGroup("TACWindow");
 	settings.setValue("size", size());
 	settings.endGroup();
@@ -69,7 +70,7 @@ void TACWindow::saveSettings()
 
 void TACWindow::restoreSettings()
 {
-	AlpacaSettings settings(kAppName);
+	QAlpacaSettings settings(kAppName);
 	settings.beginGroup("TACWindow");
 
 	QSize size = settings.value("size", QSize(555, 725)).toSize();
@@ -84,13 +85,23 @@ void TACWindow::restoreSettings()
 
 void TACWindow::shutDown()
 {
-	if (_alpacaDevice.isNull() == false)
+	if (_alpacaBridge != nullptr)
 	{
 		TACApplication::disconnectTACWindow(this);
 
-		_tacFrame->setDevice(AlpacaDevice(Q_NULLPTR));
+		_tacFrame->setDevice(nullptr);
+		_alpacaBridge->close();
+		delete _alpacaBridge;
+		_alpacaBridge = nullptr;
+		_alpacaDevice = nullptr;
+	}
+	else if (_alpacaDevice != nullptr)
+	{
+		TACApplication::disconnectTACWindow(this);
+
+		_tacFrame->setDevice(nullptr);
 		_alpacaDevice->close();
-		_alpacaDevice = AlpacaDevice(Q_NULLPTR);
+		_alpacaDevice = nullptr;
 	}
 }
 
@@ -118,7 +129,7 @@ void TACWindow::setupAutoShutdownTimer()
 
 void TACWindow::on_actionPreferences_triggered()
 {
-	TACPreferences* preferences = TACApplication::tacAppInstance()->preferences();
+	QTACPreferences* preferences = TACApplication::tacAppInstance()->preferences();
 	PreferencesDialog dialog(preferences, this);
 
 	if (dialog.exec() == QDialog::Accepted)
@@ -156,33 +167,39 @@ void TACWindow::openPort
 	const QByteArray &portName
 )
 {
-	_alpacaDevice = _AlpacaDevice::findAlpacaDevice(portName);
+	_alpacaDevice = QAlpacaDevice::findAlpacaDevice(toQString(portName));
 
 	emit progress();
 
-	if (_alpacaDevice.isNull() == false)
+	if (_alpacaDevice != nullptr)
 	{
-		if (_alpacaDevice->open() == true)
+		if (_alpacaBridge != nullptr)
+		{
+			delete _alpacaBridge;
+		}
+		_alpacaBridge = new QAlpacaDevice(_alpacaDevice, this);
+
+		if (_alpacaBridge->open() == true)
 		{
 			int minorVersion = _alpacaDevice->minorVersion();
 
 			_tacFrame->setDevice(_alpacaDevice);
 
-			QString portName = " " + _alpacaDevice->portName();
-			setWindowTitle(QString(kWindowTitle).arg(portName));
+			QString portNameStr = " " + _alpacaBridge->portName();
+			setWindowTitle(QString(kWindowTitle).arg(portNameStr));
 
 			_disconnectButton->setEnabled(true);
 
 			_deviceStatusLabel->setText("Connected");
 
-			resize(_alpacaDevice->windowDimension());
+			resize(_alpacaBridge->windowDimension());
 
-			if (_alpacaDevice->getLastError().isEmpty() == false)
-				_statusbar->showMessage("Error: " + _alpacaDevice->getLastError());
+			if (_alpacaBridge->getLastError().isEmpty() == false)
+				_statusbar->showMessage("Error: " + _alpacaBridge->getLastError());
 
-			TACApplication::tacAppInstance()->preferences()->saveLastDevice(portName);
+			TACApplication::tacAppInstance()->preferences()->saveLastDevice(_alpacaBridge->portName());
 
-			QObject::connect(_alpacaDevice.data(), &_AlpacaDevice::progress, _nwgt, &NotificationWidget::progress);
+			QObject::connect(_alpacaBridge, &QAlpacaDevice::progress, _nwgt, &NotificationWidget::progress);
 			emit progress(80);
 		}
 		else
@@ -194,8 +211,10 @@ void TACWindow::openPort
 
 QByteArray TACWindow::portName() const
 {
-	if (_alpacaDevice.isNull() == false)
-		return _alpacaDevice->portName();
+	if (_alpacaBridge != nullptr)
+		return _alpacaBridge->portName().toLatin1();
+	if (_alpacaDevice != nullptr)
+		return QByteArray::fromStdString(_alpacaDevice->portName());
 
 	return QByteArray();
 }

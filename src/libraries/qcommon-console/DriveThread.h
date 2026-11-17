@@ -8,48 +8,72 @@
 #include "SendInterface.h"
 #include "QCommonConsoleGlobal.h"
 
-// QT
-#include <QFile>
-#include <QIODevice>
-#include <QMap>
-#include <QThread>
-
+// Standard C++
+#include <atomic>
+#include <chrono>
+#include <condition_variable>
 #include <cstdint>
+#include <map>
 #include <mutex>
+#include <stop_token>
 #include <string>
+#include <thread>
 
 class QCOMMONCONSOLE_EXPORT DriveThread :
-	public QThread,
 	public SendInterface
 {
-Q_OBJECT
-
 public:
 	DriveThread();
-	~DriveThread();
-	
-	// QThread has an isRunning, not working so adding this
-	bool weAreRunning()
+	virtual ~DriveThread();
+
+	void start();
+	void wait();
+	bool isRunning() const
 	{
-		std::lock_guard<std::mutex> lock(_runningMutex);
-		return _running;
+		return weAreRunning();
 	}
 
-	void shutDown();
+	bool hasFinished() const noexcept
+	{
+		return _finished.load();
+	}
 
-	std::string name()
+	bool weAreRunning() const
+	{
+		return _running.load();
+	}
+
+	bool stopRequested() const noexcept
+	{
+		return !_running.load() || _stopToken.stop_requested();
+	}
+
+	std::stop_token getStopToken() const noexcept
+	{
+		return _stopToken;
+	}
+
+	void requestStop() noexcept;
+	void shutDown();
+	void wake() noexcept;
+
+	// Interruptible wait: sleeps up to 'ms', but returns immediately if awakened or stop requested.
+	// Returns true if timed out normally without stop; false if interrupted or stop requested.
+	bool sleepForOrStop(std::chrono::milliseconds ms);
+
+	const std::string& name() const
 	{
 		return _driveTrainName;
 	}
 
-	int id()
+	int id() const
 	{
 		return _driveTrainID;
 	}
 
-	QByteArray lastErrorMessage()
+	std::string lastErrorMessage()
 	{
-		QByteArray result(_lastErrorMessage);
+		std::string result(_lastErrorMessage);
 		_lastErrorMessage.clear();
 		return result;
 	}
@@ -58,44 +82,46 @@ public:
 
 	virtual void run() = 0;
 
+	// Lifecycle hooks for derived classes
+	virtual void onStarting() {}
+	virtual void onStopping() {}
+	virtual void onFinished() {}
+
 	// Send Interface
-	virtual uint32_t send(const QByteArray& sendMe, const Arguments& arguments, bool console, ReceiveInterface* recieveInterface, bool store = true) = 0;
+	virtual uint32_t send(const std::string& sendMe, const Arguments& arguments, bool console, ReceiveInterface* recieveInterface, bool store = true) = 0;
 	virtual void addDelay(uint32_t delayInMilliSeconds, ReceiveInterface* recieveInterface);
-	virtual void addLogComment(const QByteArray& comment);
+	virtual void addLogComment(const std::string& comment);
 	virtual void addEndTransaction(ReceiveInterface* receiveInterface);
 
 protected:
 	void startRunning()
 	{
-		std::lock_guard<std::mutex> lock(_runningMutex);
-		_running = true;
+		_running.store(true);
 	}
 
 	bool stopRunning()
 	{
-		bool result;
-
-		std::lock_guard<std::mutex> lock(_runningMutex);
-		result = _running;
-		_running = false;
-
-		return result;
+		return _running.exchange(false);
 	}
 
-	static int					_driveTrainIDs;
+	static std::atomic<int>		_driveTrainIDs;
 
 	int							_driveTrainID{0};
-	ProtocolInterface*			_protocolInterface{Q_NULLPTR};
-	
+	ProtocolInterface*			_protocolInterface{nullptr};
+
 	std::string					_driveTrainName{"<unnamed>"};
-	QByteArray                  _lastErrorMessage;
+	std::string                 _lastErrorMessage;
 
 private:
-	std::mutex					_runningMutex;
-	bool						_running{false};
-
+	std::jthread				_workerThread;
+	std::stop_token				_stopToken;
+	std::atomic<bool>			_running{false};
+	std::atomic<bool>			_finished{false};
+	std::mutex					_lifecycleMutex;
+	std::condition_variable		_wakeCv;
+	std::mutex					_wakeMutex;
 };
 
-typedef QMap<int, DriveThread*> DriveTrains;
+typedef std::map<int, DriveThread*> DriveTrains;
 
 #endif // DRIVETHREAD_H

@@ -5,8 +5,14 @@ include(${CMAKE_SOURCE_DIR}/src/libraries/qcommon/Common.cmake)
 
 if (CMAKE_BUILD_TYPE STREQUAL "Debug")
     set(LIBRARY_NAME UId)
+    set(CONSOLE_LIB QCommonConsoled)
+    set(BRIDGE_LIB QCommonBridged)
+    set(COMMON_LIB QCommond)
 else()
     set(LIBRARY_NAME UI)
+    set(CONSOLE_LIB QCommonConsole)
+    set(BRIDGE_LIB QCommonBridge)
+    set(COMMON_LIB QCommon)
 endif()
 
 qt_add_resources(UI_RESOURCES
@@ -24,6 +30,9 @@ qt_add_library(${LIBRARY_NAME} STATIC
     MediaPlaybackFrame.cpp MediaPlaybackFrame.h MediaPlaybackFrame.ui
     NotificationWidget.cpp NotificationWidget.h NotificationWidget.ui
     ProgressDialog.cpp ProgressDialog.h ProgressDialog.ui
+    SerialTableModel.cpp SerialTableModel.h
+    PIC32CXSerialTableModel.cpp PIC32CXSerialTableModel.h
+    PSOCSerialTableModel.cpp PSOCSerialTableModel.h
     TACFrame.cpp TACFrame.h TACFrame.ui
     UIGlobalLib.h
     UILib.cpp UILib.h
@@ -38,6 +47,8 @@ set_target_properties(${LIBRARY_NAME} PROPERTIES
 )
 
 target_include_directories(${LIBRARY_NAME} PUBLIC
+    ${CMAKE_CURRENT_SOURCE_DIR}
+    ../qcommon-bridge
     ../qcommon-console
     ../qcommon
 )
@@ -60,6 +71,9 @@ target_link_libraries(${LIBRARY_NAME} PUBLIC
     Qt6::Multimedia
     Qt6::MultimediaWidgets
     Qt6::Widgets
+    ${BRIDGE_LIB}
+    ${COMMON_LIB}
+    ${CONSOLE_LIB}
 )
 
 set_target_properties(${LIBRARY_NAME} PROPERTIES

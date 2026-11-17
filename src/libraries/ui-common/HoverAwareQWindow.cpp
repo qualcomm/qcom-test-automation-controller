@@ -4,6 +4,7 @@
 #include "ui_HoverAwareQWindow.h"
 #include "HoverAwareQWindow.h"
 #include "ColorConversion.h"
+#include "QCommonTypes.h"
 
 #include <QClipboard>
 #include <QCursor>
@@ -66,7 +67,7 @@ void HoverAwareQWindow::insertNotification(const QString &message, const Notific
 		}
 	}
 
-	Notification newNotice(message, notificationLevel, _nextNotificationId++);
+	Notification newNotice(message.toStdString(), notificationLevel, _nextNotificationId++);
 	_notifications.insert(0, newNotice);
 
 	while (_notifications.size() > kMaxNotificationHistory)
@@ -116,7 +117,7 @@ void HoverAwareQWindow::buildListView()
 {
 	for (const Notification& notification : _notifications)
 	{
-		QString text = notification.getMessage();
+		QString text = QString::fromStdString(notification.getMessage());
 
 		if (notification.getOccurrenceCount() > 1)
 			text += QString(" (x%1)").arg(notification.getOccurrenceCount());
@@ -124,7 +125,7 @@ void HoverAwareQWindow::buildListView()
 		QListWidgetItem* lwi = new QListWidgetItem(_ui->_notificationListContainer);
 		lwi->setText(text);
 		lwi->setSizeHint(kLabelSize);
-		lwi->setData(Qt::UserRole, notification.getId());
+		lwi->setData(Qt::UserRole, toQVariant(notification.getId()));
 
 		QColor labelColor = ColorConversion::getLabelColor(notification.getLevel());
 		lwi->setBackground(QBrush(labelColor));
@@ -236,7 +237,7 @@ void HoverAwareQWindow::on__notificationListContainer_customContextMenuRequested
 						{
 							QClipboard* clipboard = QGuiApplication::clipboard();
 							if (clipboard != Q_NULLPTR)
-								clipboard->setText(notification.getMessage());
+								clipboard->setText(QString::fromStdString(notification.getMessage()));
 
 							break;
 						}

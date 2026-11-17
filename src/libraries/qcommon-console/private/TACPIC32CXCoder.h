@@ -4,37 +4,36 @@
 #ifndef TACPIC32CXCODER_H
 #define TACPIC32CXCODER_H
 
-
 #include "QCommonConsoleGlobal.h"
 
 // QCommon
 #include "FrameCoder.h"
 
-// Qt
-#include <QByteArray>
-
 #include <cstdint>
+#include <string>
 
-const QByteArray kPIC32CXCommandError("Error!!! port >");
-const QByteArray kPIC32CXCommandNotRecognized("*** Command Processor: unknown command. ***");
+const std::string kPIC32CXCommandError{"Error!!! port >"};
+const std::string kPIC32CXCommandNotRecognized{"*** Command Processor: unknown command. ***"};
 const uint8_t kValidPIC32CXResponseSize(40);
 
 class QCOMMONCONSOLE_EXPORT TACPIC32CXCoder :
 	public FrameCoder
 {
 public:
+	TACPIC32CXCoder(const TACPIC32CXCoder&) = delete;
+	TACPIC32CXCoder& operator=(const TACPIC32CXCoder&) = delete;
+
 	TACPIC32CXCoder();
 	virtual ~TACPIC32CXCoder();
 
-	virtual void reset();
+	virtual void reset() override;
 
-	virtual void decode(const QByteArray& decodeMe);
+	virtual void decode(const std::string& decodeMe) override;
 
-	virtual QByteArray encode(const QByteArray& encodeMe, const Arguments& arguments);
+	virtual std::string encode(const std::string& encodeMe, const Arguments& arguments) override;
 
 private:
-	Q_DISABLE_COPY(TACPIC32CXCoder)
-	QByteArray					_recieveBuffer;
+	std::string					_recieveBuffer;
 };
 
 #endif // TACPIC32CXCODER_H

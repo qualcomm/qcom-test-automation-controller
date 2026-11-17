@@ -6,6 +6,7 @@
 - [Introduction](#introduction)
 - [What You Get](#what-you-get)
 - [Hardware Requirements](#hardware-requirements)
+- [Building CLI-Only (Without Qt)](#building-cli-only-without-qt)
 - [Common Prerequisites](#common-prerequisites)
 - [Windows Guide](#windows-guide)
 - [Linux Guide](#linux-guide)
@@ -16,7 +17,7 @@
 
 ## Introduction
 
-QTAC is a software suite that enables users to control Qualcomm devices remotely via a Qualcomm approved debug board connected to a host.
+QTAC enables users to control Qualcomm devices remotely via a Qualcomm approved debug board connected to a host.
 
 ## What You Get
 
@@ -42,6 +43,12 @@ QTAC is a software suite that enables users to control Qualcomm devices remotely
 > PSOC debug boards must be factory-programmed with firmware. If the board isn't recognized, it likely lacks programming.
 
 ![QTAC Hardware Software Setup](./docs/resources/qtac-setup-overview.drawio.png)
+
+## Building CLI-Only (Without Qt)
+
+If you only need the command-line tools (`TACTerminal`) and C++ library (`TACDev`) without the Qt GUI, you can build the CLI-only version directly using CMake without installing Qt.
+
+For build prerequisites, step-by-step instructions, and usage details, refer to the documentation inside the [CLI directory](./cli/README.md).
 
 ## Common Prerequisites
 
@@ -89,7 +96,7 @@ git clone https://github.com/qualcomm/qcom-test-automation-controller.git
 
 ### Configuration
 
-1. **Visual Studio**: Install **Desktop development with C++** and **.NET desktop development**.
+1. **Visual Studio**: Install **Desktop development with C++**.
    ![Desktop development with C++](./docs/resources/qtac-msvc-2022-requirements.png)
 2. **Qt**: Install Qt 6.9+ for **MSVC 2022 64-bit**, **Qt Serial Port** and **Qt Multimedia** components.
    For ARM64, also install the **MSVC 2022 ARM64** Qt component.
@@ -185,7 +192,7 @@ Execute `build.sh` to generate executables:
 | `configurations` | Platform-specific pin configurations |
 | `docs` | Documentation and guides |
 | `examples` | Device-control automation scripts |
-| `interfaces` | APIs for C++, Python, C#, and Java |
+| `interfaces` | C++ interface library (TACDev) |
 | `src` | Source files (Applications & Libraries) |
 | `third-party` | External dependency scripts |
 
@@ -196,7 +203,7 @@ Execute `build.sh` to generate executables:
 ## Advanced Topics
 
 - [Build Using Qt Creator](./docs/getting-started/02-Build-Using-Qt-Creator.md)
-- [Python API Guide](./docs/bootcamp/01-Bootcamp.md)
+- [C++ API Guide](./docs/bootcamp/04-CPP-API.md)
 
 ## Support & Contributing
 

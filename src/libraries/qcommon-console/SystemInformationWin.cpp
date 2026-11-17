@@ -3,19 +3,40 @@
 
 #include "SystemInformation.h"
 #include "SystemUsername.h"
+#include "AppCore.h"
 
-// Qt
-#include <QDebug>
-#include <QSettings>
-
+#include <cstdio>
 #include <string>
 
-#ifdef Q_OS_WIN
+#if defined(_WIN32) || defined(_WIN64)
 // windows
 #include <windows.h>
 #include <lmcons.h>
 
-const QString KVersionPath(QStringLiteral("HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion"));
+static std::string queryRegistryString(HKEY rootKey, const char* subKey, const char* valueName, const std::string& defaultValue = "")
+{
+	HKEY hKey;
+	if (RegOpenKeyExA(rootKey, subKey, 0, KEY_READ, &hKey) == ERROR_SUCCESS)
+	{
+		char buffer[256];
+		DWORD bufferSize = sizeof(buffer);
+		DWORD type = 0;
+		if (RegQueryValueExA(hKey, valueName, nullptr, &type, reinterpret_cast<LPBYTE>(buffer), &bufferSize) == ERROR_SUCCESS)
+		{
+			RegCloseKey(hKey);
+			if (type == REG_SZ)
+			{
+				return std::string(buffer);
+			}
+		}
+		RegCloseKey(hKey);
+	}
+	return defaultValue;
+}
+#elif defined(__linux__)
+#include <unistd.h>
+#include <sys/utsname.h>
+#include <sys/sysinfo.h>
 #endif
 
 SystemInformation::SystemInformation()
@@ -27,7 +48,7 @@ std::string GetLastErrorAsString()
 {
 	std::string result;
 
-#ifdef Q_OS_WIN
+#if defined(_WIN32) || defined(_WIN64)
 	DWORD errorMessageID = ::GetLastError();
 	if(errorMessageID == 0) {
 		return result;
@@ -49,12 +70,23 @@ std::string SystemInformation::computerName()
 {
 	if (_computerName.empty())
 	{
-#ifdef Q_OS_WIN
+#if defined(_WIN32) || defined(_WIN64)
 		char temp[CNLEN + 1];
 		DWORD tempLen = sizeof(temp);
-		GetComputerNameA(temp, &tempLen);
-
-		_computerName = std::string(temp);
+		if (GetComputerNameA(temp, &tempLen))
+		{
+			_computerName = std::string(temp);
+		}
+		else
+		{
+			AppCore::writeToApplicationLogLine("SystemInformation::computerName failed: " + GetLastErrorAsString());
+		}
+#elif defined(__linux__)
+		char temp[256];
+		if (gethostname(temp, sizeof(temp)) == 0)
+		{
+			_computerName = std::string(temp);
+		}
 #endif
 	}
 
@@ -75,12 +107,16 @@ std::string SystemInformation::osName()
 {
 	if (_osName.empty())
 	{
-
-#ifdef Q_OS_WIN
-		QSettings settings(KVersionPath, QSettings::NativeFormat);
-
-		_osName = settings.value("ProductName", QString("unknown")).toString().toStdString();
-		_osVersion = settings.value("ReleaseId").toString().toStdString();
+#if defined(_WIN32) || defined(_WIN64)
+		_osName = queryRegistryString(HKEY_LOCAL_MACHINE, "SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion", "ProductName", "unknown");
+		_osVersion = queryRegistryString(HKEY_LOCAL_MACHINE, "SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion", "ReleaseId", "");
+#elif defined(__linux__)
+		struct utsname buf;
+		if (uname(&buf) == 0)
+		{
+			_osName = buf.sysname;
+			_osVersion = buf.release;
+		}
 #endif
 	}
 
@@ -91,11 +127,16 @@ std::string SystemInformation::osVersion()
 {
 	if (_osVersion.empty())
 	{
-#ifdef Q_OS_WIN
-		QSettings settings(KVersionPath, QSettings::NativeFormat);
-
-		_osName = settings.value("ProductName", QString("unknown")).toString().toStdString();
-		_osVersion = settings.value("ReleaseId").toString().toStdString();
+#if defined(_WIN32) || defined(_WIN64)
+		_osName = queryRegistryString(HKEY_LOCAL_MACHINE, "SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion", "ProductName", "unknown");
+		_osVersion = queryRegistryString(HKEY_LOCAL_MACHINE, "SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion", "ReleaseId", "");
+#elif defined(__linux__)
+		struct utsname buf;
+		if (uname(&buf) == 0)
+		{
+			_osName = buf.sysname;
+			_osVersion = buf.release;
+		}
 #endif
 	}
 
@@ -106,17 +147,29 @@ std::string SystemInformation::totalPhysicalMemory()
 {
 	if (_totalPhysicalMemory.empty())
 	{
-#ifdef Q_OS_WIN
+#if defined(_WIN32) || defined(_WIN64)
 		ULONGLONG memoryInKilobytes;
 
 		if (::GetPhysicallyInstalledSystemMemory(&memoryInKilobytes) != FALSE)
 		{
 			double kiloBytes = (static_cast<double>(memoryInKilobytes) / 1024.0 / 1024.0);
-			_totalPhysicalMemory = QString::number(kiloBytes).toStdString();
+			char memBuf[64];
+			std::snprintf(memBuf, sizeof(memBuf), "%.2f", kiloBytes);
+			_totalPhysicalMemory = memBuf;
 		}
 		else
 		{
+			AppCore::writeToApplicationLogLine("SystemInformation::totalPhysicalMemory failed: " + GetLastErrorAsString());
 			_totalPhysicalMemory = "unknown";
+		}
+#elif defined(__linux__)
+		struct sysinfo info;
+		if (sysinfo(&info) == 0)
+		{
+			double gb = static_cast<double>(info.totalram * info.mem_unit) / 1024.0 / 1024.0 / 1024.0;
+			char memBuf[64];
+			std::snprintf(memBuf, sizeof(memBuf), "%.2f", gb);
+			_totalPhysicalMemory = memBuf;
 		}
 #endif
 	}
@@ -128,13 +181,28 @@ std::string SystemInformation::totalVirtualMemory()
 {
 	std::string result("Unknown");
 
-#ifdef Q_OS_WIN
+#if defined(_WIN32) || defined(_WIN64)
 	ULONGLONG memoryInKilobytes;
 
 	if (::GetPhysicallyInstalledSystemMemory(&memoryInKilobytes) != FALSE)
 	{
 		double kiloBytes = (static_cast<double>(memoryInKilobytes) / 1024.0 / 1024.0);
-		result = QString::number(kiloBytes).toStdString();
+		char memBuf[64];
+		std::snprintf(memBuf, sizeof(memBuf), "%.2f", kiloBytes);
+		result = memBuf;
+	}
+	else
+	{
+		AppCore::writeToApplicationLogLine("SystemInformation::totalVirtualMemory failed: " + GetLastErrorAsString());
+	}
+#elif defined(__linux__)
+	struct sysinfo info;
+	if (sysinfo(&info) == 0)
+	{
+		double gb = static_cast<double>((info.totalram + info.totalswap) * info.mem_unit) / 1024.0 / 1024.0 / 1024.0;
+		char memBuf[64];
+		std::snprintf(memBuf, sizeof(memBuf), "%.2f", gb);
+		result = memBuf;
 	}
 #endif
 	return result;

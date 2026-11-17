@@ -12,6 +12,7 @@ qt_add_executable(${APP_NAME}
 
 target_include_directories(${APP_NAME} PRIVATE
     ${CMAKE_SOURCE_DIR}/src/libraries/qcommon-console
+    ${CMAKE_SOURCE_DIR}/src/libraries/qcommon-bridge
 )
 
 target_compile_definitions(${APP_NAME} PRIVATE
@@ -29,6 +30,8 @@ target_link_libraries(${APP_NAME} PRIVATE
     Qt6::Core
     Qt6::SerialPort
     ftd2xx
+    $<$<CONFIG:Debug>:QCommonBridged>
+    $<$<NOT:$<CONFIG:Debug>>:QCommonBridge>
     $<$<CONFIG:Debug>:QCommonConsoled>
     $<$<NOT:$<CONFIG:Debug>>:QCommonConsole>
 )

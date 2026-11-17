@@ -4,6 +4,7 @@
 #include "ManageTabsDialog.h"
 #include "Range.h"
 #include "TabEditorDialog.h"
+#include "QCommonTypes.h"
 
 // QCommon
 #include "TableCheckBox.h"
@@ -45,7 +46,7 @@ ManageTabsDialog::ManageTabsDialog
 		managedTab = tab;
 		managedTab._hash = Tab::makeHash(tab);
 
-		_tabs.append(managedTab);
+		_tabs.push_back(managedTab);
 	}
 
 	setupTabs();
@@ -97,7 +98,7 @@ void ManageTabsDialog::on__addTabButton_clicked()
 			tab._newText.clear();
 
 			tab._hash = Tab::makeHash(tab);
-			_tabs.append(tab);
+			_tabs.push_back(tab);
 
 			_platformConfiguration->updateTabs(_tabs);
 
@@ -235,14 +236,14 @@ void ManageTabsDialog::setupTabs()
 		Tab tab = getTab(selectedItems.at(0));
 		if (tab._hash != 0)
 		{
-			selectedText = tab._newText.isEmpty() ? tab._name : tab._newText;
+			selectedText = toQString(tab._newText.empty() ? tab._name : tab._newText);
 		}
 	}
 
 	_tabsTable->clearContents();
 	_tabsTable->setRowCount(0);
 
-	_tabsTable->setRowCount(_tabs.count());
+	_tabsTable->setRowCount(static_cast<int>(_tabs.size()));
 
 	for (auto& tab : _tabs)
 	{
@@ -252,8 +253,8 @@ void ManageTabsDialog::setupTabs()
 
 			QTableWidgetItem* lwi = new QTableWidgetItem;
 
-			lwi->setText(tab._newText.isEmpty() ? tab._name : tab._newText);
-			lwi->setData(kHashRole, tab._hash);
+			lwi->setText(toQString(tab._newText.empty() ? tab._name : tab._newText));
+			lwi->setData(kHashRole, toQVariant(tab._hash));
             lwi->setFlags(lwi->flags() & ~Qt::ItemIsEditable);
 			_tabsTable->setItem(row, kTabNameColumn, lwi);
 
@@ -261,26 +262,26 @@ void ManageTabsDialog::setupTabs()
 
 			tableCheckBox = new TableCheckBox(Q_NULLPTR);
 			tableCheckBox->setCheckState(tab._visible);
-			tableCheckBox->setProperty(kHash, tab._hash);
+			tableCheckBox->setProperty(kHash, toQVariant(tab._hash));
 			connect(tableCheckBox, SIGNAL(checkStateChanged(bool)), this, SLOT(onTabVisibleChecked(bool)));
 			_tabsTable->setCellWidget(row, kVisibleColumn, tableCheckBox);
 
 			tableCheckBox = new TableCheckBox(Q_NULLPTR);
 			tableCheckBox->setEnabled(false);
 			tableCheckBox->setCheckState(tab._userTab);
-			tableCheckBox->setProperty(kHash, tab._hash);
+			tableCheckBox->setProperty(kHash, toQVariant(tab._hash));
 			_tabsTable->setCellWidget(row, kUserDefinedColumn, tableCheckBox);
 
 			tableCheckBox = new TableCheckBox(Q_NULLPTR);
 			tableCheckBox->setEnabled(false);
 			tableCheckBox->setCheckState(tab._configurable);
-			tableCheckBox->setProperty(kHash, tab._hash);
+			tableCheckBox->setProperty(kHash, toQVariant(tab._hash));
 			_tabsTable->setCellWidget(row, kConfigureableColumn, tableCheckBox);
 
 			tableCheckBox = new TableCheckBox(Q_NULLPTR);
 			tableCheckBox->setEnabled(false);
 			tableCheckBox->setCheckState(tab._moveable);
-			tableCheckBox->setProperty(kHash, tab._hash);
+			tableCheckBox->setProperty(kHash, toQVariant(tab._hash));
 			_tabsTable->setCellWidget(row, kMoveableColumn, tableCheckBox);
 
 			row++;
@@ -295,7 +296,7 @@ void ManageTabsDialog::setupTabs()
 
 	if (selectedText.isEmpty() == false)
 	{
-		for (auto tabIndex: range(_tabs.count()))
+		for (auto tabIndex: range(_tabs.size()))
 		{
 			QTableWidgetItem* twi = _tabsTable->item(tabIndex, kTabNameColumn);
 			if (twi != Q_NULLPTR)
@@ -330,7 +331,7 @@ void ManageTabsDialog::on__renameTabButton_clicked()
 				{
 					if (tab._name != tab._newText)
 					{
-						tableItem->setText(tab._newText);
+						tableItem->setText(toQString(tab._newText));
 
 						Tab::updateTabName(tab._hash, tab._newText, _tabs);
 					}
@@ -346,9 +347,9 @@ void ManageTabsDialog::on__moveTabUpButton_clicked()
 {
 	int row = _tabsTable->currentRow();
 
-	if (row >= 0)
+	if (row >= 0 && row - 1 >= 0)
 	{
-		_tabs.swapItemsAt(row, row - 1);
+		std::swap(_tabs[row], _tabs[row - 1]);
 
 		setupTabs();
 	}
@@ -358,9 +359,9 @@ void ManageTabsDialog::on__moveTabDownButton_clicked()
 {
 	int row = _tabsTable->currentRow();
 
-	if (row >= 0)
+	if (row >= 0 && row + 1 < static_cast<int>(_tabs.size()))
 	{
-		_tabs.swapItemsAt(row, row + 1);
+		std::swap(_tabs[row], _tabs[row + 1]);
 
 		setupTabs();
 	}

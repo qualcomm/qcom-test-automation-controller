@@ -60,7 +60,7 @@ private:
 	void resetToDefault();
 	void setupColumnProperties();
 	QTableWidget* createI2CTableFromTemplate(QWidget* parent);
-	void populateI2CTable(QTableWidget* table, const QList<PSOCI2CData>& entries);
+	void populateI2CTable(QTableWidget* table, const std::vector<PSOCI2CData>& entries);
 	void applyColumnResizeSpecs(QTableWidget* table, const ColumnResizeSpec* specs, int count);
 
 	_PSOCPlatformConfiguration*          _psocPlatformConfig{Q_NULLPTR};

@@ -70,7 +70,7 @@ class QCOMMONCONSOLE_EXPORT AlpacaScript
 public:
 	AlpacaScript();
 
-	uint32_t count()
+	uint32_t count() const
 	{
 		return static_cast<uint32_t>(_scriptCommands.size());
 	}
@@ -78,7 +78,7 @@ public:
 	static std::string defaultScript(DebugBoardType boardType = eFTDI);
 
 	bool parseScript(const std::string& alpacaScript, const ScriptVariables& scriptVariables, const TACCommands& tacCommands);
-	CommandEntries replaceTokens(const ScriptVariables scriptVariables, const CommandEntries commandEntries);
+	CommandEntries replaceTokens(const ScriptVariables& scriptVariables, const CommandEntries& commandEntries);
 	std::vector<std::string> validateScript(const std::string& alpacaScript, const TACCommands& tacCommands);
 
 	bool hasCommand(const std::string& command);

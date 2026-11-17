@@ -1,34 +1,25 @@
 // Copyright (c) Qualcomm Technologies, Inc. and/or its subsidiaries.
 // SPDX-License-Identifier: BSD-3-Clause
 
+#ifndef TACDEVCORE_H
+#define TACDEVCORE_H
+
 #include "TACDev.h"
 
 #include "AlpacaDevice.h"
 #include "TACPreferences.h"
-
-// QCommon
 #include "AlpacaSharedLibrary.h"
 
-// QT
-#include <QMap>
+#include <map>
+#include <string>
 
-using namespace std;
-
-class DevTACCore :
-	public QObject,
-	public AlpacaSharedLibrary
+class DevTACCore : public AlpacaSharedLibrary
 {
-	Q_OBJECT
 public:
-	DevTACCore()
-	{
-	}
+	DevTACCore() = default;
+	~DevTACCore() = default;
 
-	~DevTACCore()
-	{
-	}
-
-	bool initialize(const QByteArray& appName, const QByteArray& appVersion);
+	bool initialize(const std::string& appName, const std::string& appVersion);
 
 	void setLoggingState(bool state);
 	bool getLoggingState();
@@ -47,7 +38,7 @@ public:
 			_AlpacaDevice::updateAlpacaDevices();
 			_AlpacaDevice::getAlpacaDevices(_alpacaDevices);
 
-			*deviceCount = _alpacaDevices.count();
+			*deviceCount = static_cast<int>(_alpacaDevices.size());
 
 			result = NO_TAC_ERROR;
 		}
@@ -63,14 +54,13 @@ public:
 	TAC_HANDLE OpenHandleByDescription(const char* portName);
 	TAC_RESULT CloseTACHandle(TAC_HANDLE tacHandle);
 
-private slots:
-	void onErrorEvent(const QByteArray& message);
+	void onErrorEvent(const std::string& message);
 
 private:
-	bool							_initialized{false};
-	TACPreferences					_preferences;
-	AlpacaDevices					_alpacaDevices;
-
-	QMap<TAC_HANDLE, AlpacaDevice>	_openDevices;
-
+	bool								_initialized{false};
+	TACPreferences						_preferences;
+	AlpacaDevices						_alpacaDevices;
+	std::map<TAC_HANDLE, AlpacaDevice>	_openDevices;
 };
+
+#endif // TACDEVCORE_H

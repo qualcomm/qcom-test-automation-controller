@@ -3,32 +3,119 @@
 
 // QCommon
 #include "DriveThread.h"
+#include "AppCore.h"
 
-// QT
-#include <QDateTime>
-#include <QDir>
-
-int DriveThread::_driveTrainIDs(1);
+std::atomic<int> DriveThread::_driveTrainIDs(1);
 
 DriveThread::DriveThread()
 {
-	_driveTrainID = _driveTrainIDs++;
+	_driveTrainID = _driveTrainIDs.fetch_add(1);
 }
 
 DriveThread::~DriveThread()
 {
+	shutDown();
+}
 
+void DriveThread::start()
+{
+	std::lock_guard<std::mutex> lock(_lifecycleMutex);
+	if (weAreRunning())
+		return;
+
+	if (_workerThread.joinable())
+		_workerThread.join();
+
+	_finished.store(false);
+	startRunning();
+
+	_workerThread = std::jthread([this](std::stop_token stopToken) {
+		_stopToken = stopToken;
+		try
+		{
+			onStarting();
+			run();
+		}
+		catch (const std::exception& e)
+		{
+			_lastErrorMessage = std::string("DriveThread exception in '") + _driveTrainName + "': " + e.what();
+			AppCore::writeToApplicationLogLine(_lastErrorMessage);
+		}
+		catch (...)
+		{
+			_lastErrorMessage = std::string("DriveThread unknown exception in '") + _driveTrainName + "'";
+			AppCore::writeToApplicationLogLine(_lastErrorMessage);
+		}
+		stopRunning();
+		wake();
+		try
+		{
+			onFinished();
+		}
+		catch (const std::exception& e)
+		{
+			AppCore::writeToApplicationLogLine("DriveThread exception in onFinished(): " + std::string(e.what()));
+		}
+		catch (...)
+		{
+			AppCore::writeToApplicationLogLine("DriveThread unknown exception in onFinished()");
+		}
+		_finished.store(true);
+	});
+}
+
+void DriveThread::wait()
+{
+	if (_workerThread.joinable())
+		_workerThread.join();
+	_finished.store(true);
+}
+
+void DriveThread::requestStop() noexcept
+{
+	stopRunning();
+	_workerThread.request_stop();
+	wake();
+}
+
+void DriveThread::wake() noexcept
+{
+	_wakeCv.notify_all();
+}
+
+bool DriveThread::sleepForOrStop(std::chrono::milliseconds ms)
+{
+	std::unique_lock<std::mutex> lock(_wakeMutex);
+	bool stopWoke = _wakeCv.wait_for(lock, ms, [this]() {
+		return stopRequested();
+	});
+	return !stopWoke;
 }
 
 void DriveThread::shutDown()
 {
-	if (stopRunning() == true)
+	std::lock_guard<std::mutex> lock(_lifecycleMutex);
+	if (stopRunning())
 	{
-		while (isRunning() == true)
+		_workerThread.request_stop();
+		wake();
+		try
 		{
-			QThread::sleep(1);
+			onStopping();
+		}
+		catch (const std::exception& e)
+		{
+			AppCore::writeToApplicationLogLine("DriveThread exception in onStopping(): " + std::string(e.what()));
+		}
+		catch (...)
+		{
+			AppCore::writeToApplicationLogLine("DriveThread unknown exception in onStopping()");
 		}
 	}
+
+	if (_workerThread.joinable())
+		_workerThread.join();
+	_finished.store(true);
 }
 
 void DriveThread::addDelay
@@ -37,14 +124,20 @@ void DriveThread::addDelay
 	ReceiveInterface* recieveInterface
 )
 {
-	if (_protocolInterface != Q_NULLPTR)
+	if (_protocolInterface != nullptr)
+	{
 		_protocolInterface->queueDelay(delayInMilliSeconds, recieveInterface);
+		wake();
+	}
 }
 
-void DriveThread::addLogComment(const QByteArray& comment)
+void DriveThread::addLogComment(const std::string& comment)
 {
-	if (_protocolInterface != Q_NULLPTR)
+	if (_protocolInterface != nullptr)
+	{
 		_protocolInterface->queueLogComment(comment);
+		wake();
+	}
 }
 
 void DriveThread::addEndTransaction
@@ -52,8 +145,11 @@ void DriveThread::addEndTransaction
 	ReceiveInterface* receiveInterface
 )
 {
-	if (_protocolInterface != Q_NULLPTR)
+	if (_protocolInterface != nullptr)
+	{
 		_protocolInterface->queueEndTransaction(receiveInterface);
+		wake();
+	}
 }
 
 void DriveThread::setProtocolInterface

@@ -7,6 +7,7 @@
 #include "TACCommands.h"
 
 #include <cstdint>
+#include <string>
 
 namespace
 {
@@ -32,23 +33,23 @@ void TACSTM32Coder::reset()
 
 void TACSTM32Coder::decode
 (
-	const QByteArray& decodeMe
+	const std::string& decodeMe
 )
 {
-	Q_UNUSED(decodeMe)
+	(void)decodeMe;
 
 	// BugHopper V2 has no framed protocol to decode responses from
 }
 
-QByteArray TACSTM32Coder::encode
+std::string TACSTM32Coder::encode
 (
-	const QByteArray& encodeMe,
+	const std::string& encodeMe,
 	const Arguments& arguments
 )
 {
-	QByteArray result;
+	std::string result;
 
-	switch (CommandStringToHash(encodeMe.toStdString()))
+	switch (CommandStringToHash(encodeMe))
 	{
 	case kSetPinCommandHash:
 		if (arguments.size() >= 2)
@@ -59,7 +60,7 @@ QByteArray TACSTM32Coder::encode
 
 			_gpioState = state ? (_gpioState | pinBit) : (_gpioState & ~pinBit);
 
-			result = QByteArray(kReportPayloadSize + 1, char(0));
+			result = std::string(kReportPayloadSize + 1, '\0');
 			result[1] = static_cast<char>(kCommandGpioSet);
 			result[2] = static_cast<char>(_gpioState);
 			result[3] = static_cast<char>(pinBit);

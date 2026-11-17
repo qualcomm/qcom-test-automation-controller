@@ -16,12 +16,10 @@ void my_memcpy
 {
 	memset(destination, 0, destinationSize);
 
-#ifdef Q_OS_UNIX
-	memcpy(destination, source, copyBytes);
-#endif
-
-#ifdef Q_OS_WIN
+#if defined(_WIN32) || defined(_WIN64)
 	memcpy_s(destination, destinationSize, source, copyBytes);
+#else
+	memcpy(destination, source, copyBytes);
 #endif
 }
 

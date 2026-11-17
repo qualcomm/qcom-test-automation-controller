@@ -6,16 +6,23 @@
 #include "private/TACSTM32DriveThread.h"
 
 // QCommonConsole
+#include "AlpacaSettings.h"
 #include "AppCore.h"
 #include "STM32PlatformConfiguration.h"
+#include "StringUtilities.h"
 
-// Qt
-#include <QSettings>
-#include <QThread>
+#include <cassert>
+#include <chrono>
+#include <thread>
 
 // hidapi
-#include <hidapi.h>
+#include "private/hidapi.h"
 
+#if defined(_WIN32)
+#include <windows.h>
+#endif
+#include <cstdlib>
+#include <cwchar>
 #include <cstdint>
 
 const uint16_t kSTM32VendorID{0x2341};
@@ -38,8 +45,8 @@ STM32Device::~STM32Device()
 
 bool STM32Device::programDevice(AlpacaDevice alpacaDevice, PlatformID platformID, std::string& errorMessage)
 {
-	Q_UNUSED(alpacaDevice)
-	Q_UNUSED(platformID)
+	(void)alpacaDevice;
+	(void)platformID;
 
 	errorMessage = "STM32 device does not support firmware programming";
 
@@ -58,25 +65,45 @@ STM32HIDDeviceInfoList STM32Device::enumerateHIDDevices()
 
 	struct hid_device_info* devices = hid_enumerate(kSTM32VendorID, kSTM32ProductID);
 
-	for (struct hid_device_info* current = devices; current != Q_NULLPTR; current = current->next)
+	for (struct hid_device_info* current = devices; current != nullptr; current = current->next)
 	{
 		if (isSTMInterface(*current) == false)
 			continue;
 
 		STM32HIDDeviceInfo deviceInfo;
 
-		std::string devicePath{current->path};
-		QString serialNumber = QString::fromWCharArray(current->serial_number);
+		std::string devicePath{current->path ? current->path : ""};
+		std::string serialNumber;
+		if (current->serial_number)
+		{
+#if defined(_WIN32)
+			int len = WideCharToMultiByte(CP_UTF8, 0, current->serial_number, -1, nullptr, 0, nullptr, nullptr);
+			if (len > 0)
+			{
+				serialNumber.resize(len);
+				WideCharToMultiByte(CP_UTF8, 0, current->serial_number, -1, &serialNumber[0], len, nullptr, nullptr);
+				if (!serialNumber.empty() && serialNumber.back() == '\0')
+					serialNumber.pop_back();
+			}
+#else
+			size_t len = std::wcstombs(nullptr, current->serial_number, 0);
+			if (len != static_cast<size_t>(-1))
+			{
+				serialNumber.resize(len);
+				std::wcstombs(&serialNumber[0], current->serial_number, len);
+			}
+#endif
+		}
 
-		if (devicePath.empty() == false && serialNumber.isEmpty() == false)
+		if (!devicePath.empty() && !serialNumber.empty())
 		{
 			deviceInfo._devicePath = devicePath;
-			deviceInfo._serialNumber = serialNumber.toStdString();
+			deviceInfo._serialNumber = serialNumber;
 
 			const std::string& hashSource = deviceInfo._serialNumber.empty() == false ? deviceInfo._serialNumber : deviceInfo._devicePath;
 			deviceInfo._hash = ::arrayHash(hashSource);
 
-			result.append(deviceInfo);
+			result.push_back(deviceInfo);
 		}
 	}
 
@@ -85,24 +112,24 @@ STM32HIDDeviceInfoList STM32Device::enumerateHIDDevices()
 	return result;
 }
 
-QByteArray STM32Device::vtpPortName
+std::string STM32Device::vtpPortName
 (
-	const QByteArray& serialNumber
+	const std::string& serialNumber
 )
 {
-	QByteArray result;
+	std::string result;
 
-	if (serialNumber.isEmpty() == false)
+	if (serialNumber.empty() == false)
 	{
-		QSettings settings(QSettings::UserScope, "Qualcomm, Inc.", "Alpaca");
+		AlpacaSettings settings("Alpaca");
 
 		settings.beginGroup("VTPs");
-		uint nextPort = settings.value("NextPortNumber", 1).toUInt();
+		unsigned int nextPort = settings.value("NextPortNumber", 1).toUInt();
 
-		QString vtpName = settings.value(serialNumber, QString()).toString();
-		if (vtpName.isEmpty())
+		std::string vtpName = settings.value(serialNumber, std::string()).toString();
+		if (vtpName.empty())
 		{
-			vtpName = QString("VTP%1").arg(nextPort);
+			vtpName = "VTP" + std::to_string(nextPort);
 			settings.setValue(serialNumber, vtpName);
 
 			nextPort++;
@@ -112,7 +139,7 @@ QByteArray STM32Device::vtpPortName
 
 		settings.endGroup();
 
-		result = vtpName.toLatin1();
+		result = vtpName;
 	}
 
 	return result;
@@ -125,12 +152,12 @@ uint32_t STM32Device::updateAlpacaDevices()
 	for (const auto& deviceInfo: std::as_const(deviceInfoList))
 	{
 		AlpacaDevice alpacaDevice = _AlpacaDevice::findAlpacaDevice(deviceInfo._hash);
-		if (alpacaDevice.isNull())
+		if (!alpacaDevice)
 		{
 			STM32Device* stm32Device = new STM32Device;
 
 			stm32Device->_active = true;
-			stm32Device->_portName = vtpPortName(QByteArray::fromStdString(deviceInfo._serialNumber)).toStdString();
+			stm32Device->_portName = vtpPortName(deviceInfo._serialNumber);
 			stm32Device->_hash = deviceInfo._hash;
 			stm32Device->_chipVersion = 2;
 			stm32Device->_serialNumber = deviceInfo._serialNumber;
@@ -154,7 +181,7 @@ uint32_t STM32Device::updateAlpacaDevices()
 		}
 	}
 
-	return _AlpacaDevice::_alpacaDevices.count();
+	return static_cast<uint32_t>(_AlpacaDevice::_alpacaDevices.size());
 }
 
 bool STM32Device::open()
@@ -163,13 +190,13 @@ bool STM32Device::open()
 
 	bool result{false};
 
-	if (_platformConfiguration.isNull() == false)
+	if (_platformConfiguration != nullptr)
 	{
-		_stm32PlatformConfiguration = static_cast<_STM32PlatformConfiguration*>(_platformConfiguration.data());
+		_stm32PlatformConfiguration = static_cast<_STM32PlatformConfiguration*>(_platformConfiguration.get());
 
 		buildMapping();
 
-		if (_driveThread == Q_NULLPTR)
+		if (_driveThread == nullptr)
 		{
 			TACSTM32DriveThread* driveThread = new TACSTM32DriveThread(_hash);
 
@@ -179,17 +206,45 @@ bool STM32Device::open()
 			int count = 0;
 			while (count < maxInterations)
 			{
-				QThread::msleep(20);
+				std::this_thread::sleep_for(std::chrono::milliseconds(20));
 
 				result = _driveThread->weAreRunning();
 				if (result == true)
 					count = maxInterations;
+				if (_driveThread->hasFinished())
+					break;
 
 				count++;
 			}
 
+			if (result == false)
+			{
+				std::string threadErr = _driveThread->lastErrorMessage();
+				if (!threadErr.empty())
+					_lastError = threadErr;
+				else if (_lastError.empty())
+					_lastError = "Failed to communicate with STM32 device on port " + portName();
+			}
+
 			if (result == true)
-				connect(driveThread, &TACSTM32DriveThread::pinStateChanged, this, &STM32Device::on_pinStateChanged, Qt::DirectConnection);
+			{
+				driveThread->onPinStateChanged = [this](int pin, int state) {
+					on_pinStateChanged(static_cast<uint64_t>(pin), state != 0);
+				};
+				driveThread->onDeviceDisconnected = [this]() {
+					onDeviceDisconnect();
+				};
+				driveThread->onProgress = [this](int val) {
+					if (onProgress) onProgress(val);
+				};
+				driveThread->onError = [this](const std::string& err) {
+					_lastError = err;
+					if (onError) onError(err);
+				};
+				driveThread->onDeviceStatusChange = [this](const std::string& status) {
+					if (onDeviceStatusChange) onDeviceStatusChange(status);
+				};
+			}
 		}
 	}
 
@@ -198,7 +253,7 @@ bool STM32Device::open()
 
 void STM32Device::buildMapping()
 {
-	Q_ASSERT(_stm32PlatformConfiguration != Q_NULLPTR);
+	assert(_stm32PlatformConfiguration != nullptr);
 
 	buildCommandList();
 	buildQuickSettings();
@@ -208,7 +263,7 @@ void STM32Device::buildCommandList()
 {
 	if (_commands.empty() == true)
 	{
-		if (_stm32PlatformConfiguration != Q_NULLPTR)
+		if (_stm32PlatformConfiguration != nullptr)
 		{
 			STM32PinList stm32PinList = _stm32PlatformConfiguration->getActivePins();
 
@@ -222,7 +277,7 @@ void STM32Device::buildCommandList()
 				tacCommand._isInverted = stm32Pin._inverted;
 				tacCommand._tabName = stm32Pin._tabName;
 				tacCommand._groupName = CommandGroup::toString(stm32Pin._commandGroup);
-				tacCommand._cellLocation = fromQPoint(stm32Pin._cellLocation);
+				tacCommand._cellLocation = fromPoint(stm32Pin._cellLocation);
 
 				_commands[tacCommand._command] = tacCommand;
 			}
@@ -236,11 +291,11 @@ bool STM32Device::openTransport()
 
 	if (_devicePath.empty() == false)
 	{
-		if (_hidHandle == Q_NULLPTR)
+		if (_hidHandle == nullptr)
 		{
 			_hidHandle = hid_open_path(_devicePath.c_str());
 
-			if (_hidHandle != Q_NULLPTR)
+			if (_hidHandle != nullptr)
 			{
 				AppCore::writeToApplicationLogLine("Opened Arduino BugHopper V2 device " + _devicePath + "\n");
 
@@ -266,14 +321,14 @@ bool STM32Device::openTransport()
 
 bool STM32Device::write
 (
-	const QByteArray& report
+	const std::string& report
 )
 {
 	bool result{false};
 
-	if (_hidHandle != Q_NULLPTR)
+	if (_hidHandle != nullptr)
 	{
-		result = hid_write(static_cast<hid_device*>(_hidHandle), reinterpret_cast<const unsigned char*>(report.constData()), report.size()) >= 0;
+		result = hid_write(static_cast<hid_device*>(_hidHandle), reinterpret_cast<const unsigned char*>(report.data()), report.size()) >= 0;
 	}
 
 	return result;
@@ -281,9 +336,9 @@ bool STM32Device::write
 
 void STM32Device::close()
 {
-	if (_hidHandle != Q_NULLPTR)
+	if (_hidHandle != nullptr)
 	{
 		hid_close(static_cast<hid_device*>(_hidHandle));
-		_hidHandle = Q_NULLPTR;
+		_hidHandle = nullptr;
 	}
 }

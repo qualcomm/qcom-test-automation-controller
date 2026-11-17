@@ -3,6 +3,8 @@
 
 #include "FrameCoder.h"
 
+#include <cassert>
+
 void FrameCoder::reset()
 {
 	_frame.clear();
@@ -10,21 +12,21 @@ void FrameCoder::reset()
 
 void FrameCoder::decode
 (
-	const QByteArray& decodeMe
+	const std::string& decodeMe
 )
 {
-	Q_ASSERT(_frameFunction != Q_NULLPTR);
+	assert(_frameFunction != nullptr);
 
 	_frameFunction(decodeMe, _protocolInterface);
 }
 
-QByteArray FrameCoder::encode
+std::string FrameCoder::encode
 (
-	const QByteArray& encodeMe,
+	const std::string& encodeMe,
 	const Arguments& arguments
 )
 {
-	Q_UNUSED(arguments)
+	(void)arguments;
 
 	return encodeMe;
 }

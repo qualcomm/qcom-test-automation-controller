@@ -3,6 +3,7 @@
 
 #include "UDLCommandLine.h"
 #include "version.h"
+#include "QCommonTypes.h"
 
 // Qt
 #include <QCoreApplication>
@@ -11,13 +12,14 @@ UDLCommandLine::UDLCommandLine
 (
 	const QStringList& args
 ) :
-	CommandLineParser(args)
+	CommandLineParser(toStdVector(args))
 {
 	QCoreApplication* instance = QCoreApplication::instance();
 
-	addHelpLine(instance->applicationName());
+	if (instance)
+		addHelpLine(instance->applicationName().toStdString());
 	addHelpLine("Update TAC Device Configurations");
-	addHelpLine(QString("Version: %1").arg(UPDATE_DEVICE_LIST));
+	addHelpLine(std::string("Version: ") + UPDATE_DEVICE_LIST);
 
 	addHelpLine("");
 	addHelpLine();
@@ -27,6 +29,6 @@ UDLCommandLine::UDLCommandLine
 	addHelpLine("");
 	addHelpLine("   dir=<text>                    -- Sets a user directory to process. (i.e.) dir=C:/pathtofiles");
 
-	_verbose = isSet(QStringList{} << "-v" << "verbose");
-	_dir = value("dir");
+	_verbose = isSet({"-v", "verbose"});
+	_dir = toQString(value("dir"));
 }

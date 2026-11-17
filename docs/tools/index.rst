@@ -4,9 +4,8 @@ QTAC
 .. toctree::
     :maxdepth: 2
 
-    bootcamp/01-Bootcamp
-    bootcamp/02-Python-API
     bootcamp/03-Script-Editor
+    bootcamp/04-CPP-API
 
     getting-started/01-Introduction
     getting-started/02-Build-Using-Qt-Creator

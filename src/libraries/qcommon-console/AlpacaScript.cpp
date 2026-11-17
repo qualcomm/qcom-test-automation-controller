@@ -7,6 +7,7 @@
 #include "AppCore.h"
 #include "ConsoleApplicationEnhancements.h"
 #include "ScriptVariable.h"
+#include "StringUtilities.h"
 
 // c++
 #include <algorithm>
@@ -15,67 +16,6 @@
 #include <sstream>
 #include <utility>
 
-static std::string trimCopy(const std::string& value)
-{
-	size_t start = value.find_first_not_of(" \t\r\n");
-	if (start == std::string::npos)
-		return std::string();
-
-	size_t end = value.find_last_not_of(" \t\r\n");
-
-	return value.substr(start, end - start + 1);
-}
-
-static std::string toLowerCopy(const std::string& value)
-{
-	std::string result{value};
-	for (char& c: result)
-		c = static_cast<char>(std::tolower(static_cast<unsigned char>(c)));
-
-	return result;
-}
-
-static bool equalsCaseInsensitive(const std::string& left, const std::string& right)
-{
-	return toLowerCopy(left) == toLowerCopy(right);
-}
-
-static bool startsWith(const std::string& value, const std::string& prefix)
-{
-	return value.size() >= prefix.size() && value.compare(0, prefix.size(), prefix) == 0;
-}
-
-static std::vector<std::string> splitWords(const std::string& line)
-{
-	std::vector<std::string> result;
-
-	std::istringstream lineStream(line);
-	std::string word;
-	while (lineStream >> word)
-		result.push_back(word);
-
-	return result;
-}
-
-static bool toUInt16(const std::string& value, uint16_t& result)
-{
-	if (value.empty())
-		return false;
-
-	for (const auto& c: value)
-	{
-		if (std::isdigit(static_cast<unsigned char>(c)) == 0)
-			return false;
-	}
-
-	unsigned long parsed = std::stoul(value);
-	if (parsed > 0xFFFF)
-		return false;
-
-	result = static_cast<uint16_t>(parsed);
-
-	return true;
-}
 
 // QTAC Script
 AlpacaScript::AlpacaScript()
@@ -87,7 +27,7 @@ std::string AlpacaScript::defaultScript(DebugBoardType boardType)
 {
 	std::string result;
 
-	Q_UNUSED(boardType);
+	(void)boardType;
 
 	std::string scriptPath = tacConfigRoot() + "DefaultScript.txt";
 
@@ -113,11 +53,14 @@ bool AlpacaScript::parseScript(const std::string& alpacaScript, const ScriptVari
 	std::string lineText;
 	while (std::getline(alpacaScriptStream, lineText))
 	{
-		std::string line = trimCopy(lineText);
+		std::string line = trim(lineText);
+		if (line.empty() || startsWith(line, "//"))
+			continue;
+
 		std::vector<std::string> words = splitWords(line);
 		if (words.size() >= 2)
 		{
-			if (toLowerCopy(words.at(0)) == "def")
+			if (toLower(words.at(0)) == "def")
 			{
 				scriptCommand = ScriptCommand(new _ScriptCommand);
 
@@ -140,7 +83,7 @@ bool AlpacaScript::parseScript(const std::string& alpacaScript, const ScriptVari
 
 				scriptCommand->_subCommands.push_back(commandEntry);
 			}
-			else if (equalsCaseInsensitive(words.at(0), "logcomment"))
+			else if (equalsIgnoreCase(words.at(0), "logcomment"))
 			{
 				CommandEntry commandEntry = CommandEntry(new _CommandEntry);
 
@@ -148,7 +91,7 @@ bool AlpacaScript::parseScript(const std::string& alpacaScript, const ScriptVari
 				commandEntry->_action = words.at(0);
 
 				std::string comment = line;
-				size_t commentPos = toLowerCopy(comment).find("logcomment ");
+				size_t commentPos = toLower(comment).find("logcomment ");
 				if (commentPos != std::string::npos)
 					comment.erase(commentPos, std::string("logcomment ").size());
 
@@ -202,17 +145,14 @@ bool AlpacaScript::parseScript(const std::string& alpacaScript, const ScriptVari
 			}
 			else
 			{
-				if (startsWith(words.at(0), "//") == false) // ignore comments
-				{
-					AppCore::writeToApplicationLogLine("Unhandled Command: " + words.at(0));
-
-					result = false;
-				}
+				AppCore::writeToApplicationLogLine("Unhandled Command (skipped): " + words.at(0));
+				// Do not set result = false here so that configurations with
+				// optional pins (e.g. usb1 or sedl not present on this board) still function.
 			}
 		}
 		else if (words.size() == 1)
 		{
-			if (scriptCommand != nullptr)
+			if (scriptCommand != nullptr && !startsWith(words.at(0), "//"))
 			{
 				CommandEntry commandEntry = CommandEntry(new _CommandEntry);
 
@@ -227,7 +167,7 @@ bool AlpacaScript::parseScript(const std::string& alpacaScript, const ScriptVari
 	return result;
 }
 
-CommandEntries AlpacaScript::replaceTokens(const ScriptVariables scriptVariables, const CommandEntries commandEntries)
+CommandEntries AlpacaScript::replaceTokens(const ScriptVariables& scriptVariables, const CommandEntries& commandEntries)
 {
 	CommandEntries result;
 
@@ -255,14 +195,30 @@ CommandEntries AlpacaScript::replaceTokens(const ScriptVariables scriptVariables
 					auto variableIterator = scriptVariables.find(variableString);
 					if (variableIterator != scriptVariables.end())
 					{
-						cmdEntry->_arguement = std::get<uint32_t>(variableIterator->second._defaultValue);
+						uint32_t delayMs = 0;
+						const auto& val = variableIterator->second._defaultValue;
+						if (std::holds_alternative<uint32_t>(val))
+						{
+							delayMs = std::get<uint32_t>(val);
+						}
+						else if (std::holds_alternative<std::string>(val))
+						{
+							toUInt32(std::get<std::string>(val), delayMs);
+						}
+						else if (std::holds_alternative<bool>(val))
+						{
+							delayMs = std::get<bool>(val) ? 1 : 0;
+						}
+						cmdEntry->_arguement = delayMs;
 					}
 				}
 			}
 		}
 		else if (cmdEntry->_commandAction == _CommandEntry::eLog)
 		{
-			std::string commentString = std::get<std::string>(cmdEntry->_arguement);
+			std::string commentString;
+			if (std::holds_alternative<std::string>(cmdEntry->_arguement))
+				commentString = std::get<std::string>(cmdEntry->_arguement);
 
 			std::vector<std::string> commentTokens = splitWords(commentString);
 
@@ -275,7 +231,19 @@ CommandEntries AlpacaScript::replaceTokens(const ScriptVariables scriptVariables
 					variableName.erase(std::remove(variableName.begin(), variableName.end(), '$'), variableName.end());
 
 					auto variableIterator = scriptVariables.find(variableName);
-					formattedLogMessage += std::to_string(std::get<uint32_t>(variableIterator->second._defaultValue)) + " ";
+					if (variableIterator != scriptVariables.end())
+					{
+						std::string valStr;
+						const auto& val = variableIterator->second._defaultValue;
+						if (std::holds_alternative<uint32_t>(val))
+							valStr = std::to_string(std::get<uint32_t>(val));
+						else if (std::holds_alternative<std::string>(val))
+							valStr = std::get<std::string>(val);
+						else if (std::holds_alternative<bool>(val))
+							valStr = std::get<bool>(val) ? "true" : "false";
+
+						formattedLogMessage += valStr + " ";
+					}
 				}
 				else
 					formattedLogMessage += cmdToken + " ";
@@ -303,11 +271,11 @@ std::vector<std::string> AlpacaScript::validateScript
 	std::string lineText;
 	while (std::getline(alpacaScriptStream, lineText))
 	{
-		std::string line = trimCopy(lineText);
+		std::string line = trim(lineText);
 		std::vector<std::string> words = splitWords(line);
 		if (words.size() >= 2)
 		{
-			if (toLowerCopy(words.at(0)) == "def")
+			if (toLower(words.at(0)) == "def")
 			{
 				scriptCommands.push_back(createBaseCommandString(words.at(1)));
 			}
@@ -321,7 +289,7 @@ std::vector<std::string> AlpacaScript::validateScript
 	{
 		lineNumber++;
 
-		std::string line = trimCopy(lineText);
+		std::string line = trim(lineText);
 		std::vector<std::string> words = splitWords(line);
 		if (words.size() == 2)
 		{
@@ -336,7 +304,7 @@ std::vector<std::string> AlpacaScript::validateScript
 			{
 				result.push_back("line number: " + std::to_string(lineNumber) + " Unrecognized command " + firstParameter);
 			}
-			else if (equalsCaseInsensitive(words.at(0), "logcomment"))
+			else if (equalsIgnoreCase(words.at(0), "logcomment"))
 			{
 			}
 			else if (words.at(0) == "delay")
@@ -369,7 +337,14 @@ bool AlpacaScript::hasCommand
 	const std::string& command
 )
 {
-	return _scriptCommands.find(command) != _scriptCommands.end();
+	if (_scriptCommands.find(command) != _scriptCommands.end())
+		return true;
+	for (const auto& [cmd, sc] : _scriptCommands)
+	{
+		if (equalsIgnoreCase(cmd, command))
+			return true;
+	}
+	return false;
 }
 
 std::vector<std::string> AlpacaScript::availableCommands()
@@ -386,13 +361,17 @@ std::vector<std::string> AlpacaScript::availableCommands()
 
 ScriptCommand AlpacaScript::getCommand(const std::string &command)
 {
-	ScriptCommand result;
-
 	auto scriptCommandIterator = _scriptCommands.find(command);
 	if (scriptCommandIterator != _scriptCommands.end())
-		result = scriptCommandIterator->second;
+		return scriptCommandIterator->second;
 
-	return result;
+	for (const auto& [cmd, sc] : _scriptCommands)
+	{
+		if (equalsIgnoreCase(cmd, command))
+			return sc;
+	}
+
+	return ScriptCommand();
 }
 
 CommandEntries AlpacaScript::getCommandEntries(const std::string &command)
@@ -403,6 +382,17 @@ CommandEntries AlpacaScript::getCommandEntries(const std::string &command)
 	if (scriptCommandIterator != _scriptCommands.end())
 	{
 		processCommandEntries(scriptCommandIterator->second, result, 1);
+	}
+	else
+	{
+		for (const auto& [cmd, sc] : _scriptCommands)
+		{
+			if (equalsIgnoreCase(cmd, command))
+			{
+				processCommandEntries(sc, result, 1);
+				break;
+			}
+		}
 	}
 
 	return result;
@@ -439,7 +429,7 @@ std::string AlpacaScript::createBaseCommandString
 
 	result.erase(std::remove(result.begin(), result.end(), '('), result.end());
 	result.erase(std::remove(result.begin(), result.end(), ')'), result.end());
-	result = trimCopy(result);
+	result = trim(result);
 
 	return result;
 }
@@ -453,8 +443,14 @@ bool AlpacaScript::processCommandEntries
 {
 	bool result{true};
 
+	if (scriptCommand == nullptr)
+		return false;
+
 	for (const auto& commandEntry: scriptCommand->_subCommands)
 	{
+		if (commandEntry == nullptr)
+			continue;
+
 		switch (commandEntry->_commandAction)
 		{
 			case _CommandEntry::eNotSet:
@@ -470,7 +466,14 @@ bool AlpacaScript::processCommandEntries
 				if (level < 7)
 				{
 					ScriptCommand childScript = getCommand(commandEntry->_action);
-					processCommandEntries(childScript, commandEntries, level + 1);
+					if (childScript != nullptr)
+					{
+						processCommandEntries(childScript, commandEntries, level + 1);
+					}
+					else
+					{
+						AppCore::writeToApplicationLogLine("Command " + commandEntry->_action + " not found in Alpaca script");
+					}
 				}
 				else
 				{

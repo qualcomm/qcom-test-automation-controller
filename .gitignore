@@ -40,6 +40,10 @@ docs/tools/_build/
 # Driver packages
 ftd2xx.lib
 *.zip
+*.tgz
 
 # BRF documents
 *.xml
+
+# CLI standalone links
+cli/src

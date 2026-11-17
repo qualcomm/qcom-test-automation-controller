@@ -62,8 +62,8 @@ void buildRecentsMenu
 
 		for (auto index: range(recentFiles.fileCount()))
 		{
-			QString filePath = recentFiles.getFilePath(index);
-			QString fileName = recentFiles.getFileName(index);
+			QString filePath = QString::fromStdString(recentFiles.getFilePath(index));
+			QString fileName = QString::fromStdString(recentFiles.getFileName(index));
 
 			if (fileName.isEmpty() == false)
 			{
@@ -129,7 +129,9 @@ void launchFolder
 	if (QDir().exists(folderName))
 	{
 #ifdef Q_OS_WIN
-	ShellExecuteA(NULL, "open", folderName.toLatin1().data(), NULL, NULL, SW_SHOWMINIMIZED);
+		ShellExecuteA(NULL, "open", folderName.toLatin1().data(), NULL, NULL, SW_SHOWMINIMIZED);
+#else
+		QDesktopServices::openUrl(QUrl::fromLocalFile(folderName));
 #endif
 	}
 }

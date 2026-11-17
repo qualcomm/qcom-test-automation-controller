@@ -7,6 +7,7 @@
 // QCommon
 #include "TableCheckBox.h"
 #include "TableComboBox.h"
+#include "QCommonTypes.h"
 
 const int kVariableNameCol(0);
 const int kVariableLabelCol(1);
@@ -46,12 +47,12 @@ CodeEditor::~CodeEditor()
 
 void CodeEditor::setScript()
 {
-	_codeEditor->setPlainText(QString(_platformConfiguration->getAlpacaScript()));
+	_codeEditor->setPlainText(toQString(_platformConfiguration->getAlpacaScript()));
 }
 
 QByteArray CodeEditor::getScript()
 {
-	return _codeEditor->toPlainText().toLatin1();
+	return _codeEditor->toPlainText().toUtf8();
 }
 
 void CodeEditor::readVariables()
@@ -60,24 +61,24 @@ void CodeEditor::readVariables()
 	TableComboBox* tableComboBox{Q_NULLPTR};
 	TableCheckBox* tableCheckBox{Q_NULLPTR};
 
-	for (auto& scriptVariable: _platformConfiguration->getVariables())
+	for (auto& [varName, scriptVariable]: _platformConfiguration->getVariables())
 	{
 		int lastRow = _variableTable->rowCount();
 		_variableTable->insertRow(lastRow);
 
 		twi = new QTableWidgetItem;
 		twi->setTextAlignment(Qt::AlignHCenter | Qt::AlignVCenter);
-		twi->setText(scriptVariable._name);
+		twi->setText(toQString(scriptVariable._name));
 		_variableTable->setItem(lastRow, kVariableNameCol, twi);
 
 		twi = new QTableWidgetItem;
 		twi->setTextAlignment(Qt::AlignHCenter | Qt::AlignVCenter);
-		twi->setText(scriptVariable._label);
+		twi->setText(toQString(scriptVariable._label));
 		_variableTable->setItem(lastRow, kVariableLabelCol, twi);
 
 		twi = new QTableWidgetItem;
 		twi->setTextAlignment(Qt::AlignHCenter | Qt::AlignVCenter);
-		twi->setText(scriptVariable._tooltip);
+		twi->setText(toQString(scriptVariable._tooltip));
 		_variableTable->setItem(lastRow, kVariableTooltipCol, twi);
 
 		tableComboBox = new TableComboBox(_variableTable);
@@ -89,7 +90,7 @@ void CodeEditor::readVariables()
 
 		twi = new QTableWidgetItem;
 		twi->setTextAlignment(Qt::AlignHCenter | Qt::AlignVCenter);
-		QString defaultValue = scriptVariable._defaultValue.toString();
+		QString defaultValue = toQVariant(scriptVariable._defaultValue).toString();
 		if (defaultValue.compare("true", Qt::CaseInsensitive) == 0 || defaultValue.compare("false", Qt::CaseInsensitive) == 0)
 		{
 			tableCheckBox = new TableCheckBox(Q_NULLPTR);
@@ -107,7 +108,7 @@ void CodeEditor::readVariables()
 
 		twi = new QTableWidgetItem;
 		twi->setTextAlignment(Qt::AlignHCenter | Qt::AlignVCenter);
-		twi->setText(QString::number(scriptVariable._cellLocation.x()) + "," + QString::number(scriptVariable._cellLocation.y()));
+		twi->setText(QString::number(scriptVariable._cellLocation.first) + "," + QString::number(scriptVariable._cellLocation.second));
 		_variableTable->setItem(lastRow, kVariableCellLocationCol, twi);
 	}
 	connect(_variableTable, &QTableWidget::itemDoubleClicked, this, &::CodeEditor::onVariableTableItemDoubleClicked);
@@ -116,7 +117,7 @@ void CodeEditor::readVariables()
 
 void CodeEditor::on_buttonBox_accepted()
 {
-	_platformConfiguration->setAlpacaScript(QByteArray(_codeEditor->document()->toPlainText().toLatin1()));
+	_platformConfiguration->setAlpacaScript(toStdString(_codeEditor->document()->toPlainText()));
 }
 
 void CodeEditor::on__addVariable_clicked()
@@ -131,17 +132,17 @@ void CodeEditor::on__addVariable_clicked()
 
 	twi = new QTableWidgetItem;
 	twi->setTextAlignment(Qt::AlignHCenter | Qt::AlignVCenter);
-	twi->setText(scriptVar._name);
+	twi->setText(toQString(scriptVar._name));
 	_variableTable->setItem(lastRow, kVariableNameCol, twi);
 
 	twi = new QTableWidgetItem;
 	twi->setTextAlignment(Qt::AlignHCenter | Qt::AlignVCenter);
-	twi->setText(scriptVar._label);
+	twi->setText(toQString(scriptVar._label));
 	_variableTable->setItem(lastRow, kVariableLabelCol, twi);
 
 	twi = new QTableWidgetItem;
 	twi->setTextAlignment(Qt::AlignHCenter | Qt::AlignVCenter);
-	twi->setText(scriptVar._tooltip);
+	twi->setText(toQString(scriptVar._tooltip));
 	_variableTable->setItem(lastRow, kVariableTooltipCol, twi);
 
 	tableComboBox = new TableComboBox(Q_NULLPTR);
@@ -153,12 +154,12 @@ void CodeEditor::on__addVariable_clicked()
 
 	twi = new QTableWidgetItem;
 	twi->setTextAlignment(Qt::AlignHCenter | Qt::AlignVCenter);
-	twi->setText(scriptVar._defaultValue.toString());
+	twi->setText(toQVariant(scriptVar._defaultValue).toString());
 	_variableTable->setItem(lastRow, kVariableDefaultValueCol, twi);
 
 	twi = new QTableWidgetItem;
 	twi->setTextAlignment(Qt::AlignHCenter | Qt::AlignVCenter);
-	twi->setText(QString::number(scriptVar._cellLocation.x()) + "," + QString::number(scriptVar._cellLocation.y()));
+	twi->setText(QString::number(scriptVar._cellLocation.first) + "," + QString::number(scriptVar._cellLocation.second));
 	_variableTable->setItem(lastRow, kVariableCellLocationCol, twi);
 }
 
@@ -167,9 +168,9 @@ void CodeEditor::on__removeVariable_clicked()
 	QList<QModelIndex> rowList = _variableTable->selectionModel()->selectedRows();
 	for (auto twi : rowList)
 	{
-		QString variableName = _variableTable->itemAt(kVariableNameCol, twi.row())->text();
-	   _variableTable->removeRow(twi.row());
-		_platformConfiguration->deleteVariable(variableName);
+		QString variableName = _variableTable->item(twi.row(), kVariableNameCol)->text();
+		_variableTable->removeRow(twi.row());
+		_platformConfiguration->deleteVariable(toStdString(variableName));
 	}
 
 	int varCount = _variableTable->rowCount();
@@ -235,8 +236,8 @@ void CodeEditor::onVariableTypeChanged(QString newType)
 		unsigned int row = tComboBox->property(kRow).toUInt();
 
 		QString variableName = _variableTable->item(row, kVariableNameCol)->text();
-		VariableType scriptVariableType = variableTypeFromString(newType);
-		_platformConfiguration->setVariableType(variableName, scriptVariableType);
+		VariableType scriptVariableType = variableTypeFromString(toStdString(newType));
+		_platformConfiguration->setVariableType(toStdString(variableName), scriptVariableType);
 
 		if (scriptVariableType == VariableType::eUnknownVariableType)
 		{
@@ -255,7 +256,7 @@ void CodeEditor::onVariableTypeChanged(QString newType)
 
 			tCheckBox = new TableCheckBox(Q_NULLPTR);
 			tCheckBox->setCheckState(state);
-			_platformConfiguration->setVariableDefaultValue(variableName, state);
+			_platformConfiguration->setVariableDefaultValue(toStdString(variableName), state ? "true" : "false");
 			tCheckBox->setProperty(kRow, row);
 
 			if (tCheckBox != Q_NULLPTR)
@@ -273,9 +274,10 @@ void CodeEditor::onVariableTypeChanged(QString newType)
 			if (twi != Q_NULLPTR)
 			{
 				twi->setTextAlignment(Qt::AlignHCenter | Qt::AlignVCenter);
-				if (scriptVariables.contains(variableName))
+				auto it = scriptVariables.find(toStdString(variableName));
+				if (it != scriptVariables.end())
 				{
-					QString variableValue = scriptVariables[variableName]._defaultValue.toString();
+					QString variableValue = toQVariant(it->second._defaultValue).toString();
 					twi->setText(variableValue);
 				}
 				else
@@ -308,16 +310,16 @@ void CodeEditor::onVariableTableItemChanged(QTableWidgetItem *twi)
 		switch(twi->column())
 		{
 		case kVariableNameCol:
-		   _platformConfiguration->setVariableName(currVariableName);
+		   _platformConfiguration->setVariableName(toStdString(currVariableName));
 		   break;
 		case kVariableLabelCol:
-		   _platformConfiguration->setVariableLabel(currVariableName, currentItemText);
+		   _platformConfiguration->setVariableLabel(toStdString(currVariableName), toStdString(currentItemText));
 		   break;
 		case kVariableTooltipCol:
-		   _platformConfiguration->setVariableTooltip(currVariableName, currentItemText);
+		   _platformConfiguration->setVariableTooltip(toStdString(currVariableName), toStdString(currentItemText));
 		   break;
 		case kVariableDefaultValueCol:
-		   _platformConfiguration->setVariableDefaultValue(currVariableName, currentItemText);
+		   _platformConfiguration->setVariableDefaultValue(toStdString(currVariableName), toStdString(currentItemText));
 		   break;
 		case kVariableCellLocationCol:
 		{
@@ -330,15 +332,15 @@ void CodeEditor::onVariableTableItemChanged(QTableWidgetItem *twi)
 			   if (row < 0 || col < 0)
 			   {
 				   twi->setText(kDefaultCellLocation);
-				   _platformConfiguration->setVariableCellLocation(currVariableName, QPoint(-1,-1));
+				   _platformConfiguration->setVariableCellLocation(toStdString(currVariableName), {-1,-1});
 			   }
 			   else
-				   _platformConfiguration->setVariableCellLocation(currVariableName, QPoint(row, col));
+				   _platformConfiguration->setVariableCellLocation(toStdString(currVariableName), {row, col});
 		   }
 		   else
 		   {
 			   twi->setText(kDefaultCellLocation);
-			   _platformConfiguration->setVariableCellLocation(currVariableName, QPoint(-1,-1));
+			   _platformConfiguration->setVariableCellLocation(toStdString(currVariableName), {-1,-1});
 		   }
 		   break;
 		}
@@ -349,17 +351,20 @@ void CodeEditor::onVariableTableItemChanged(QTableWidgetItem *twi)
 		if (twi->column() == kVariableNameCol && currVariableName.compare(prevVariableName) != 0)
 		{
 			ScriptVariables scriptVariables = _platformConfiguration->getVariables();
+			auto it = scriptVariables.find(toStdString(prevVariableName));
+			if (it != scriptVariables.end())
+			{
+				_platformConfiguration->setVariableLabel(toStdString(currVariableName), it->second._label);
+				_platformConfiguration->setVariableTooltip(toStdString(currVariableName), it->second._tooltip);
+				_platformConfiguration->setVariableType(toStdString(currVariableName), it->second._type);
+				_platformConfiguration->setVariableDefaultValue(toStdString(currVariableName), toStdString(toQVariant(it->second._defaultValue).toString()));
+				_platformConfiguration->setVariableCellLocation(toStdString(currVariableName), it->second._cellLocation);
 
-			_platformConfiguration->setVariableLabel(currVariableName, scriptVariables[prevVariableName]._label);
-			_platformConfiguration->setVariableTooltip(currVariableName, scriptVariables[prevVariableName]._tooltip);
-			_platformConfiguration->setVariableType(currVariableName, scriptVariables[prevVariableName]._type);
-			_platformConfiguration->setVariableDefaultValue(currVariableName, scriptVariables[prevVariableName]._defaultValue);
-			_platformConfiguration->setVariableCellLocation(currVariableName, scriptVariables[prevVariableName]._cellLocation);
-
-			_platformConfiguration->deleteVariable(prevVariableName);
+				_platformConfiguration->deleteVariable(toStdString(prevVariableName));
+			}
 		}
 
-		QString lastError = _platformConfiguration->getLastError();
+		QString lastError = toQString(_PlatformConfiguration::getLastError());
 
 		if (lastError.isEmpty() == false)
 			emit startNotification(lastError, eErrorNotification);
@@ -373,7 +378,7 @@ void CodeEditor::onVariableCheckBoxUpdated(bool newState)
 	{
 	   quint32 row = tCheckBox->property(kRow).toInt();
 	   QString variableName = _variableTable->item(row, kVariableNameCol)->text();
-	   _platformConfiguration->setVariableDefaultValue(variableName, newState);
+	   _platformConfiguration->setVariableDefaultValue(toStdString(variableName), newState ? "true" : "false");
 	}
 }
 

@@ -1,14 +1,15 @@
-﻿// Copyright (c) Qualcomm Technologies, Inc. and/or its subsidiaries.
+// Copyright (c) Qualcomm Technologies, Inc. and/or its subsidiaries.
 // SPDX-License-Identifier: BSD-3-Clause
 
 #include "PSOCEditorView.h"
 
 #include "CustomValidator.h"
 
-#include "CommandGroup.h"
 #include "PlatformConfigurationException.h"
-
-// QCommon
+#include "QCommonTypes.h"
+#include "QCommandGroup.h"
+#include "QTab.h"
+#include "QPlatformConfigBridge.h"
 #include "StringUtilities.h"
 #include "TableCheckBox.h"
 #include "TableComboBox.h"
@@ -110,7 +111,7 @@ void PSOCEditorView::setPlatformConfiguration
 	{
 		EditorView::setPlatformConfiguration(platformConfiguration);
 
-		_psocPlatformConfig = static_cast<_PSOCPlatformConfiguration*>(platformConfiguration.data());
+		_psocPlatformConfig = dynamic_cast<_PSOCPlatformConfiguration*>(platformConfiguration.get());
 
 		read();
 	}
@@ -261,11 +262,11 @@ void PSOCEditorView::onGroupChanged(QString newText)
 
 		try
 		{
-			_psocPlatformConfig->setPinGroup(hash, CommandGroup::fromString(newText));
+			_psocPlatformConfig->setPinGroup(hash, QCommandGroup::fromString(newText));
 		}
 		catch (const PlatformConfigurationException& e)
 		{
-			QMessageBox::critical(this, "TAC Configuration Editor - cannot set pin group", e.getMessage());
+			QMessageBox::critical(this, "TAC Configuration Editor - cannot set pin group", QPlatformConfigBridge::getExceptionMessage(e));
 		}
 	}
 }
@@ -277,7 +278,7 @@ void PSOCEditorView::onTabsChanged(QString newText)
 	{
 		HashType hash = obj->property(kHash).toULongLong();
 
-		_psocPlatformConfig->setTabName(hash, newText);
+		_psocPlatformConfig->setTabName(hash, toStdString(newText));
 	}
 }
 
@@ -291,13 +292,13 @@ void PSOCEditorView::onTableItemChanged(QTableWidgetItem* twi)
 		_psocPlatformConfig->setPinInitializationPriority(hash, itemText.toInt());
 		break;
 	case kPinLabelColumn:
-		_psocPlatformConfig->setPinLabel(hash, sanitizeText(itemText));
+		_psocPlatformConfig->setPinLabel(hash, toStdString(sanitizeText(itemText)));
 		break;
 	case kPinTooltipColumn:
-		_psocPlatformConfig->setPinTooltip(hash, sanitizeText(itemText));
+		_psocPlatformConfig->setPinTooltip(hash, toStdString(sanitizeText(itemText)));
 		break;
 	case kPinCommandColumn:
-		_psocPlatformConfig->setPinCommand(hash, sanitizeText(itemText));
+		_psocPlatformConfig->setPinCommand(hash, toStdString(sanitizeText(itemText)));
 		break;
 	case kCellLocationColumn:
 	{
@@ -310,15 +311,15 @@ void PSOCEditorView::onTableItemChanged(QTableWidgetItem* twi)
 			if (row < 0 || col < 0)
 			{
 				twi->setText(kDefaultCellLocation);
-				_psocPlatformConfig->setPinCellLocation(hash, QPoint(-1,-1));
+				_psocPlatformConfig->setPinCellLocation(hash, {-1, -1});
 			}
 			else
-				_psocPlatformConfig->setPinCellLocation(hash, QPoint(row, col));
+				_psocPlatformConfig->setPinCellLocation(hash, {row, col});
 		}
 		else
 		{
 			twi->setText(kDefaultCellLocation);
-			_psocPlatformConfig->setPinCellLocation(hash, QPoint(-1,-1));
+			_psocPlatformConfig->setPinCellLocation(hash, {-1, -1});
 		}
 		break;
 	}
@@ -358,11 +359,11 @@ void PSOCEditorView::onI2CGroupChanged(QString newText)
 
 		try
 		{
-			_psocPlatformConfig->setI2CPinGroup(hash, CommandGroup::fromString(newText));
+			_psocPlatformConfig->setI2CPinGroup(hash, QCommandGroup::fromString(newText));
 		}
 		catch (const PlatformConfigurationException& e)
 		{
-			QMessageBox::critical(this, "TAC Configuration Editor - cannot set pin group", e.getMessage());
+			QMessageBox::critical(this, "TAC Configuration Editor - cannot set pin group", QPlatformConfigBridge::getExceptionMessage(e));
 		}
 	}
 }
@@ -374,7 +375,7 @@ void PSOCEditorView::onI2CTabsChanged(QString newText)
 	{
 		HashType hash = obj->property(kHash).toULongLong();
 
-		_psocPlatformConfig->setI2CTabName(hash, newText);
+		_psocPlatformConfig->setI2CTabName(hash, toStdString(newText));
 	}
 }
 
@@ -385,13 +386,13 @@ void PSOCEditorView::onI2CTableItemChanged(QTableWidgetItem* twi)
 	switch(twi->column())
 	{
 	case kI2CPinLabelColumn:
-		_psocPlatformConfig->setI2CPinLabel(hash, sanitizeText(itemText));
+		_psocPlatformConfig->setI2CPinLabel(hash, toStdString(sanitizeText(itemText)));
 		break;
 	case kI2CPinTooltipColumn:
-		_psocPlatformConfig->setI2CPinTooltip(hash, sanitizeText(itemText));
+		_psocPlatformConfig->setI2CPinTooltip(hash, toStdString(sanitizeText(itemText)));
 		break;
 	case kI2CPinCommandColumn:
-		_psocPlatformConfig->setI2CPinCommand(hash, sanitizeText(itemText));
+		_psocPlatformConfig->setI2CPinCommand(hash, toStdString(sanitizeText(itemText)));
 		break;
 	case kI2CCellLocationColumn:
 	{
@@ -404,15 +405,15 @@ void PSOCEditorView::onI2CTableItemChanged(QTableWidgetItem* twi)
 			if (row < 0 || col < 0)
 			{
 				twi->setText(kDefaultCellLocation);
-				_psocPlatformConfig->setI2CPinCellLocation(hash, QPoint(-1,-1));
+				_psocPlatformConfig->setI2CPinCellLocation(hash, {-1, -1});
 			}
 			else
-				_psocPlatformConfig->setI2CPinCellLocation(hash, QPoint(row, col));
+				_psocPlatformConfig->setI2CPinCellLocation(hash, {row, col});
 		}
 		else
 		{
 			twi->setText(kDefaultCellLocation);
-			_psocPlatformConfig->setI2CPinCellLocation(hash, QPoint(-1,-1));
+			_psocPlatformConfig->setI2CPinCellLocation(hash, {-1, -1});
 		}
 		break;
 	}
@@ -439,7 +440,7 @@ bool PSOCEditorView::read()
 	{
 		PSOCI2CSlaves slaves = _psocPlatformConfig->getSlaveConfigs();
 
-		if (_psocPlatformConfig->variant() != ePSOCGPIOIIC || slaves.count() > 0)
+		if (_psocPlatformConfig->variant() != ePSOCGPIOIIC || !slaves.empty())
 			_psocTabWgt->setTabVisible(1, 0);
 
 		for (auto& s : slaves)
@@ -451,7 +452,7 @@ bool PSOCEditorView::read()
 			hbl->addWidget(slaveTable);
 			_slaveI2CTables.append(slaveTable);
 
-			_psocTabWgt->addTab(wgt, _PSOCPlatformConfiguration::i2cSlaveTabName(s));
+			_psocTabWgt->addTab(wgt, toQString(_PSOCPlatformConfiguration::i2cSlaveTabName(s)));
 		}
 
 		for (auto& pin : _psocPlatformConfig->getAllPins())
@@ -465,79 +466,79 @@ bool PSOCEditorView::read()
 			HashType hash{static_cast<HashType>(pin._pin)};
 
 			twi = new QTableWidgetItem();
-			twi->setData(kHashRole, hash);
+			twi->setData(kHashRole, toQVariant(hash));
 			twi->setTextAlignment(Qt::AlignHCenter | Qt::AlignVCenter);
 			twi->setText(QString::number(static_cast<quint16>(pin._pin)));
 			twi->setFlags(twi->flags() & ~Qt::ItemIsEditable);
 			_psocTable->setItem(row, kPinColumn, twi);
 
 			tableCheckBox = new TableCheckBox(Q_NULLPTR);
-			tableCheckBox->setProperty(kHash, hash);
+			tableCheckBox->setProperty(kHash, toQVariant(hash));
 			tableCheckBox->setCheckState(pin._enabled);
 			connect(tableCheckBox, SIGNAL(checkStateChanged(bool)), this, SLOT(onEnableCheckChanged(bool)));
 			_psocTable->setCellWidget(row, kEnabledColumn, tableCheckBox);
 
 			tableCheckBox = new TableCheckBox(Q_NULLPTR);
-			tableCheckBox->setProperty(kHash, hash);
+			tableCheckBox->setProperty(kHash, toQVariant(hash));
 			tableCheckBox->setCheckState(pin._initialValue);
 			connect(tableCheckBox, SIGNAL(checkStateChanged(bool)), this, SLOT(onInitialPinValueChanged(bool)));
 			_psocTable->setCellWidget(row, kInitialPinValueColumn, tableCheckBox);
 
 			twi = new QTableWidgetItem();
-			twi->setData(kHashRole, hash);
+			twi->setData(kHashRole, toQVariant(hash));
 			twi->setTextAlignment(Qt::AlignHCenter | Qt::AlignVCenter);
 			twi->setText(QString::number(pin._initializationPriority));
 			_psocTable->setItem(row, kInitializationPriorityColumn, twi);
 
 			tableCheckBox = new TableCheckBox(Q_NULLPTR);
 			tableCheckBox->setCheckState(pin._inverted);
-			tableCheckBox->setProperty(kHash, hash);
+			tableCheckBox->setProperty(kHash, toQVariant(hash));
 			connect(tableCheckBox, SIGNAL(checkStateChanged(bool)), this, SLOT(onInvertCheckChanged(bool)));
 			_psocTable->setCellWidget(row, kInvertColumn, tableCheckBox);
 
 			twi = new QTableWidgetItem();
-			twi->setData(kHashRole, hash);
-			twi->setText(pin._pinLabel.isEmpty() ? kDefaultPinLabel : pin._pinLabel);
+			twi->setData(kHashRole, toQVariant(hash));
+			twi->setText(pin._pinLabel.empty() ? kDefaultPinLabel : toQString(pin._pinLabel));
 			twi->setTextAlignment(Qt::AlignHCenter | Qt::AlignVCenter);
 			_psocTable->setItem(row, kPinLabelColumn, twi);
 
 			twi = new QTableWidgetItem();
-			twi->setData(kHashRole, hash);
-			twi->setText(pin._pinTooltip.isEmpty() ? kDefaultPinTooltip : pin._pinTooltip);
+			twi->setData(kHashRole, toQVariant(hash));
+			twi->setText(pin._pinTooltip.empty() ? kDefaultPinTooltip : toQString(pin._pinTooltip));
 			twi->setTextAlignment(Qt::AlignHCenter | Qt::AlignVCenter);
 			_psocTable->setItem(row, kPinTooltipColumn, twi);
 
 			twi = new QTableWidgetItem();
-			twi->setData(kHashRole, hash);
-			twi->setText(pin._pinCommand.isEmpty() ? kDefaultPinCommand : pin._pinCommand);
+			twi->setData(kHashRole, toQVariant(hash));
+			twi->setText(pin._pinCommand.empty() ? kDefaultPinCommand : toQString(pin._pinCommand));
 			twi->setTextAlignment(Qt::AlignHCenter | Qt::AlignVCenter);
 			_psocTable->setItem(row, kPinCommandColumn, twi);
 
 			tableComboBox = new TableComboBox(Q_NULLPTR);
-			tableComboBox->setProperty(kHash, hash);
-			tableComboBox->setupItems(CommandGroup::toStringList());
-			tableComboBox->setCurrentText(CommandGroup::toString(pin._commandGroup));
+			tableComboBox->setProperty(kHash, toQVariant(hash));
+			tableComboBox->setupItems(toQStringList(CommandGroup::toStringList()));
+			tableComboBox->setCurrentText(toQString(CommandGroup::toString(pin._commandGroup)));
 			connect(tableComboBox, SIGNAL(currentTextChanged(QString)), this, SLOT(onGroupChanged(QString)));
 			_psocTable->setCellWidget(row, kCommandGroupColumn, tableComboBox);
 
 			tableComboBox = new TableComboBox(Q_NULLPTR);
-			tableComboBox->setProperty(kHash, hash);
+			tableComboBox->setProperty(kHash, toQVariant(hash));
 
-			tableComboBox->setupItems(Tab::toStringList(_configurableTabs));
-			tableComboBox->setCurrentText(pin._tabName);
+			tableComboBox->setupItems(toQStringList(Tab::toStringList(_configurableTabs)));
+			tableComboBox->setCurrentText(toQString(pin._tabName));
 			connect(tableComboBox, SIGNAL(currentTextChanged(QString)), this, SLOT(onTabsChanged(QString)));
 			_psocTable->setCellWidget(row, kTabsColumn, tableComboBox);
 
 			twi = new QTableWidgetItem();
-			twi->setData(kHashRole, hash);
-			twi->setText(pin._classicAction);
+			twi->setData(kHashRole, toQVariant(hash));
+			twi->setText(toQString(pin._classicAction));
 			twi->setTextAlignment(Qt::AlignHCenter | Qt::AlignVCenter);
 			twi->setFlags(twi->flags() & ~Qt::ItemIsEditable);
 			_psocTable->setItem(row, kClassicActionColumn, twi);
 
 			twi = new QTableWidgetItem();
-			twi->setData(kHashRole, hash);
-			twi->setText(QString::number(pin._cellLocation.x()) + "," + QString::number(pin._cellLocation.y()));
+			twi->setData(kHashRole, toQVariant(hash));
+			twi->setText(QString::number(pin._cellLocation.first) + "," + QString::number(pin._cellLocation.second));
 			twi->setTextAlignment(Qt::AlignHCenter | Qt::AlignVCenter);
 			_psocTable->setItem(row, kCellLocationColumn, twi);
 
@@ -546,17 +547,20 @@ bool PSOCEditorView::read()
 
 		PSOCI2CEntries i2cEntries = _psocPlatformConfig->getI2CEntries();
 
-		if (slaves.isEmpty())
+		if (slaves.empty())
 		{
-			populateI2CTable(_i2cTable, i2cEntries.values());
+			std::vector<PSOCI2CData> entriesList;
+			for (const auto& [entryHash, data] : i2cEntries)
+				entriesList.push_back(data);
+			populateI2CTable(_i2cTable, entriesList);
 			connect(_i2cTable, &QTableWidget::itemChanged, this, &PSOCEditorView::onI2CTableItemChanged);
 		}
 		else
 		{
-			for (int i = 0; i < slaves.count(); ++i)
+			for (size_t i = 0; i < slaves.size(); ++i)
 			{
-				QList<PSOCI2CData> slaveEntries = _psocPlatformConfig->getI2CEntriesForSlave(slaves.at(i));
-				populateI2CTable(_slaveI2CTables.at(i), slaveEntries);
+				std::vector<PSOCI2CData> slaveEntries = _psocPlatformConfig->getI2CEntriesForSlave(slaves.at(i));
+				populateI2CTable(_slaveI2CTables.at(static_cast<int>(i)), slaveEntries);
 			}
 		}
 
@@ -601,7 +605,7 @@ QTableWidget* PSOCEditorView::createI2CTableFromTemplate(QWidget* parent)
 	return table;
 }
 
-void PSOCEditorView::populateI2CTable(QTableWidget* table, const QList<PSOCI2CData>& entries)
+void PSOCEditorView::populateI2CTable(QTableWidget* table, const std::vector<PSOCI2CData>& entries)
 {
 	int row = 0;
 
@@ -616,65 +620,65 @@ void PSOCEditorView::populateI2CTable(QTableWidget* table, const QList<PSOCI2CDa
 		HashType hash{i2cData._hash};
 
 		twi = new QTableWidgetItem();
-		twi->setData(kHashRole, hash);
+		twi->setData(kHashRole, toQVariant(hash));
 		twi->setTextAlignment(Qt::AlignHCenter | Qt::AlignVCenter);
 		twi->setText(QString::number(static_cast<quint16>(i2cData._pin)));
 		twi->setFlags(twi->flags() & ~Qt::ItemIsEditable);
 		table->setItem(row, kI2CPinColumn, twi);
 
 		tableCheckBox = new TableCheckBox(Q_NULLPTR);
-		tableCheckBox->setProperty(kHash, hash);
+		tableCheckBox->setProperty(kHash, toQVariant(hash));
 		tableCheckBox->setCheckState(i2cData._enabled);
 		connect(tableCheckBox, SIGNAL(checkStateChanged(bool)), this, SLOT(onI2CEnableCheckChanged(bool)));
 		table->setCellWidget(row, kI2CEnabledColumn, tableCheckBox);
 
 		tableCheckBox = new TableCheckBox(Q_NULLPTR);
 		tableCheckBox->setCheckState(i2cData._inverted);
-		tableCheckBox->setProperty(kHash, hash);
+		tableCheckBox->setProperty(kHash, toQVariant(hash));
 		connect(tableCheckBox, SIGNAL(checkStateChanged(bool)), this, SLOT(onI2CInvertCheckChanged(bool)));
 		table->setCellWidget(row, kI2CInvertColumn, tableCheckBox);
 
 		twi = new QTableWidgetItem();
-		twi->setData(kHashRole, hash);
+		twi->setData(kHashRole, toQVariant(hash));
 		twi->setText(QString::number(i2cData._writeAddress, 16));
 		twi->setTextAlignment(Qt::AlignHCenter | Qt::AlignVCenter);
 		table->setItem(row, kI2CWriteAddressColumn, twi);
 
 		twi = new QTableWidgetItem();
-		twi->setData(kHashRole, hash);
-		twi->setText(i2cData._pinLabel.isEmpty() ? kDefaultPinLabel : i2cData._pinLabel);
+		twi->setData(kHashRole, toQVariant(hash));
+		twi->setText(i2cData._pinLabel.empty() ? kDefaultPinLabel : toQString(i2cData._pinLabel));
 		twi->setTextAlignment(Qt::AlignHCenter | Qt::AlignVCenter);
 		table->setItem(row, kI2CPinLabelColumn, twi);
 
 		twi = new QTableWidgetItem();
-		twi->setData(kHashRole, hash);
-		twi->setText(i2cData._pinTooltip.isEmpty() ? kDefaultPinTooltip : i2cData._pinTooltip);
+		twi->setData(kHashRole, toQVariant(hash));
+		twi->setText(i2cData._pinTooltip.empty() ? kDefaultPinTooltip : toQString(i2cData._pinTooltip));
 		twi->setTextAlignment(Qt::AlignHCenter | Qt::AlignVCenter);
 		table->setItem(row, kI2CPinTooltipColumn, twi);
 
 		twi = new QTableWidgetItem();
-		twi->setData(kHashRole, hash);
-		twi->setText(i2cData._pinCommand.isEmpty() ? kDefaultPinCommand : i2cData._pinCommand);
+		twi->setData(kHashRole, toQVariant(hash));
+		twi->setText(i2cData._pinCommand.empty() ? kDefaultPinCommand : toQString(i2cData._pinCommand));
 		twi->setTextAlignment(Qt::AlignHCenter | Qt::AlignVCenter);
 		table->setItem(row, kI2CPinCommandColumn, twi);
 
 		tableComboBox = new TableComboBox(Q_NULLPTR);
-		tableComboBox->setProperty(kHash, hash);
-		tableComboBox->setupItems(CommandGroup::toStringList());
-		tableComboBox->setCurrentText(CommandGroup::toString(i2cData._commandGroup));
+		tableComboBox->setProperty(kHash, toQVariant(hash));
+		tableComboBox->setupItems(QCommandGroup::toStringList());
+		tableComboBox->setCurrentText(QCommandGroup::toString(i2cData._commandGroup));
 		connect(tableComboBox, SIGNAL(currentTextChanged(QString)), this, SLOT(onI2CGroupChanged(QString)));
 		table->setCellWidget(row, kI2CCommandGroupColumn, tableComboBox);
 
 		tableComboBox = new TableComboBox(Q_NULLPTR);
-		tableComboBox->setProperty(kHash, hash);
-		tableComboBox->setupItems(Tab::toStringList(_configurableTabs));
-		tableComboBox->setCurrentText(i2cData._tabName);
+		tableComboBox->setProperty(kHash, toQVariant(hash));
+		tableComboBox->setupItems(QTabs::toStringList(_configurableTabs));
+		tableComboBox->setCurrentText(toQString(i2cData._tabName));
 		connect(tableComboBox, SIGNAL(currentTextChanged(QString)), this, SLOT(onI2CTabsChanged(QString)));
 		table->setCellWidget(row, kI2CTabsColumn, tableComboBox);
 
 		twi = new QTableWidgetItem();
-		twi->setData(kHashRole, hash);
-		twi->setText(QString::number(i2cData._cellLocation.x()) + "," + QString::number(i2cData._cellLocation.y()));
+		twi->setData(kHashRole, toQVariant(hash));
+		twi->setText(QString::number(i2cData._cellLocation.first) + "," + QString::number(i2cData._cellLocation.second));
 		twi->setTextAlignment(Qt::AlignHCenter | Qt::AlignVCenter);
 		table->setItem(row, kI2CCellLocationColumn, twi);
 
@@ -812,28 +816,28 @@ void PSOCEditorView::resetToDefault()
 
 				twi = _psocTable->item(rowId, kPinLabelColumn);
 				if (twi)
-					twi->setText(pinData._pinLabel);
+					twi->setText(toQString(pinData._pinLabel));
 
 				twi = _psocTable->item(rowId, kPinTooltipColumn);
 				if (twi)
-					twi->setText(pinData._pinTooltip);
+					twi->setText(toQString(pinData._pinTooltip));
 
 				twi = _psocTable->item(rowId, kPinCommandColumn);
 				if (twi)
-					twi->setText(pinData._pinCommand);
+					twi->setText(toQString(pinData._pinCommand));
 
 				comboBoxWidget = static_cast<TableComboBox*>(_psocTable->cellWidget(rowId, kCommandGroupColumn));
 				if (comboBoxWidget)
-					comboBoxWidget->setCurrentText(CommandGroup::toString(pinData._commandGroup));
+					comboBoxWidget->setCurrentText(QCommandGroup::toString(pinData._commandGroup));
 
 				comboBoxWidget = static_cast<TableComboBox*>(_psocTable->cellWidget(rowId, kTabsColumn));
 				if (comboBoxWidget)
-					comboBoxWidget->setCurrentText(pinData._tabName);
+					comboBoxWidget->setCurrentText(toQString(pinData._tabName));
 
 				twi = _psocTable->item(rowId, kCellLocationColumn);
 				if (twi)
 				{
-					QString cellLocationString = QString::number(pinData._cellLocation.x()) + "," + QString::number(pinData._cellLocation.y());
+					QString cellLocationString = QString::number(pinData._cellLocation.first) + "," + QString::number(pinData._cellLocation.second);
 					twi->setText(cellLocationString);
 				}
 			}

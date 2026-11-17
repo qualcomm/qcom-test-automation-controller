@@ -5,7 +5,7 @@
 
 #include "ui_PreferencesDialog.h"
 
-#include "TACPreferences.h"
+#include "QTACPreferences.h"
 
 class PreferencesDialog :
 	public QDialog,
@@ -14,7 +14,7 @@ class PreferencesDialog :
 Q_OBJECT
 
 public:
-	PreferencesDialog(TACPreferences* preferences, QWidget* parent = Q_NULLPTR);
+	PreferencesDialog(QTACPreferences* preferences, QWidget* parent = Q_NULLPTR);
 
 signals:
 	void preferencesChanged();
@@ -27,7 +27,7 @@ private slots:
 protected:
 	void changeEvent(QEvent* e);
 
-	TACPreferences*				_tacPreferences;
+	QTACPreferences*				_tacPreferences;
 };
 
 #endif // PREFERENCESDIALOG_H

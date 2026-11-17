@@ -2,38 +2,11 @@
 // SPDX-License-Identifier: BSD-3-Clause
 
 #include "CommandLineParser.h"
+#include "StringUtilities.h"
 
 // c++
 #include <cctype>
 #include <utility>
-
-static std::string toLowerCase(const std::string& value)
-{
-	std::string result{value};
-
-	for (char& c: result)
-		c = static_cast<char>(std::tolower(static_cast<unsigned char>(c)));
-
-	return result;
-}
-
-static std::vector<std::string> splitOnEquals(const std::string& value)
-{
-	std::vector<std::string> result;
-
-	size_t equalsPos = value.find('=');
-	if (equalsPos == std::string::npos)
-	{
-		result.push_back(value);
-	}
-	else
-	{
-		result.push_back(value.substr(0, equalsPos));
-		result.push_back(value.substr(equalsPos + 1));
-	}
-
-	return result;
-}
 
 CommandLineParser::CommandLineParser
 (
@@ -43,13 +16,13 @@ CommandLineParser::CommandLineParser
 {
 	for (const std::string& arg: _args)
 	{
-		std::vector<std::string> argElements = splitOnEquals(arg);
+		std::vector<std::string> argElements = split(arg, '=');
 		if (argElements.empty() == false)
 		{
 			if (argElements.size() == 1)
-				_values[toLowerCase(argElements.at(0))] = "true";
+				_values[toLower(argElements.at(0))] = "true";
 			else
-				_values[toLowerCase(argElements.at(0))] = argElements.at(1);
+				_values[toLower(argElements.at(0))] = argElements.at(1);
 		}
 	}
 

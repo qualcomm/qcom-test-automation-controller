@@ -26,7 +26,6 @@ public:
 
 		_preferences.setAppName("TAC", "1.1.1");
 		_appCore->setPreferences(&_preferences);
-		_appCore->postAutomationEvent();
 	}
 
 	~DevTACCore()
@@ -75,7 +74,7 @@ int main(int argc, char *argv[])
 	_AlpacaDevice::updateAlpacaDevices();
 	_AlpacaDevice::getAlpacaDevices(alpacaDevices);
 
-	if (alpacaDevices.count() > 0)
+	if (!alpacaDevices.empty())
 	{
 		if (!forQuts)
 			cout << "Devices:" << endl;
@@ -84,11 +83,11 @@ int main(int argc, char *argv[])
 		{
 			if (!forQuts)
 			{
-				cout << "   Device:" << alpacaDevice->portName().data() << " Serial:" << alpacaDevice->serialNumber().data() << endl;
+				cout << "   Device:" << alpacaDevice->portName() << " Serial:" << alpacaDevice->serialNumber() << endl;
 			}
 			else
 			{
-				cout << alpacaDevice->portName().data() << ";" << alpacaDevice->serialNumber().data()<< ";" << endl;
+				cout << alpacaDevice->portName() << ";" << alpacaDevice->serialNumber()<< ";" << endl;
 			}
 		}
 	}

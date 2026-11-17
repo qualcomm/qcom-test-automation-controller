@@ -131,7 +131,7 @@ Copy-Tree (Join-Path $src 'docs') (Join-Path $InstallRoot 'docs\QTAC')
 Copy-Tree (Join-Path $src 'configurations') (Join-Path $DataRoot 'configurations')
 Copy-Tree (Join-Path $src 'FTDI')           (Join-Path $DataRoot 'FTDI')
 
-# 2a. Interfaces (Python + Java SDKs only)
+# 2a. Interfaces (C++ SDK)
 Copy-Tree (Join-Path $src 'interfaces') (Join-Path $DataRoot 'interfaces')
 Log "interfaces copied to $(Join-Path $DataRoot 'interfaces')"
 

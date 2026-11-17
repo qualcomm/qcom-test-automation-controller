@@ -8,22 +8,23 @@
 // QCommon
 #include "FrameCoder.h"
 
-// Qt
-#include <QByteArray>
-
 #include <cstdint>
+#include <string>
 
 class QCOMMONCONSOLE_EXPORT TACSTM32Coder :
 	public FrameCoder
 {
 public:
+	TACSTM32Coder(const TACSTM32Coder&) = delete;
+	TACSTM32Coder& operator=(const TACSTM32Coder&) = delete;
+
 	TACSTM32Coder();
 	virtual ~TACSTM32Coder();
 
-	virtual void reset();
+	virtual void reset() override;
 
-	virtual void decode(const QByteArray& decodeMe);
-	virtual QByteArray encode(const QByteArray& encodeMe, const Arguments& arguments);
+	virtual void decode(const std::string& decodeMe) override;
+	virtual std::string encode(const std::string& encodeMe, const Arguments& arguments) override;
 
 	uint8_t gpioState() const
 	{
@@ -31,8 +32,6 @@ public:
 	}
 
 private:
-	Q_DISABLE_COPY(TACSTM32Coder)
-
 	uint8_t						_gpioState{0};
 };
 

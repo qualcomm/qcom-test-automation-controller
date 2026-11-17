@@ -17,15 +17,17 @@
 #include "ReceiveInterface.h"
 #include "StringUtilities.h"
 
-// Qt
-#include <QCoreApplication>
+// Standard C++
+#include <condition_variable>
+#include <cstdint>
+#include <functional>
+#include <mutex>
+#include <string>
 
 class QCOMMONCONSOLE_EXPORT TACDriveThread :
 	public DriveThread,
 	public ReceiveInterface
 {
-Q_OBJECT
-
 public:
 	TACDriveThread(HashType hash);
 	~TACDriveThread();
@@ -41,11 +43,11 @@ public:
 	void clearWaitForCompletion();
 	bool waitForCompletionStatus();
 
-	QByteArray decodeCommand(const QByteArray& command, Arguments& arg);
+	std::string decodeCommand(const std::string& command, Arguments& arg);
 	bool checkLocalStore(FramePackage& framePackage);
 
-	virtual void sendCommand(const QByteArray& command, bool console = false,
-		ReceiveInterface* receiveInterface = Q_NULLPTR, bool shouldStore = true) = 0;
+	virtual void sendCommand(const std::string& command, bool console = false,
+		ReceiveInterface* receiveInterface = nullptr, bool shouldStore = true) = 0;
 
 	virtual void setPinState(uint16_t pin, bool state) = 0;
 	virtual void setAddressPinState(const std::string& i2cAddress, uint16_t pin, bool state) {}
@@ -65,89 +67,77 @@ public:
 	virtual std::string hardwareVersionString();
 
 	// firmware properties
-	bool oldFirmware();
-	std::string firmwareVersion();
-	uint majorVersion();
-	uint chipVersion();
-	uint minorVersion();
-	uint revisionVersion();
+	bool oldFirmware() const;
+	const std::string& firmwareVersion() const;
+	uint32_t majorVersion() const;
+	uint32_t chipVersion() const;
+	uint32_t minorVersion() const;
+	uint32_t revisionVersion() const;
 
-	QByteArray name() const;
-	void setName(const QByteArray& newName);
+	const std::string& name() const;
+	virtual void setName(const std::string& newName);
 
-	QByteArray portName() const;
-	void setPortName(const QByteArray& portName);
+	const std::string& portName() const;
+	void setPortName(const std::string& portName);
 
-	std::string description() const;
+	const std::string& description() const;
 	void setDescription(const std::string& description);
 
-	QString serialNumber() const;
-	void setSerialNumber(QString serialNumber);
+	const std::string& serialNumber() const;
+	void setSerialNumber(const std::string& serialNumber);
 
-	QString uuid();
+	const std::string& uuid() const;
 
-	std::string macAddress();
+	const std::string& macAddress() const;
 
 	// Send Interface
-	virtual uint32_t send(const QByteArray& sendMe, const Arguments& arguments, bool console, ReceiveInterface* recieveInterface, bool store = true) = 0;
+	virtual uint32_t send(const std::string& sendMe, const Arguments& arguments, bool console, ReceiveInterface* recieveInterface, bool store = true) = 0;
 	virtual bool ready() = 0;
+	virtual bool connected() const { return false; }
 
 	// Receive Interface
 	virtual void receive(FramePackage& framePackage) = 0;
 
-	void setThreadDelay(const uint delay);
+	void setThreadDelay(const uint32_t delay);
 
-signals:
-	void pinStateChanged(/*PinID*/ quint64 pin, bool state);
+	// Lifecycle hooks
+	virtual void onStopping() override;
 
-	void transactionEnded();
-	void progress(const quint8 value=10, NotificationLevel level=eInfoNotification);
-
-	void deviceOpen();
-	void errorOnOpen(const QByteArray& errorString);
-
-	void deviceStatusChange(const QString& deviceStatus);
-
-	void hardwareTypeUpdate(const QString& hardwareType);
-	void hardwareVersionUpdate(const QString& hardwareVersion);
-	void firmwareVersionUpdate(const QString& firmwareVersion);
-	void nameUpdate(const QString& name);
-	void uuidUpdate(const QString& uuid);
-	void serialNumUpdate(const QString& serialNumber);
-	void platformIDUpdate(int platformID);
-
-	void deviceConnected();
-	void deviceDisconnected();
-
-	void resetCountCleared();
-	void resetCountUpdate(quint32 resetCount);
-
-	void i2CReadResult(const QByteArray& readResult, bool valid);
-	void i2CWriteResult(const QByteArray& readResult);
+	// Direct Event Callback Hooks
+	std::function<void(int pin, int state)> onPinStateChanged;
+	std::function<void()>                   onDeviceConnected;
+	std::function<void()>                   onDeviceDisconnected;
+	std::function<void()>                   onDeviceOpen;
+	std::function<void(int progress)>       onProgress;
+	std::function<void(const std::string&)> onError;
+	std::function<void(const std::string&)> onDeviceStatusChange;
 
 protected:
 	bool						_waitForCompletion{false};
+	std::condition_variable		_completionCv;
+	std::mutex					_completionMutex;
 	HashType					_hash{0};
 	bool						_oldFirmware{false};
-	QByteArray					_portName;
+	std::string					_portName;
 	DebugBoardType				_hardwareType{eUnknownDebugBoard};
 	PlatformID					_platformID{MICRO_EPM_BOARD_ID_UNKNOWN};
-	QByteArray					_versionString;
+	std::string					_versionString;
 	std::string					_firmwareString;
-	uint						_firmwareMajor{0};
-	uint						_firmwareChip{0};
-	uint						_firmwareMinor{0};
-	uint						_firmwareRevision{0};
-	QByteArray					_name;
+	uint32_t					_firmwareMajor{0};
+	uint32_t					_firmwareChip{0};
+	uint32_t					_firmwareMinor{0};
+	uint32_t					_firmwareRevision{0};
+	std::string					_name;
 	std::string                 _macAddress;
 	std::string					_description;
-	QString						_uuid;
-	QString						_serialNumber;
+	std::string					_uuid;
+	std::string					_serialNumber;
 	std::string                 _mcnNumber;
-	QString						_helpText;
+	std::string					_helpText;
 
 	int							_resetCount{0};
-	uint						_delay{0};
+	uint32_t					_delay{0};
+	uint64_t					_lastTimeStamp{0};
 
 	virtual void setupConnected() = 0;
 	virtual void setupDiscovery() = 0;
@@ -157,7 +147,7 @@ protected:
 	void shutdownLogging();
 
 	void log(FramePackage& framePackage);
-	void timeStampLogMessage(QString& timeStampMe);
+	void timeStampLogMessage(std::string& timeStampMe);
 };
 
 #endif // TACDRIVETHREAD_H

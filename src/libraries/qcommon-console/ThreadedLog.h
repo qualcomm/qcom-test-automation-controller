@@ -7,48 +7,49 @@ class _ThreadedLog;
 
 #include "QCommonConsoleGlobal.h"
 
-// Qt
-#include <QFile>
-#include <QSharedPointer>
-#include <QString>
-#include <QStringList>
-#include <QThread>
-
-// C++
+// Standard C++
 #include <atomic>
+#include <condition_variable>
+#include <fstream>
+#include <memory>
 #include <mutex>
+#include <stop_token>
+#include <string>
+#include <thread>
+#include <vector>
 
-typedef QSharedPointer<_ThreadedLog>  ThreadedLog;
+typedef std::shared_ptr<_ThreadedLog> ThreadedLog;
 
-class QCOMMONCONSOLE_EXPORT _ThreadedLog :
-	public QThread
+class QCOMMONCONSOLE_EXPORT _ThreadedLog
 {
 public:
-	_ThreadedLog() = default;
+	_ThreadedLog();
+	~_ThreadedLog();
 
 	static ThreadedLog createThreadedLog();
-	static QString createLogName(const QString& prefix);
+	static std::string createLogName(const std::string& prefix);
 
-	void open(const QString& filePath);
+	void open(const std::string& filePath);
 	bool isOpen();
 	void close();
 
-	QString currentLogPath()
+	std::string currentLogPath()
 	{
 		return _currentLogPath;
 	}
 
-	void addLogEntry(const QString& logEntry);
-
-	virtual void run() override;
+	void addLogEntry(const std::string& logEntry);
 
 protected:
+	void workerLoop(std::stop_token stopToken);
+
 	std::atomic<bool>			_running{false};
-	std::atomic<bool>			_starting{false};
-	std::recursive_mutex		_mutex;
-	QStringList					_logEntries;
-	QString						_currentLogPath;
-	QFile						_logFile;
+	std::jthread				_workerThread;
+	std::mutex					_mutex;
+	std::condition_variable		_cv;
+	std::vector<std::string>	_logEntries;
+	std::string					_currentLogPath;
+	std::ofstream				_logFile;
 };
 
 #endif // THREADEDLOG_H

@@ -1,103 +1,108 @@
-﻿#ifndef TACCOMMANDS_H
+#ifndef TACCOMMANDS_H
 #define TACCOMMANDS_H
 // Copyright (c) Qualcomm Technologies, Inc. and/or its subsidiaries.
 // SPDX-License-Identifier: BSD-3-Clause
 
 #include "StringUtilities.h"
 
-// Qt
-#include <QByteArray>
-#include <QVariant>
-
 #include <string>
 
-const QByteArray kVersionCommand{QByteArrayLiteral("Version")};
+inline const std::string kVersionCommand{"Version"};
 
-const QByteArray kSetPinCommand{QByteArrayLiteral("SetPin")};
+inline const std::string kSetPinCommand{"SetPin"};
 
-const QByteArray kButtonAssertTime{QByteArrayLiteral("Button Assert Time")};
-const QByteArray kSetButtonAssertTime{QByteArrayLiteral("Set Button Assert Time")};
-const QByteArray kSetButtonAssertTimeAlias{QByteArrayLiteral("setbtnassert")};
+inline const std::string kButtonAssertTime{"Button Assert Time"};
+inline const std::string kSetButtonAssertTime{"Set Button Assert Time"};
+inline const std::string kSetButtonAssertTimeAlias{"setbtnassert"};
 
-const QByteArray kPowerKeyDelay{QByteArrayLiteral("Power Key Delay")};
-const QByteArray kSetPowerKeyDelay{QByteArrayLiteral("Set Power Key Delay")};
-const QByteArray kSetPowerKeyDelayAlias{QByteArrayLiteral("setpkdelay")};
+inline const std::string kPowerKeyDelay{"Power Key Delay"};
+inline const std::string kSetPowerKeyDelay{"Set Power Key Delay"};
+inline const std::string kSetPowerKeyDelayAlias{"setpkdelay"};
 
-const QByteArray kGetNameCommand{QByteArrayLiteral("Get Name")};
-const QByteArray kSetNameCommand{QByteArrayLiteral("Set Name")};
+inline const std::string kGetNameCommand{"Get Name"};
+inline const std::string kSetNameCommand{"Set Name"};
 
-const QByteArray kGetUUIDCommand{QByteArrayLiteral("Get UUID")};
+inline const std::string kGetUUIDCommand{"Get UUID"};
 
-const QByteArray kGetPlatformIDCommand{QByteArrayLiteral("Get Platform ID")};
+inline const std::string kGetPlatformIDCommand{"Get Platform ID"};
 
-const QByteArray kHelpCommand{QByteArrayLiteral("Help")};
+inline const std::string kHelpCommand{"Help"};
 
-const QByteArray kBatteryCommand{QByteArrayLiteral("Get Battery")};
-const QByteArray kSetBatteryCommand{QByteArrayLiteral("Battery")};
+inline const std::string kBatteryCommand{"Get Battery"};
+inline const std::string kSetBatteryCommand{"Battery"};
 
-const QByteArray kUSB0Command{QByteArrayLiteral("Get USB0")};
-const QByteArray kSetUSB0Command{QByteArrayLiteral("USB0")};
+inline const std::string kUSB0Command{"Get USB0"};
+inline const std::string kSetUSB0Command{"USB0"};
 
-const QByteArray kUSB1Command{QByteArrayLiteral("Get USB1")};
-const QByteArray kSetUSB1Command{QByteArrayLiteral("USB1")};
+inline const std::string kUSB1Command{"Get USB1"};
+inline const std::string kSetUSB1Command{"USB1"};
 
-const QByteArray kPowerKeyCommand{QByteArrayLiteral("Get Power Key")};
-const QByteArray kSetPowerKeyCommand{QByteArrayLiteral("Power Key")};
+inline const std::string kPowerKeyCommand{"Get Power Key"};
+inline const std::string kSetPowerKeyCommand{"Power Key"};
 
-const QByteArray kVolumeUpCommand{QByteArrayLiteral("Get Volume Up")};
-const QByteArray kSetVolumeUpCommand{QByteArrayLiteral("Volume Up")};
+inline const std::string kVolumeUpCommand{"Get Volume Up"};
+inline const std::string kSetVolumeUpCommand{"Volume Up"};
 
-const QByteArray kVolumeDownCommand{QByteArrayLiteral("Get Volume Down")};
-const QByteArray kSetVolumeDownCommand{QByteArrayLiteral("Volume Down")};
+inline const std::string kVolumeDownCommand{"Get Volume Down"};
+inline const std::string kSetVolumeDownCommand{"Volume Down"};
 
-const QByteArray kPowerOnCommand{QByteArrayLiteral("Power On")};
-const QByteArray kPowerOffCommand{QByteArrayLiteral("Power Off")};
-const QByteArray kBootToFastBootCommand{QByteArrayLiteral("Boot To Fastboot")};
-const QByteArray kBootToUEFIMenuCommand{QByteArrayLiteral("Boot To UEFI")};
-const QByteArray kBootToEDLCommand{QByteArrayLiteral("Boot to EDL")};
+inline const std::string kPowerOnCommand{"Power On"};
+inline const std::string kPowerOffCommand{"Power Off"};
+inline const std::string kBootToFastBootCommand{"Boot To Fastboot"};
+inline const std::string kBootToUEFIMenuCommand{"Boot To UEFI"};
+inline const std::string kBootToEDLCommand{"Boot to EDL"};
 
-const QByteArray kPrimaryEDLCommand{QByteArrayLiteral("Get Primary EDL")};
-const QByteArray kSetPrimaryEDLCommand{QByteArrayLiteral("Primary EDL")};
+inline const std::string kPrimaryEDLCommand{"Get Primary EDL"};
+inline const std::string kSetPrimaryEDLCommand{"Primary EDL"};
 
-const QByteArray kSecondaryEDLCommand{QByteArrayLiteral("Get Secondary EDL")};
-const QByteArray kSetSecondaryEDLCommand{QByteArrayLiteral("Secondary EDL")};
+inline const std::string kSecondaryEDLCommand{"Get Secondary EDL"};
+inline const std::string kSetSecondaryEDLCommand{"Secondary EDL"};
 
-const QByteArray kDisconnectUIM1Command{QByteArrayLiteral("Get Disconnect UIM1")};
-const QByteArray kSetDisconnectUIM1Command{QByteArrayLiteral("Disconnect UIM1")};
+inline const std::string kDisconnectUIM1Command{"Get Disconnect UIM1"};
+inline const std::string kSetDisconnectUIM1Command{"Disconnect UIM1"};
 
-const QByteArray kDisconnectUIM2Command{QByteArrayLiteral("Get Disconnect UIM2")};
-const QByteArray kSetDisconnectUIM2Command{QByteArrayLiteral("Disconnect UIM2")};
+inline const std::string kDisconnectUIM2Command{"Get Disconnect UIM2"};
+inline const std::string kSetDisconnectUIM2Command{"Disconnect UIM2"};
 
-const QByteArray kDisconnectSDCardCommand{QByteArrayLiteral("Get Disconnect SDCARD")};
-const QByteArray kSetDisconnectSDCardCommand{QByteArrayLiteral("Disconnect SDCARD")};
+inline const std::string kDisconnectSDCardCommand{"Get Disconnect SDCARD"};
+inline const std::string kSetDisconnectSDCardCommand{"Disconnect SDCARD"};
 
-const QByteArray kForcePSHoldHighCommand{QByteArrayLiteral("Get Force PS Hold High")};
-const QByteArray kSetForcePSHoldHighCommand{QByteArrayLiteral("Force PS Hold High")};
+inline const std::string kForcePSHoldHighCommand{"Get Force PS Hold High"};
+inline const std::string kSetForcePSHoldHighCommand{"Force PS Hold High"};
 
-const QByteArray kSecondaryPM_RESIN_NCommand{QByteArrayLiteral("Get Secondary PM RESIN N")};
-const QByteArray kSetSecondaryPM_RESIN_NCommand{QByteArrayLiteral("Secondary PM RESIN N")};
+inline const std::string kSecondaryPM_RESIN_NCommand{"Get Secondary PM RESIN N"};
+inline const std::string kSetSecondaryPM_RESIN_NCommand{"Secondary PM RESIN N"};
 
-const QByteArray kEUDCommand{QByteArrayLiteral("Get Eud")};
-const QByteArray kSetEUDCommand{QByteArrayLiteral("EUD")};
+inline const std::string kEUDCommand{"Get Eud"};
+inline const std::string kSetEUDCommand{"EUD"};
 
-const QByteArray kHeadsetDisconnectCommand{QByteArrayLiteral("Get Headset Disconnect")};
-const QByteArray kSetHeadsetDisconnectCommand{QByteArrayLiteral("Headset Disconnect")};
+inline const std::string kHeadsetDisconnectCommand{"Get Headset Disconnect"};
+inline const std::string kSetHeadsetDisconnectCommand{"Headset Disconnect"};
 
-const QByteArray kExternalPowerControlCommand{QByteArrayLiteral("Get External Power Control")};
-const QByteArray kSetExternalPowerControlCommand{QByteArrayLiteral("External Power Control")};
+inline const std::string kExternalPowerControlCommand{"Get External Power Control"};
+inline const std::string kSetExternalPowerControlCommand{"External Power Control"};
 
-const QByteArray kGetResetCountCommand{QByteArrayLiteral("Get Reset Count")};
-const QByteArray kClearResetCountCommand{QByteArrayLiteral("Clear Reset Count")};
+inline const std::string kGetResetCountCommand{"Get Reset Count"};
+inline const std::string kClearResetCountCommand{"Clear Reset Count"};
 
-const QByteArray kI2CReadRegisterCommand{QByteArrayLiteral("I2C Read Register")};
-const QByteArray kI2CReadRegisterValueCommand{QByteArrayLiteral("I2C Read Register Value")};
+inline const std::string kI2CReadRegisterCommand{"I2C Read Register"};
+inline const std::string kI2CReadRegisterValueCommand{"I2C Read Register Value"};
 
-const QByteArray kI2CWriteRegisterCommand{QByteArrayLiteral("I2C Write Register")};
+inline const std::string kI2CWriteRegisterCommand{"I2C Write Register"};
 
 // PIC32CX Serial Commands
-const QByteArray kPIC32CXClearBufferCommand{QByteArrayLiteral("echo 1")};
-const QByteArray kPIC32CXPlatformIDCommand{QByteArrayLiteral("*IDN?")};
-const QByteArray kPIC32CXSetPinCommand{QByteArrayLiteral("CONF:DIG:ON")};
+inline const std::string kPIC32CXClearBufferCommand{"echo 1"};
+inline const std::string kPIC32CXPlatformIDCommand{"*IDN?"};
+inline const std::string kPIC32CXSetPinCommand{"CONF:DIG:ON"};
+
+enum class ArgumentType
+{
+	UnknownType,
+	ByteArray,
+	String,
+	Int,
+	Bool
+};
 
 struct oldCommandEntry
 {
@@ -112,7 +117,7 @@ struct oldCommandEntry
 	std::string			_alias;
 	std::string			_helpText;
 	bool				_setter{false};
-	QMetaType::Type		_argType{QMetaType::UnknownType};
+	ArgumentType		_argType{ArgumentType::UnknownType};
 };
 
 HashType AddCommandToEntries(const std::string& commandToAdd, const std::string& alias, const std::string& helpText);
@@ -120,6 +125,6 @@ HashType AddCommandToEntries(const std::string& commandToAdd, const std::string&
 HashType CommandStringToHash(const std::string& commandString);
 oldCommandEntry CommandHashToCommandEntry(HashType commandHash);
 
-void AddHelpTextEntry(QString &helpText, HashType commandHash);
+void AddHelpTextEntry(std::string &helpText, HashType commandHash);
 
 #endif // TACCOMMANDS_H

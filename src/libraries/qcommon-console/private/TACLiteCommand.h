@@ -9,10 +9,8 @@
 class ReceiveInterface;
 #include "SendInterface.h"
 
-// Qt
-#include <QByteArray>
-
 #include <cstdint>
+#include <string>
 
 class QCOMMONCONSOLE_EXPORT TACLiteCommand
 {
@@ -36,7 +34,7 @@ public:
 	void volumeUp(bool onState);
 	void volumeDown(bool onState);
 
-	void setName(const QByteArray& newName);
+	void setName(const std::string& newName);
 
 	void getResetCount();
 	void clearResetCount();
@@ -44,9 +42,9 @@ public:
 	void i2CReadRegister(uint32_t addr, uint32_t reg);
 	void i2CWriteRegister(uint32_t addr, uint32_t reg, uint32_t data);
 
-	void send(const QByteArray& command, const Arguments& arguments, bool console, bool store = true);
+	void send(const std::string& command, const Arguments& arguments, bool console, bool store = true);
 	void addDelay(uint32_t delayInMilliSeconds);
-	void addLogComment(const QByteArray& comment);
+	void addLogComment(const std::string& comment);
 	void addEndTransaction();
 
 	// switches

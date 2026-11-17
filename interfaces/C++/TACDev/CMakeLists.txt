@@ -5,11 +5,13 @@ include(${CMAKE_SOURCE_DIR}/src/libraries/qcommon-console/Common.cmake)
 
 if (CMAKE_BUILD_TYPE STREQUAL "Debug")
     set(LIBRARY_NAME TACDevd)
+    set(LIB_TARGET QCommonConsoled)
 else()
     set(LIBRARY_NAME TACDev)
+    set(LIB_TARGET QCommonConsole)
 endif()
 
-qt_add_library(${LIBRARY_NAME} SHARED
+add_library(${LIBRARY_NAME} SHARED
     TACDev.cpp TACDev.h
     TACDevCore.cpp TACDevCore.h
 )
@@ -24,19 +26,16 @@ target_link_directories(${LIBRARY_NAME} PRIVATE
 
 target_compile_definitions(${LIBRARY_NAME} PUBLIC
     QTAC_STATIC
-    QT_DISABLE_DEPRECATED_UP_TO=0x060900
     TACDEV_LIBRARY
     $<$<CONFIG:Debug>:DEBUG;_DEBUG>
     $<$<NOT:$<CONFIG:Debug>>:NDEBUG;_NDEBUG>
 )
 
 target_link_libraries(${LIBRARY_NAME} PUBLIC
-    Qt6::Core
-    Qt6::SerialPort
+    ${LIB_TARGET}
     ftd2xx
-    $<$<CONFIG:Debug>:QCommonConsoled>
-    $<$<NOT:$<CONFIG:Debug>>:QCommonConsole>
 )
+
 
 if(WIN32)
     target_link_libraries(${LIBRARY_NAME} PUBLIC
@@ -46,6 +45,8 @@ if(WIN32)
         Shell32
         Winusb
         Wtsapi32
+        version
+        user32
     )
 
     target_compile_options(${LIBRARY_NAME} PRIVATE

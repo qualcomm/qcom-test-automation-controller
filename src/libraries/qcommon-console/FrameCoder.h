@@ -8,16 +8,12 @@
 // QCommon
 #include "SendInterface.h"
 
-// Qt
-#include <QByteArray>
-#include <QObject>
-
 #include <string>
 
 class ProtocolInterface;
 
-typedef void (*FrameCompleteFunc)(const QByteArray& completedFrame, ProtocolInterface* userData);
-typedef void (*BadFrameFunc)(const QByteArray& completedFrame, ProtocolInterface* userData);
+typedef void (*FrameCompleteFunc)(const std::string& completedFrame, ProtocolInterface* userData);
+typedef void (*BadFrameFunc)(const std::string& completedFrame, ProtocolInterface* userData);
 
 class QCOMMONCONSOLE_EXPORT FrameCoder
 {
@@ -25,21 +21,22 @@ public:
 	FrameCoder() = default;
 	virtual ~FrameCoder() = default;
 
+	FrameCoder(const FrameCoder&) = delete;
+	FrameCoder& operator=(const FrameCoder&) = delete;
+
 	virtual void reset();
 
 	void setupCallbackFunctions(ProtocolInterface* userData, FrameCompleteFunc frameFunc, BadFrameFunc badFrameFunc);
 
-	virtual void decode(const QByteArray& decodeMe);
-	virtual QByteArray encode(const QByteArray& encodeMe, const Arguments& arguments);
+	virtual void decode(const std::string& decodeMe);
+	virtual std::string encode(const std::string& encodeMe, const Arguments& arguments);
 
 protected:
-	Q_DISABLE_COPY(FrameCoder)
-
 	std::string					_frame;
 
-	ProtocolInterface*			_protocolInterface{Q_NULLPTR};
-	FrameCompleteFunc			_frameFunction{Q_NULLPTR};
-	BadFrameFunc				_badFrameFunction{Q_NULLPTR};
+	ProtocolInterface*			_protocolInterface{nullptr};
+	FrameCompleteFunc			_frameFunction{nullptr};
+	BadFrameFunc				_badFrameFunction{nullptr};
 };
 
 #endif // FRAMECODER_H

@@ -28,8 +28,8 @@ public:
 	virtual void buildMapping();
 
 private:
-	_FTDIPlatformConfiguration*					_ftdiPlatformConfiguration{Q_NULLPTR};
-	_FT232HPlatformConfiguration*				_ft232hPlatformConfiguration{Q_NULLPTR};
+	_FTDIPlatformConfiguration*					_ftdiPlatformConfiguration{nullptr};
+	_FT232HPlatformConfiguration*				_ft232hPlatformConfiguration{nullptr};
 };
 
 #endif // FTDIDEVICE_H

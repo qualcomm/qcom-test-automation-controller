@@ -7,12 +7,12 @@
 // QCommon
 #include "ReceiveInterface.h"
 #include "SendInterface.h"
+#include "StringUtilities.h"
 
-// Qt
-#include <QtGlobal>
-
-// C++
+#include <cassert>
+#include <cstdio>
 #include <stdexcept>
+#include <string>
 
 const uint16_t kMaxI2CPins(8);
 
@@ -25,8 +25,8 @@ TACPSOCCommand::TACPSOCCommand
 	_sender(sender),
 	_ready(false)
 {
-	Q_ASSERT(_receiver != Q_NULLPTR);
-	Q_ASSERT(_sender != Q_NULLPTR);
+	assert(_receiver != nullptr);
+	assert(_sender != nullptr);
 
 	_ready = sender->ready();
 }
@@ -63,12 +63,12 @@ void TACPSOCCommand::setPinState(uint16_t pin, bool state)
 
 void TACPSOCCommand::setName
 (
-	const QByteArray& newName
+	const std::string& newName
 )
 {
 	Arguments args;
 
-	args.push_back(newName.toStdString());
+	args.push_back(newName);
 
 	send(kSetNameCommand, args, false, false);
 }
@@ -89,39 +89,18 @@ void TACPSOCCommand::i2CReadRegister
 	uint32_t reg
 )
 {
-	QByteArray addrString;
-	QByteArray regString;
-	QByteArray cmd;
-
 	if (addr > 0xff)
-	   throw std::out_of_range("Error: invalid address");
+		throw std::out_of_range("Error: invalid address");
 
-	 if (reg > 0xff)
+	if (reg > 0xff)
 		throw std::out_of_range("Error: invalid register");
 
-	addrString = QByteArray::number(addr, 16);
-	if (addrString.size() == 1)
-	{
-		addrString = "0x0" + addrString;
-	}
-	else
-	{
-		addrString = "0x" + addrString;
-	}
-
-	regString = QByteArray::number(reg, 16);
-	if (regString.size() == 1)
-	{
-		regString = "0x0" + regString;
-	}
-	else
-	{
-		regString = "0x" + regString;
-	}
+	std::string addrString = "0x" + toHexByte(static_cast<uint8_t>(addr), false);
+	std::string regString = "0x" + toHexByte(static_cast<uint8_t>(reg), false);
 
 	Arguments args;
 
-	args.push_back((addrString + " " + regString).toStdString());
+	args.push_back(addrString + " " + regString);
 	send(kI2CReadRegisterCommand, args, false, false);
 
 	addDelay(500);
@@ -137,54 +116,23 @@ void TACPSOCCommand::i2CWriteRegister
 	uint32_t data
 )
 {
-   QByteArray addrString;
-   QByteArray regString;
-   QByteArray dataString;
-   QByteArray cmd;
-
-   if (addr > 0xff)
-	  throw std::out_of_range("Error: invalid address");
+	if (addr > 0xff)
+		throw std::out_of_range("Error: invalid address");
 
 	if (reg > 0xff)
-	   throw std::out_of_range("Error: invalid register");
+		throw std::out_of_range("Error: invalid register");
 
-   if (data > 0xff)
-	   throw std::out_of_range("Error: invalid data");
+	if (data > 0xff)
+		throw std::out_of_range("Error: invalid data");
 
-   addrString = QByteArray::number(addr, 16);
-   if (addrString.size() == 1)
-   {
-	   addrString = "0x0" + addrString;
-   }
-   else
-   {
-	   addrString = "0x" + addrString;
-   }
+	std::string addrString = "0x" + toHexByte(static_cast<uint8_t>(addr), false);
+	std::string regString = "0x" + toHexByte(static_cast<uint8_t>(reg), false);
+	std::string dataString = "0x" + toHexByte(static_cast<uint8_t>(data), false);
 
-   regString = QByteArray::number(reg, 16);
-   if (regString.size() == 1)
-   {
-	   regString = "0x0" + regString;
-   }
-   else
-   {
-	   regString = "0x" + regString;
-   }
+	Arguments args;
 
-   dataString = QByteArray::number(data, 16);
-   if (dataString.size() == 1)
-   {
-	   dataString = "0x0" + dataString;
-   }
-   else
-   {
-	   dataString = "0x" + dataString;
-   }
-
-   Arguments args;
-
-   args.push_back((addrString + " " + regString + " " + dataString).toStdString());
-   send(kI2CWriteRegisterCommand, args, false, false);
+	args.push_back(addrString + " " + regString + " " + dataString);
+	send(kI2CWriteRegisterCommand, args, false, false);
 }
 
 void TACPSOCCommand::setAddressPinState
@@ -204,7 +152,7 @@ void TACPSOCCommand::setAddressPinState
 
 void TACPSOCCommand::send
 (
-	const QByteArray& command,
+	const std::string& command,
 	const Arguments& arguments,
 	bool console,
 	bool store
@@ -220,7 +168,7 @@ void TACPSOCCommand::addDelay(uint32_t delayInMilliSeconds)
 
 void TACPSOCCommand::addLogComment
 (
-	const QByteArray& comment
+	const std::string& comment
 )
 {
 	_sender->addLogComment(comment);
@@ -235,4 +183,3 @@ void TACPSOCCommand::platformID()
 {
 	send(kGetPlatformIDCommand, Arguments(), false, false);
 }
-

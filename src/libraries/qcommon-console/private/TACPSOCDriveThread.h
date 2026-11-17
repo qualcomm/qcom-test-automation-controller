@@ -12,67 +12,55 @@
 #include "SerialPort.h"
 #include "SerialPortInfo.h"
 
-// Qt
-#include <QFile>
+#include <string>
 
 class QCOMMONCONSOLE_EXPORT TACPSOCDriveThread :
 	public TACDriveThread
 {
-Q_OBJECT
-
 public:
-	TACPSOCDriveThread(uint hash);
+	TACPSOCDriveThread(uint32_t hash);
 	~TACPSOCDriveThread();
 
-	virtual QString locked()
-	{
-		return QString();
-	}
+	virtual void run() override;
 
-	virtual void run();
-
-	virtual void sendCommand(const QByteArray& command, bool console = false,
-		ReceiveInterface* receiveInterface = Q_NULLPTR, bool shouldStore = true);
+	virtual void sendCommand(const std::string& command, bool console = false,
+		ReceiveInterface* receiveInterface = nullptr, bool shouldStore = true) override;
 	void endTransaction(ReceiveInterface* receiveInterface);
 
-	virtual void setPinState(uint16_t pin, bool state);
-	virtual void setAddressPinState(const std::string& i2cAddress, uint16_t pin, bool state);
-	virtual void sendCommandSequence(CommandEntries& commandEntries);
+	virtual void setPinState(uint16_t pin, bool state) override;
+	virtual void setAddressPinState(const std::string& i2cAddress, uint16_t pin, bool state) override;
+	virtual void sendCommandSequence(CommandEntries& commandEntries) override;
 
-	virtual int getResetCount();
-	virtual void clearResetCount();
+	virtual int getResetCount() override;
+	virtual void clearResetCount() override;
 
-	virtual void i2CReadRegister(uint32_t addr, uint32_t reg);
-	virtual void i2CWriteRegister(uint32_t addr, uint32_t reg, uint32_t data);
+	virtual void i2CReadRegister(uint32_t addr, uint32_t reg) override;
+	virtual void i2CWriteRegister(uint32_t addr, uint32_t reg, uint32_t data) override;
 
 	// properties
-	virtual void setName(const QByteArray& newName);
+	virtual void setName(const std::string& newName) override;
 
 	// Send Interface
-	virtual uint32_t send(const QByteArray& sendMe, const Arguments& arguments, bool console, ReceiveInterface* recieveInterface, bool store = true);
-	virtual bool ready();
+	virtual uint32_t send(const std::string& sendMe, const Arguments& arguments, bool console, ReceiveInterface* recieveInterface, bool store = true) override;
+	virtual bool ready() override;
+	virtual bool connected() const override { return _connected; }
 
 	// Receive Interface
-	virtual void receive(FramePackage& framePackage);
+	virtual void receive(FramePackage& framePackage) override;
 
 protected:
 	bool openSerialDevice();
 
-protected slots:
-	void handleError(QSerialPort::SerialPortError error);
-	void on_readyRead();
+	void handleError(SerialPortError error);
 
 private:
-
-	QString serialPortError();
+	std::string serialPortError();
 	bool readSerialData();
 
-	static bool					_initialized;
 	bool						_connected{false};
 	TACPSOCProtocol				_tacProtocol;
 	SerialPortInfo				_tacPortInfo;
-	SerialPort*					_serialPort{Q_NULLPTR};
-	bool						_readyRead{false};
+	SerialPort*					_serialPort{nullptr};
 
 	void handleGetNameResponse(FramePackage& framePackage);
 	void handleGetResetCount(FramePackage& framePackage);
@@ -85,8 +73,8 @@ private:
 	void handleUUIDResponse(FramePackage& framePackage);
 	void handleVersionResponse(FramePackage& framePackage);
 
-	virtual void setupConnected();
-	virtual void setupDiscovery();
+	virtual void setupConnected() override;
+	virtual void setupDiscovery() override;
 
 	void log(FramePackage& framePackage);
 };

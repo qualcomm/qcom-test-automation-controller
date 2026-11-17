@@ -3,209 +3,195 @@
 
 #include "ConsoleApplicationEnhancements.h"
 #include "AppCore.h"
-#include "Range.h"
+#include "AlpacaDefines.h"
+#include "StringUtilities.h"
 
-// Qt
-#include <QCoreApplication>
-#include <QDateTime>
-#include <QDir>
-#include <QFileInfo>
-#include <QLibrary>
-#include <QProcess>
-#include <QSettings>
-#include <QStandardPaths>
-
-#ifdef Q_OS_WINDOWS
+#if defined(_WIN32) || defined(_WIN64)
+	#ifndef WIN32_LEAN_AND_MEAN
+	#define WIN32_LEAN_AND_MEAN
+	#endif
 	#include <windows.h>
 	#include <shellapi.h>
 	#include <shlobj.h>
 	#pragma comment(lib, "shell32")
 #endif
-#ifdef Q_OS_LINUX
+
+#if defined(__linux__)
+	#include <pwd.h>
 	#include <unistd.h>
 #endif
 
-#include <string>
+#include <chrono>
+#include <cstdio>
+#include <cstdlib>
+#include <ctime>
+#include <filesystem>
 
-const std::string kAppName("QTAC");
+// --- User Preferences & Default Behavior Enhancements ---
 
-std::string applicationBinPath()
+std::string killOneDrive(const std::string& testPath, const std::string& revertPath)
 {
-	const QString result = QDir::cleanPath(QCoreApplication::applicationDirPath())
-	                       + QDir::separator();
-	return result.toStdString();
+	if (contains(testPath, "onedrive -", false))
+		return revertPath;
+
+	return testPath;
 }
 
-std::string applicationDataPath()
+std::string documentsDataPath(const std::string& append)
 {
-	QString result;
+	const std::string rootDir = kProductName;
 
-	#ifdef Q_OS_WIN
-		result = "C:/ProgramData/Qualcomm/" + QString::fromStdString(kAppName);
-	#endif
+	std::filesystem::path basePath;
 
-	#ifdef Q_OS_LINUX
-		result = "/var/lib/qcom/data/" + QString::fromStdString(kAppName);
-	#endif
-
-	return result.toStdString();
-}
-
-std::string documentsDataPath
-(
-	const std::string& append
-)
-{
-	QString result;
-	QString appName;
-
-	appName = QCoreApplication::applicationName();
-	if (appName.isEmpty())
-		appName = QString::fromStdString(kAppName);
-
-#ifdef Q_OS_WIN
-	// QStandardPaths would return the "One Drive" location. Excel documents don't like living here
-	result = QDir::homePath() + QDir::separator() + "Documents";
+#if defined(_WIN32) || defined(_WIN64)
+	char docPath[MAX_PATH];
+	if (SUCCEEDED(SHGetFolderPathA(NULL, CSIDL_MYDOCUMENTS, NULL, 0, docPath)))
+	{
+		basePath = docPath;
+	}
+	else
+	{
+		basePath = "C:/Documents";
+	}
+	basePath = killOneDrive(basePath.generic_string(), "C:/Documents");
+#elif defined(__linux__)
+	const struct passwd* pw = getpwuid(getuid());
+	if (pw != nullptr && pw->pw_dir != nullptr && pw->pw_dir[0] != '\0')
+		basePath = std::filesystem::path(pw->pw_dir) / "Documents";
+	else
+		basePath = "/root/Documents";
 #else
-	result = QStandardPaths::writableLocation(QStandardPaths::DocumentsLocation);
+	basePath = "Documents";
 #endif
 
-	result = QDir::cleanPath(result + QDir::separator() + appName);
-	if (append.empty() == false)
+	std::filesystem::path result = (basePath / rootDir).lexically_normal();
+	if (!append.empty())
 	{
-		result = QDir::cleanPath(result + QDir::separator() + QString::fromStdString(append));
+		result = (result / append).lexically_normal();
 	}
 
-	if (QDir(result).exists() == false)
-		QDir().mkpath(result);
+	std::error_code ec;
+	if (!std::filesystem::exists(result, ec))
+	{
+		std::filesystem::create_directories(result, ec);
+	}
 
-	return result.toStdString();
-}
-
-QString toCamelCase
-(
-	const QString& s
-)
-{
-	QStringList parts = s.split('_', Qt::SkipEmptyParts);
-	for (auto i: basic_range<int>(1, parts.size()))
-		parts[i].replace(0, 1, parts[i][0].toUpper());
-
-	return parts.join("");
+	return result.generic_string();
 }
 
 std::string defaultGlobalLoggingPath()
 {
-	QString result = QString::fromStdString(documentsDataPath("global"));
-	result = QDir::cleanPath(result);
-	if (QDir(result).exists() == false)
-		QDir().mkpath(result);
-
-	return result.toStdString();
-}
-
-std::string defaultLoggingPath
-(
-	const std::string& appName
-)
-{
-	QString result = QString::fromStdString(documentsDataPath(appName)) + QDir::separator() + "logs";
-	result = QDir::cleanPath(result);
-	if (QDir(result).exists() == false)
-		QDir().mkpath(result);
-
-	return result.toStdString();
-}
-
-void renewInstallRegistry
-(
-	QSettings& settings,
-	const std::string& newInstallGuid
-)
-{
-	QLibrary cleanLib("InstallFinalize");
-
-	if (cleanLib.load())
+	std::filesystem::path result = std::filesystem::path(documentsDataPath("global")).lexically_normal();
+	std::error_code ec;
+	if (!std::filesystem::exists(result, ec))
 	{
-		typedef void (*InstallProc)(const char* registryPath);
+		std::filesystem::create_directories(result, ec);
+	}
+	return result.generic_string();
+}
 
-		InstallProc installProc = reinterpret_cast<InstallProc>(cleanLib.resolve("installProc"));
-		if (installProc)
-		{
-			installProc("HKEY_CURRENT_USER\\Software\\Qualcomm, Inc.");
-		}
-
-		cleanLib.unload();
+std::string defaultLoggingPath(const std::string& appName)
+{
+	std::string name = appName;
+	if (name.empty())
+	{
+		AppCore* appCore = AppCore::getAppCore();
+		if (appCore != nullptr && !appCore->appName().empty())
+			name = appCore->appName();
+		else
+			name = kProductName;
 	}
 
-	settings.setValue("Install UUID", QString::fromStdString(newInstallGuid));
-	settings.setValue("Install Path", QCoreApplication::applicationDirPath().toLatin1());
+	std::filesystem::path result = (std::filesystem::path(documentsDataPath(name)) / "logs").lexically_normal();
+	std::error_code ec;
+	if (!std::filesystem::exists(result, ec))
+	{
+		std::filesystem::create_directories(result, ec);
+	}
+	return result.generic_string();
 }
 
-bool isNewInstall
-(
-	QSettings& settings,
-	const std::string& currentInstallGuid
-)
+std::string expandPath(const std::string& filePath)
 {
-	QString uuid = settings.value("Install UUID", QString("xxxx")).toString();
-	return uuid.toStdString() != currentInstallGuid;
-}
+	std::string result = filePath;
 
-std::string createFilenameTimeStamp()
-{
-	return QDateTime::currentDateTime().toString("_yyyy_dd_MM_HH_mm_ss").toStdString();
-}
-
-std::string killOneDrive(const std::string& testPath, const std::string& revertPath)
-{
-	QString righteousPath{QString::fromStdString(testPath)};
-
-	if (righteousPath.contains("OneDrive -", Qt::CaseInsensitive)) // We don't allow that abomination, OneDrive.  What a piece of crap!
-		righteousPath = QString::fromStdString(revertPath);
-
-	return righteousPath.toStdString();
-}
-
-std::string getModuleFilePath(const std::string &moduleFileName)
-{
-	QString result;
-	QString platformModuleFileName{QString::fromStdString(moduleFileName)};
-
-#ifdef Q_OS_WIN
-	char path[_MAX_PATH + 1];
-	platformModuleFileName += ".dll";
-	GetModuleFileNameA(GetModuleHandleA(platformModuleFileName.toLatin1().data()), path, sizeof(path));
-	result = QByteArray(path);
+#if defined(__linux__)
+	if (!result.empty() && result[0] == '~')
+	{
+		const struct passwd* pw = getpwuid(getuid());
+		std::string homeStr = (pw != nullptr && pw->pw_dir != nullptr && pw->pw_dir[0] != '\0')
+			? pw->pw_dir
+			: "/root";
+		result.replace(0, 1, homeStr);
+	}
 #endif
 
-	 return result.toStdString();
+	return result;
 }
+
+std::string getModuleFilePath(const std::string& moduleFileName)
+{
+#if defined(_WIN32) || defined(_WIN64)
+	char path[_MAX_PATH + 1];
+	std::string platformModuleFileName = moduleFileName + ".dll";
+	if (GetModuleFileNameA(GetModuleHandleA(platformModuleFileName.c_str()), path, sizeof(path)))
+	{
+		return std::filesystem::path(path).lexically_normal().generic_string();
+	}
+	return std::string();
+#else
+	(void)moduleFileName;
+	return std::string();
+#endif
+}
+
+// --- Configuration Root Query (Queries AppCore critical configurations path) ---
+
+std::string tacConfigRoot()
+{
+	return AppCore::configurationsPath();
+}
+
+// --- Critical Path Forwarders for Console Enhancements Compatibility ---
+
+std::string applicationBinPath()
+{
+	return AppCore::applicationBinPath();
+}
+
+std::string applicationDataPath()
+{
+	return AppCore::applicationDataPath();
+}
+
+std::string firmwarePath()
+{
+	return AppCore::firmwarePath();
+}
+
+std::string userConfigurationsPath()
+{
+	return AppCore::userConfigurationsPath();
+}
+
+// --- Process & Privilege Utilities ---
 
 void cleanIt(const std::string &pathToClean)
 {
-	QProcess* cleanItProc = new QProcess(Q_NULLPTR);
-
-	QStringList arguments;
-
-	arguments << QString::fromStdString(pathToClean);
-
-	if (cleanItProc->startDetached("LogCleanup.exe", arguments))
-	{
-		cleanItProc->waitForStarted();
-	}
-
-	cleanItProc->deleteLater();
+#if defined(_WIN32) || defined(_WIN64)
+	ShellExecuteA(NULL, "open", "LogCleanup.exe", pathToClean.c_str(), NULL, SW_HIDE);
+#else
+	(void)pathToClean;
+#endif
 }
 
 bool isUserPrivileged()
 {
 	bool privileged{false};
 
-#ifdef Q_OS_WINDOWS
+#if defined(_WIN32) || defined(_WIN64)
 	privileged = IsUserAnAdmin();
-#endif
-#ifdef Q_OS_LINUX
+#elif defined(__linux__)
 	privileged = (geteuid() == 0);
 #endif
 
@@ -216,85 +202,38 @@ bool executeBinaryAsAdministrator(const std::string &binary, const std::string &
 {
 	bool result{false};
 
-	QString qBinary = QString::fromStdString(binary);
-	QString qCmdArgs = QString::fromStdString(cmdArgs);
+#if defined(_WIN32) || defined(_WIN64)
+	SHELLEXECUTEINFOA shExecInfo{0};
 
-#ifdef Q_OS_WINDOWS
-	SHELLEXECUTEINFO shExecInfo{0};
-
-	shExecInfo.cbSize = sizeof(SHELLEXECUTEINFO);
+	shExecInfo.cbSize = sizeof(SHELLEXECUTEINFOA);
 	shExecInfo.fMask = SEE_MASK_NOCLOSEPROCESS;
 	shExecInfo.hwnd = NULL;
-	shExecInfo.lpVerb = L"runas";
-	shExecInfo.lpFile = (LPCWSTR)qBinary.utf16();
-	shExecInfo.lpParameters = (LPCWSTR)qCmdArgs.utf16();
+	shExecInfo.lpVerb = "runas";
+	shExecInfo.lpFile = binary.c_str();
+	shExecInfo.lpParameters = cmdArgs.c_str();
 	shExecInfo.lpDirectory = NULL;
 	shExecInfo.nShow = SW_SHOW;
 	shExecInfo.hInstApp = NULL;
 
-	if (ShellExecuteEx(&shExecInfo))
+	if (ShellExecuteExA(&shExecInfo))
 	{
 		WaitForSingleObject(shExecInfo.hProcess, INFINITE);
 
 		DWORD exitCode(0);
 		GetExitCodeProcess(shExecInfo.hProcess, &exitCode);
 
-		if(exitCode == 0)
+		if (exitCode == 0)
 			result = true;
 
 		CloseHandle(shExecInfo.hProcess);
 	}
 
-#else
-	QProcess process;
-
-	process.start("sudo", {qBinary, qCmdArgs});
-	if (process.waitForFinished())
-	{
-		if(process.exitCode() == 0)
-			result = true;
-	}
+#elif defined(__linux__)
+	std::string cmd = "sudo " + binary + " " + cmdArgs;
+	int ret = std::system(cmd.c_str());
+	if (ret == 0)
+		result = true;
 #endif
 
 	return result;
-}
-
-std::string expandPath(const std::string &filePath)
-{
-	QString result{QString::fromStdString(filePath)};
-
-#ifdef Q_OS_LINUX
-	// On Linux machines, QDir::homePath() is returned as / if $HOME is not set.
-	// QTAC applications work fine as they are triggered from the shell which has $HOME set.
-	// On implementations which does not involve script execution from shell, the expandPath API may return invalid path.
-
-	if (result.startsWith("~"))
-	{
-		QString homePath = QDir::homePath();
-		if (homePath.compare(QDir::separator()) != 0)
-			result.replace("~", homePath);
-		else
-			result.replace("~", "/root");
-	}
-#endif
-
-	return result.toStdString();
-}
-
-std::string tacConfigRoot()
-{
-	QString result = QString::fromStdString(applicationDataPath());
-
-	QString deviceListJsonPath = result + "/configurations/devicelist.json";
-	bool isdeviceListJsonPathPresent = QFile(deviceListJsonPath).exists();
-	if (isdeviceListJsonPathPresent == false)
-	{
-		result = "../../../../configurations/";
-	}
-	else
-	{
-		result += "/configurations/";
-	}
-
-	return result.toStdString();
 }

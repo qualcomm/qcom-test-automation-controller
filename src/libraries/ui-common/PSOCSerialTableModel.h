@@ -1,0 +1,23 @@
+// Copyright (c) Qualcomm Technologies, Inc. and/or its subsidiaries.
+// SPDX-License-Identifier: BSD-3-Clause
+
+#ifndef PSOCSERIALTABLEMODEL_H
+#define PSOCSERIALTABLEMODEL_H
+
+#include "UIGlobalLib.h"
+#include "SerialTableModel.h"
+
+const int kPortNameCol(0);
+const int kDescriptionCol(1);
+const int kSerialNumberCol(2);
+
+class UILIB_EXPORT PSOCSerialTableModel :
+	public SerialTableModel
+{
+public:
+	PSOCSerialTableModel(QObject* parent = nullptr);
+
+	QVariant portData(int deviceIndex, int dataIndex);
+};
+
+#endif // PSOCSERIALTABLEMODEL_H

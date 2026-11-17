@@ -2,13 +2,12 @@
 // SPDX-License-Identifier: BSD-3-Clause
 
 #include "SystemUsername.h"
-#include <QDomDocument>
-#include <QDomNode>
-#include <QDomNodeList>
-#include <QStringList>
+#include "AppCore.h"
+
+#include <cstring>
 
 // Windows
-#ifdef Q_OS_WIN
+#if defined(_WIN32) || defined(_WIN64)
 #include "lmcons.h"
 #endif
 
@@ -16,10 +15,10 @@ const int kEventBufferSize(4096);
 
 SystemUsername::SystemUsername()
 {
-#ifdef Q_OS_LINUX
+#if defined(__linux__)
 	getUserNameLinux();
 #endif
-#ifdef Q_OS_WIN
+#if defined(_WIN32) || defined(_WIN64)
 	getUserNameWin();
 #endif
 }
@@ -31,18 +30,29 @@ std::string SystemUsername::userName()
 
 void SystemUsername::getUserNameLinux()
 {
+#if defined(__linux__)
 	char buffer[1024];
-	int result(-1);
-#ifdef Q_OS_LINUX
-	result = getlogin_r(buffer, 1024);
-#endif
-	if (result == 0)
+	int result = getlogin_r(buffer, sizeof(buffer));
+	if (result == 0 && buffer[0] != '\0')
+	{
 		_userName = std::string(buffer);
+		return;
+	}
+
+	struct passwd* pw = getpwuid(geteuid());
+	if (pw && pw->pw_name)
+	{
+		_userName = std::string(pw->pw_name);
+		return;
+	}
+
+	AppCore::writeToApplicationLogLine("SystemUsername::getUserNameLinux: getlogin_r failed with error code " + std::to_string(result));
+#endif
 }
 
 void SystemUsername::getUserNameWin()
 {
-#ifdef Q_OS_WIN
+#if defined(_WIN32) || defined(_WIN64)
 	DWORD status = ERROR_SUCCESS;
 	EVT_HANDLE hResults = NULL;
 	const wchar_t* pwsPath = L"Qualcomm-SharedLogin-CredentialProvider/Audit";
@@ -57,84 +67,104 @@ void SystemUsername::getUserNameWin()
 		{
 			char username[UNLEN+1];
 			DWORD username_len = UNLEN+1;
-			GetUserNameA(username, &username_len);
-			_userName = std::string(username);
+			if (GetUserNameA(username, &username_len))
+			{
+				_userName = std::string(username);
+			}
+			else
+			{
+				DWORD uErr = GetLastError();
+				AppCore::writeToApplicationLogLine("SystemUsername::getUserNameWin: GetUserNameA fallback failed with error code " + std::to_string(uErr));
+			}
 		}
 		else if (ERROR_EVT_INVALID_QUERY == status)
-			wprintf(L"The query is not valid.\n");
+		{
+			AppCore::writeToApplicationLogLine("SystemUsername::getUserNameWin: EvtQuery query is invalid (code " + std::to_string(status) + ")");
+		}
 		else
-			wprintf(L"EvtQuery failed with %lu.\n", status);
-		if (hResults)
-			EvtClose(hResults);
+		{
+			AppCore::writeToApplicationLogLine("SystemUsername::getUserNameWin: EvtQuery failed with error code " + std::to_string(status));
+		}
 	}
-
-	fetchLatestEvent(hResults);
+	else
+	{
+		fetchLatestEvent(hResults);
+		EvtClose(hResults);
+	}
 #endif
 }
 
-#ifdef Q_OS_WIN
+#if defined(_WIN32) || defined(_WIN64)
 DWORD SystemUsername::parseEvent(EVT_HANDLE hEvent)
 {
-//	QRegExp re("SubjectUserName\'>(.*)</Data><Data Name='SubjectDomainName");
 	DWORD dwBufferUsed = kEventBufferSize*2;
 	WCHAR renderedContent[kEventBufferSize];
 	char eventDataStr[kEventBufferSize];
 	unsigned long long bufferSize(0);
 
-	EvtRender(NULL, hEvent, EvtRenderEventXml, kEventBufferSize*2, renderedContent, &dwBufferUsed, 0);
-	wcstombs_s(&bufferSize, eventDataStr, renderedContent, kEventBufferSize);
+	if (!EvtRender(NULL, hEvent, EvtRenderEventXml, kEventBufferSize*2, renderedContent, &dwBufferUsed, 0))
+	{
+		DWORD err = GetLastError();
+		AppCore::writeToApplicationLogLine("SystemUsername::parseEvent: EvtRender failed with error code " + std::to_string(err));
+		return err;
+	}
+	errno_t convErr = wcstombs_s(&bufferSize, eventDataStr, renderedContent, kEventBufferSize);
+	if (convErr != 0)
+	{
+		AppCore::writeToApplicationLogLine("SystemUsername::parseEvent: wcstombs_s failed with error code " + std::to_string(convErr));
+		return static_cast<DWORD>(convErr);
+	}
 
-	// fix me
-	QString eventData{eventDataStr};
-
-//	re.indexIn(eventData, 0);
-	QString filteredStr(""/*re.cap(0)*/);
+	std::string filteredStr(eventDataStr);
 
 	// The first capture from the regex should contain our username. Generally, this is of the format "SubjectUserName'>biswroy</Data><Data Name='SubjectDomainName"
 	// Check if there is actually a captured string. If not, we ignore.
-	if (!filteredStr.isEmpty())
+	if (!filteredStr.empty())
 	{
-		// Try to split the captured string by the '> character so as to obtain "SubjectUserName and biswroy</Data><Data Name='SubjectDomainName"
-		QStringList chunkedStr = filteredStr.split("'>");
-		// If the list length is > 1, we have some data that can be filtered further.
-		if (chunkedStr.length() > 1)
+		size_t pos1 = filteredStr.find("SubjectUserName'>");
+		if (pos1 != std::string::npos)
 		{
-			// Split the second string by </ which gives biswroy and Data><Data Name='SubjectDomainName"
-			chunkedStr = chunkedStr[1].split("</");
-			// If we have some string
-			if (chunkedStr.length() > 0)
-				// It must be the username
-				_userName = chunkedStr[0].toStdString();
+			size_t start = pos1 + strlen("SubjectUserName'>");
+			size_t pos2 = filteredStr.find("</Data>", start);
+			if (pos2 != std::string::npos)
+			{
+				_userName = filteredStr.substr(start, pos2 - start);
+			}
 		}
 	}
 
-	return 0;
+	return ERROR_SUCCESS;
 }
 
 DWORD SystemUsername::fetchLatestEvent(EVT_HANDLE hResults)
 {
 	DWORD status = ERROR_SUCCESS;
-	EVT_HANDLE hEvents[ARRAY_SIZE];
+	EVT_HANDLE hEvent{NULL};
 	DWORD dwReturned = 0;
 
-	// Get a block of the latest event from the result set.
-	if (!EvtNext(hResults, ARRAY_SIZE, hEvents, TIMEOUT, 0, &dwReturned))
+	// Get the latest event from the result set.
+	if (!EvtNext(hResults, 1, &hEvent, TIMEOUT, 0, &dwReturned))
 	{
 		status = GetLastError();
-		if (dwReturned > 0 && hEvents[0] != NULL)
-			EvtClose(hEvents[0]);
+		if (status != ERROR_NO_MORE_ITEMS)
+		{
+			AppCore::writeToApplicationLogLine("SystemUsername::fetchLatestEvent: EvtNext failed with error code " + std::to_string(status));
+		}
+		if (dwReturned > 0 && hEvent != NULL)
+		{
+			EvtClose(hEvent);
+			hEvent = NULL;
+		}
+		return status;
 	}
 
-	if (dwReturned > 0 && ERROR_SUCCESS == (status = parseEvent(hEvents[0])))
+	if (dwReturned > 0 && hEvent != NULL)
 	{
-		EvtClose(hEvents[0]);
-		hEvents[0] = NULL;
+		status = parseEvent(hEvent);
+		EvtClose(hEvent);
+		hEvent = NULL;
 	}
-	else
-	{
-		if (dwReturned > 0 && NULL != hEvents[0])
-			EvtClose(hEvents[0]);
-	}
+
 	return status;
 }
 #endif

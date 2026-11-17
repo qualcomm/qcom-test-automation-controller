@@ -4,15 +4,10 @@
 #include "AlpacaSharedLibrary.h"
 
 // QCommon
+#include "AppCore.h"
 #include "QCommonConsole.h"
 
-// Qt
-#include <QDateTime>
-#include <QDir>
-
-#include <QTextStream>
-
-AppCore* AlpacaSharedLibrary::_appCore{Q_NULLPTR};
+AppCore* AlpacaSharedLibrary::_appCore{nullptr};
 
 AlpacaSharedLibrary::AlpacaSharedLibrary()
 {
@@ -24,7 +19,7 @@ AlpacaSharedLibrary::~AlpacaSharedLibrary()
 
 AppCore* AlpacaSharedLibrary::getAppCore()
 {
-	if (AlpacaSharedLibrary::_appCore == Q_NULLPTR)
+	if (AlpacaSharedLibrary::_appCore == nullptr)
 	{
 		AlpacaSharedLibrary::_appCore = AppCore::getAppCore();
 	}
@@ -45,7 +40,7 @@ bool AlpacaSharedLibrary::initialize
 	_appVersion = appVersion;
 
 	AppCore* appCore = getAppCore();
-	if (appCore != Q_NULLPTR)
+	if (appCore != nullptr)
 	{
 		appCore->setPreferences(preferencesBase);
 
@@ -55,16 +50,10 @@ bool AlpacaSharedLibrary::initialize
 	return result;
 }
 
-bool AlpacaSharedLibrary::licenseIsValid()
-{
-	// disallow license validation for open-source
-	return _validLicense;
-}
-
 void AlpacaSharedLibrary::setLoggingState(bool state)
 {
 	AppCore* appCore = getAppCore();
-	if (appCore != Q_NULLPTR)
+	if (appCore != nullptr)
 	{
 		appCore->setAppLogging(state);
 	}
@@ -75,7 +64,7 @@ bool AlpacaSharedLibrary::getLoggingState()
 	bool result{false};
 
 	AppCore* appCore = getAppCore();
-	if (appCore != Q_NULLPTR)
+	if (appCore != nullptr)
 	{
 		result = appCore->appLoggingActive();
 	}

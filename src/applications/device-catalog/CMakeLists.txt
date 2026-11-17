@@ -28,6 +28,7 @@ endif()
 
 target_include_directories(${APP_NAME} PRIVATE
     ${CMAKE_SOURCE_DIR}/src/libraries/qcommon-console
+    ${CMAKE_SOURCE_DIR}/src/libraries/qcommon-bridge
     ${CMAKE_SOURCE_DIR}/src/libraries/qcommon
     ${CMAKE_SOURCE_DIR}/src/libraries/ui-common
 )
@@ -51,8 +52,8 @@ target_link_libraries(${APP_NAME} PRIVATE
     Qt6::Widgets
     ftd2xx
 
-    "$<$<CONFIG:Debug>:UId;QCommond;QCommonConsoled>"
-    "$<$<NOT:$<CONFIG:Debug>>:UI;QCommon;QCommonConsole>"
+    "$<$<CONFIG:Debug>:UId;QCommond;QCommonBridged;QCommonConsoled>"
+    "$<$<NOT:$<CONFIG:Debug>>:UI;QCommon;QCommonBridge;QCommonConsole>"
 )
 
 if(WIN32)

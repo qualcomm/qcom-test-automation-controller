@@ -2,7 +2,8 @@
 // SPDX-License-Identifier: BSD-3-Clause
 
 #include "TACDeviceSelection.h"
-#include "AlpacaDevice.h"
+#include "QAlpacaDevice.h"
+#include "QCommonTypes.h"
 
 // QCommon
 #include "Range.h"
@@ -103,11 +104,9 @@ void TACDeviceSelection::timer_timeout()
 
 	_AlpacaDevice::updateAlpacaDevices();
 
-	AlpacaDevices alpacaDevices;
+	AlpacaDevices alpacaDevices = QAlpacaDevice::getAlpacaDevices();
 
-	_AlpacaDevice::getAlpacaDevices(alpacaDevices);
-
-	quint32 deviceCount = alpacaDevices.count();
+	quint32 deviceCount = static_cast<quint32>(alpacaDevices.size());
 
 	_tacDevices->clearContents();
 
@@ -116,22 +115,22 @@ void TACDeviceSelection::timer_timeout()
 	{
 		QTableWidgetItem* twi;
 
-		AlpacaDevice alpacaDevice = alpacaDevices.at(deviceIndex);
+		QAlpacaDevice alpacaDevice(alpacaDevices.at(deviceIndex));
 
 		// Portname
-		twi = new QTableWidgetItem(QString(alpacaDevice->portName()));
-		twi->setData(Qt::UserRole, alpacaDevice->hash());
+		twi = new QTableWidgetItem(alpacaDevice.portName());
+		twi->setData(Qt::UserRole, toQVariant(alpacaDevice.hash()));
 		_tacDevices->setItem(deviceIndex, 0, twi);
 
 		// Description
-		twi = new QTableWidgetItem(QString(alpacaDevice->description()));
+		twi = new QTableWidgetItem(alpacaDevice.description());
 		_tacDevices->setItem(deviceIndex, 1, twi);
 
 		// Serial Number
-		twi = new QTableWidgetItem(QString(alpacaDevice->serialNumber()));
+		twi = new QTableWidgetItem(alpacaDevice.serialNumber());
 		_tacDevices->setItem(deviceIndex, 2, twi);
 
-		if (alpacaDevice->portName() == selectedPort)
+		if (alpacaDevice.portName() == selectedPort)
 			_tacDevices->selectRow(deviceIndex);
 	}
 

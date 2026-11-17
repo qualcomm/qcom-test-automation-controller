@@ -4,6 +4,9 @@
 #include "ProgrammerCommandLine.h"
 
 // QCommon
+#include "AppCore.h"
+#include "QCommonTypes.h"
+#include "StringUtilities.h"
 #include "version.h"
 
 // Qt
@@ -13,13 +16,14 @@ ProgrammerCommandLine::ProgrammerCommandLine
 (
 	const QStringList& args
 ) :
-	CommandLineParser(args)
+	CommandLineParser(toStdVector(args))
 {
 	QCoreApplication* instance = QCoreApplication::instance();
 
-	addHelpLine(instance->applicationName());
+	if (instance)
+		addHelpLine(instance->applicationName().toStdString());
 	addHelpLine("FTDI Platform Programmer");
-	addHelpLine(QString("Version: %1").arg(LITE_PGR_COMMAND));
+	addHelpLine(std::string("Version: ") + LITE_PGR_COMMAND);
 
 	setVersion(LITE_PGR_COMMAND);
 
@@ -37,10 +41,10 @@ ProgrammerCommandLine::ProgrammerCommandLine
 	addHelpLine("   platformID=<numeric>             -- Set the platform id. (i.e.) platformID=8");
 	addHelpLine("   serial=<text>                    -- The device with this serial number will be programmed. (i.e.) serial=foo");
 
-	_listSet = isSet(QStringList{} << "-l" << "list");
-	_listPlatformSet = isSet(QStringList{} << "-lp" << "listplatforms");
-	_getProgramming = isSet(QStringList{} << "-gp" << "getprogram");
-	_program = isSet(QStringList{} << "-p" << "program");
+	_listSet = isSet({"-l", "list"});
+	_listPlatformSet = isSet({"-lp", "listplatforms"});
+	_getProgramming = isSet({"-gp", "getprogram"});
+	_program = isSet({"-p", "program"});
 
 	_platformID = value("platformID");
 	_serialNumber = value("serial");
@@ -66,28 +70,30 @@ bool ProgrammerCommandLine::programSet()
 	return _program;
 }
 
-QByteArray ProgrammerCommandLine::serialNumber()
+std::string ProgrammerCommandLine::serialNumber()
 {
-	return _serialNumber.toLatin1();
+	return _serialNumber;
 }
 
-QByteArray ProgrammerCommandLine::modelName()
+std::string ProgrammerCommandLine::modelName()
 {
-	return _modelName.toLatin1();
+	return _modelName;
 }
 
-quint32 ProgrammerCommandLine::platformID()
+uint32_t ProgrammerCommandLine::platformID()
 {
-	quint32 result{0};
-	bool okay;
-	quint32 temp;
-
-	if (_platformID.isEmpty() == false)
+	uint32_t result{0};
+	if (!_platformID.empty())
 	{
-		temp = _platformID.toUInt(&okay);
-		if (okay)
-			result = temp;
+		try
+		{
+			result = static_cast<uint32_t>(std::stoul(_platformID));
+		}
+		catch (const std::exception& e)
+		{
+			AppCore::writeToApplicationLogLine("ProgrammerCommandLine::platformID: failed parsing '" + _platformID + "': " + e.what());
+			result = 0;
+		}
 	}
-
 	return result;
 }

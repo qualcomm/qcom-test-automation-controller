@@ -4,13 +4,16 @@
 #include "PIC32CXDevice.h"
 
 #include "private/TACPIC32CXDriveThread.h"
-#include "PIC32CXSerialTableModel.h"
+#include "SerialPortInfo.h"
 
 #include "AppCore.h"
-#include "Range.h"
+#include "StringUtilities.h"
+
+#include <chrono>
+#include <string>
+#include <thread>
 
 const std::string kPIC32CXDescription{"ALPACA PIC32CX Debug Board"};
-PIC32CXSerialTableModel* gPIC32CXTACSerialTableModel{Q_NULLPTR};
 
 PIC32CXDevice::~PIC32CXDevice()
 {
@@ -18,24 +21,20 @@ PIC32CXDevice::~PIC32CXDevice()
 
 uint32_t PIC32CXDevice::updateAlpacaDevices()
 {
-	if (gPIC32CXTACSerialTableModel == Q_NULLPTR)
-		gPIC32CXTACSerialTableModel = new PIC32CXSerialTableModel;
-
-	if (gPIC32CXTACSerialTableModel == Q_NULLPTR)
-		return 0;
-
-	gPIC32CXTACSerialTableModel->refresh();
-
-	int deviceCount = gPIC32CXTACSerialTableModel->rowCount(QModelIndex());
-	for (auto deviceIndex : range(deviceCount))
+	SerialPortInfos availablePorts = SerialPortInfo::availablePorts();
+	for (const auto& serialInfo : availablePorts)
 	{
-		AlpacaDevice alpacaDevice;
+		if (serialInfo.hasVendorIdentifier() && serialInfo.hasProductIdentifier())
+		{
+			if (serialInfo.vendorIdentifier() != 0x04D8 || serialInfo.productIdentifier() != 0x000A)
+				continue;
+		}
 
-		std::string portName = gPIC32CXTACSerialTableModel->rowData(deviceIndex, kPortNameCol).toLatin1().toStdString();
+		std::string portName = serialInfo.portName();
 		HashType hash = ::arrayHash(portName);
 
-		alpacaDevice = _AlpacaDevice::findAlpacaDevice(hash);
-		if (alpacaDevice.isNull())
+		AlpacaDevice alpacaDevice = _AlpacaDevice::findAlpacaDevice(hash);
+		if (alpacaDevice == nullptr)
 		{
 			PIC32CXDevice* pic32cxDevice = new PIC32CXDevice;
 
@@ -47,18 +46,16 @@ uint32_t PIC32CXDevice::updateAlpacaDevices()
 			pic32cxDevice->_platformID = ALPACA_PIC32CX_ID;
 			pic32cxDevice->_description = kPIC32CXDescription;
 
-			QString serialNumber = gPIC32CXTACSerialTableModel->rowData(deviceIndex, kSerialNumberCol);
-			pic32cxDevice->_serialNumber = serialNumber.toLatin1().toStdString();
+			std::string serialNumber = serialInfo.serialNumber();
+			pic32cxDevice->_serialNumber = serialNumber;
 
-			QStringList serialNumberList = serialNumber.split("XX");
-
-			if (serialNumberList.size() > 1)
+			size_t xxPos = serialNumber.find("XX");
+			if (xxPos != std::string::npos)
 			{
-				pic32cxDevice->_usbDescriptor = serialNumberList.at(0).toLatin1().toStdString();
+				pic32cxDevice->_usbDescriptor = serialNumber.substr(0, xxPos);
 
-				QByteArray usbDescriptorBytes = QByteArray::fromStdString(pic32cxDevice->_usbDescriptor);
-				if (_PlatformConfiguration::containsUSBDescriptor(usbDescriptorBytes) == true)
-					pic32cxDevice->_platformID = _PlatformConfiguration::getUSBDescriptor(usbDescriptorBytes);
+				if (_PlatformConfiguration::containsUSBDescriptor(pic32cxDevice->_usbDescriptor) == true)
+					pic32cxDevice->_platformID = _PlatformConfiguration::getUSBDescriptor(pic32cxDevice->_usbDescriptor);
 			}
 
 			TACPlatformEntry platformEntry = _PlatformConfiguration::getEntry(pic32cxDevice->_platformID);
@@ -66,7 +63,7 @@ uint32_t PIC32CXDevice::updateAlpacaDevices()
 			pic32cxDevice->_description = platformEntry._platformEntry->_description;
 			pic32cxDevice->_platformConfiguration = platformEntry.getConfiguration();
 
-			_AlpacaDevice::_alpacaDevices.push_back(AlpacaDevice(pic32cxDevice));
+			_AlpacaDevice::_alpacaDevices.push_back(std::shared_ptr<PIC32CXDevice>(pic32cxDevice));
 
 			AppCore::writeToApplicationLog("Found a PIC32CX device with port name: '" + portName + "'\n");
 		}
@@ -76,38 +73,63 @@ uint32_t PIC32CXDevice::updateAlpacaDevices()
 		}
 	}
 
-	return _AlpacaDevice::_alpacaDevices.count();
+	return static_cast<uint32_t>(_AlpacaDevice::_alpacaDevices.size());
 }
 
 bool PIC32CXDevice::open()
 {
 	bool result{false};
 
-	if (_driveThread == Q_NULLPTR)
+	if (_driveThread == nullptr)
 	{
 		_driveThread = new TACPIC32CXDriveThread(_hash);
 		_driveThread->setThreadDelay(300);
 		_driveThread->start();
 
-		QThread::msleep(100); // force DriveTrain thread to start faster
+		std::this_thread::sleep_for(std::chrono::milliseconds(100)); // force DriveTrain thread to start faster
 
 		for (int i{0}; i < 60; i++)
 		{
 			result = _driveThread->isRunning();
 			if (result == true)
 				break;
-			else
-				QThread::msleep(300);
+			if (_driveThread->hasFinished())
+				break;
+			std::this_thread::sleep_for(std::chrono::milliseconds(300));
+		}
+
+		if (result == false)
+		{
+			std::string threadErr = _driveThread->lastErrorMessage();
+			if (!threadErr.empty())
+				_lastError = threadErr;
+			else if (_lastError.empty())
+				_lastError = "Failed to communicate with device on port " + portName();
 		}
 	}
 
 	if (result == true)
 	{
-		_pic32cxPlatformConfiguration = static_cast<_PIC32CXPlatformConfiguration*>(_platformConfiguration.data());
+		_pic32cxPlatformConfiguration = static_cast<_PIC32CXPlatformConfiguration*>(_platformConfiguration.get());
 
 		buildMapping();
 
-		connect(_driveThread, &TACPIC32CXDriveThread::pinStateChanged, this, &PIC32CXDevice::on_pinStateChanged, Qt::DirectConnection);
+		_driveThread->onPinStateChanged = [this](int pin, int state) {
+			on_pinStateChanged(static_cast<uint64_t>(pin), state != 0);
+		};
+		_driveThread->onDeviceDisconnected = [this]() {
+			onDeviceDisconnect();
+		};
+		_driveThread->onProgress = [this](int val) {
+			if (onProgress) onProgress(val);
+		};
+		_driveThread->onError = [this](const std::string& err) {
+			_lastError = err;
+			if (onError) onError(err);
+		};
+		_driveThread->onDeviceStatusChange = [this](const std::string& status) {
+			if (onDeviceStatusChange) onDeviceStatusChange(status);
+		};
 	}
 
 	_macAddress = _driveThread->macAddress();
@@ -132,7 +154,7 @@ void PIC32CXDevice::buildMapping()
 			tacCommand._tabName = pin._tabName;
 			tacCommand._groupName = CommandGroup::toString(pin._commandGroup);
 
-			tacCommand._cellLocation = fromQPoint(pin._cellLocation);
+			tacCommand._cellLocation = fromPoint(pin._cellLocation);
 
 			_commands[tacCommand._command] = tacCommand;
 			_commandList.push_back(tacCommand);

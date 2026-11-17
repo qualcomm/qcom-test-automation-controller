@@ -4,17 +4,18 @@
 #include "CommDevice.h"
 
 // QCommon
-#include "Serial/SerialPreferences.h"
+#include "AlpacaSettings.h"
+#include "AppCore.h"
+#include "StringUtilities.h"
 
-// Qt
-#include <QDateTime>
-#include <QDebug>
-#include <QDir>
-#include <QSettings>
+#include <filesystem>
+#include <string>
 
-CommDevice::CommDevice() :
-	QObject(NULL),
-	_serialPort(NULL)
+const std::string kCOMSettingsGroup("COMSettings");
+const std::string kDumpCOMPortData("DumpCOMPortData");
+const std::string kDumpCOMPortPath("DumpCOMPortPath");
+
+CommDevice::CommDevice()
 {
 
 }
@@ -26,74 +27,67 @@ CommDevice::~CommDevice()
 
 bool CommDevice::IsOpen()
 {
-	if (_serialPort != NULL)
-		return _serialPort->isOpen();
-
-	return false;
+	return _serialPort && _serialPort->isOpen();
 }
 
 bool CommDevice::Open()
 {
 	bool result(false);
-	QSettings settings;
+	AlpacaSettings settings;
 
-	if (_serialPort == NULL)
+	if (_serialPort == nullptr)
 	{
-		_serialPort = new QSerialPort(this);
+		_serialPort = ISerialPort::create();
 
-		_serialPort->setPort(_serialPortInfo);
-		_serialPort->setBaudRate(QSerialPort::Baud115200, QSerialPort::AllDirections);
-		_serialPort->setDataBits(QSerialPort::Data8);
-		_serialPort->setParity(QSerialPort::NoParity);
-		_serialPort->setStopBits(QSerialPort::OneStop);
-		_serialPort->setFlowControl(QSerialPort::NoFlowControl);
+		std::string name = _portName;
+		if (name.empty() && !_serialPortInfo.isNull())
+			name = _serialPortInfo.portName();
 
-		settings.beginGroup(kComSettingsGroup);
-		_logSerialData = settings.value(kDumpComPortData, false).toBool();
+		_serialPort->setPortName(name);
+
+		SerialPortSettings portSettings;
+		portSettings._baudRate = static_cast<int32_t>(SerialBaudRate::Baud115200);
+		portSettings._dataBits = SerialDataBits::Data8;
+		portSettings._parity = SerialParity::NoParity;
+		portSettings._stopBits = SerialStopBits::OneStop;
+		portSettings._flowControl = SerialFlowControl::NoFlowControl;
+		_serialPort->setSerialPortSettings(portSettings);
+
+		settings.beginGroup(kCOMSettingsGroup);
+		_logSerialData = settings.value(kDumpCOMPortData, false).toBool();
 
 		if (_logSerialData == true)
 		{
-			_logSerialPath = settings.value(kDumpComPortPath, QString()).toString();
-			if (_logSerialPath.isEmpty() == true)
+			std::string path = settings.value(kDumpCOMPortPath, "").toString();
+			if (path.empty())
 				_logSerialData = false;
 			else
 			{
-				if (QDir(_logSerialPath).exists() == false)
-					QDir().mkpath(_logSerialPath);
-
-				_logSerialPath = _logSerialPath + QDir::separator() + "Serial_" + QDateTime::currentDateTime().toString("MMdd_HHmmss") + ".ssn";
-
-				_logFile.setFileName(_logSerialPath);
-
-				if (_logFile.open(QIODevice::WriteOnly) == false)
+				std::error_code ec;
+				std::filesystem::create_directories(path, ec);
+				if (ec)
 				{
-					qDebug() << "Not able to open serial log file " << _logSerialPath << " turning logging off";
+					AppCore::writeToApplicationLogLine("CommDevice: create_directories failed for " + path + ": " + ec.message());
+				}
+
+				path = (std::filesystem::path(path) / ("Serial_" + formatDateTime("%m%d_%H%M%S") + ".ssn")).string();
+				_logSerialPath = path;
+
+				_logFile.open(path, std::ios::out | std::ios::binary);
+
+				if (!_logFile.is_open())
+				{
+					AppCore::writeToApplicationLogLine("Not able to open serial log file " + path + " turning logging off");
 					_logSerialData = false;
 				}
 			}
 		}
 
-		result = _serialPort->open(QIODevice::ReadWrite);
-
-		if (result == true)
-		{
-			connect(_serialPort, SIGNAL(readyRead()), this, SLOT(on_ReadyRead()));
-
-			connect(_serialPort, SIGNAL(parityChanged(QSerialPort::Parity)), this, SLOT(on_parityChanged(QSerialPort::Parity)));
-			connect(_serialPort, SIGNAL(baudRateChanged(qint32, QSerialPort::Directions)), this, SLOT(on_baudRateChanged(qint32, QSerialPort::Directions)));
-			connect(_serialPort, SIGNAL(dataBitsChanged(QSerialPort::DataBits)), this, SLOT(on_dataBitsChanged(QSerialPort::DataBits)));
-			connect(_serialPort, SIGNAL(stopBitsChanged(QSerialPort::StopBits)), this, SLOT(on_stopBitsChanged(QSerialPort::StopBits)));
-			connect(_serialPort, SIGNAL(dataErrorPolicyChanged(QSerialPort::DataErrorPolicy)), this, SLOT(on_dataErrorPolicyChanged(QSerialPort::DataErrorPolicy)));
-
-			connect(_serialPort, SIGNAL(error(QSerialPort::SerialPortError)), this, SLOT(on_error(QSerialPort::SerialPortError)));
-			connect(_serialPort, SIGNAL(dataTerminalReadyChanged(bool)), this, SLOT(on_dataTerminalReadyChanged(bool)));
-			connect(_serialPort, SIGNAL(flowControlChanged(QSerialPort::FlowControl)), this, SLOT(on_flowControlChanged(QSerialPort::FlowControl)));
-			connect(_serialPort, SIGNAL(requestToSendChanged(bool)), this, SLOT(on_requestToSendChanged(bool)));
-		}
+		result = _serialPort->open();
 	}
 	else
 	{
-
+		result = _serialPort->open();
 	}
 
 	return result;
@@ -101,7 +95,7 @@ bool CommDevice::Open()
 
 void CommDevice::Close()
 {
-	if (_logFile.isOpen())
+	if (_logFile.is_open())
 		_logFile.close();
 
 	if (_serialPort != nullptr)
@@ -109,28 +103,23 @@ void CommDevice::Close()
 		if (_serialPort->isOpen())
 		{
 			_serialPort->close();
-
-			disconnect(_serialPort, 0, 0, 0);
 		}
 
-		delete _serialPort;
-		_serialPort = nullptr;
+		_serialPort.reset();
 	}
 }
 
 bool CommDevice::Send
 (
-	const QByteArray& sendData
+	const std::string& sendData
 )
 {
-	Q_UNUSED(sendData);
-
 	bool result(false);
 
 	if (_serialPort != nullptr && _serialPort->isOpen())
 	{
-		uint64_t bytesSent = _serialPort->write(sendData);
-		result = (bytesSent == sendData.size());
+		int64_t bytesSent = _serialPort->write(sendData);
+		result = (bytesSent == static_cast<int64_t>(sendData.size()));
 	}
 
 	return result;
@@ -138,76 +127,28 @@ bool CommDevice::Send
 
 uint64_t CommDevice::Read
 (
-	QByteArray& incomingBytes
+	std::string& incomingBytes
 )
 {
 	uint64_t bytesAvailable(0);
 
 	const uint64_t kMaxToRead(0xFFFFF);
-	bool first(true);
 
-	if (_serialPort->isReadable())
+	if (_serialPort != nullptr && _serialPort->isOpen())
 	{
-		bytesAvailable = _serialPort->bytesAvailable();
-		bytesAvailable = bytesAvailable > kMaxToRead ? kMaxToRead : bytesAvailable;
+		int64_t avail = _serialPort->bytesAvailable();
+		if (avail > 0)
+		{
+			bytesAvailable = static_cast<uint64_t>(avail) > kMaxToRead ? kMaxToRead : static_cast<uint64_t>(avail);
 
-		QByteArray readData;
+			std::string readData = _serialPort->read(static_cast<size_t>(bytesAvailable));
 
-		readData = _serialPort->read(bytesAvailable);
+			incomingBytes.append(readData);
 
-		incomingBytes += readData; // Don't presume the buffer is empty
-
-		if (_logSerialData == true && _logFile.isOpen())
-			_logFile.write(readData);
+			if (_logSerialData == true && _logFile.is_open())
+				_logFile.write(readData.data(), readData.size());
+		}
 	}
 
 	return bytesAvailable;
-}
-
-void CommDevice::on_error
-(
-	QSerialPort::SerialPortError serialPortError
-)
-{
-	qDebug() << "on_error: " << serialPortError;
-}
-
-void CommDevice::on_dataTerminalReadyChanged(bool set)
-{
-	qDebug() << "on_dataTerminalReadyChanged: " << set;
-}
-
-void CommDevice::on_flowControlChanged(QSerialPort::FlowControl flow)
-{
-	qDebug() << "on_flowControlChanged: " << flow;
-}
-
-void CommDevice::on_parityChanged(QSerialPort::Parity parity)
-{
-	qDebug() << "on_parityChanged: " << parity;
-}
-
-void CommDevice::on_requestToSendChanged(bool set)
-{
-	qDebug() << "on_dataTerminalReadyChanged: " << set;
-}
-
-void CommDevice::on_baudRateChanged(qint32 baudRate, QSerialPort::Directions directions)
-{
-	qDebug() << "on_baudRateChanged: " << baudRate << ":" << directions;
-}
-
-void CommDevice::on_dataBitsChanged(QSerialPort::DataBits dataBits)
-{
-	qDebug() << "on_dataBitsChanged: " << dataBits;
-}
-
-void CommDevice::on_stopBitsChanged(QSerialPort::StopBits stopBits)
-{
-	qDebug() << "on_stopBitsChanged: " << stopBits;
-}
-
-void CommDevice::on_dataErrorPolicyChanged(QSerialPort::DataErrorPolicy policy)
-{
-	qDebug() << "on_dataErrorPolicyChanged: " << policy;
 }

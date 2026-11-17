@@ -3,6 +3,10 @@
 // Copyright (c) Qualcomm Technologies, Inc. and/or its subsidiaries.
 // SPDX-License-Identifier: BSD-3-Clause
 
+// Qt
+#include <QString>
+#include <QStringList>
+
 // QCommon
 #include "CommandLineParser.h"
 
@@ -19,9 +23,9 @@ public:
 	bool getProgramming();
 	bool programSet();
 
-	QByteArray serialNumber();
-	QByteArray modelName();
-	quint32 platformID();
+	std::string serialNumber();
+	std::string modelName();
+	uint32_t platformID();
 
 private:
 	bool						_listSet{false};
@@ -29,9 +33,9 @@ private:
 	bool						_getProgramming{false};
 	bool						_program{false};
 
-	QString						_serialNumber;
-	QString						_modelName;
-	QString						_platformID;
+	std::string					_serialNumber;
+	std::string					_modelName;
+	std::string					_platformID;
 };
 
 #endif // PROGRAMMERCOMMANDLINE_H

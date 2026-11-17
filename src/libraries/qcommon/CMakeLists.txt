@@ -5,8 +5,12 @@ include(${CMAKE_SOURCE_DIR}/src/libraries/qcommon/Common.cmake)
 
 if (CMAKE_BUILD_TYPE STREQUAL "Debug")
     set(LIBRARY_NAME QCommond)
+    set(CONSOLE_LIB QCommonConsoled)
+    set(BRIDGE_LIB QCommonBridged)
 else()
     set(LIBRARY_NAME QCommon)
+    set(CONSOLE_LIB QCommonConsole)
+    set(BRIDGE_LIB QCommonBridge)
 endif()
 
 set(CMAKE_AUTORCC ON)
@@ -21,6 +25,7 @@ qt_add_library(${LIBRARY_NAME} STATIC
     ApplicationEnhancements.cpp ApplicationEnhancements.h
     ColorSwatch.cpp ColorSwatch.h
     CustomComboBox.h
+    QuitAppEvent.cpp QuitAppEvent.h
     IntFilteredEditor.cpp IntFilteredEditor.h
     LEDWidget.cpp LEDWidget.h
     PainterEffects.cpp PainterEffects.h
@@ -41,6 +46,8 @@ set_target_properties(${LIBRARY_NAME} PROPERTIES
 QCommonSettings(${LIBRARY_NAME})
 
 target_include_directories(${LIBRARY_NAME} PUBLIC
+    ${CMAKE_CURRENT_SOURCE_DIR}
+    ../qcommon-bridge
     ../qcommon-console
 )
 
@@ -63,6 +70,8 @@ target_link_libraries(${LIBRARY_NAME} PUBLIC
     Qt6::SerialPort
     Qt6::Widgets
     Qt6::Xml
+    ${BRIDGE_LIB}
+    ${CONSOLE_LIB}
 )
 
 install(TARGETS ${LIBRARY_NAME}

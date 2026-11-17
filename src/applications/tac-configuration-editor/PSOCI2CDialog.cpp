@@ -30,8 +30,8 @@ PSOCI2CDialog::PSOCI2CDialog(_PSOCPlatformConfiguration* psocConfig, QWidget *pa
 
 	auto slaves = _psocConfig->getSlaveConfigs();
 
-	for (int row = 0; row < slaves.count(); ++row)
-		_slaveRows.append(addSlaveRow(row, slaves.at(row)));
+	for (size_t row = 0; row < slaves.size(); ++row)
+		_slaveRows.append(addSlaveRow(static_cast<int>(row), slaves.at(row)));
 
 	updateButtonStates();
 	validateAddresses();
@@ -45,14 +45,14 @@ void PSOCI2CDialog::on__addSlaveBtn_clicked()
 {
 	auto slaves = _psocConfig->getSlaveConfigs();
 
-	if (slaves.count() < kMaxI2CSlaves)
+	if (slaves.size() < kMaxI2CSlaves)
 	{
 		PSOCI2CSlave slave;
 
-		slaves.append(slave);
+		slaves.push_back(slave);
 		_psocConfig->setSlaveConfigs(slaves);
 
-		_slaveRows.append(addSlaveRow(_slaveRows.count(), slave));
+		_slaveRows.append(addSlaveRow(static_cast<int>(_slaveRows.count()), slave));
 	}
 
 	updateButtonStates();
@@ -63,7 +63,7 @@ void PSOCI2CDialog::on__removeSlaveBtn_clicked()
 {
 	auto slaves = _psocConfig->getSlaveConfigs();
 
-	if (slaves.count() > kMinI2CSlaves)
+	if (slaves.size() > kMinI2CSlaves)
 	{
 		if (!_slaveRows.isEmpty())
 		{
@@ -73,7 +73,7 @@ void PSOCI2CDialog::on__removeSlaveBtn_clicked()
 				wgt->hide();
 				wgt->deleteLater();
 
-				slaves.removeLast();
+				slaves.pop_back();
 				_psocConfig->setSlaveConfigs(slaves);
 			}
 		}
@@ -86,7 +86,7 @@ void PSOCI2CDialog::on__removeSlaveBtn_clicked()
 void PSOCI2CDialog::updateButtonStates()
 {
 	auto slaves = _psocConfig->getSlaveConfigs();
-	int sc = slaves.count();
+	int sc = static_cast<int>(slaves.size());
 
 	if (sc == kMinI2CSlaves)
 	{
@@ -115,7 +115,7 @@ void PSOCI2CDialog::validateAddresses()
 	QSet<PinID> seenAddresses;
 	bool duplicate(false);
 
-	for (const auto& slave : std::as_const(slaves))
+	for (const auto& slave : slaves)
 	{
 		if (seenAddresses.contains(slave._slaveAddress))
 		{
@@ -142,7 +142,7 @@ void PSOCI2CDialog::updateSlaveFromRow(int row)
 
 	auto slaves = _psocConfig->getSlaveConfigs();
 
-	if (row >= slaves.count())
+	if (row >= static_cast<int>(slaves.size()))
 		return;
 
 	PSOCI2CSlave slave = slaves.at(row);

@@ -6,7 +6,7 @@
 // TAC
 class TACWindow;
 
-#include "TACPreferences.h"
+#include "QTACPreferences.h"
 
 // QCommon
 #include "AlpacaApplication.h"
@@ -26,6 +26,7 @@ public:
 	static TACApplication* tacAppInstance();
 	static TACWindow* createTACWindow(bool show = true);
 	static TACWindow* openByName(const QByteArray& deviceName);
+	static TACWindow* openByName(const QString& deviceName);
 	bool openLastDevice();
 
 	static bool disconnectTACWindow(TACWindow* tacWindow);
@@ -36,7 +37,7 @@ public:
 	void quitTAC();
 	void quitTACByMsg();
 
-	TACPreferences* preferences()
+	QTACPreferences* preferences()
 	{
 		return &_preferences;
 	}
@@ -54,7 +55,7 @@ private:
 	static bool					_starting;
 	static QList<TACWindow*>	_tacWindows;
 
-	TACPreferences				_preferences;
+	QTACPreferences				_preferences;
 	static QPoint				_createWindowOrigin;
 };
 

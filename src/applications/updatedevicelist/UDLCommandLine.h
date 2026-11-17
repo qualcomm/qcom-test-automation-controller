@@ -3,6 +3,10 @@
 // Copyright (c) Qualcomm Technologies, Inc. and/or its subsidiaries.
 // SPDX-License-Identifier: BSD-3-Clause
 
+// Qt
+#include <QString>
+#include <QStringList>
+
 // QCommon
 #include "CommandLineParser.h"
 

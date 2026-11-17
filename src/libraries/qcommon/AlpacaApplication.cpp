@@ -4,8 +4,7 @@
 #include "AlpacaApplication.h"
 #include "ApplicationEnhancements.h"
 #include "ConsoleApplicationEnhancements.h"
-#include "AlpacaDefines.h"
-#include "DateCheckFailEvent.h"
+#include "QTACDefines.h"
 #include "EncryptedString.h"
 #include "QuitAppEvent.h"
 
@@ -54,8 +53,6 @@ bool AlpacaApplication::initialize(PreferencesBase *preferencesBase)
 
 	_appCore->setPreferences(preferencesBase);
 
-	_appCore->postStartEvent();
-
 	cleanupLogs();
 
 	result = true;
@@ -86,23 +83,9 @@ bool AlpacaApplication::event(QEvent *e)
 	switch (eventType)
 	{
 	case kQuitAppEvent:
-		AppCore::writeToApplicationLogLine(_appName + " received an application quit event.");
+		AppCore::writeToApplicationLogLine(_appName.toStdString() + " received an application quit event.");
 		shutDown();
 		break;
-
-	case kDateCheckFailEvent:
-	{
-		AppCore::writeToApplicationLogLine("kDateCheckFailEvent");
-
-		bool dateCheckNotified = alpacaSettings.value("dateCheckNotified", false).toBool();
-		if (dateCheckNotified == false)
-		{
-			alpacaSettings.setValue("dateCheckNotified", true);
-			//DateCheckFailEvent* dcfe = static_cast<DateCheckFailEvent*>(e);
-			QMessageBox::warning(Q_NULLPTR,  "Date Check Failed", "Update your software");
-		}
-	}
-	break;
 
 	default:
 		return QApplication::event(e);

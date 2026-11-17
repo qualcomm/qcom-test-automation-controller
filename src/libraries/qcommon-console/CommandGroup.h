@@ -4,8 +4,8 @@
 // SPDX-License-Identifier: BSD-3-Clause
 
 #include "QCommonConsoleGlobal.h"
+#include "StringUtilities.h"
 
-#include <cctype>
 #include <string>
 #include <vector>
 
@@ -48,11 +48,9 @@ public:
 		return result;
 	}
 
-	static CommandGroups fromString(const std::string commandGroupStr)
+	static CommandGroups fromString(const std::string& commandGroupStr)
 	{
-		std::string temp{commandGroupStr};
-		for (char& c: temp)
-			c = static_cast<char>(std::tolower(static_cast<unsigned char>(c)));
+		std::string temp = toLower(commandGroupStr);
 
 		if (temp == "connections")
 			return eConnectionGroup;

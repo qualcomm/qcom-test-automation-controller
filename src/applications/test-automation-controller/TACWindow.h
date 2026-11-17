@@ -11,6 +11,8 @@
 #include <QElapsedTimer>
 #include <QTimer>
 
+class QAlpacaDevice;
+
 class TACWindow :
 	public QMainWindow,
 	private Ui::TACWindowClass
@@ -23,7 +25,7 @@ public:
 
 	bool inUse()
 	{
-		return _alpacaDevice.isNull() == false;
+		return _alpacaDevice != nullptr;
 	}
 
 	void openPort(const QByteArray& portName);
@@ -55,6 +57,7 @@ private slots:
 
 private:
 	AlpacaDevice				_alpacaDevice;
+	QAlpacaDevice*				_alpacaBridge{nullptr};
 	QTimer						_autoShutdownTimer;
 	QElapsedTimer				_autoShutdownDeadline;
 	NotificationWidget*			_nwgt{Q_NULLPTR};

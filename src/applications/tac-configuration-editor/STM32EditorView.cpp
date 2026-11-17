@@ -7,6 +7,10 @@
 #include "PlatformConfigurationException.h"
 #include "TableComboBox.h"
 #include "TableCheckBox.h"
+#include "QCommonTypes.h"
+#include "QCommandGroup.h"
+#include "QTab.h"
+#include "QPlatformConfigBridge.h"
 
 // Qt
 #include <QMessageBox>
@@ -39,7 +43,7 @@ void STM32EditorView::setPlatformConfiguration(PlatformConfiguration platformCon
 	{
 		EditorView::setPlatformConfiguration(platformConfiguration);
 
-		_stm32PlatformConfig = static_cast<_STM32PlatformConfiguration*>(platformConfiguration.data());
+		_stm32PlatformConfig = dynamic_cast<_STM32PlatformConfiguration*>(platformConfiguration.get());
 
 		read();
 	}
@@ -78,7 +82,7 @@ bool STM32EditorView::read()
 			twi = new QTableWidgetItem();
 			if (twi != Q_NULLPTR)
 			{
-				twi->setData(kHashRole, pinData._hash);
+				twi->setData(kHashRole, toQVariant(pinData._hash));
 				twi->setText(QString::number(pinData._pin));
 				twi->setTextAlignment(Qt::AlignHCenter | Qt::AlignVCenter);
 				twi->setFlags(twi->flags() & ~Qt::ItemIsEditable);
@@ -88,7 +92,7 @@ bool STM32EditorView::read()
 			tableCheckBox = new TableCheckBox(tableWidget);
 			if (tableCheckBox != Q_NULLPTR)
 			{
-				tableCheckBox->setProperty(kHash, pinData._hash);
+				tableCheckBox->setProperty(kHash, toQVariant(pinData._hash));
 				tableCheckBox->setCheckState(pinData._enabled);
 				connect(tableCheckBox, SIGNAL(checkStateChanged(bool)), this, SLOT(onEnableCheckChanged(bool)));
 				tableWidget->setCellWidget(row, kEnabledColumn, tableCheckBox);
@@ -97,7 +101,7 @@ bool STM32EditorView::read()
 			tableCheckBox = new TableCheckBox(tableWidget);
 			if (tableCheckBox != Q_NULLPTR)
 			{
-				tableCheckBox->setProperty(kHash, pinData._hash);
+				tableCheckBox->setProperty(kHash, toQVariant(pinData._hash));
 				tableCheckBox->setCheckState(pinData._inverted);
 				connect(tableCheckBox, SIGNAL(checkStateChanged(bool)), this, SLOT(onInvertCheckChanged(bool)));
 				tableWidget->setCellWidget(row, kInvertColumn, tableCheckBox);
@@ -106,8 +110,8 @@ bool STM32EditorView::read()
 			twi = new QTableWidgetItem();
 			if (twi != Q_NULLPTR)
 			{
-				twi->setData(kHashRole, pinData._hash);
-				twi->setText(pinData._pinLabel.isEmpty() ? kDefaultPinLabel : pinData._pinLabel);
+				twi->setData(kHashRole, toQVariant(pinData._hash));
+				twi->setText(pinData._pinLabel.empty() ? kDefaultPinLabel : toQString(pinData._pinLabel));
 				twi->setTextAlignment(Qt::AlignHCenter | Qt::AlignVCenter);
 				tableWidget->setItem(row, kPinLabelColumn, twi);
 			}
@@ -115,8 +119,8 @@ bool STM32EditorView::read()
 			twi = new QTableWidgetItem();
 			if (twi != Q_NULLPTR)
 			{
-				twi->setData(kHashRole, pinData._hash);
-				twi->setText(pinData._pinTooltip.isEmpty() ? kDefaultPinTooltip : pinData._pinTooltip);
+				twi->setData(kHashRole, toQVariant(pinData._hash));
+				twi->setText(pinData._pinTooltip.empty() ? kDefaultPinTooltip : toQString(pinData._pinTooltip));
 				twi->setTextAlignment(Qt::AlignHCenter | Qt::AlignVCenter);
 				tableWidget->setItem(row, kPinTooltipColumn, twi);
 			}
@@ -124,8 +128,8 @@ bool STM32EditorView::read()
 			twi = new QTableWidgetItem();
 			if (twi != Q_NULLPTR)
 			{
-				twi->setData(kHashRole, pinData._hash);
-				twi->setText(pinData._pinCommand.isEmpty() ? kDefaultPinCommand : pinData._pinCommand);
+				twi->setData(kHashRole, toQVariant(pinData._hash));
+				twi->setText(pinData._pinCommand.empty() ? kDefaultPinCommand : toQString(pinData._pinCommand));
 				twi->setTextAlignment(Qt::AlignHCenter | Qt::AlignVCenter);
 				tableWidget->setItem(row, kPinCommandColumn, twi);
 			}
@@ -133,9 +137,9 @@ bool STM32EditorView::read()
 			tableComboBox = new TableComboBox(Q_NULLPTR);
 			if (tableComboBox != Q_NULLPTR)
 			{
-				tableComboBox->setProperty(kHash, pinData._hash);
-				tableComboBox->setupItems(CommandGroup::toStringList());
-				tableComboBox->setCurrentText(CommandGroup::toString(pinData._commandGroup));
+				tableComboBox->setProperty(kHash, toQVariant(pinData._hash));
+				tableComboBox->setupItems(QCommandGroup::toStringList());
+				tableComboBox->setCurrentText(QCommandGroup::toString(pinData._commandGroup));
 
 				connect(tableComboBox, SIGNAL(currentTextChanged(QString)), this, SLOT(onGroupChanged(QString)));
 				tableWidget->setCellWidget(row, kCommandGroupColumn, tableComboBox);
@@ -144,9 +148,9 @@ bool STM32EditorView::read()
 			tableComboBox = new TableComboBox(Q_NULLPTR);
 			if (tableComboBox != Q_NULLPTR)
 			{
-				tableComboBox->setProperty(kHash, pinData._hash);
-				tableComboBox->setupItems(Tab::toStringList(_configurableTabs));
-				tableComboBox->setCurrentText(pinData._tabName);
+				tableComboBox->setProperty(kHash, toQVariant(pinData._hash));
+				tableComboBox->setupItems(QTabs::toStringList(_configurableTabs));
+				tableComboBox->setCurrentText(toQString(pinData._tabName));
 
 				connect(tableComboBox, SIGNAL(currentTextChanged(QString)), this, SLOT(onTabsChanged(QString)));
 				tableWidget->setCellWidget(row, kTabsColumn, tableComboBox);
@@ -155,8 +159,8 @@ bool STM32EditorView::read()
 			twi = new QTableWidgetItem();
 			if (twi != Q_NULLPTR)
 			{
-				twi->setData(kHashRole, pinData._hash);
-				twi->setText(QString::number(pinData._cellLocation.x()) + "," + QString::number(pinData._cellLocation.y()));
+				twi->setData(kHashRole, toQVariant(pinData._hash));
+				twi->setText(QString::number(pinData._cellLocation.first) + "," + QString::number(pinData._cellLocation.second));
 				twi->setTextAlignment(Qt::AlignHCenter | Qt::AlignVCenter);
 				tableWidget->setItem(row, kCellLocationColumn, twi);
 			}
@@ -245,11 +249,11 @@ void STM32EditorView::onGroupChanged(const QString &newText)
 
 		try
 		{
-			_stm32PlatformConfig->setPinGroup(hash, CommandGroup::fromString(newText));
+			_stm32PlatformConfig->setPinGroup(hash, QCommandGroup::fromString(newText));
 		}
 		catch (const PlatformConfigurationException& e)
 		{
-			QMessageBox::critical(this, "TAC Configuration Editor - cannot set pin group", e.getMessage());
+			QMessageBox::critical(this, "TAC Configuration Editor - cannot set pin group", QPlatformConfigBridge::getExceptionMessage(e));
 		}
 	}
 }
@@ -263,11 +267,11 @@ void STM32EditorView::onTabsChanged(const QString &newText)
 
 		try
 		{
-			_stm32PlatformConfig->setTabName(hash, newText);
+			_stm32PlatformConfig->setTabName(hash, toStdString(newText));
 		}
 		catch (const PlatformConfigurationException& e)
 		{
-			QMessageBox::critical(this, "TAC Configuration Editor - cannot set tab", e.getMessage());
+			QMessageBox::critical(this, "TAC Configuration Editor - cannot set tab", QPlatformConfigBridge::getExceptionMessage(e));
 		}
 	}
 }
@@ -279,13 +283,13 @@ void STM32EditorView::onTableItemChanged(QTableWidgetItem* twi)
 	switch(twi->column())
 	{
 	case kPinLabelColumn:
-		_stm32PlatformConfig->setPinLabel(hash, sanitizeText(itemText));
+		_stm32PlatformConfig->setPinLabel(hash, toStdString(sanitizeText(itemText)));
 		break;
 	case kPinTooltipColumn:
-		_stm32PlatformConfig->setPinTooltip(hash, sanitizeText(itemText));
+		_stm32PlatformConfig->setPinTooltip(hash, toStdString(sanitizeText(itemText)));
 		break;
 	case kPinCommandColumn:
-		_stm32PlatformConfig->setPinCommand(hash, sanitizeText(itemText));
+		_stm32PlatformConfig->setPinCommand(hash, toStdString(sanitizeText(itemText)));
 		break;
 	case kCellLocationColumn:
 	{
@@ -298,15 +302,15 @@ void STM32EditorView::onTableItemChanged(QTableWidgetItem* twi)
 			if (row < 0 || col < 0)
 			{
 				twi->setText(kDefaultCellLocation);
-				_stm32PlatformConfig->setPinCellLocation(hash, QPoint(-1,-1));
+				_stm32PlatformConfig->setPinCellLocation(hash, {-1, -1});
 			}
 			else
-				_stm32PlatformConfig->setPinCellLocation(hash, QPoint(row, col));
+				_stm32PlatformConfig->setPinCellLocation(hash, {row, col});
 		}
 		else
 		{
 			twi->setText(kDefaultCellLocation);
-			_stm32PlatformConfig->setPinCellLocation(hash, QPoint(-1,-1));
+			_stm32PlatformConfig->setPinCellLocation(hash, {-1, -1});
 		}
 		break;
 	}

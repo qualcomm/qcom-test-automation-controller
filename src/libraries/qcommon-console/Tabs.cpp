@@ -12,7 +12,7 @@ HashType Tab::makeHash(const Tab& tab)
 	return hash;
 }
 
-Tab Tab::find(HashType hash, Tabs &tabs)
+Tab Tab::find(HashType hash, const Tabs &tabs)
 {
 	for (const auto& tab: tabs)
 	{
@@ -27,26 +27,23 @@ Tab Tab::find(HashType hash, Tabs &tabs)
 
 void Tab::addTab(Tab& tab, Tabs& tabs)
 {
-	Q_UNUSED(tabs)
-
-	// Todo, why is this commented out?
 	tab._hash = Tab::makeHash(tab);
-//	tabs.append(tab);
+	tabs.push_back(tab);
 }
 
 void Tab::removeTab(HashType hash, Tabs& tabs)
 {
-	for (const auto &tab: tabs)
+	for (auto it = tabs.begin(); it != tabs.end(); ++it)
 	{
-		if (tab._hash == hash)
+		if (it->_hash == hash)
 		{
-//			tabs.removeOne(tab);
+			tabs.erase(it);
 			break;
 		}
 	}
 }
 
-void Tab::updateTabName(HashType hash, std::string &name, Tabs& tabs)
+void Tab::updateTabName(HashType hash, const std::string &name, Tabs& tabs)
 {
 	for (auto &tab: tabs)
 	{
@@ -70,7 +67,7 @@ void Tab::setTabVisible(HashType hash, bool visible, Tabs &tabs)
 	}
 }
 
-std::vector<std::string> Tab::toStringList(Tabs &tabs, bool configurableTabs)
+std::vector<std::string> Tab::toStringList(const Tabs &tabs, bool configurableTabs)
 {
 	std::vector<std::string> result;
 

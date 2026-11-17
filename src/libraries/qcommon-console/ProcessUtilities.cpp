@@ -2,102 +2,122 @@
 // SPDX-License-Identifier: BSD-3-Clause
 
 #include "ProcessUtilities.h"
+#include "StringUtilities.h"
+#include "AppCore.h"
 
-// QCommon
-#include <Range.h>
+#include <algorithm>
+#include <cctype>
+#include <filesystem>
+#include <fstream>
+#include <string>
+#include <vector>
 
-// QT
-#include <QCoreApplication>
-#include <QDir>
-#include <QFileInfo>
-#include <QProcess>
-#include <QSet>
-#include <QStringList>
+#if defined(_WIN32) || defined(_WIN64)
+#ifndef WIN32_LEAN_AND_MEAN
+#define WIN32_LEAN_AND_MEAN
+#endif
+#include <windows.h>
+#include <tlhelp32.h>
+#else
+#include <unistd.h>
+#include <sys/types.h>
+#include <sys/wait.h>
+#endif
 
-bool isPlatformProcessRunning(const QString& applicationPath);
-QString getModulePath(void);
+bool isPlatformProcessRunning(const std::string& applicationPath);
+std::string getModulePath();
 
 bool isProcessRunning
 (
 	const std::string& applicationName
 )
 {
-	QString candidatePath{QString::fromStdString(applicationName).toLower()};
-
-	return isPlatformProcessRunning(candidatePath);
+	return isPlatformProcessRunning(applicationName);
 }
 
 bool startProcess(const std::string &applicationName)
 {
 	bool result{false};
 
-	QString modulePath = getModulePath();
-	if (modulePath.isEmpty() == false)
+	std::string modulePath = getModulePath();
+	if (!modulePath.empty())
 	{
-		QFileInfo fileInfo(modulePath);
-		QStringList arguments;
+		std::filesystem::path moduleDir = std::filesystem::path(modulePath).parent_path();
+		std::string appPath = (moduleDir / applicationName).lexically_normal().string();
 
-		QString appPath = QDir::cleanPath(fileInfo.absolutePath() + QDir::separator() + QString::fromStdString(applicationName));
+#if defined(_WIN32) || defined(_WIN64)
+		STARTUPINFOA si;
+		ZeroMemory(&si, sizeof(si));
+		si.cb = sizeof(si);
+		PROCESS_INFORMATION pi;
+		ZeroMemory(&pi, sizeof(pi));
 
-		result = QProcess::startDetached(appPath, arguments, fileInfo.absolutePath());
+		if (CreateProcessA(appPath.c_str(), NULL, NULL, NULL, FALSE, 0, NULL, moduleDir.string().c_str(), &si, &pi))
+		{
+			CloseHandle(pi.hProcess);
+			CloseHandle(pi.hThread);
+			result = true;
+		}
+#else
+		pid_t pid = fork();
+		if (pid == 0)
+		{
+			if (chdir(moduleDir.string().c_str()) != 0)
+			{
+				_exit(126);
+			}
+			char* const argv[] = { const_cast<char*>(appPath.c_str()), nullptr };
+			execv(appPath.c_str(), argv);
+			_exit(127);
+		}
+		else if (pid > 0)
+		{
+			result = true;
+		}
+#endif
 	}
 
 	return result;
 }
 
-#ifdef Q_OS_WIN
-
-#include <windows.h>
-#include <tlhelp32.h>
-
-#include <string>
+#if defined(_WIN32) || defined(_WIN64)
 
 bool isPlatformProcessRunning
 (
-	const QString& applicationPath
+	const std::string& applicationPath
 )
 {
 	bool result{false};
 
-	std::wstring modulePath;
-	HANDLE hProcessSnap;
+	std::string appPathLower = toLower(applicationPath);
 
-	hProcessSnap = CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, 0);
+	HANDLE hProcessSnap = CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, 0);
 	if (hProcessSnap != INVALID_HANDLE_VALUE)
 	{
-		PROCESSENTRY32 pe32;
+		PROCESSENTRY32W pe32;
+		pe32.dwSize = sizeof(PROCESSENTRY32W);
 
-		pe32.dwSize = sizeof(PROCESSENTRY32);
-
-		if (Process32First(hProcessSnap, &pe32))
+		if (Process32FirstW(hProcessSnap, &pe32))
 		{
-			QStringList processes;
-
 			do
 			{
-				QString modulePathStr = QString::fromStdWString(std::wstring(&pe32.szExeFile[0])).toLower();
-				if (processes.contains(modulePathStr) == false)
-					processes.append(modulePathStr);
-			} while (Process32Next(hProcessSnap, &pe32));
+				int size_needed = WideCharToMultiByte(CP_UTF8, 0, pe32.szExeFile, -1, NULL, 0, NULL, NULL);
+				std::string modulePathStr;
+				if (size_needed > 0)
+				{
+					modulePathStr.resize(size_needed);
+					WideCharToMultiByte(CP_UTF8, 0, pe32.szExeFile, -1, &modulePathStr[0], size_needed, NULL, NULL);
+					if (!modulePathStr.empty() && modulePathStr.back() == '\0')
+						modulePathStr.pop_back();
+				}
+				std::string modulePathLower = toLower(modulePathStr);
 
-#ifdef DEBUG
-			auto sortModuleLambda = [] (const QString& module1, const QString& module2) -> bool
-			{
-				return module1 < module2;
-			};
-
-			// this helps with interactive debugging only
-			std::sort(processes.begin(), processes.end(), sortModuleLambda);
-#endif
-			for (const auto& processName: processes)
-			{
-				if (processName.contains(applicationPath))
+				if (modulePathLower.find(appPathLower) != std::string::npos)
 				{
 					result = true;
-
 					break;
 				}
-			}
+			} while (Process32NextW(hProcessSnap, &pe32));
 		}
 
 		CloseHandle(hProcessSnap);
@@ -106,20 +126,26 @@ bool isPlatformProcessRunning
 	return result;
 }
 
-QString getModulePath()
+std::string getModulePath()
 {
-	QString result;
+	std::string result;
 
 	WCHAR modulePath[MAX_PATH];
-	HMODULE hModule{Q_NULLPTR};
+	HMODULE hModule{nullptr};
 
-	if (GetModuleHandleEx(GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS | GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT,
+	if (GetModuleHandleExW(GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS | GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT,
 			(LPCWSTR) &getModulePath, &hModule) != FALSE)
 	{
-		if (GetModuleFileName(hModule, modulePath, sizeof(modulePath)) != FALSE)
+		if (GetModuleFileNameW(hModule, modulePath, sizeof(modulePath) / sizeof(WCHAR)) != FALSE)
 		{
-			std::wstring moduleName = std::wstring(&modulePath[0]);
-			result = QString::fromStdWString(modulePath);
+			int size_needed = WideCharToMultiByte(CP_UTF8, 0, modulePath, -1, NULL, 0, NULL, NULL);
+			if (size_needed > 0)
+			{
+				result.resize(size_needed);
+				WideCharToMultiByte(CP_UTF8, 0, modulePath, -1, &result[0], size_needed, NULL, NULL);
+				if (!result.empty() && result.back() == '\0')
+					result.pop_back();
+			}
 		}
 	}
 
@@ -128,49 +154,61 @@ QString getModulePath()
 
 #else
 
-QString getModulePath()
+std::string getModulePath()
 {
-    QString result;
+	std::string result;
+	char buffer[1024];
+	ssize_t len = readlink("/proc/self/exe", buffer, sizeof(buffer) - 1);
+	if (len != -1)
+	{
+		buffer[len] = '\0';
+		result = std::string(buffer);
+	}
 
-    QCoreApplication* instance = QCoreApplication::instance();
-    if (instance != Q_NULLPTR)
-        result = instance->applicationDirPath();
-
-    return result;
+	return result;
 }
 
-bool isPlatformProcessRunning(const QString& applicationPath)
+bool isPlatformProcessRunning(const std::string& applicationPath)
 {
-    QDir rootDir("/proc");
+	std::string appLower = toLower(applicationPath);
 
-    QFileInfoList list = rootDir.entryInfoList();
+	std::error_code ec;
+	std::filesystem::directory_iterator dirIt("/proc", ec);
+	if (ec)
+	{
+		AppCore::writeToApplicationLogLine("isPlatformProcessRunning: failed to open /proc: " + ec.message());
+		return false;
+	}
 
-    for (const auto index: range(list.size()))
-    {
-        QFileInfo fileInfo = list.at(index);
+	for (const auto& entry : dirIt)
+	{
+		if (entry.is_directory(ec))
+		{
+			std::filesystem::path cmdFilePath = entry.path() / "cmdline";
+			if (std::filesystem::exists(cmdFilePath, ec))
+			{
+				std::ifstream cmdFile(cmdFilePath, std::ios::binary);
+				if (cmdFile.is_open())
+				{
+					std::string contents;
+					std::getline(cmdFile, contents, '\0');
+					if (contents.empty())
+					{
+						cmdFile.clear();
+						cmdFile.seekg(0);
+						std::getline(cmdFile, contents);
+					}
 
-        if (fileInfo.isDir())
-        {
-            QString cmdFilePath = fileInfo.absoluteFilePath()+ QDir::separator() + "cmdline";
-            QFileInfo cmdFile(cmdFilePath);
-            if (cmdFile.exists())
-            {
-                QFile cmdlinefile(cmdFile.absoluteFilePath());
-                if (cmdlinefile.open(QIODevice::ReadOnly))
-                {
-                    QByteArray contents = cmdlinefile.readAll();
-                    QList<QByteArray> parts = contents.split(' ');
+					size_t spacePos = contents.find(' ');
+					std::string firstPart = (spacePos != std::string::npos) ? contents.substr(0, spacePos) : contents;
 
-                    cmdlinefile.close();
-
-                    if (applicationPath.toLower() == parts.at(0).toLower())
-                        return true;
-                }
-            }
-        }
-    }
+					if (appLower == toLower(firstPart))
+						return true;
+				}
+			}
+		}
+	}
 	return false;
 }
 
 #endif
-

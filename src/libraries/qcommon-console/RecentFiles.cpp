@@ -5,24 +5,11 @@
 
 // QCommon
 #include "AlpacaSettings.h"
-#include "Range.h"
+#include "AppCore.h"
+#include "StringUtilities.h"
 
-// QT
-#include <QFileInfo>
-#include <QSettings>
-
-static int indexOfCaseInsensitive(const std::vector<std::string>& files, const std::string& filePath)
-{
-	QString targetFilePath = QString::fromStdString(filePath);
-
-	for (size_t index = 0; index < files.size(); index++)
-	{
-		if (QString::fromStdString(files[index]).compare(targetFilePath, Qt::CaseInsensitive) == 0)
-			return static_cast<int>(index);
-	}
-
-	return -1;
-}
+#include <cctype>
+#include <filesystem>
 
 RecentFiles::RecentFiles
 (
@@ -153,14 +140,13 @@ std::string RecentFiles::getFileName
 {
 	std::string result(getFilePath(fileIndex));
 
-	if (result.empty() == false)
+	if (!result.empty())
 	{
-		QFileInfo fileInfo(QString::fromStdString(result));
-
+		std::filesystem::path p(result);
 		if (_hideExtensions)
-			result = fileInfo.baseName().toStdString();
+			result = p.stem().string();
 		else
-			result = fileInfo.fileName().toStdString();
+			result = p.filename().string();
 	}
 
 	return result;
@@ -170,27 +156,34 @@ void RecentFiles::load()
 {
 	AlpacaSettings settings(_appName);
 
-	if (_settingsGroup.empty() == false)
-		settings.beginGroup(QString::fromStdString(_settingsGroup));
+	if (!_settingsGroup.empty())
+		settings.beginGroup(_settingsGroup);
 
 	_maxFileCount = settings.value("maxFileCount", _maxFileCount).toInt();
 
-	for (auto i: range(settings.beginReadArray("recentFiles")))
+	int count = settings.beginReadArray("recentFiles");
+	for (int i = 0; i < count; ++i)
 	{
 		settings.setArrayIndex(i);
 
-		QString recentFile = settings.value("recentFile").toString();
-		if (recentFile.isEmpty() == false)
+		std::string recentFile = settings.value("recentFile").toString();
+		if (!recentFile.empty())
 		{
-			QFileInfo fileInfo(recentFile);
-			if (fileInfo.exists())
-				_recentFiles.push_back(recentFile.toStdString());
+			std::error_code ec;
+			if (std::filesystem::exists(recentFile, ec))
+			{
+				_recentFiles.push_back(recentFile);
+			}
+			else if (ec)
+			{
+				AppCore::writeToApplicationLogLine("RecentFiles::read: exists() check error for '" + recentFile + "': " + ec.message());
+			}
 		}
 	}
 
 	settings.endArray();
 
-	if (_settingsGroup.empty() == false)
+	if (!_settingsGroup.empty())
 		settings.endGroup();
 }
 
@@ -198,8 +191,8 @@ void RecentFiles::save()
 {
 	AlpacaSettings settings(_appName);
 
-	if (_settingsGroup.empty() == false)
-		settings.beginGroup(QString::fromStdString(_settingsGroup));
+	if (!_settingsGroup.empty())
+		settings.beginGroup(_settingsGroup);
 
 	settings.remove("recentFiles");
 
@@ -207,14 +200,14 @@ void RecentFiles::save()
 
 	settings.beginWriteArray("recentFiles");
 
-	for (auto i: range(_recentFiles.size()))
+	for (size_t i = 0; i < _recentFiles.size(); ++i)
 	{
-		settings.setArrayIndex(i);
-		settings.setValue("recentFile", QString::fromStdString(_recentFiles.at(i)));
+		settings.setArrayIndex(static_cast<int>(i));
+		settings.setValue("recentFile", _recentFiles.at(i));
 	}
 
 	settings.endArray();
 
-	if (_settingsGroup.empty() == false)
+	if (!_settingsGroup.empty())
 		settings.endGroup();
 }

@@ -8,25 +8,6 @@ const QColor kWarnNotice(0xff, 0xe0, 0xc0);
 const QColor kInfoNotice(0x22, 0xbf, 0xe2);
 const QColor kErrorNoticeQColor(0xfc, 0x5e, 0x03);
 
-QColor ColorConversion::BasicToColor(const BasicColor &convertMe)
-{
-	QColor result;
-
-	result.setRed(convertMe.red());
-	result.setGreen(convertMe.green());
-	result.setBlue(convertMe.blue());
-	result.setAlpha(convertMe.alpha());
-
-	return result;
-}
-
-BasicColor ColorConversion::ColorToBasic(const QColor &convertMe)
-{
-	BasicColor result(convertMe.red(), convertMe.green(), convertMe.blue(), convertMe.alpha());
-
-	return result;
-}
-
 QColor ColorConversion::getLabelColor(const NotificationLevel level)
 {
 	QColor labelColor(Qt::lightGray);

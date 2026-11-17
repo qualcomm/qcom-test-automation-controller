@@ -1,4 +1,4 @@
-﻿// Copyright (c) Qualcomm Technologies, Inc. and/or its subsidiaries.
+// Copyright (c) Qualcomm Technologies, Inc. and/or its subsidiaries.
 // SPDX-License-Identifier: BSD-3-Clause
 
 #include "FTDIDevice.h"
@@ -12,8 +12,11 @@
 #include "mymemcpy.h"
 #include "Range.h"
 
-// Qt
-#include <QThread>
+#include <algorithm>
+#include <cassert>
+#include <chrono>
+#include <cstring>
+#include <thread>
 
 // FTDI
 #include "ftd2xx.h"
@@ -54,14 +57,14 @@ bool FTDIDevice::programDevice
 	if (tacPlatformEntry._platformEntry->_platformID == platformID)
 	{
 		FT_STATUS ftStatus;
-		FT_HANDLE ftHandle{Q_NULLPTR};
+		FT_HANDLE ftHandle{nullptr};
 
-		QByteArray serialNumber = QByteArray::fromStdString(alpacaDevice->serialNumber()) + "A";
+		std::string serialNumber = alpacaDevice->serialNumber() + "A";
 		std::string usbDescriptor = tacPlatformEntry._platformEntry->_usbDescriptor;
 
 		// For FT232H devices, no need to append bus info in serial number
 		if (tacPlatformEntry._platformEntry->_boardtype == eFT232H)
-			serialNumber = QByteArray::fromStdString(alpacaDevice->serialNumber());
+			serialNumber = alpacaDevice->serialNumber();
 
 		if (usbDescriptor.empty())
 		{
@@ -71,7 +74,7 @@ bool FTDIDevice::programDevice
 				usbDescriptor = "BugHopper";
 		}
 
-		ftStatus = FT_OpenEx(serialNumber.data(), FT_OPEN_BY_SERIAL_NUMBER, &ftHandle);
+		ftStatus = FT_OpenEx(const_cast<char*>(serialNumber.c_str()), FT_OPEN_BY_SERIAL_NUMBER, &ftHandle);
 		if (ftStatus == FT_OK)
 		{
 			FT_PROGRAM_DATA ftData;
@@ -118,13 +121,14 @@ bool FTDIDevice::programDevice
 				}
 				else
 				{
-
 					errorMessage = "FT_EE_Program failed Error Code: " + _FTDIChipset::ftidStatusToString(ftStatus);
+					AppCore::writeToApplicationLogLine(errorMessage);
 				}
 			}
 			else
 			{
 				errorMessage = "FT_EE_ReadEx failed Error Code: " + _FTDIChipset::ftidStatusToString(ftStatus);
+				AppCore::writeToApplicationLogLine(errorMessage);
 			}
 
 			FT_Close(ftHandle);
@@ -132,6 +136,7 @@ bool FTDIDevice::programDevice
 		else
 		{
 			errorMessage = "FT_OpenEx failed Error Code: " + _FTDIChipset::ftidStatusToString(ftStatus);
+			AppCore::writeToApplicationLogLine(errorMessage);
 		}
 	}
 
@@ -148,16 +153,16 @@ uint32_t FTDIDevice::updateAlpacaDevices()
 		HashType hash = ftdiChipset->hash();
 
 		AlpacaDevice alpacaDevice = _AlpacaDevice::findAlpacaDevice(hash);
-		if (alpacaDevice.isNull())
+		if (!alpacaDevice)
 		{
 			FTDIDevice* ftdiDevice = new FTDIDevice;
 
 			ftdiDevice->_active = true;
-			ftdiDevice->_portName = ftdiChipset->portName().toStdString();
+			ftdiDevice->_portName = ftdiChipset->portName();
 			ftdiDevice->_hash = hash;
 			ftdiDevice->_chipVersion = 10000;
-			ftdiDevice->_usbDescriptor = ftdiChipset->usbDescriptor().toStdString();
-			ftdiDevice->_serialNumber = ftdiChipset->serialNumber().toStdString();
+			ftdiDevice->_usbDescriptor = ftdiChipset->usbDescriptor();
+			ftdiDevice->_serialNumber = ftdiChipset->serialNumber();
 			ftdiDevice->_platformID = ftdiChipset->platformID();
 
 			TACPlatformEntry platformEntry = _PlatformConfiguration::getEntry(ftdiDevice->_platformID);
@@ -176,7 +181,7 @@ uint32_t FTDIDevice::updateAlpacaDevices()
 		}
 	}
 
-	return _AlpacaDevice::_alpacaDevices.count();
+	return static_cast<uint32_t>(_AlpacaDevice::_alpacaDevices.size());
 }
 
 bool FTDIDevice::open()
@@ -185,16 +190,16 @@ bool FTDIDevice::open()
 
 	bool result{false};
 
-	if (_platformConfiguration.isNull() == false)
+	if (_platformConfiguration != nullptr)
 	{
 		if (_platformConfiguration->getPlatform() == eFTDI)
-			_ftdiPlatformConfiguration = static_cast<_FTDIPlatformConfiguration*>(_platformConfiguration.data());
+			_ftdiPlatformConfiguration = static_cast<_FTDIPlatformConfiguration*>(_platformConfiguration.get());
 		else
-			_ft232hPlatformConfiguration = static_cast<_FT232HPlatformConfiguration*>(_platformConfiguration.data());
+			_ft232hPlatformConfiguration = static_cast<_FT232HPlatformConfiguration*>(_platformConfiguration.get());
 
 		buildMapping();
 
-		if (_driveThread == Q_NULLPTR)
+		if (_driveThread == nullptr)
 		{
 			TACLiteDriveThread* driveThread = new TACLiteDriveThread(_hash);
 
@@ -221,19 +226,45 @@ bool FTDIDevice::open()
 			int count = 0;
 			while (count < maxInterations)
 			{
-				QThread::msleep(20);
+				std::this_thread::sleep_for(std::chrono::milliseconds(20));
 
 				result = _driveThread->weAreRunning();
 				if (result == true)
 					count = maxInterations;
+				if (_driveThread->hasFinished())
+					break;
 
 				count++;
+			}
+
+			if (result == false)
+			{
+				std::string threadErr = _driveThread->lastErrorMessage();
+				if (!threadErr.empty())
+					_lastError = threadErr;
+				else if (_lastError.empty())
+					_lastError = "Failed to communicate with FTDI device on port " + portName();
 			}
 
 			if (result == true)
 			{
 
-				connect(driveThread, &TACLiteDriveThread::pinStateChanged, this, &FTDIDevice::on_pinStateChanged, Qt::DirectConnection);
+				driveThread->onPinStateChanged = [this](int pin, int state) {
+					on_pinStateChanged(static_cast<uint64_t>(pin), state != 0);
+				};
+				driveThread->onDeviceDisconnected = [this]() {
+					onDeviceDisconnect();
+				};
+				driveThread->onProgress = [this](int val) {
+					if (onProgress) onProgress(val);
+				};
+				driveThread->onError = [this](const std::string& err) {
+					_lastError = err;
+					if (onError) onError(err);
+				};
+				driveThread->onDeviceStatusChange = [this](const std::string& status) {
+					if (onDeviceStatusChange) onDeviceStatusChange(status);
+				};
 
 				Pins initialPins;
 				Pins pins = _platformConfiguration->getPins();
@@ -273,9 +304,9 @@ bool FTDIDevice::open()
 void FTDIDevice::buildMapping()
 {
 	if (_platformConfiguration->getPlatform() == eFTDI)
-		Q_ASSERT(_ftdiPlatformConfiguration != Q_NULLPTR);
+		assert(_ftdiPlatformConfiguration != nullptr);
 	else
-		Q_ASSERT(_ft232hPlatformConfiguration != Q_NULLPTR);
+		assert(_ft232hPlatformConfiguration != nullptr);
 
 	buildCommandList();
 	buildQuickSettings();
@@ -285,7 +316,7 @@ void FTDIDevice::buildCommandList()
 {
 	if (_commands.empty() == true)
 	{
-		if (_platformConfiguration != Q_NULLPTR)
+		if (_platformConfiguration != nullptr)
 		{
 			FTDIPinList ftdiPinList;
 
@@ -305,7 +336,7 @@ void FTDIDevice::buildCommandList()
 				tacCommand._isInverted = ftdiPin._inverted;
 				tacCommand._tabName = ftdiPin._tabName;
 				tacCommand._groupName = CommandGroup::toString(ftdiPin._commandGroup);
-				tacCommand._cellLocation = fromQPoint(ftdiPin._cellLocation);
+				tacCommand._cellLocation = fromPoint(ftdiPin._cellLocation);
 
 				_commands[tacCommand._command] = tacCommand;
 			}
