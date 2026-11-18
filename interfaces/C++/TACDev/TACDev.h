@@ -4,7 +4,9 @@
 #ifndef DEVTAC_H
 #define DEVTAC_H
 
-#if defined(TACDEV_LIBRARY)
+#if defined(TACDEV_STATIC)
+	#define TACDEV_EXPORT
+#elif defined(TACDEV_LIBRARY)
 	#ifdef __linux__
 		#define TACDEV_EXPORT __attribute__((visibility("default")))
 	#else

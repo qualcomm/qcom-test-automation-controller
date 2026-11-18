@@ -151,6 +151,14 @@ if ($ftdiZip) {
     Write-Warning "No FTDI archive ($ftdiZipGlob) in third-party\; driver files will be absent."
 }
 
+$distributionZip = Join-Path $OutDir "QTAC-windows-$Arch.zip"
+Remove-Item $distributionZip -Force -ErrorAction SilentlyContinue
+Push-Location $data
+try {
+    & $sevenZip a -tzip -mx=7 $distributionZip '*' | Out-Null
+    if ($LASTEXITCODE -ne 0) { throw "Distribution ZIP creation failed." }
+} finally { Pop-Location }
+
 $zip = Join-Path $pkg 'payload.zip'
 Push-Location $data
 try {

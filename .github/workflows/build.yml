@@ -131,7 +131,7 @@ jobs:
     - name: Install dependencies
       run: |
         sudo apt-get update
-        sudo apt-get install -y python3-pip wget libxkbcommon-x11-0 x11-common libxcb-xinerama0-dev build-essential libgl1-mesa-dev mesa-common-dev uuid-dev libpulse-dev ninja-build libudev-dev
+        sudo apt-get install -y python3-pip wget zip libxkbcommon-x11-0 x11-common libxcb-xinerama0-dev build-essential libgl1-mesa-dev mesa-common-dev uuid-dev libpulse-dev ninja-build libudev-dev
 
     - name: Cache Qt installation on Linux
       uses: actions/cache@v5
@@ -145,6 +145,7 @@ jobs:
     - name: Install Qt ${{ matrix.qt_version }} on ${{ matrix.os }}
       run: |
         aqt install-qt linux desktop ${{ matrix.qt_version }} linux_gcc_64 -m qtmultimedia qtserialport
+        echo "CMAKE_PREFIX_PATH=$GITHUB_WORKSPACE/${{ matrix.qt_version }}/gcc_64" >> "$GITHUB_ENV"
         echo "QTBIN=$HOME/work/qcom-test-automation-controller/qcom-test-automation-controller/${{ matrix.qt_version }}/gcc_64/bin" >> $GITHUB_ENV
 
     - name: Restore FTDI archive on Linux
@@ -155,6 +156,43 @@ jobs:
         
     - name: Build
       run: ./build.sh
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20'
+
+    - name: Build Node.js Interface
+      working-directory: interfaces/Node.js
+      run: |
+        npm install
+        npm run build
+
+    - name: Upload Node.js native addon artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: qtac-node-${{ matrix.os }}-qt${{ matrix.qt_version }}
+        path: interfaces/Node.js/build/Release/qtac.node
+        if-no-files-found: error
+
+    - name: Add native runtime libraries to LD_LIBRARY_PATH
+      run: |
+        runtime_lib="$GITHUB_WORKSPACE/__Builds/Linux/Release/lib"
+        if [ ! -d "$runtime_lib" ]; then
+          echo "Native runtime directory was not found: $runtime_lib"
+          exit 1
+        fi
+        qt_prefix="${QTBIN%/bin}"
+        export LD_LIBRARY_PATH="$runtime_lib:$qt_prefix/lib:${LD_LIBRARY_PATH:-}"
+        echo "LD_LIBRARY_PATH=$LD_LIBRARY_PATH" >> "$GITHUB_ENV"
+
+    - name: Run Node.js Unit Tests
+      working-directory: interfaces/Node.js
+      run: npm run test:unit
+
+    - name: Run native addon smoke test
+      working-directory: interfaces/Node.js
+      run: npm run test:native-smoke
 
     - name: Generate devicelist.json
       run: |
@@ -182,13 +220,20 @@ jobs:
     - name: Package QTAC
       run: |
         chmod +x packaging/linux/package_QTAC.sh
-        ./packaging/linux/package_QTAC.sh
+        ./packaging/linux/package_QTAC.sh zip
 
     - name: Upload installer artifact
       uses: actions/upload-artifact@v4
       with:
         name: QTAC-${{ matrix.os }}-qt${{ matrix.qt_version }}.deb
         path: packaging/linux/build/*.deb
+        if-no-files-found: error
+
+    - name: Upload ZIP artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: QTAC-${{ matrix.os }}-qt${{ matrix.qt_version }}.zip
+        path: packaging/linux/build/*.zip
         if-no-files-found: error
 
   build-windows:
@@ -233,6 +278,38 @@ jobs:
       shell: cmd
       run: build.bat
 
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20'
+
+    - name: Build Node.js Interface
+      shell: pwsh
+      working-directory: interfaces/Node.js
+      run: |
+        npm install
+        npm run build
+
+    - name: Add native runtime DLLs to PATH
+      shell: pwsh
+      run: |
+        $runtimeBin = Join-Path $env:GITHUB_WORKSPACE "__Builds\x64\Release\bin"
+        if (-not (Test-Path $runtimeBin)) {
+          throw "Native runtime directory was not found: $runtimeBin"
+        }
+        $env:Path = "$runtimeBin;$env:QTBIN;$env:Path"
+        "PATH=$env:Path" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+
+    - name: Run Node.js Unit Tests
+      shell: pwsh
+      working-directory: interfaces/Node.js
+      run: npm run test:unit
+
+    - name: Run native addon smoke test
+      shell: pwsh
+      working-directory: interfaces/Node.js
+      run: npm run test:native-smoke
+
     - name: Generate devicelist.json
       shell: pwsh
       run: |
@@ -263,6 +340,13 @@ jobs:
       with:
         name: QTAC-windows-x64-qt${{ matrix.qt_version }}
         path: __Builds\installer\QTAC-windows-x64.exe
+        if-no-files-found: error
+
+    - name: Upload ZIP artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: QTAC-windows-x64-qt${{ matrix.qt_version }}.zip
+        path: __Builds\installer\QTAC-windows-x64.zip
         if-no-files-found: error
 
   build-windows-arm64:
@@ -303,6 +387,38 @@ jobs:
       shell: cmd
       run: build.bat
 
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20'
+
+    - name: Build Node.js Interface
+      shell: pwsh
+      working-directory: interfaces/Node.js
+      run: |
+        npm install
+        npm run build
+
+    - name: Add native runtime DLLs to PATH
+      shell: pwsh
+      run: |
+        $runtimeBin = Join-Path $env:GITHUB_WORKSPACE "__Builds\ARM64\Release\bin"
+        if (-not (Test-Path $runtimeBin)) {
+          throw "Native runtime directory was not found: $runtimeBin"
+        }
+        $env:Path = "$runtimeBin;$env:QTBIN;$env:Path"
+        "PATH=$env:Path" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+
+    - name: Run Node.js Unit Tests
+      shell: pwsh
+      working-directory: interfaces/Node.js
+      run: npm run test:unit
+
+    - name: Run native addon smoke test
+      shell: pwsh
+      working-directory: interfaces/Node.js
+      run: npm run test:native-smoke
+
     - name: Generate devicelist.json
       shell: pwsh
       run: |
@@ -333,6 +449,13 @@ jobs:
       with:
         name: QTAC-windows-arm64-qt${{ matrix.qt_version }}
         path: __Builds\installer\QTAC-windows-arm64.exe
+        if-no-files-found: error
+
+    - name: Upload ZIP artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: QTAC-windows-arm64-qt${{ matrix.qt_version }}.zip
+        path: __Builds\installer\QTAC-windows-arm64.zip
         if-no-files-found: error
 
   publish-release-linux:
@@ -366,6 +489,13 @@ jobs:
       uses: actions/download-artifact@v4
       with:
         pattern: QTAC-*.deb
+        path: release-artifacts
+
+    - name: Download Linux ZIP artifacts
+      if: steps.verify_main.outputs.on_main == 'true'
+      uses: actions/download-artifact@v4
+      with:
+        pattern: QTAC-ubuntu-*-qt*.zip
         path: release-artifacts
 
     - name: Flatten Linux artifacts into a single directory
@@ -447,7 +577,12 @@ jobs:
         Get-ChildItem release-artifacts -Directory | ForEach-Object {
           $artifactName = $_.Name
           Get-ChildItem $_.FullName -File -Recurse | ForEach-Object {
-            $target = Join-Path 'release-assets' ("$artifactName$($_.Extension)")
+            if ($artifactName.EndsWith($_.Extension, [StringComparison]::OrdinalIgnoreCase)) {
+              $targetName = $artifactName
+            } else {
+              $targetName = "$artifactName$($_.Extension)"
+            }
+            $target = Join-Path 'release-assets' $targetName
             Copy-Item $_.FullName $target -Force
           }
         }

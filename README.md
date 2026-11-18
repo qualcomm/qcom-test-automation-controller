@@ -178,6 +178,36 @@ Execute `build.sh` to generate executables:
 ./__Builds/Linux/Release/QTAC
 ```
 
+## Prebuilt ZIP Distributions
+
+GitHub Actions publishes a ZIP artifact for Linux, Windows x64, and Windows ARM64. Download the artifact matching your platform and Qt build from the workflow run. GitHub's downloaded artifact is an outer archive containing the platform distribution ZIP; extract both. The platform ZIP contains the runtime files and supporting content directly and, unlike the `.deb` and Windows `.exe` installers, does not run installer integration steps.
+
+### Linux
+
+The Linux ZIP preserves the package filesystem layout (`opt/` and `var/`). Extract it to a staging directory, then copy those directories to the filesystem root:
+
+```bash
+unzip QTAC-ubuntu-latest-qt6.10.0.zip -d qtac-artifact
+unzip qtac-artifact/qualcomm-qtac_1.0.0_linux-anycpu.zip -d qtac-linux
+sudo cp -a qtac-linux/opt qtac-linux/var /
+sudo install -m 0644 /opt/qcom/QTAC/utils/99-QTAC-USB.rules /etc/udev/rules.d/99-QTAC-USB.rules
+sudo udevadm control --reload-rules
+```
+
+Reconnect USB devices after reloading the rules. The ZIP does not install system dependencies or run the Debian package's post-install configuration; install required runtime dependencies separately. Copying into an existing installation may replace files.
+
+### Windows
+
+For a Windows x64 artifact, extract both archives and launch the executable from the extracted distribution:
+
+```powershell
+Expand-Archive .\QTAC-windows-x64-qt6.10.0.zip -DestinationPath .\qtac-artifact
+Expand-Archive .\qtac-artifact\QTAC-windows-x64.zip -DestinationPath .\qtac-windows
+.\qtac-windows\app\TAC.exe
+```
+
+The archive also contains documentation, configurations, examples, interfaces, and FTDI driver files. It does not install drivers, create shortcuts, or register file associations; use the `.exe` installer for those steps.
+
 ## Repository Structure
 
 | Directory | Content |

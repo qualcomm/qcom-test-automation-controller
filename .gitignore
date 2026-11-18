@@ -18,6 +18,9 @@ ui_*
 *.class
 *.jar
 
+# C# build artifacts
+interfaces/C#/TACDevInterop/obj/
+
 # Python build and cache directories
 **/*/build
 **/*/dist
