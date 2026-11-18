@@ -194,4 +194,20 @@ if "%BUILD_INTEROP%"=="1" (
     )
 )
 
+if exist "docs\tools\generate-docs.py" (
+    where python >nul 2>nul
+    if not errorlevel 1 (
+        python -c "import sphinx, myst_parser, sphinx_rtd_theme" >nul 2>nul
+        if not errorlevel 1 (
+            echo.
+            echo Building HTML documentation...
+            pushd "docs\tools"
+            python generate-docs.py
+            popd
+        ) else (
+            echo WARNING: HTML documentation build skipped ^(missing Sphinx dependencies^).
+        )
+    )
+)
+
 echo Check __Builds directory
