@@ -169,15 +169,19 @@ cmake -S . -B build\Debug -DCMAKE_PREFIX_PATH="%QTBIN%\.." ^
     -DCMAKE_GENERATOR=Ninja ^
     -DCMAKE_BUILD_TYPE=Debug ^
     -DCMAKE_CXX_FLAGS_INIT=-DQT_QML_DEBUG
+if errorlevel 1 exit /b 1
 
 cmake --build build\Debug
+if errorlevel 1 exit /b 1
 
 cmake -S . -B build\Release -DCMAKE_PREFIX_PATH="%QTBIN%\.." ^
     -DCMAKE_COLOR_DIAGNOSTICS=ON ^
     -DCMAKE_GENERATOR=Ninja ^
     -DCMAKE_BUILD_TYPE=Release
+if errorlevel 1 exit /b 1
 
 cmake --build build\Release
+if errorlevel 1 exit /b 1
 
 @REM ---------------------------------------------------------------------------
 @REM  TACDevInterop.dll
@@ -194,4 +198,25 @@ if "%BUILD_INTEROP%"=="1" (
     )
 )
 
+if exist "docs\tools\generate-docs.py" (
+    where python >nul 2>nul
+    if not errorlevel 1 (
+        python -c "import sphinx, myst_parser, sphinx_rtd_theme" >nul 2>nul
+        if not errorlevel 1 (
+            echo.
+            echo Building HTML documentation...
+            pushd "docs\tools"
+            python generate-docs.py
+            if errorlevel 1 (
+                popd
+                exit /b 1
+            )
+            popd
+        ) else (
+            echo WARNING: HTML documentation build skipped ^(missing Sphinx dependencies^).
+        )
+    )
+)
+
 echo Check __Builds directory
+exit /b 0

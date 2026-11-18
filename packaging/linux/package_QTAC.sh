@@ -26,10 +26,25 @@ OPTION_ZIP="${1:-}"
 BASE_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 # Source directories
-SRC_DIR="$(realpath "$BASE_DIR/../../__Builds/Linux/Release")"
-CONFIG_SRC_DIR="$(realpath "$BASE_DIR/../../configurations")"
-DOCS_SRC_DIR="$(realpath "$BASE_DIR/../../docs")"
-EXAMPLES_SRC_DIR="$(realpath "$BASE_DIR/../../examples")"
+REPO_ROOT="$(realpath "$BASE_DIR/../..")"
+SRC_DIR="$(realpath "$REPO_ROOT/__Builds/Linux/Release")"
+CONFIG_SRC_DIR="$(realpath "$REPO_ROOT/configurations")"
+EXAMPLES_SRC_DIR="$(realpath "$REPO_ROOT/examples")"
+
+DOCS_SRC_DIR=""
+for cand in "$REPO_ROOT/__Builds/docs" "$REPO_ROOT/docs/tools/_build/html" "$REPO_ROOT/docs"; do
+    if [ -d "$cand/getting-started" ] && compgen -G "$cand/getting-started/*.html" >/dev/null 2>&1; then
+        DOCS_SRC_DIR="$(realpath "$cand")"
+        break
+    fi
+done
+if [ -z "$DOCS_SRC_DIR" ] && [ -f "$REPO_ROOT/docs/tools/generate-docs.py" ]; then
+    echo "Built HTML docs not found; generating via docs/tools/generate-docs.py..."
+    (cd "$REPO_ROOT/docs/tools" && python3 generate-docs.py) || true
+    if [ -d "$REPO_ROOT/docs/tools/_build/html/getting-started" ] && compgen -G "$REPO_ROOT/docs/tools/_build/html/getting-started/*.html" >/dev/null 2>&1; then
+        DOCS_SRC_DIR="$(realpath "$REPO_ROOT/docs/tools/_build/html")"
+    fi
+fi
 PYTHON_SRC_DIR="$(realpath "$BASE_DIR/../../interfaces/Python")"
 INTERFACES_SRC_DIR="$(realpath "$BASE_DIR/../../interfaces")"
 UDEV_RULES_SRC_DIR="$(realpath "$BASE_DIR/../../udev-rules")"
@@ -78,8 +93,8 @@ if [ ! -d "$CONFIG_SRC_DIR" ]; then
     missing=1
 fi
 
-if [ ! -d "$DOCS_SRC_DIR" ]; then
-    echo "ERROR: Missing docs directory: $DOCS_SRC_DIR" >&2
+if [ -z "$DOCS_SRC_DIR" ] || [ ! -d "$DOCS_SRC_DIR" ]; then
+    echo "ERROR: Missing built HTML docs directory (getting-started/*.html not found)." >&2
     missing=1
 fi
 
