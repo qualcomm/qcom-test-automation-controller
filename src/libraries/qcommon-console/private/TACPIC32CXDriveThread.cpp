@@ -468,8 +468,8 @@ void TACPIC32CXDriveThread::run()
 							QString errorString = _serialPort->errorString();
 							if (errorString.isEmpty() == false)
 							{
-								errorString = QString("Error on write ") + errorString;
-								AppCore::writeToApplicationLogLine(errorString);
+								_lastErrorMessage = QString("Error on write %1").arg(errorString).toLatin1();
+								AppCore::writeToApplicationLogLine(_lastErrorMessage);
 							}
 
 							stopRunning();
@@ -490,13 +490,12 @@ void TACPIC32CXDriveThread::run()
 				}
 				else
 				{
-					QString error = serialPortError();
+					QSerialPort::SerialPortError error = _serialPort->error();
 
-					if (error.isEmpty() == false)
+					if (error != QSerialPort::NoError && error != QSerialPort::TimeoutError)
 					{
-						_lastErrorMessage = error.toLatin1();
-						AppCore::writeToApplicationLogLine(error);
-						emit errorOnOpen(error.toLatin1());
+						_lastErrorMessage = "[TACPIC32CXDriveThread]: " + serialPortError().toLatin1();
+						AppCore::writeToApplicationLogLine(_lastErrorMessage);
 					}
 				}
 			}

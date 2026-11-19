@@ -374,6 +374,12 @@ bool _AlpacaDevice::sendCommand
 		if (_driveThread != Q_NULLPTR)
 		{
 			_driveThread->clearWaitForCompletion();
+
+			if (_driveThread->lastErrorMessage().isEmpty() == false)
+			{
+				AppCore::writeToApplicationLogLine(QString("_AlpacaDevice::setPinState(%1, %2) failed. Possibly USB disconnected").arg(QString::number(_commands[command]._pin)).arg(state));
+				throw TACException(TAC_DEVICE_INACTIVE, kSetPinError);
+			}
 		}
 
 		if (result == false)
