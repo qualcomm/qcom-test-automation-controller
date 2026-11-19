@@ -255,6 +255,7 @@ endif()
 
 add_subdirectory(library)
 add_subdirectory(tacdev)
+add_subdirectory(../tools/taccl ${CMAKE_BINARY_DIR}/taccl-build)
 add_subdirectory(test)
 
 if(QTAC_BUILD_QT_TARGETS)
