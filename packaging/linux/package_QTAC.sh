@@ -141,6 +141,9 @@ mkdir -p "$BUILDROOT/DEBIAN"
 if [ "$NO_GUI" -ne 1 ]; then
     mkdir -p "$BUILDROOT$INSTALL_PREFIX/bin"
     mkdir -p "$BUILDROOT$INSTALL_PREFIX/plugins"
+elif [ "$RUST_ONLY" -ne 1 ]; then
+    # NoGui (not Rust-only): bin/ is still needed for taccl.
+    mkdir -p "$BUILDROOT$INSTALL_PREFIX/bin"
 fi
 mkdir -p "$BUILDROOT$INSTALL_PREFIX/lib"
 if [ "$RUST_ONLY" -ne 1 ]; then
@@ -158,6 +161,14 @@ chmod 0755 "$BUILDROOT/DEBIAN"
 if [ "$NO_GUI" -ne 1 ]; then
     echo "Copying bin..."
     cp -a "$SRC_DIR/bin/." "$BUILDROOT$INSTALL_PREFIX/bin/"
+elif [ "$RUST_ONLY" -ne 1 ]; then
+    # NoGui (not Rust-only): copy taccl CLI only.
+    echo "Copying taccl..."
+    if [ -f "$SRC_DIR/bin/taccl" ]; then
+        cp -a "$SRC_DIR/bin/taccl" "$BUILDROOT$INSTALL_PREFIX/bin/"
+    else
+        echo "WARNING: taccl not found at $SRC_DIR/bin/taccl" >&2
+    fi
 fi
 
 echo "Copying lib..."
@@ -221,7 +232,7 @@ echo "Copying udev rules..."
 cp -a "$UDEV_RULES_SRC_DIR/." \
       "$BUILDROOT$INSTALL_PREFIX/utils/"
 
-if [ "$NO_GUI" -ne 1 ]; then
+if [ "$RUST_ONLY" -ne 1 ]; then
     find "$BUILDROOT$INSTALL_PREFIX/bin" -type f -exec chmod 755 {} \;
 fi
 find "$BUILDROOT$INSTALL_PREFIX/lib" -type f -exec chmod 755 {} \;
