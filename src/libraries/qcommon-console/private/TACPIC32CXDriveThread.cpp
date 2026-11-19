@@ -180,15 +180,7 @@ bool TACPIC32CXDriveThread::performTransportReset()
 	// out. Reopening the port without discarding these leaves the reopened
 	// connection framed against a stale conversation, which looks identical to
 	// an unresponsive board.
-	_protocolInterface->clearPendingFrame();
-	while (_protocolInterface->queueSize() > 0)
-	{
-		FramePackage stale = _protocolInterface->getNextFramePackage();
-		if (stale.isNull())
-			break;
-
-		_protocolInterface->clearPendingFrame();
-	}
+	_protocolInterface->clearOutboundQueue();
 
 	_connected = false;
 	_readyRead = false;
@@ -203,9 +195,16 @@ bool TACPIC32CXDriveThread::performTransportReset()
 	// ---- reopen, mirroring run()'s startup ---------------------------------
 	bool result = openSerialDevice();
 
+	for (int attempt = 1; result == false && attempt < 3; ++attempt)
+	{
+		msleep(kTransportResetSettleMs);
+		result = openSerialDevice();
+	}
+
 	if (result == false)
 	{
 		AppCore::writeToApplicationLogLine("TACPIC32CXDriveThread::performTransportReset: failed (reopen)");
+		stopRunning();
 		return false;
 	}
 
@@ -314,34 +313,34 @@ void TACPIC32CXDriveThread::sendCommandSequence(CommandEntries& commandEntries)
 {
 	setLastCommandDescription(QString("sendCommandSequence(%1 entries)").arg(commandEntries.count()));
 
-	for (const auto& commandEntry: commandEntries)
 	{
-        {
-            TACPIC32CXCommand tacCommand(this, this);
+		TACPIC32CXCommand tacCommand(this, this);
 
-            switch (commandEntry->_commandAction)
-            {
-            case _CommandEntry::eNotSet:
-                break;
+		for (const auto& commandEntry: commandEntries)
+		{
+			switch (commandEntry->_commandAction)
+			{
+			case _CommandEntry::eNotSet:
+				break;
 
-            case _CommandEntry::eSetPin:
-                tacCommand.setPinState(commandEntry->_pinID, commandEntry->_arguement.toBool());
-                break;
+			case _CommandEntry::eSetPin:
+				tacCommand.setPinState(commandEntry->_pinID, commandEntry->_arguement.toBool());
+				break;
 
-            case _CommandEntry::eLog:
-                tacCommand.addLogComment(commandEntry->_arguement.toString().toLatin1() + "\n");
-                break;
+			case _CommandEntry::eLog:
+				tacCommand.addLogComment(commandEntry->_arguement.toString().toLatin1() + "\n");
+				break;
 
-            case _CommandEntry::eDelay:
-                tacCommand.addDelay(commandEntry->_arguement.toUInt());
-                break;
+			case _CommandEntry::eDelay:
+				tacCommand.addDelay(commandEntry->_arguement.toUInt());
+				break;
 
-            case _CommandEntry::eBaseCommand:
-                break;
-            }
-        }
+			case _CommandEntry::eBaseCommand:
+				break;
+			}
 
-		emit progress(kProgressActive);
+			emit progress(kProgressActive);
+		}
 	}
 }
 
@@ -785,14 +784,6 @@ void TACPIC32CXDriveThread::setupConnected()
 		emit hardwareVersionUpdate(hardwareVersionString());
 
 		_connected = true;
-
-		// okay, let send our initial requests
-		AppCore::writeToApplicationLogLine("");
-
-		TACPIC32CXCommand tacCommand(this, this);
-		
-		AppCore::writeToApplicationLogLine("tacCommand.platformID()");
-		tacCommand.platformID();
 
 		emit deviceConnected();
 	}

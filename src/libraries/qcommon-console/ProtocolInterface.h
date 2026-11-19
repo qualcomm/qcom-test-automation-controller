@@ -29,6 +29,7 @@ public:
 
 	// Out going data
 	void clearPendingFrame();
+	void clearOutboundQueue();
 	FramePackage& pendingFramePackage();
 
 	void queueCommand(const FramePackage& framePackage);

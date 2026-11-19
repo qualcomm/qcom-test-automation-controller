@@ -53,6 +53,17 @@ void ProtocolInterface::clearPendingFrame()
 		_pendingFramePackage = FramePackage(Q_NULLPTR);
 }
 
+void ProtocolInterface::clearOutboundQueue()
+{
+	clearPendingFrame();
+
+	QMutexLocker lock(&_outQueueMutex);
+	_outboundData.clear();
+
+	if (_frameCoder != Q_NULLPTR)
+		_frameCoder->reset();
+}
+
 FramePackage& ProtocolInterface::pendingFramePackage()
 {
 	QMutexLocker lock(&_pendingFramePackageMutex);

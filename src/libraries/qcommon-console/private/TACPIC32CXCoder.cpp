@@ -40,9 +40,11 @@ void TACPIC32CXCoder::decode(const QByteArray& decodeMe)
 
 	else if (_recieveBuffer.size() > kValidPIC32CXResponseSize)
 	{
-		QListIterator<QString> iter(frames);
+		if (frames.size() > 1)
+			_frameFunction(frames[1].toLatin1(), _protocolInterface);
+		else if (frames.size() == 1)
+			_frameFunction(frames[0].toLatin1(), _protocolInterface);
 
-		_frameFunction(frames[1].toLatin1(), _protocolInterface);
 		_frameFunction(QByteArray(), _protocolInterface);
 
 		_recieveBuffer.clear();
