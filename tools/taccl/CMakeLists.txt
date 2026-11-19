@@ -15,6 +15,12 @@ set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
+# taccl has no Qt sources — disable auto-tools so a Qt parent build does
+# not run MOC/UIC/RCC over our source files unnecessarily.
+set(CMAKE_AUTOMOC OFF)
+set(CMAKE_AUTOUIC OFF)
+set(CMAKE_AUTORCC OFF)
+
 # ---------------------------------------------------------------------------
 # Options
 # ---------------------------------------------------------------------------
