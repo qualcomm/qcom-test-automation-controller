@@ -488,6 +488,17 @@ void TACPIC32CXDriveThread::run()
 				{
 					_protocolInterface->idle();
 				}
+				else
+				{
+					QString error = serialPortError();
+
+					if (error.isEmpty() == false)
+					{
+						_lastErrorMessage = error.toLatin1();
+						AppCore::writeToApplicationLogLine(error);
+						emit errorOnOpen(error.toLatin1());
+					}
+				}
 			}
 		}
 

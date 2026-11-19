@@ -101,6 +101,11 @@ bool PIC32CXDevice::open()
 
 	if (result == true)
 	{
+		QByteArray error = _driveThread->lastErrorMessage();
+
+		if (error.isEmpty() == false)
+			AppCore::writeToApplicationLogLine(error);
+
 		_pic32cxPlatformConfiguration = static_cast<_PIC32CXPlatformConfiguration*>(_platformConfiguration.data());
 
 		buildMapping();
