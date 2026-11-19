@@ -315,5 +315,11 @@ echo ""
 echo "Plugin Count:"
 find "$DEPLOY_PLUGIN_DIR" -type f | wc -l
 
+if [ -f "docs/tools/generate-docs.py" ] && command -v python3 &>/dev/null; then
+    echo ""
+    echo "Building HTML documentation..."
+    (cd docs/tools && python3 generate-docs.py) || echo "WARNING: HTML documentation build skipped (missing Sphinx dependencies)."
+fi
+
 echo ""
 echo "Check __Builds directory"

@@ -208,6 +208,13 @@ QString docsRoot()
 	const QString kProduct = "QTAC";
 	const QString kMarker = "/getting-started";
 
+	auto hasBuiltHtmlDocs = [&kMarker](const QString& root) -> bool
+	{
+		const QDir markerDir(root + kMarker);
+		return markerDir.exists() &&
+			   markerDir.entryList({QStringLiteral("*.html")}, QDir::Files).isEmpty() == false;
+	};
+
 	QStringList candidates;
 	const QString exeDir = QCoreApplication::applicationDirPath();
 	if (exeDir.isEmpty() == false)
@@ -216,18 +223,36 @@ QString docsRoot()
 		{
 			candidates << base + "/docs/" + kProduct;
 			candidates << base + "/docs/" + kProduct + "/" + kProduct;
+			candidates << base + "/docs";
 		}
 
-		// Developer build tree: walk up from the executable looking for the repo's docs/.
+		// Developer build tree: walk up from the executable looking for built HTML docs
+		// (__Builds/docs or docs/tools/_build/html) before raw docs/.
 		QDir dir(exeDir);
 		for (int level = 0; level < 6 && dir.cdUp(); ++level)
-			candidates << dir.absolutePath() + "/docs";
+		{
+			const QString up = dir.absolutePath();
+			candidates << up + "/__Builds/docs";
+			candidates << up + "/docs/tools/_build/html";
+			candidates << up + "/docs/" + kProduct;
+			candidates << up + "/docs";
+		}
 	}
+
+#ifdef Q_OS_WINDOWS
+	candidates << "C:/Program Files/Qualcomm/" + kProduct + "/docs/" + kProduct;
+	candidates << "C:/Program Files/Qualcomm/Alpaca/docs/" + kProduct;
+#endif
+#ifdef Q_OS_LINUX
+	candidates << "/opt/qcom/" + kProduct + "/docs/" + kProduct;
+	candidates << "/opt/qcom/Alpaca/docs/" + kProduct + "/" + kProduct;
+	candidates << "/opt/qcom/Alpaca/docs/" + kProduct;
+#endif
 
 	for (const QString& candidate : candidates)
 	{
 		const QString root = QDir::cleanPath(candidate);
-		if (QDir(root + kMarker).exists())
+		if (hasBuiltHtmlDocs(root))
 			return root + "/";
 	}
 
@@ -239,8 +264,6 @@ QString docsRoot()
 #ifdef Q_OS_LINUX
 	result = "/opt/qcom/" + kProduct + "/docs/" + kProduct + "/";
 #endif
-	if (QDir(result + kMarker).exists() == false)
-		qWarning().noquote() << "docsRoot: no documentation folder found; searched" << candidates.join(", ")
-							 << "and" << result;
+	qWarning().noquote() << "docsRoot: no built HTML documentation folder found; searched" << candidates.join(", ");
 	return result;
 }

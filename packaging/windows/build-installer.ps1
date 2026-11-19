@@ -5,10 +5,12 @@
 param(
     [string] $SourceRoot,        
     [string] $BinDir,            
+    [string] $DocsDir,           
     [string] $SevenZipDir,       
     [string] $OutDir,            
     [string] $Version,           
-    [switch] $MockPayload        
+    [switch] $MockPayload,       
+    [switch] $AllowMissingDocs   
 )
 
 $ErrorActionPreference = 'Stop'
@@ -24,6 +26,42 @@ $winTarget   = if ($Arch -eq 'arm64') { 'ARM64' } else { 'x64' }
 if (-not $BinDir) { $BinDir = Join-Path $SourceRoot "__Builds\$winTarget\Release\bin" }
 $ftdiZipGlob = if ($Arch -eq 'arm64') { 'CDM-*ARM64*.zip' } else { 'CDM-v2*WHQL-Certified.zip' }
 $ftdiDest    = if ($Arch -eq 'arm64') { 'FTDI\arm' } else { 'FTDI\x64' }
+
+function Resolve-DocsDir {
+    param(
+        [string] $Explicit,
+        [Parameter(Mandatory)] [string] $Root
+    )
+    $candidates = @()
+    if ($Explicit) { $candidates += $Explicit }
+    $candidates += @(
+        (Join-Path $Root '__Builds\docs'),
+        (Join-Path $Root 'docs\tools\_build\html'),
+        (Join-Path $Root 'docs')
+    )
+    foreach ($c in $candidates) {
+        $gs = Join-Path $c 'getting-started'
+        if (Test-Path $gs) {
+            $htmlFiles = Get-ChildItem $gs -Filter '*.html' -File -ErrorAction SilentlyContinue
+            if ($htmlFiles -and $htmlFiles.Count -gt 0) { return (Resolve-Path $c).Path }
+        }
+    }
+    $genScript = Join-Path $Root 'docs\tools\generate-docs.py'
+    if (Test-Path $genScript) {
+        Write-Host "Built HTML docs not found; generating via $genScript ..."
+        Push-Location (Split-Path -Parent $genScript)
+        try {
+            & python generate-docs.py
+        } finally { Pop-Location }
+        $builtDir = Join-Path $Root 'docs\tools\_build\html'
+        $gs = Join-Path $builtDir 'getting-started'
+        if (Test-Path $gs) {
+            $htmlFiles = Get-ChildItem $gs -Filter '*.html' -File -ErrorAction SilentlyContinue
+            if ($htmlFiles -and $htmlFiles.Count -gt 0) { return (Resolve-Path $builtDir).Path }
+        }
+    }
+    return $null
+}
 
 function Find-Tool($fileNames, $extraDirs) {
     foreach ($n in $fileNames) {
@@ -106,11 +144,36 @@ if ($MockPayload) {
     Copy-Item (Join-Path $BinDir '*') (Join-Path $data 'app') -Recurse -Force
 }
 
-if (Test-Path (Join-Path $SourceRoot 'docs')) {
-    Copy-Item (Join-Path $SourceRoot 'docs') (Join-Path $data 'docs') -Recurse -Force
-    Remove-Item (Join-Path $data 'docs\plans') -Recurse -Force -ErrorAction SilentlyContinue
+$resolvedDocs = Resolve-DocsDir -Explicit $DocsDir -Root $SourceRoot
+if ($resolvedDocs) {
+    $docsDest = Join-Path $data 'docs'
+    New-Item -ItemType Directory -Force -Path $docsDest | Out-Null
+    Copy-Item (Join-Path $resolvedDocs '*') $docsDest -Recurse -Force
+    Remove-Item (Join-Path $docsDest 'plans') -Recurse -Force -ErrorAction SilentlyContinue
+    Remove-Item (Join-Path $docsDest 'tools') -Recurse -Force -ErrorAction SilentlyContinue
+    Write-Host "  Docs staged from: $resolvedDocs"
+} elseif ($MockPayload -or $AllowMissingDocs) {
+    Write-Warning "No built HTML documentation found; offline documentation will be absent from the installer."
+} else {
+    throw "Built HTML documentation not found (getting-started/*.html missing). Run python docs/tools/generate-docs.py first."
 }
-Copy-Item (Join-Path $SourceRoot 'configurations') (Join-Path $data 'configurations') -Recurse -Force
+$cfgStage = Join-Path $data 'configurations'
+Copy-Item (Join-Path $SourceRoot 'configurations') $cfgStage -Recurse -Force
+$dlStage = Join-Path $cfgStage 'devicelist.json'
+if (-not (Test-Path $dlStage)) {
+    $udlExe = Join-Path $BinDir 'UpdateDeviceList.exe'
+    $buildDl = Join-Path $SourceRoot 'build\devicelist.json'
+    if (Test-Path $buildDl) {
+        Copy-Item $buildDl $dlStage -Force
+    } elseif (Test-Path $udlExe) {
+        & $udlExe "dir=$cfgStage" | Out-Null
+    }
+}
+if (Test-Path $dlStage) {
+    $dlTxt = Get-Content $dlStage -Raw
+    $dlTxt = [regex]::Replace($dlTxt, '"configPath"\s*:\s*"[^"]+[/\\]([^"/\\]+\.tcnf)"', '"configPath": "C:/ProgramData/Qualcomm/QTAC/configurations/$1"')
+    [IO.File]::WriteAllText($dlStage, $dlTxt, (New-Object System.Text.UTF8Encoding($false)))
+}
 
 if (Test-Path (Join-Path $SourceRoot 'examples')) {
     Copy-Item (Join-Path $SourceRoot 'examples') (Join-Path $data 'examples') -Recurse -Force
