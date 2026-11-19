@@ -189,6 +189,8 @@ uint32_t FTDIDevice::updateAlpacaDevices()
 	for (uint32_t deviceIndex = 0; deviceIndex < deviceCount; ++deviceIndex)
 	{
 		FTDIChipset ftdiChipset = _FTDIChipset::getDevice(deviceIndex);
+		if (!ftdiChipset->active())
+			continue;
 
 		HashType hash = ftdiChipset->hash();
 
