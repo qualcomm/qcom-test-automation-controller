@@ -4,17 +4,19 @@
 #ifndef DEVTAC_H
 #define DEVTAC_H
 
-#if defined(TACDEV_LIBRARY)
-	#ifdef __linux__
-		#define TACDEV_EXPORT __attribute__((visibility("default")))
-	#else
+#if defined(TACDEV_STATIC)
+	#define TACDEV_EXPORT
+#elif defined(TACDEV_LIBRARY)
+	#if defined(_WIN32)
 		#define TACDEV_EXPORT __declspec(dllexport)
+	#else
+		#define TACDEV_EXPORT __attribute__((visibility("default")))
 	#endif
 #else
-	#ifdef __linux__
-	#   define TACDEV_EXPORT __attribute__((visibility("default")))
+	#if defined(_WIN32)
+		#define TACDEV_EXPORT __declspec(dllimport)
 	#else
-	#  define TACDEV_EXPORT  __declspec(dllimport)
+		#define TACDEV_EXPORT __attribute__((visibility("default")))
 	#endif
 #endif
 

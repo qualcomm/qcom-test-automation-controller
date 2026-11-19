@@ -42,18 +42,19 @@ if(UNIX)
         -fPIC
     )
     
-    # Unix linker flags
-    set(QCOMMONCONSOLE_LINK_FLAGS
-        -Wl,--rpath=$ORIGIN
-        -Wl,--rpath=$ORIGIN/lib
-        -Wl,--rpath=$ORIGIN/../lib
-        -fPIC
-    )
-endif()
-
-if(UNIX AND NOT APPLE)
-    # Additional flags for Linux
-    list(APPEND QCOMMONCONSOLE_LINK_FLAGS -Wl,--rpath=$ORIGIN -Wl,--rpath=$ORIGIN/../lib)
+    # Use ELF runtime paths on Linux; CMake manages Mach-O runtime paths.
+    if(APPLE)
+        set(QCOMMONCONSOLE_LINK_FLAGS
+            -fPIC
+        )
+    else()
+        set(QCOMMONCONSOLE_LINK_FLAGS
+            -Wl,--rpath=$ORIGIN
+            -Wl,--rpath=$ORIGIN/lib
+            -Wl,--rpath=$ORIGIN/../lib
+            -fPIC
+        )
+    endif()
 endif()
 
 # Architecture-specific definitions
@@ -65,7 +66,7 @@ if(CMAKE_SIZEOF_VOID_P EQUAL 4)
         list(APPEND QCOMMONCONSOLE_DEFINITIONS __i386__)
     endif()
     set(WINTARGET "Win32")
-elseif(CMAKE_SYSTEM_PROCESSOR MATCHES "ARM64|aarch64")
+elseif(CMAKE_SYSTEM_PROCESSOR MATCHES "ARM64|arm64|aarch64")
     message(STATUS "Building ARM64")
     set(WINTARGET "ARM64")
 else()
@@ -82,6 +83,8 @@ if(CMAKE_BUILD_TYPE STREQUAL "Debug")
     if(WIN32)
         set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} /Zi")
         set(CONFIGURATION "${WINTARGET}/Debug")
+    elseif(APPLE)
+        set(CONFIGURATION "MacOS/${WINTARGET}/Debug")
     else()
         set(CONFIGURATION "Linux/Debug")
     endif()
@@ -89,6 +92,8 @@ else()
     list(APPEND QCOMMONCONSOLE_DEFINITIONS _NDEBUG NDEBUG)
     if(WIN32)
         set(CONFIGURATION "${WINTARGET}/Release")
+    elseif(APPLE)
+        set(CONFIGURATION "MacOS/${WINTARGET}/Release")
     else()
         set(CONFIGURATION "Linux/Release")
     endif()

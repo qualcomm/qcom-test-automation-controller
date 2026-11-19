@@ -76,6 +76,12 @@ QString applicationDataPath()
 		result = "/var/lib/qcom/data/" + kAppName;
 	#endif
 
+	#ifdef Q_OS_MACOS
+		const QString genericDataPath = QStandardPaths::writableLocation(QStandardPaths::GenericDataLocation);
+		if (genericDataPath.isEmpty() == false)
+			result = QDir(genericDataPath).filePath(QStringLiteral("Qualcomm/") + kAppName);
+	#endif
+
 	return result;
 }
 
@@ -403,6 +409,16 @@ QString tacConfigRoot()
 	static bool reportedMissing{false};
 
 	const QString kDeviceList(QStringLiteral("devicelist.json"));
+	const QString configOverride = qEnvironmentVariable("QTAC_CONFIG_DIR").trimmed();
+	if (configOverride.isEmpty() == false)
+	{
+		const QString overrideRoot = QDir::cleanPath(QFileInfo(configOverride).absoluteFilePath());
+		if (QFile::exists(overrideRoot + "/" + kDeviceList))
+			return overrideRoot + "/";
+
+		qWarning() << "tacConfigRoot: QTAC_CONFIG_DIR" << overrideRoot << "has no" << kDeviceList;
+	}
+
 	const QString dataRoot = QDir::cleanPath(applicationDataPath() + "/configurations");
 
 	if (QFile::exists(dataRoot + "/" + kDeviceList))

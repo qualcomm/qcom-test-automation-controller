@@ -20,6 +20,16 @@ if(WIN32)
 
     set(DEBUG_LIB "${CMAKE_SOURCE_DIR}/__Builds/${FTDI_WIN_ARCH}/Debug/lib/ftd2xx.lib")
     set(RELEASE_LIB "${CMAKE_SOURCE_DIR}/__Builds/${FTDI_WIN_ARCH}/Release/lib/ftd2xx.lib")
+elseif(APPLE)
+    find_library(FTD2XX_LIBRARY
+        NAMES ftd2xx ftd2xx.1.4.33
+        DOC "Path to the macOS FTDI D2XX library")
+    if(NOT FTD2XX_LIBRARY)
+        message(FATAL_ERROR
+            "The macOS FTDI D2XX library was not found. Install the FTDI D2XX "
+            "development library for this architecture, or configure with "
+            "-DFTD2XX_LIBRARY=/path/to/libftd2xx.dylib.")
+    endif()
 else()
     set(FTDI_URL "https://web.archive.org/web/20250822044524/https://ftdichip.com/wp-content/uploads/2025/03/libftd2xx-linux-x86_64-1.4.33.tgz")
     set(FTDI_ARCHIVE "libftd2xx-linux-x86_64-1.4.33.tgz")
@@ -27,6 +37,7 @@ else()
     set(RELEASE_LIB "${CMAKE_SOURCE_DIR}/__Builds/Linux/Release/lib/libftd2xx.a")
 endif()
 
+if(NOT APPLE)
 set(ARCHIVE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/${FTDI_ARCHIVE}")
 set(TEMP_DIR "${CMAKE_CURRENT_SOURCE_DIR}/temp_extract")
 
@@ -126,12 +137,16 @@ else()
 endif()
 
 file(REMOVE_RECURSE "${TEMP_DIR}")
+endif() # NOT APPLE
 
 if(WIN32)
     add_library(ftd2xx_debug STATIC IMPORTED GLOBAL)
     add_library(ftd2xx_release STATIC IMPORTED GLOBAL)
     set_target_properties(ftd2xx_debug PROPERTIES IMPORTED_LOCATION "${DEBUG_LIB}")
     set_target_properties(ftd2xx_release PROPERTIES IMPORTED_LOCATION "${RELEASE_LIB}")
+elseif(APPLE)
+    add_library(ftd2xx UNKNOWN IMPORTED GLOBAL)
+    set_target_properties(ftd2xx PROPERTIES IMPORTED_LOCATION "${FTD2XX_LIBRARY}")
 else()
     add_library(ftd2xx STATIC IMPORTED GLOBAL)
     set_target_properties(ftd2xx PROPERTIES
@@ -144,6 +159,8 @@ endif()
 function(link_ftd2xx target_name)
     if(WIN32)
         target_link_libraries(${target_name} PRIVATE $<$<CONFIG:Debug>:ftd2xx_debug> $<$<CONFIG:Release>:ftd2xx_release>)
+    elseif(APPLE)
+        target_link_libraries(${target_name} PRIVATE ftd2xx)
     else()
         target_link_libraries(${target_name} PRIVATE ftd2xx pthread dl)
     endif()

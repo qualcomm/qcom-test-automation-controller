@@ -36,31 +36,31 @@ public:
 			_ftdiChipset->setInvertMask(mask);
 	}
 
-	virtual void run();
+	virtual void run() override;
 
 	virtual void sendCommand(const QByteArray& command, bool console = false,
-		ReceiveInterface* receiveInterface = Q_NULLPTR, bool shouldStore = true);
+		ReceiveInterface* receiveInterface = Q_NULLPTR, bool shouldStore = true) override;
 
 	virtual void externalPowerControl(bool state);
 
-	virtual bool setPinState(quint16 pin, bool state);
-	virtual void sendCommandSequence(CommandEntries& commandEntries);
+	virtual bool setPinState(quint16 pin, bool state) override;
+	virtual void sendCommandSequence(CommandEntries& commandEntries) override;
 
-	virtual int getResetCount();
-	virtual void clearResetCount();
+	virtual int getResetCount() override;
+	virtual void clearResetCount() override;
 
-	virtual void i2CReadRegister(quint32 addr, quint32 reg);
-	virtual void i2CWriteRegister(quint32 addr, quint32 reg, quint32 data);
+	virtual void i2CReadRegister(quint32 addr, quint32 reg) override;
+	virtual void i2CWriteRegister(quint32 addr, quint32 reg, quint32 data) override;
 
 	// properties
-	virtual void setName(const QByteArray& newName);
+	virtual void setName(const QByteArray& newName) override;
 
 	// Send Interface
-	virtual quint32 send(const QByteArray& sendMe, const Arguments& arguments, bool console, ReceiveInterface* recieveInterface, bool store = true);
-	virtual bool ready();
+	virtual quint32 send(const QByteArray& sendMe, const Arguments& arguments, bool console, ReceiveInterface* recieveInterface, bool store = true) override;
+	virtual bool ready() override;
 
 	// Receive Interface
-	virtual void receive(FramePackage& framePackage);
+	virtual void receive(FramePackage& framePackage) override;
 
 	QString portDescription();
 
@@ -83,8 +83,8 @@ private:
 	void handleUUIDResponse(FramePackage& framePackage);
 	void handleVersionResponse(FramePackage& framePackage);
 
-	virtual void setupConnected();
-	virtual void setupDiscovery();
+	virtual void setupConnected() override;
+	virtual void setupDiscovery() override;
 
 	bool getElectrialPinValue(quint32 kCommandHash, const Arguments& arguments);
 };
