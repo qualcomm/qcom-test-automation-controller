@@ -14,7 +14,7 @@
 //
 // <config_dir> defaults to the current working directory.
 
-#include <nlohmann/json.hpp>
+#include <qtac/Json.h>
 
 #include <algorithm>
 #include <filesystem>
@@ -25,7 +25,6 @@
 #include <vector>
 
 namespace fs = std::filesystem;
-using json   = nlohmann::json;
 
 // ---------------------------------------------------------------------------
 // DebugBoardType integer values — must match source/library/include/qtac/DebugBoardType.h
@@ -59,33 +58,35 @@ static int inferBoardType(const std::string& filename)
 // Returns four uint32_t values (chip 0 .. chip 3).
 // Bus flags: A=1, B=2, C=4, D=8  (matches FTDIPinSet.h eA/eB/eC/eD).
 // bus_function 2 == D2XX; 1 == VCP (not included in the pinset).
-static void computePinSets(const json& tcnf, uint32_t pinSets[4])
+static void computePinSets(const qtac::JsonValue& tcnf, uint32_t pinSets[4])
 {
-    for (int i = 0; i < 4; ++i)
-        pinSets[i] = 0;
-
-    if (!tcnf.contains("bus") || !tcnf["bus"].is_array())
-        return;
-
     static const struct { char bus; uint32_t flag; } kBusFlags[] = {
         {'A', 1u}, {'B', 2u}, {'C', 4u}, {'D', 8u}
     };
 
-    for (const auto& entry : tcnf["bus"])
+    for (int i = 0; i < 4; ++i)
+        pinSets[i] = 0;
+
+    if (!tcnf.isObject()) return;
+    qtac::JsonObject root = tcnf.asObject();
+    if (!root.contains("bus")) return;
+
+    qtac::JsonValue busVal = root.at("bus");
+    if (!busVal.isArray()) return;
+
+    qtac::JsonArray busArr = busVal.asArray();
+    for (const auto& entryVal : busArr)
     {
-        if (!entry.is_object())
-            continue;
+        if (!entryVal.isObject()) continue;
+        qtac::JsonObject entry = entryVal.asObject();
 
-        int         chipIndex = entry.value("chip_index",    0);
-        int         busFunc   = entry.value("bus_function",  0);
-        std::string bus       = entry.value("bus",           std::string{});
+        int         chipIndex = qtac::json::getInt   (entry, "chip_index",   0);
+        int         busFunc   = qtac::json::getInt   (entry, "bus_function", 0);
+        std::string bus       = qtac::json::getString(entry, "bus",          "");
 
-        if (chipIndex < 0 || chipIndex >= 4)
-            continue;
-        if (busFunc != 2)   // only D2XX buses contribute to the pinset
-            continue;
-        if (bus.empty())
-            continue;
+        if (chipIndex < 0 || chipIndex >= 4) continue;
+        if (busFunc != 2)   continue;  // only D2XX buses contribute to the pinset
+        if (bus.empty())    continue;
 
         const char busChar = bus[0];
         for (const auto& bf : kBusFlags)
@@ -99,12 +100,13 @@ static void computePinSets(const json& tcnf, uint32_t pinSets[4])
     }
 }
 
-static json loadJsonFile(const fs::path& path)
+static std::string readFile(const fs::path& path)
 {
     std::ifstream f(path);
     if (!f.is_open())
         throw std::runtime_error("Cannot open file: " + path.string());
-    return json::parse(f);
+    return std::string(std::istreambuf_iterator<char>(f),
+                       std::istreambuf_iterator<char>());
 }
 
 // ---------------------------------------------------------------------------
@@ -155,21 +157,32 @@ int main(int argc, char* argv[])
     // -----------------------------------------------------------------------
     // Load existing devicelist.json (to preserve legacy / manually-added fields)
     // -----------------------------------------------------------------------
-    std::map<int, json> entries;  // keyed by platform_id, sorted ascending
+    // keyed by platform_id, sorted ascending
+    std::map<int, qtac::JsonValue> entries;
 
     if (fs::exists(deviceListPath))
     {
         try
         {
-            json existing = loadJsonFile(deviceListPath);
-            if (existing.contains("catalog") && existing["catalog"].is_array())
+            std::string text = readFile(deviceListPath);
+            qtac::JsonValue existing = qtac::JsonValue::parse(text);
+            if (existing.isObject())
             {
-                for (const auto& entry : existing["catalog"])
+                qtac::JsonObject root = existing.asObject();
+                if (root.contains("catalog"))
                 {
-                    if (entry.contains("platform_id") && entry["platform_id"].is_number_integer())
+                    qtac::JsonValue catalogVal = root.at("catalog");
+                    if (catalogVal.isArray())
                     {
-                        int pid = entry["platform_id"].get<int>();
-                        entries[pid] = entry;
+                        for (const auto& entryVal : catalogVal.asArray())
+                        {
+                            if (!entryVal.isObject()) continue;
+                            qtac::JsonObject obj = entryVal.asObject();
+                            if (!obj.contains("platform_id")) continue;
+                            int pid = qtac::json::getInt(obj, "platform_id", -1);
+                            if (pid < 0) continue;
+                            entries[pid] = entryVal;
+                        }
                     }
                 }
             }
@@ -206,10 +219,10 @@ int main(int argc, char* argv[])
             continue;
         }
 
-        json tcnf;
+        qtac::JsonValue tcnf;
         try
         {
-            tcnf = loadJsonFile(tcnfPath);
+            tcnf = qtac::JsonValue::parse(readFile(tcnfPath));
         }
         catch (const std::exception& e)
         {
@@ -218,50 +231,61 @@ int main(int argc, char* argv[])
             continue;
         }
 
-        if (!tcnf.contains("platform_id") || !tcnf["platform_id"].is_number_integer())
+        if (!tcnf.isObject())
+        {
+            std::cerr << "Warning: not a JSON object in " << filename << " — skipped.\n";
+            continue;
+        }
+
+        qtac::JsonObject tcnfObj = tcnf.asObject();
+
+        if (!tcnfObj.contains("platform_id"))
         {
             std::cerr << "Warning: no platform_id in " << filename << " — skipped.\n";
             continue;
         }
 
-        const int         pid         = tcnf["platform_id"].get<int>();
-        const std::string name        = tcnf.value("name",           std::string{});
-        const std::string description = tcnf.value("description",    std::string{});
-        const int         revision    = tcnf.value("fileVersion",    0);
-        const std::string usbDesc     = tcnf.value("usb_descriptor", std::string{});
+        const int         pid         = qtac::json::getInt   (tcnfObj, "platform_id",   -1);
+        const std::string name        = qtac::json::getString(tcnfObj, "name",           "");
+        const std::string description = qtac::json::getString(tcnfObj, "description",    "");
+        const int         revision    = qtac::json::getInt   (tcnfObj, "fileVersion",    0);
+        const std::string usbDesc     = qtac::json::getString(tcnfObj, "usb_descriptor", "");
 
-        json newEntry;
-        newEntry["platform_id"]    = pid;
-        newEntry["debugBoardType"] = boardType;
-        newEntry["name"]           = name;
-        newEntry["description"]    = description;
-        newEntry["revision"]       = revision;
-        newEntry["usb_descriptor"] = usbDesc;
+        if (pid < 0) continue;
+
+        qtac::JsonValue newEntry = qtac::JsonValue::makeObject();
+        newEntry.setKey("platform_id",    pid);
+        newEntry.setKey("debugBoardType", boardType);
+        newEntry.setKey("name",           name);
+        newEntry.setKey("description",    description);
+        newEntry.setKey("revision",       revision);
+        newEntry.setKey("usb_descriptor", usbDesc);
         // configPath is relative to the devicelist.json directory; since both
         // files live in configurations/, just the filename is sufficient.
         // PlatformID.cpp resolves relative paths against devicelist.json's
         // parent directory, so this is unambiguous.
-        newEntry["configPath"]     = filename;
+        newEntry.setKey("configPath",     filename);
 
         // FTDI and FT232H boards expose per-chip D2XX bus pinsets.
         if (boardType == kFTDI || boardType == kFT232H)
         {
             uint32_t pinSets[4];
             computePinSets(tcnf, pinSets);
-            newEntry["chip1BusSet"] = pinSets[0];
-            newEntry["chip2BusSet"] = pinSets[1];
-            newEntry["chip3BusSet"] = pinSets[2];
-            newEntry["chip4BusSet"] = pinSets[3];
+            newEntry.setKey("chip1BusSet", static_cast<unsigned int>(pinSets[0]));
+            newEntry.setKey("chip2BusSet", static_cast<unsigned int>(pinSets[1]));
+            newEntry.setKey("chip3BusSet", static_cast<unsigned int>(pinSets[2]));
+            newEntry.setKey("chip4BusSet", static_cast<unsigned int>(pinSets[3]));
         }
 
         // Preserve manually-added fields from the existing entry that are not
         // derived from the tcnf (e.g. "firmware_chip" on PSoC platform 66).
         auto existIt = entries.find(pid);
-        if (existIt != entries.end())
+        if (existIt != entries.end() && existIt->second.isObject())
         {
-            const json& existing = existIt->second;
+            qtac::JsonObject existing = existIt->second.asObject();
             if (existing.contains("firmware_chip"))
-                newEntry["firmware_chip"] = existing["firmware_chip"];
+                newEntry.setKey("firmware_chip",
+                                qtac::json::getInt(existing, "firmware_chip", 0));
         }
 
         entries[pid] = newEntry;
@@ -274,12 +298,12 @@ int main(int argc, char* argv[])
     // -----------------------------------------------------------------------
     // Write devicelist.json
     // -----------------------------------------------------------------------
-    json catalog = json::array();
+    qtac::JsonValue catalog = qtac::JsonValue::makeArray();
     for (const auto& kv : entries)
-        catalog.push_back(kv.second);
+        catalog.append(kv.second);
 
-    json output;
-    output["catalog"] = catalog;
+    qtac::JsonValue output = qtac::JsonValue::makeObject();
+    output.setKey("catalog", catalog);
 
     std::ofstream out(deviceListPath);
     if (!out.is_open())
@@ -287,11 +311,11 @@ int main(int argc, char* argv[])
         std::cerr << "Error: cannot write to " << deviceListPath.string() << "\n";
         return 1;
     }
-    out << output.dump(4) << "\n";
+    out << output.serializePretty(4);
     out.close();
 
     std::cout << "Wrote " << deviceListPath.string()
-              << "  (" << catalog.size() << " entries, "
+              << "  (" << entries.size() << " entries, "
               << processedCount << " from tcnf files)\n";
 
     return 0;
