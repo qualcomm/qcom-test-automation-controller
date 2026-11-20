@@ -1,7 +1,7 @@
 . "$PSScriptRoot\env_setup.ps1"
 
 $appDir  = "$PSScriptRoot\build\Release"
-$ftdiBin = "$PSScriptRoot\__Builds\x64\Release\bin"
+$ftdiBin = "$PSScriptRoot\source\__Builds\x64\Release\bin"
 $confDir = "$PSScriptRoot\configurations"
 
 # Copy freshly built binaries
