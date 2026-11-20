@@ -59,4 +59,8 @@ Write-Output "--- Building taccl ---"
 & cmake --build "build\Release" --target taccl
 if ($LASTEXITCODE -ne 0) { Write-Error "Build failed"; exit 1 }
 
+Write-Output "--- Building update-device-list ---"
+& cmake --build "build\Release" --target update-device-list
+if ($LASTEXITCODE -ne 0) { Write-Error "Build failed"; exit 1 }
+
 Write-Output "--- BUILD SUCCESS ---"
