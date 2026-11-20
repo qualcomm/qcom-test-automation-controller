@@ -1,0 +1,2510 @@
+[04:06:59:548]: TAC Application log started
+[04:06:59:548]: QTAC Version: 6.8.2
+[04:06:59:548]: TAC Version: 6.8.2
+[04:06:59:548]: Descriptor Load Path:C:/ProgramData/Qualcomm/QTAC/configurations/devicelist.json
+[04:06:59:548]:    1 SPM V4
+[04:06:59:548]:    2 EPM V4
+[04:06:59:548]:    3 Alpaca V1
+[04:06:59:548]:    4 MicroEPM TAC
+[04:06:59:548]:    5 Alpaca V2
+[04:06:59:548]:    6 Alpaca V3.0
+[04:06:59:548]:    7 Alpaca V3.1
+[04:06:59:548]:    8 MTP V3.2
+[04:06:59:548]:    9 QRD V1.0
+[04:06:59:548]:    10 IDP V1.0
+[04:06:59:548]:    11 Dongle V3.0
+[04:06:59:548]:    12 MTP V3.3
+[04:06:59:548]:    13 ALPACA LITE (FTDI)
+[04:06:59:548]:    14 CSM - PSoC version
+[04:06:59:548]:    15 CSM - Lite
+[04:06:59:548]:    16 CSM - X100
+[04:06:59:548]:    17 Lemans ADP TAC PSOC
+[04:06:59:548]:    18 FTDI TAC for RIDE MX 4.0
+[04:06:59:548]:    19 Hamoa Lite
+[04:06:59:548]:    20 FTDI-LITE SDX75 CPE
+[04:06:59:548]:    21 ALPACA LITE  IDP35
+[04:06:59:548]:    22 FTDI-LITE SDX75 QMP
+[04:06:59:548]:    23 FTDI-LITE SDX75 M.2
+[04:06:59:548]:    24 CSM - PSoC version
+[04:06:59:548]:    25 ALPACA-LITE SDX35 M.2
+[04:06:59:548]:    26 ALPACA-LITE KUNO DEBUG BOARD
+[04:06:59:548]:    27 Lanai FTDI debug board
+[04:06:59:548]:    28 ALPACA-LITE  CDPS35
+[04:06:59:548]:    29 ALPACA-LITE  SWITCH CONTROL
+[04:06:59:548]:    30 Disable UART to collect BootKPI
+[04:06:59:548]:    31 CCARD525 PSoC
+[04:06:59:548]:    32 ALPACA-LITE for Mobile/Compute/Modem_NS ATP debug board
+[04:06:59:548]:    33 ALPACA-LITE QCX217
+[04:06:59:548]:    35 RB5 
+[04:06:59:548]:    36 XR TAC Config for Matrix v2
+[04:06:59:548]:    37 FTDI TAC for RIDE MICRO 4.0
+[04:06:59:548]:    38 PAKALA CDP with GG GPIOs
+[04:06:59:548]:    39 FTDI TAC for RB8 IQ-9075-EVK
+[04:06:59:548]:    40 KAANAPALI CDP with GG GPIOs
+[04:06:59:548]:    41 ALPACA-LITE for AP-MDM Fusion ATP debug board
+[04:06:59:548]:    42 ALPACA-LITE SMART LABEL
+[04:06:59:548]:    44 Kanapali QRD
+[04:06:59:548]:    45 Glymur SIP V2 Alpaca Lite
+[04:06:59:548]:    48 MTP8850 FTDI IO
+[04:06:59:548]:    49 Glymur COB CDPS
+[04:06:59:548]:    50 Default Automotive (PIC32CX)
+[04:06:59:548]:    51 ALPACA-LITE GLYMUR COB QCB
+[04:06:59:548]:    52 Glymur QCB V1 Alpaca Lite With battery
+[04:06:59:548]:    54 NordAu RIDE
+[04:06:59:548]:    55 AR TAC config for Balsam
+[04:06:59:548]:    56 MTP8845 FTDI IO
+[04:06:59:548]:    57 Monaco/Lemans ADP Automotive
+[04:06:59:548]:    60 Glymur Battery Enabled Device
+[04:06:59:548]:    63 AR TAC config for BONSAI
+[04:06:59:548]:    64 FTDI-LITE SDX95 QMP
+[04:06:59:548]:    65 MTP8975 (Hawi) FTDI IO
+[04:06:59:548]:    66 Hawi MTP8975 - PSoC
+[04:06:59:548]:    67 TDP535 Platform Config
+[04:06:59:548]:    69 FTDI-LITE SDX95 M.2
+[04:06:59:548]:    70 ALPACA-LITE HAWI CDP
+[04:06:59:548]:    71 FTDI TAC for RB4 IQ-8275-EVK
+[04:06:59:548]:    72 JTAG MUX DC
+[04:06:59:548]:    73 MTP8950 (Maili) FTDI IO
+[04:06:59:548]:    74 30-P9415-2 Dongle for Aliso
+[04:06:59:548]:    77 ALPACA-LITE KARNALI QCB DT
+[04:06:59:548]:    78 ALPACA-LITE MAILI CDP
+[04:06:59:548]:    80 Arduino BugHopper V1 (Default)
+[04:06:59:548]:    81 Arduino Ventuno Q
+[04:06:59:548]:    82 SHIKRA PSOC
+[04:06:59:548]:    85 IQ10 RRD V1
+[04:06:59:548]:    87 HAWI QRD PSOC
+[04:06:59:548]:    95 Arduino BugHopper V2 (Default)
+[04:06:59:590]: Found serial port with vendor id: 32902 and product id: 31467
+[04:06:59:590]: Found serial port with vendor id: 1478 and product id: 36872
+[04:06:59:590]: Found serial port with vendor id: 1240 and product id: 10
+[04:06:59:633]: Found serial port with vendor id: 32902 and product id: 31467
+[04:06:59:633]: Found serial port with vendor id: 1478 and product id: 36872
+[04:06:59:633]: Found serial port with vendor id: 1240 and product id: 10
+[04:06:59:634]: TACPlatformEntry::getConfiguration() Platform C:/ProgramData/Qualcomm/QTAC/configurations/TAC_PIC32CXAuto_54.tcnf loaded
+[04:06:59:634]: Found a PIC32CX device with port name: 'COM6'
+[04:06:59:749]: Found serial port with vendor id: 32902 and product id: 31467
+[04:06:59:749]: Found serial port with vendor id: 1478 and product id: 36872
+[04:06:59:749]: Found serial port with vendor id: 1240 and product id: 10
+[04:06:59:750]: Device KARUSSELLXXBANTAMTDC000035AQ0 opened
+[04:06:59:750]: Com port COM6
+
+[04:07:00:277]: 
+[04:07:00:277]: Frame Package Start
+[04:07:00:277]: Frame Valid
+[04:07:00:277]: Request: echo 1
+[04:07:00:277]: Time: 171312 elapsed: 0 (ms)
+[04:07:00:277]: Responses
+[04:07:00:277]: Frame Package End
+[04:07:00:277]: 
+[04:07:00:277]: Frame Package Start
+[04:07:00:277]: Frame Valid
+[04:07:00:277]: Request: End Transaction
+[04:07:00:277]: Time: 171312 elapsed: 0 (ms)
+[04:07:00:277]: Responses
+[04:07:00:277]: Frame Package End
+[04:07:00:788]: Buffer cleared before identifying PIC32CX board
+[04:07:01:312]: PIC32CX board name: Karussell
+[04:07:01:312]: PIC32CX board firmware version: Apr  8 2025
+[04:07:01:312]: PIC32CX board MAC: 8C:FD:F0:C0:13:8C
+[04:07:01:312]: Identified platform id: 54
+[04:07:01:312]: PIC32CX board Serial Number: TDC000035AQ0
+[04:07:01:312]: PIC32CX board MCN: 10-72521-1410
+[04:07:01:312]: 
+[04:07:01:312]: tacCommand.platformID()
+[04:07:01:312]: 
+[04:07:01:312]: Frame Package Start
+[04:07:01:312]: Frame Valid
+[04:07:01:312]: Request: *IDN?
+[04:07:01:312]: Time: 172343 elapsed: 1031 (ms)
+[04:07:01:312]: Responses
+[04:07:01:312]:    Karussell,Apr  8 2025,08/04/2025,8C:FD:F0:C0:13:8C,54,TDC000035AQ0,10-72521-1410
+[04:07:01:312]: Frame Package End
+[04:07:01:312]: 
+[04:07:01:312]: Frame Package Start
+[04:07:01:312]: Frame Valid
+[04:07:01:312]: Request: End Transaction
+[04:07:01:312]: Time: 172343 elapsed: 0 (ms)
+[04:07:01:312]: Responses
+[04:07:01:312]: Frame Package End
+[04:07:01:817]: Buffer cleared before identifying PIC32CX board
+[04:07:02:342]: PIC32CX board name: Karussell
+[04:07:02:342]: PIC32CX board firmware version: Apr  8 2025
+[04:07:02:342]: PIC32CX board MAC: 8C:FD:F0:C0:13:8C
+[04:07:02:342]: Identified platform id: 54
+[04:07:02:342]: PIC32CX board Serial Number: TDC000035AQ0
+[04:07:02:342]: PIC32CX board MCN: 10-72521-1410
+[04:07:02:342]: 
+[04:07:02:342]: Frame Package Start
+[04:07:02:342]: Frame Valid
+[04:07:02:342]: Request: *IDN?
+[04:07:02:342]: Time: 173375 elapsed: 1032 (ms)
+[04:07:02:342]: Responses
+[04:07:02:342]:    Karussell,Apr  8 2025,08/04/2025,8C:FD:F0:C0:13:8C,54,TDC000035AQ0,10-72521-1410
+[04:07:02:342]: Frame Package End
+[04:07:02:343]: 
+[04:07:02:343]: Frame Package Start
+[04:07:02:343]: Frame Valid
+[04:07:02:343]: Request: End Transaction
+[04:07:02:343]: Time: 173375 elapsed: 0 (ms)
+[04:07:02:343]: Responses
+[04:07:02:343]: Frame Package End
+[04:07:09:777]: _AlpacaDevice::on_pinStateChanged(128, 1)
+[04:07:09:777]: 
+[04:07:09:777]: Frame Package Start
+[04:07:09:777]: Frame Valid
+[04:07:09:777]: Request: CONF:DIG:ON
+[04:07:09:777]: Time: 180812 elapsed: 7437 (ms)
+[04:07:09:777]: Synonym: Pin 128 on
+[04:07:09:777]: Responses
+[04:07:09:777]: Frame Package End
+[04:07:09:777]: 
+[04:07:09:777]: Frame Package Start
+[04:07:09:777]: Frame Valid
+[04:07:09:777]: Request: End Transaction
+[04:07:09:777]: Time: 180812 elapsed: 0 (ms)
+[04:07:09:777]: Responses
+[04:07:09:777]: Frame Package End
+[04:07:09:887]: _AlpacaDevice::setPinState(128)  Command:usb0
+[04:07:10:815]: _AlpacaDevice::on_pinStateChanged(312, 1)
+[04:07:10:815]: 
+[04:07:10:815]: Frame Package Start
+[04:07:10:815]: Frame Valid
+[04:07:10:815]: Request: CONF:DIG:ON
+[04:07:10:815]: Time: 181843 elapsed: 1031 (ms)
+[04:07:10:815]: Synonym: Pin 312 on
+[04:07:10:815]: Responses
+[04:07:10:815]: Frame Package End
+[04:07:10:815]: 
+[04:07:10:815]: Frame Package Start
+[04:07:10:815]: Frame Valid
+[04:07:10:815]: Request: End Transaction
+[04:07:10:815]: Time: 181843 elapsed: 0 (ms)
+[04:07:10:815]: Responses
+[04:07:10:815]: Frame Package End
+[04:07:10:900]: _AlpacaDevice::setPinState(312)  Command:usb1
+[04:08:46:197]: _AlpacaDevice::on_pinStateChanged(128, 0)
+[04:08:46:197]: 
+[04:08:46:197]: Frame Package Start
+[04:08:46:197]: Frame Valid
+[04:08:46:197]: Request: CONF:DIG:ON
+[04:08:46:197]: Time: 277234 elapsed: 95391 (ms)
+[04:08:46:197]: Synonym: Pin 128 off
+[04:08:46:197]: Responses
+[04:08:46:197]: Frame Package End
+[04:08:46:197]: 
+[04:08:46:197]: Frame Package Start
+[04:08:46:197]: Frame Valid
+[04:08:46:197]: Request: End Transaction
+[04:08:46:197]: Time: 277234 elapsed: 0 (ms)
+[04:08:46:197]: Responses
+[04:08:46:197]: Frame Package End
+[04:08:46:229]: _AlpacaDevice::setPinState(128)  Command:usb0
+[04:09:35:876]: _AlpacaDevice::on_pinStateChanged(128, 0)
+[04:09:35:876]: 
+[04:09:35:876]: Frame Package Start
+[04:09:35:876]: Frame Valid
+[04:09:35:876]: Request: CONF:DIG:ON
+[04:09:35:876]: Time: 326906 elapsed: 49672 (ms)
+[04:09:35:876]: Synonym: Pin 128 off
+[04:09:35:876]: Responses
+[04:09:35:876]: Frame Package End
+[04:09:35:876]: 
+[04:09:35:876]: Frame Package Start
+[04:09:35:876]: Frame Valid
+[04:09:35:877]: Request: End Transaction
+[04:09:35:877]: Time: 326906 elapsed: 0 (ms)
+[04:09:35:877]: Responses
+[04:09:35:877]: Frame Package End
+[04:09:35:988]: _AlpacaDevice::setPinState(128)  Command:usb0
+[04:16:19:741]: _AlpacaDevice::on_pinStateChanged(128, 0)
+[04:16:19:741]: 
+[04:16:19:741]: Frame Package Start
+[04:16:19:741]: Frame Valid
+[04:16:19:741]: Request: CONF:DIG:ON
+[04:16:19:741]: Time: 730812 elapsed: 403906 (ms)
+[04:16:19:741]: Synonym: Pin 128 off
+[04:16:19:741]: Responses
+[04:16:19:741]: Frame Package End
+[04:16:19:741]: 
+[04:16:19:741]: Frame Package Start
+[04:16:19:741]: Frame Valid
+[04:16:19:741]: Request: End Transaction
+[04:16:19:741]: Time: 730812 elapsed: 0 (ms)
+[04:16:19:741]: Responses
+[04:16:19:741]: Frame Package End
+[04:16:19:852]: _AlpacaDevice::setPinState(128)  Command:usb0
+[04:16:53:316]: _AlpacaDevice::on_pinStateChanged(311, 0)
+[04:16:53:316]: 
+[04:16:53:316]: Frame Package Start
+[04:16:53:316]: Frame Valid
+[04:16:53:316]: Request: CONF:DIG:ON
+[04:16:53:316]: Time: 764390 elapsed: 33578 (ms)
+[04:16:53:316]: Synonym: Pin 311 off
+[04:16:53:316]: Responses
+[04:16:53:316]: Frame Package End
+[04:16:53:316]: 
+[04:16:53:316]: Frame Package Start
+[04:16:53:316]: Frame Valid
+[04:16:53:316]: Request: End Transaction
+[04:16:53:316]: Time: 764390 elapsed: 0 (ms)
+[04:16:53:316]: Responses
+[04:16:53:316]: Frame Package End
+[04:16:53:316]: _AlpacaDevice::setPinState(311)  Command:eud
+[04:27:56:227]: 
+[04:27:56:227]: Frame Package Start
+[04:27:56:227]: Frame Valid
+[04:27:56:227]: ====== powerOff start ====== 
+Time: 1427187 elapsed: 662797 (ms)
+[04:27:56:227]: Frame Package End
+[04:27:56:227]: 
+[04:27:56:227]: Frame Package Start
+[04:27:56:227]: Frame Valid
+[04:27:56:227]: Request: End Transaction
+[04:27:56:227]: Time: 1427187 elapsed: 0 (ms)
+[04:27:56:227]: Responses
+[04:27:56:227]: Frame Package End
+[04:27:56:767]: _AlpacaDevice::on_pinStateChanged(4, 1)
+[04:27:56:767]: 
+[04:27:56:767]: Frame Package Start
+[04:27:56:767]: Frame Valid
+[04:27:56:767]: Request: CONF:DIG:ON
+[04:27:56:767]: Time: 1427718 elapsed: 531 (ms)
+[04:27:56:767]: Synonym: Pin 4 on
+[04:27:56:767]: Responses
+[04:27:56:767]: Frame Package End
+[04:27:56:767]: 
+[04:27:56:767]: Frame Package Start
+[04:27:56:767]: Frame Valid
+[04:27:56:767]: Request: End Transaction
+[04:27:56:767]: Time: 1427718 elapsed: 0 (ms)
+[04:27:56:767]: Responses
+[04:27:56:767]: Frame Package End
+[04:27:57:273]: 
+[04:27:57:273]: Frame Package Start
+[04:27:57:273]: Frame Valid
+[04:27:57:273]: ====== powerOff finish ====== 
+Time: 1428234 elapsed: 516 (ms)
+[04:27:57:273]: Frame Package End
+[04:27:57:273]: 
+[04:27:57:273]: Frame Package Start
+[04:27:57:273]: Frame Valid
+[04:27:57:273]: Request: End Transaction
+[04:27:57:273]: Time: 1428234 elapsed: 0 (ms)
+[04:27:57:273]: Responses
+[04:27:57:273]: Frame Package End
+[04:28:11:247]: 
+[04:28:11:247]: Frame Package Start
+[04:28:11:247]: Frame Valid
+[04:28:11:247]: ====== bootToEDL start ====== 
+Time: 1442203 elapsed: 13969 (ms)
+[04:28:11:247]: Frame Package End
+[04:28:11:247]: 
+[04:28:11:247]: Frame Package Start
+[04:28:11:247]: Frame Valid
+[04:28:11:247]: Request: End Transaction
+[04:28:11:247]: Time: 1442203 elapsed: 0 (ms)
+[04:28:11:247]: Responses
+[04:28:11:247]: Frame Package End
+[04:28:11:774]: _AlpacaDevice::on_pinStateChanged(219, 0)
+[04:28:11:774]: 
+[04:28:11:774]: Frame Package Start
+[04:28:11:774]: Frame Valid
+[04:28:11:774]: Request: CONF:DIG:ON
+[04:28:11:774]: Time: 1442734 elapsed: 531 (ms)
+[04:28:11:774]: Synonym: Pin 219 off
+[04:28:11:774]: Responses
+[04:28:11:774]: Frame Package End
+[04:28:11:774]: 
+[04:28:11:774]: Frame Package Start
+[04:28:11:774]: Frame Valid
+[04:28:11:774]: Request: End Transaction
+[04:28:11:774]: Time: 1442734 elapsed: 0 (ms)
+[04:28:11:774]: Responses
+[04:28:11:774]: Frame Package End
+[04:28:12:809]: _AlpacaDevice::on_pinStateChanged(16, 0)
+[04:28:12:809]: 
+[04:28:12:809]: Frame Package Start
+[04:28:12:809]: Frame Valid
+[04:28:12:809]: Request: CONF:DIG:ON
+[04:28:12:809]: Time: 1443765 elapsed: 1031 (ms)
+[04:28:12:809]: Synonym: Pin 16 off
+[04:28:12:809]: Responses
+[04:28:12:809]: Frame Package End
+[04:28:12:809]: 
+[04:28:12:809]: Frame Package Start
+[04:28:12:809]: Frame Valid
+[04:28:12:809]: Request: End Transaction
+[04:28:12:809]: Time: 1443765 elapsed: 0 (ms)
+[04:28:12:809]: Responses
+[04:28:12:809]: Frame Package End
+[04:28:13:860]: _AlpacaDevice::on_pinStateChanged(4, 1)
+[04:28:13:860]: 
+[04:28:13:860]: Frame Package Start
+[04:28:13:860]: Frame Valid
+[04:28:13:860]: Request: CONF:DIG:ON
+[04:28:13:860]: Time: 1444812 elapsed: 1047 (ms)
+[04:28:13:860]: Synonym: Pin 4 on
+[04:28:13:860]: Responses
+[04:28:13:860]: Frame Package End
+[04:28:13:860]: 
+[04:28:13:860]: Frame Package Start
+[04:28:13:860]: Frame Valid
+[04:28:13:860]: Request: End Transaction
+[04:28:13:860]: Time: 1444812 elapsed: 0 (ms)
+[04:28:13:860]: Responses
+[04:28:13:860]: Frame Package End
+[04:28:14:906]: _AlpacaDevice::on_pinStateChanged(216, 1)
+[04:28:14:906]: 
+[04:28:14:906]: Frame Package Start
+[04:28:14:906]: Frame Valid
+[04:28:14:906]: Request: CONF:DIG:ON
+[04:28:14:906]: Time: 1445859 elapsed: 1047 (ms)
+[04:28:14:906]: Synonym: Pin 216 on
+[04:28:14:906]: Responses
+[04:28:14:906]: Frame Package End
+[04:28:14:906]: 
+[04:28:14:906]: Frame Package Start
+[04:28:14:906]: Frame Valid
+[04:28:14:906]: Request: End Transaction
+[04:28:14:906]: Time: 1445859 elapsed: 0 (ms)
+[04:28:14:906]: Responses
+[04:28:14:906]: Frame Package End
+[04:28:16:354]: 
+[04:28:16:354]: Frame Package Start
+[04:28:16:354]: Frame Valid
+[04:28:16:354]: Delay 900 in msecsTime: 1447312 elapsed: 1453 (ms)
+[04:28:16:354]: Frame Package End
+[04:28:16:354]: 
+[04:28:16:354]: Frame Package Start
+[04:28:16:354]: Frame Valid
+[04:28:16:354]: Request: End Transaction
+[04:28:16:354]: Time: 1447312 elapsed: 0 (ms)
+[04:28:16:354]: Responses
+[04:28:16:354]: Frame Package End
+[04:28:16:882]: _AlpacaDevice::on_pinStateChanged(4, 0)
+[04:28:16:882]: 
+[04:28:16:882]: Frame Package Start
+[04:28:16:882]: Frame Valid
+[04:28:16:882]: Request: CONF:DIG:ON
+[04:28:16:882]: Time: 1447843 elapsed: 531 (ms)
+[04:28:16:882]: Synonym: Pin 4 off
+[04:28:16:882]: Responses
+[04:28:16:882]: Frame Package End
+[04:28:16:882]: 
+[04:28:16:882]: Frame Package Start
+[04:28:16:882]: Frame Valid
+[04:28:16:882]: Request: End Transaction
+[04:28:16:882]: Time: 1447843 elapsed: 0 (ms)
+[04:28:16:882]: Responses
+[04:28:16:882]: Frame Package End
+[04:28:19:906]: 
+[04:28:19:906]: Frame Package Start
+[04:28:19:906]: Frame Valid
+[04:28:19:906]: Delay 2500 in msecsTime: 1450859 elapsed: 3016 (ms)
+[04:28:19:906]: Frame Package End
+[04:28:19:906]: 
+[04:28:19:906]: Frame Package Start
+[04:28:19:906]: Frame Valid
+[04:28:19:906]: Request: End Transaction
+[04:28:19:906]: Time: 1450859 elapsed: 0 (ms)
+[04:28:19:906]: Responses
+[04:28:19:906]: Frame Package End
+[04:28:20:431]: _AlpacaDevice::on_pinStateChanged(216, 0)
+[04:28:20:431]: 
+[04:28:20:431]: Frame Package Start
+[04:28:20:431]: Frame Valid
+[04:28:20:431]: Request: CONF:DIG:ON
+[04:28:20:431]: Time: 1451390 elapsed: 531 (ms)
+[04:28:20:431]: Synonym: Pin 216 off
+[04:28:20:431]: Responses
+[04:28:20:431]: Frame Package End
+[04:28:20:431]: 
+[04:28:20:431]: Frame Package Start
+[04:28:20:431]: Frame Valid
+[04:28:20:431]: Request: End Transaction
+[04:28:20:431]: Time: 1451390 elapsed: 0 (ms)
+[04:28:20:431]: Responses
+[04:28:20:431]: Frame Package End
+[04:28:20:936]: 
+[04:28:20:936]: Frame Package Start
+[04:28:20:936]: Frame Valid
+[04:28:20:936]: ====== bootToEDL finish ====== 
+Time: 1451890 elapsed: 500 (ms)
+[04:28:20:936]: Frame Package End
+[04:28:20:936]: 
+[04:28:20:936]: Frame Package Start
+[04:28:20:936]: Frame Valid
+[04:28:20:936]: Request: End Transaction
+[04:28:20:936]: Time: 1451890 elapsed: 0 (ms)
+[04:28:20:936]: Responses
+[04:28:20:936]: Frame Package End
+[04:29:22:094]: 
+[04:29:22:094]: Frame Package Start
+[04:29:22:094]: Frame Valid
+[04:29:22:094]: ====== powerOff start ====== 
+Time: 1513046 elapsed: 61156 (ms)
+[04:29:22:094]: Frame Package End
+[04:29:22:094]: 
+[04:29:22:094]: Frame Package Start
+[04:29:22:094]: Frame Valid
+[04:29:22:094]: Request: End Transaction
+[04:29:22:094]: Time: 1513046 elapsed: 0 (ms)
+[04:29:22:094]: Responses
+[04:29:22:094]: Frame Package End
+[04:29:22:630]: _AlpacaDevice::on_pinStateChanged(4, 1)
+[04:29:22:630]: 
+[04:29:22:630]: Frame Package Start
+[04:29:22:630]: Frame Valid
+[04:29:22:630]: Request: CONF:DIG:ON
+[04:29:22:630]: Time: 1513593 elapsed: 547 (ms)
+[04:29:22:630]: Synonym: Pin 4 on
+[04:29:22:630]: Responses
+[04:29:22:630]: Frame Package End
+[04:29:22:630]: 
+[04:29:22:630]: Frame Package Start
+[04:29:22:630]: Frame Valid
+[04:29:22:630]: Request: End Transaction
+[04:29:22:630]: Time: 1513593 elapsed: 0 (ms)
+[04:29:22:630]: Responses
+[04:29:22:630]: Frame Package End
+[04:29:23:139]: 
+[04:29:23:139]: Frame Package Start
+[04:29:23:139]: Frame Valid
+[04:29:23:139]: ====== powerOff finish ====== 
+Time: 1514093 elapsed: 500 (ms)
+[04:29:23:139]: Frame Package End
+[04:29:23:139]: 
+[04:29:23:139]: Frame Package Start
+[04:29:23:139]: Frame Valid
+[04:29:23:139]: Request: End Transaction
+[04:29:23:139]: Time: 1514093 elapsed: 0 (ms)
+[04:29:23:139]: Responses
+[04:29:23:139]: Frame Package End
+[04:29:37:124]: 
+[04:29:37:124]: Frame Package Start
+[04:29:37:124]: Frame Valid
+[04:29:37:124]: ====== bootToSecondaryEDL start ====== 
+Time: 1528078 elapsed: 13985 (ms)
+[04:29:37:124]: Frame Package End
+[04:29:37:124]: 
+[04:29:37:124]: Frame Package Start
+[04:29:37:124]: Frame Valid
+[04:29:37:124]: Request: End Transaction
+[04:29:37:124]: Time: 1528078 elapsed: 0 (ms)
+[04:29:37:124]: Responses
+[04:29:37:124]: Frame Package End
+[04:29:37:650]: _AlpacaDevice::on_pinStateChanged(216, 0)
+[04:29:37:650]: 
+[04:29:37:650]: Frame Package Start
+[04:29:37:650]: Frame Valid
+[04:29:37:650]: Request: CONF:DIG:ON
+[04:29:37:650]: Time: 1528609 elapsed: 531 (ms)
+[04:29:37:650]: Synonym: Pin 216 off
+[04:29:37:650]: Responses
+[04:29:37:650]: Frame Package End
+[04:29:37:650]: 
+[04:29:37:650]: Frame Package Start
+[04:29:37:650]: Frame Valid
+[04:29:37:650]: Request: End Transaction
+[04:29:37:650]: Time: 1528609 elapsed: 0 (ms)
+[04:29:37:650]: Responses
+[04:29:37:650]: Frame Package End
+[04:29:38:703]: _AlpacaDevice::on_pinStateChanged(16, 0)
+[04:29:38:703]: 
+[04:29:38:703]: Frame Package Start
+[04:29:38:703]: Frame Valid
+[04:29:38:703]: Request: CONF:DIG:ON
+[04:29:38:703]: Time: 1529656 elapsed: 1047 (ms)
+[04:29:38:703]: Synonym: Pin 16 off
+[04:29:38:703]: Responses
+[04:29:38:703]: Frame Package End
+[04:29:38:703]: 
+[04:29:38:703]: Frame Package Start
+[04:29:38:703]: Frame Valid
+[04:29:38:703]: Request: End Transaction
+[04:29:38:703]: Time: 1529656 elapsed: 0 (ms)
+[04:29:38:703]: Responses
+[04:29:38:703]: Frame Package End
+[04:29:39:741]: _AlpacaDevice::on_pinStateChanged(4, 1)
+[04:29:39:741]: 
+[04:29:39:741]: Frame Package Start
+[04:29:39:741]: Frame Valid
+[04:29:39:741]: Request: CONF:DIG:ON
+[04:29:39:741]: Time: 1530703 elapsed: 1047 (ms)
+[04:29:39:741]: Synonym: Pin 4 on
+[04:29:39:741]: Responses
+[04:29:39:741]: Frame Package End
+[04:29:39:741]: 
+[04:29:39:741]: Frame Package Start
+[04:29:39:741]: Frame Valid
+[04:29:39:741]: Request: End Transaction
+[04:29:39:741]: Time: 1530703 elapsed: 0 (ms)
+[04:29:39:741]: Responses
+[04:29:39:741]: Frame Package End
+[04:29:40:779]: _AlpacaDevice::on_pinStateChanged(219, 1)
+[04:29:40:779]: 
+[04:29:40:779]: Frame Package Start
+[04:29:40:779]: Frame Valid
+[04:29:40:779]: Request: CONF:DIG:ON
+[04:29:40:779]: Time: 1531734 elapsed: 1031 (ms)
+[04:29:40:779]: Synonym: Pin 219 on
+[04:29:40:779]: Responses
+[04:29:40:779]: Frame Package End
+[04:29:40:779]: 
+[04:29:40:779]: Frame Package Start
+[04:29:40:779]: Frame Valid
+[04:29:40:779]: Request: End Transaction
+[04:29:40:779]: Time: 1531734 elapsed: 0 (ms)
+[04:29:40:779]: Responses
+[04:29:40:779]: Frame Package End
+[04:29:42:194]: 
+[04:29:42:194]: Frame Package Start
+[04:29:42:194]: Frame Valid
+[04:29:42:194]: Delay 900 in msecsTime: 1533156 elapsed: 1422 (ms)
+[04:29:42:194]: Frame Package End
+[04:29:42:194]: 
+[04:29:42:194]: Frame Package Start
+[04:29:42:194]: Frame Valid
+[04:29:42:194]: Request: End Transaction
+[04:29:42:194]: Time: 1533156 elapsed: 0 (ms)
+[04:29:42:194]: Responses
+[04:29:42:194]: Frame Package End
+[04:29:42:721]: _AlpacaDevice::on_pinStateChanged(4, 0)
+[04:29:42:721]: 
+[04:29:42:721]: Frame Package Start
+[04:29:42:721]: Frame Valid
+[04:29:42:721]: Request: CONF:DIG:ON
+[04:29:42:721]: Time: 1533671 elapsed: 515 (ms)
+[04:29:42:721]: Synonym: Pin 4 off
+[04:29:42:721]: Responses
+[04:29:42:721]: Frame Package End
+[04:29:42:721]: 
+[04:29:42:721]: Frame Package Start
+[04:29:42:721]: Frame Valid
+[04:29:42:721]: Request: End Transaction
+[04:29:42:721]: Time: 1533671 elapsed: 0 (ms)
+[04:29:42:721]: Responses
+[04:29:42:721]: Frame Package End
+[04:29:45:733]: 
+[04:29:45:733]: Frame Package Start
+[04:29:45:733]: Frame Valid
+[04:29:45:733]: Delay 2500 in msecsTime: 1536687 elapsed: 3016 (ms)
+[04:29:45:733]: Frame Package End
+[04:29:45:733]: 
+[04:29:45:733]: Frame Package Start
+[04:29:45:733]: Frame Valid
+[04:29:45:733]: Request: End Transaction
+[04:29:45:733]: Time: 1536687 elapsed: 0 (ms)
+[04:29:45:733]: Responses
+[04:29:45:733]: Frame Package End
+[04:29:46:261]: _AlpacaDevice::on_pinStateChanged(219, 0)
+[04:29:46:261]: 
+[04:29:46:261]: Frame Package Start
+[04:29:46:261]: Frame Valid
+[04:29:46:261]: Request: CONF:DIG:ON
+[04:29:46:261]: Time: 1537218 elapsed: 531 (ms)
+[04:29:46:261]: Synonym: Pin 219 off
+[04:29:46:261]: Responses
+[04:29:46:261]: Frame Package End
+[04:29:46:261]: 
+[04:29:46:261]: Frame Package Start
+[04:29:46:261]: Frame Valid
+[04:29:46:261]: Request: End Transaction
+[04:29:46:261]: Time: 1537218 elapsed: 0 (ms)
+[04:29:46:261]: Responses
+[04:29:46:261]: Frame Package End
+[04:29:46:772]: 
+[04:29:46:772]: Frame Package Start
+[04:29:46:772]: Frame Valid
+[04:29:46:772]: ====== bootToSecondaryEDL finish ====== 
+Time: 1537734 elapsed: 516 (ms)
+[04:29:46:772]: Frame Package End
+[04:29:46:772]: 
+[04:29:46:772]: Frame Package Start
+[04:29:46:772]: Frame Valid
+[04:29:46:772]: Request: End Transaction
+[04:29:46:772]: Time: 1537734 elapsed: 0 (ms)
+[04:29:46:772]: Responses
+[04:29:46:772]: Frame Package End
+[04:32:09:476]: 
+[04:32:09:476]: Frame Package Start
+[04:32:09:476]: Frame Valid
+[04:32:09:476]: ====== powerOff start ====== 
+Time: 1680468 elapsed: 142734 (ms)
+[04:32:09:476]: Frame Package End
+[04:32:09:476]: 
+[04:32:09:476]: Frame Package Start
+[04:32:09:476]: Frame Valid
+[04:32:09:476]: Request: End Transaction
+[04:32:09:476]: Time: 1680468 elapsed: 0 (ms)
+[04:32:09:476]: Responses
+[04:32:09:476]: Frame Package End
+[04:32:09:999]: _AlpacaDevice::on_pinStateChanged(4, 1)
+[04:32:09:999]: 
+[04:32:09:999]: Frame Package Start
+[04:32:09:999]: Frame Valid
+[04:32:09:999]: Request: CONF:DIG:ON
+[04:32:09:999]: Time: 1680984 elapsed: 516 (ms)
+[04:32:09:999]: Synonym: Pin 4 on
+[04:32:09:999]: Responses
+[04:32:09:999]: Frame Package End
+[04:32:09:999]: 
+[04:32:09:999]: Frame Package Start
+[04:32:09:999]: Frame Valid
+[04:32:09:999]: Request: End Transaction
+[04:32:09:999]: Time: 1680984 elapsed: 0 (ms)
+[04:32:09:999]: Responses
+[04:32:09:999]: Frame Package End
+[04:32:10:505]: 
+[04:32:10:505]: Frame Package Start
+[04:32:10:505]: Frame Valid
+[04:32:10:505]: ====== powerOff finish ====== 
+Time: 1681500 elapsed: 516 (ms)
+[04:32:10:505]: Frame Package End
+[04:32:10:505]: 
+[04:32:10:505]: Frame Package Start
+[04:32:10:505]: Frame Valid
+[04:32:10:505]: Request: End Transaction
+[04:32:10:505]: Time: 1681500 elapsed: 0 (ms)
+[04:32:10:505]: Responses
+[04:32:10:505]: Frame Package End
+[04:32:19:493]: 
+[04:32:19:493]: Frame Package Start
+[04:32:19:493]: Frame Valid
+[04:32:19:493]: ====== powerOn start ====== 
+Time: 1690484 elapsed: 8984 (ms)
+[04:32:19:493]: Frame Package End
+[04:32:19:493]: 
+[04:32:19:493]: Frame Package Start
+[04:32:19:493]: Frame Valid
+[04:32:19:493]: Request: End Transaction
+[04:32:19:493]: Time: 1690484 elapsed: 0 (ms)
+[04:32:19:493]: Responses
+[04:32:19:493]: Frame Package End
+[04:32:20:016]: _AlpacaDevice::on_pinStateChanged(4, 1)
+[04:32:20:016]: 
+[04:32:20:016]: Frame Package Start
+[04:32:20:016]: Frame Valid
+[04:32:20:016]: Request: CONF:DIG:ON
+[04:32:20:016]: Time: 1691000 elapsed: 516 (ms)
+[04:32:20:016]: Synonym: Pin 4 on
+[04:32:20:016]: Responses
+[04:32:20:016]: Frame Package End
+[04:32:20:016]: 
+[04:32:20:016]: Frame Package Start
+[04:32:20:016]: Frame Valid
+[04:32:20:016]: Request: End Transaction
+[04:32:20:016]: Time: 1691000 elapsed: 0 (ms)
+[04:32:20:016]: Responses
+[04:32:20:016]: Frame Package End
+[04:32:21:482]: 
+[04:32:21:482]: Frame Package Start
+[04:32:21:482]: Frame Valid
+[04:32:21:482]: Delay 900 in msecsTime: 1692468 elapsed: 1468 (ms)
+[04:32:21:482]: Frame Package End
+[04:32:21:482]: 
+[04:32:21:482]: Frame Package Start
+[04:32:21:482]: Frame Valid
+[04:32:21:482]: Request: End Transaction
+[04:32:21:482]: Time: 1692468 elapsed: 0 (ms)
+[04:32:21:482]: Responses
+[04:32:21:482]: Frame Package End
+[04:32:22:008]: _AlpacaDevice::on_pinStateChanged(4, 0)
+[04:32:22:008]: 
+[04:32:22:008]: Frame Package Start
+[04:32:22:008]: Frame Valid
+[04:32:22:008]: Request: CONF:DIG:ON
+[04:32:22:008]: Time: 1693000 elapsed: 532 (ms)
+[04:32:22:008]: Synonym: Pin 4 off
+[04:32:22:008]: Responses
+[04:32:22:008]: Frame Package End
+[04:32:22:008]: 
+[04:32:22:008]: Frame Package Start
+[04:32:22:008]: Frame Valid
+[04:32:22:008]: Request: End Transaction
+[04:32:22:008]: Time: 1693000 elapsed: 0 (ms)
+[04:32:22:008]: Responses
+[04:32:22:008]: Frame Package End
+[04:32:22:518]: 
+[04:32:22:518]: Frame Package Start
+[04:32:22:518]: Frame Valid
+[04:32:22:518]: ====== powerOn finish ====== 
+Time: 1693515 elapsed: 515 (ms)
+[04:32:22:518]: Frame Package End
+[04:32:22:518]: 
+[04:32:22:518]: Frame Package Start
+[04:32:22:518]: Frame Valid
+[04:32:22:518]: Request: End Transaction
+[04:32:22:518]: Time: 1693515 elapsed: 0 (ms)
+[04:32:22:518]: Responses
+[04:32:22:518]: Frame Package End
+[04:33:54:493]: _AlpacaDevice::on_pinStateChanged(128, 0)
+[04:33:54:493]: 
+[04:33:54:493]: Frame Package Start
+[04:33:54:493]: Frame Valid
+[04:33:54:493]: Request: CONF:DIG:ON
+[04:33:54:493]: Time: 1785500 elapsed: 91985 (ms)
+[04:33:54:493]: Synonym: Pin 128 off
+[04:33:54:493]: Responses
+[04:33:54:493]: Frame Package End
+[04:33:54:493]: 
+[04:33:54:493]: Frame Package Start
+[04:33:54:493]: Frame Valid
+[04:33:54:493]: Request: End Transaction
+[04:33:54:493]: Time: 1785500 elapsed: 0 (ms)
+[04:33:54:493]: Responses
+[04:33:54:493]: Frame Package End
+[04:33:54:604]: _AlpacaDevice::setPinState(128)  Command:usb0
+[04:35:20:524]: _AlpacaDevice::on_pinStateChanged(128, 0)
+[04:35:20:524]: 
+[04:35:20:524]: Frame Package Start
+[04:35:20:524]: Frame Valid
+[04:35:20:524]: Request: CONF:DIG:ON
+[04:35:20:524]: Time: 1871562 elapsed: 86062 (ms)
+[04:35:20:524]: Synonym: Pin 128 off
+[04:35:20:524]: Responses
+[04:35:20:524]: Frame Package End
+[04:35:20:524]: 
+[04:35:20:524]: Frame Package Start
+[04:35:20:524]: Frame Valid
+[04:35:20:524]: Request: End Transaction
+[04:35:20:524]: Time: 1871562 elapsed: 0 (ms)
+[04:35:20:524]: Responses
+[04:35:20:524]: Frame Package End
+[04:35:20:556]: _AlpacaDevice::setPinState(128)  Command:usb0
+[04:35:54:086]: _AlpacaDevice::on_pinStateChanged(128, 0)
+[04:35:54:086]: 
+[04:35:54:086]: Frame Package Start
+[04:35:54:086]: Frame Valid
+[04:35:54:086]: Request: CONF:DIG:ON
+[04:35:54:086]: Time: 1905125 elapsed: 33563 (ms)
+[04:35:54:086]: Synonym: Pin 128 off
+[04:35:54:086]: Responses
+[04:35:54:086]: Frame Package End
+[04:35:54:086]: 
+[04:35:54:086]: Frame Package Start
+[04:35:54:086]: Frame Valid
+[04:35:54:086]: Request: End Transaction
+[04:35:54:086]: Time: 1905125 elapsed: 0 (ms)
+[04:35:54:086]: Responses
+[04:35:54:086]: Frame Package End
+[04:35:54:102]: _AlpacaDevice::setPinState(128)  Command:usb0
+[04:35:55:346]: _AlpacaDevice::on_pinStateChanged(128, 0)
+[04:35:55:346]: 
+[04:35:55:346]: Frame Package Start
+[04:35:55:346]: Frame Valid
+[04:35:55:346]: Request: CONF:DIG:ON
+[04:35:55:346]: Time: 1906375 elapsed: 1250 (ms)
+[04:35:55:346]: Synonym: Pin 128 off
+[04:35:55:346]: Responses
+[04:35:55:346]: Frame Package End
+[04:35:55:346]: 
+[04:35:55:346]: Frame Package Start
+[04:35:55:346]: Frame Valid
+[04:35:55:346]: Request: End Transaction
+[04:35:55:346]: Time: 1906375 elapsed: 0 (ms)
+[04:35:55:346]: Responses
+[04:35:55:346]: Frame Package End
+[04:35:55:378]: _AlpacaDevice::setPinState(128)  Command:usb0
+[04:36:45:422]: _AlpacaDevice::on_pinStateChanged(128, 0)
+[04:36:45:422]: 
+[04:36:45:422]: Frame Package Start
+[04:36:45:422]: Frame Valid
+[04:36:45:422]: Request: CONF:DIG:ON
+[04:36:45:422]: Time: 1956453 elapsed: 50078 (ms)
+[04:36:45:422]: Synonym: Pin 128 off
+[04:36:45:422]: Responses
+[04:36:45:422]: Frame Package End
+[04:36:45:422]: 
+[04:36:45:422]: Frame Package Start
+[04:36:45:422]: Frame Valid
+[04:36:45:422]: Request: End Transaction
+[04:36:45:422]: Time: 1956453 elapsed: 0 (ms)
+[04:36:45:422]: Responses
+[04:36:45:422]: Frame Package End
+[04:36:45:438]: _AlpacaDevice::setPinState(128)  Command:usb0
+[04:38:01:692]: 
+[04:38:01:692]: Frame Package Start
+[04:38:01:692]: Frame Valid
+[04:38:01:692]: ====== powerOff start ====== 
+Time: 2032718 elapsed: 76265 (ms)
+[04:38:01:692]: Frame Package End
+[04:38:01:692]: 
+[04:38:01:692]: Frame Package Start
+[04:38:01:692]: Frame Valid
+[04:38:01:692]: Request: End Transaction
+[04:38:01:692]: Time: 2032718 elapsed: 0 (ms)
+[04:38:01:692]: Responses
+[04:38:01:692]: Frame Package End
+[04:38:02:227]: _AlpacaDevice::on_pinStateChanged(4, 1)
+[04:38:02:227]: 
+[04:38:02:227]: Frame Package Start
+[04:38:02:227]: Frame Valid
+[04:38:02:227]: Request: CONF:DIG:ON
+[04:38:02:227]: Time: 2033250 elapsed: 532 (ms)
+[04:38:02:227]: Synonym: Pin 4 on
+[04:38:02:227]: Responses
+[04:38:02:227]: Frame Package End
+[04:38:02:227]: 
+[04:38:02:227]: Frame Package Start
+[04:38:02:227]: Frame Valid
+[04:38:02:227]: Request: End Transaction
+[04:38:02:227]: Time: 2033250 elapsed: 0 (ms)
+[04:38:02:227]: Responses
+[04:38:02:227]: Frame Package End
+[04:38:02:734]: 
+[04:38:02:734]: Frame Package Start
+[04:38:02:734]: Frame Valid
+[04:38:02:734]: ====== powerOff finish ====== 
+Time: 2033765 elapsed: 515 (ms)
+[04:38:02:734]: Frame Package End
+[04:38:02:734]: 
+[04:38:02:734]: Frame Package Start
+[04:38:02:734]: Frame Valid
+[04:38:02:734]: Request: End Transaction
+[04:38:02:734]: Time: 2033765 elapsed: 0 (ms)
+[04:38:02:734]: Responses
+[04:38:02:734]: Frame Package End
+[04:38:11:708]: 
+[04:38:11:708]: Frame Package Start
+[04:38:11:708]: Frame Valid
+[04:38:11:708]: ====== powerOn start ====== 
+Time: 2042734 elapsed: 8969 (ms)
+[04:38:11:708]: Frame Package End
+[04:38:11:708]: 
+[04:38:11:708]: Frame Package Start
+[04:38:11:708]: Frame Valid
+[04:38:11:708]: Request: End Transaction
+[04:38:11:708]: Time: 2042734 elapsed: 0 (ms)
+[04:38:11:708]: Responses
+[04:38:11:708]: Frame Package End
+[04:38:12:231]: _AlpacaDevice::on_pinStateChanged(4, 1)
+[04:38:12:231]: 
+[04:38:12:231]: Frame Package Start
+[04:38:12:231]: Frame Valid
+[04:38:12:231]: Request: CONF:DIG:ON
+[04:38:12:231]: Time: 2043265 elapsed: 531 (ms)
+[04:38:12:231]: Synonym: Pin 4 on
+[04:38:12:231]: Responses
+[04:38:12:231]: Frame Package End
+[04:38:12:231]: 
+[04:38:12:231]: Frame Package Start
+[04:38:12:231]: Frame Valid
+[04:38:12:231]: Request: End Transaction
+[04:38:12:231]: Time: 2043265 elapsed: 0 (ms)
+[04:38:12:231]: Responses
+[04:38:12:231]: Frame Package End
+[04:38:13:649]: 
+[04:38:13:649]: Frame Package Start
+[04:38:13:649]: Frame Valid
+[04:38:13:649]: Delay 900 in msecsTime: 2044687 elapsed: 1422 (ms)
+[04:38:13:649]: Frame Package End
+[04:38:13:649]: 
+[04:38:13:649]: Frame Package Start
+[04:38:13:649]: Frame Valid
+[04:38:13:649]: Request: End Transaction
+[04:38:13:649]: Time: 2044687 elapsed: 0 (ms)
+[04:38:13:649]: Responses
+[04:38:13:649]: Frame Package End
+[04:38:14:175]: _AlpacaDevice::on_pinStateChanged(4, 0)
+[04:38:14:175]: 
+[04:38:14:175]: Frame Package Start
+[04:38:14:175]: Frame Valid
+[04:38:14:175]: Request: CONF:DIG:ON
+[04:38:14:175]: Time: 2045203 elapsed: 516 (ms)
+[04:38:14:175]: Synonym: Pin 4 off
+[04:38:14:175]: Responses
+[04:38:14:175]: Frame Package End
+[04:38:14:175]: 
+[04:38:14:175]: Frame Package Start
+[04:38:14:175]: Frame Valid
+[04:38:14:175]: Request: End Transaction
+[04:38:14:175]: Time: 2045203 elapsed: 0 (ms)
+[04:38:14:175]: Responses
+[04:38:14:175]: Frame Package End
+[04:38:14:691]: 
+[04:38:14:691]: Frame Package Start
+[04:38:14:691]: Frame Valid
+[04:38:14:691]: ====== powerOn finish ====== 
+Time: 2045718 elapsed: 515 (ms)
+[04:38:14:691]: Frame Package End
+[04:38:14:691]: 
+[04:38:14:691]: Frame Package Start
+[04:38:14:691]: Frame Valid
+[04:38:14:691]: Request: End Transaction
+[04:38:14:691]: Time: 2045718 elapsed: 0 (ms)
+[04:38:14:691]: Responses
+[04:38:14:691]: Frame Package End
+[04:38:17:292]: _AlpacaDevice::on_pinStateChanged(128, 0)
+[04:38:17:292]: 
+[04:38:17:292]: Frame Package Start
+[04:38:17:292]: Frame Valid
+[04:38:17:292]: Request: CONF:DIG:ON
+[04:38:17:292]: Time: 2048328 elapsed: 2610 (ms)
+[04:38:17:292]: Synonym: Pin 128 off
+[04:38:17:292]: Responses
+[04:38:17:292]: Frame Package End
+[04:38:17:292]: 
+[04:38:17:292]: Frame Package Start
+[04:38:17:292]: Frame Valid
+[04:38:17:292]: Request: End Transaction
+[04:38:17:292]: Time: 2048328 elapsed: 0 (ms)
+[04:38:17:292]: Responses
+[04:38:17:292]: Frame Package End
+[04:38:17:308]: _AlpacaDevice::setPinState(128)  Command:usb0
+[04:40:40:424]: 
+[04:40:40:424]: Frame Package Start
+[04:40:40:424]: Frame Valid
+[04:40:40:424]: ====== powerOff start ====== 
+Time: 2191453 elapsed: 143125 (ms)
+[04:40:40:424]: Frame Package End
+[04:40:40:424]: 
+[04:40:40:424]: Frame Package Start
+[04:40:40:424]: Frame Valid
+[04:40:40:424]: Request: End Transaction
+[04:40:40:424]: Time: 2191453 elapsed: 0 (ms)
+[04:40:40:424]: Responses
+[04:40:40:424]: Frame Package End
+[04:40:40:960]: _AlpacaDevice::on_pinStateChanged(4, 1)
+[04:40:40:960]: 
+[04:40:40:960]: Frame Package Start
+[04:40:40:960]: Frame Valid
+[04:40:40:960]: Request: CONF:DIG:ON
+[04:40:40:960]: Time: 2191984 elapsed: 531 (ms)
+[04:40:40:960]: Synonym: Pin 4 on
+[04:40:40:960]: Responses
+[04:40:40:960]: Frame Package End
+[04:40:40:960]: 
+[04:40:40:960]: Frame Package Start
+[04:40:40:960]: Frame Valid
+[04:40:40:960]: Request: End Transaction
+[04:40:40:960]: Time: 2191984 elapsed: 0 (ms)
+[04:40:40:960]: Responses
+[04:40:40:960]: Frame Package End
+[04:40:41:468]: 
+[04:40:41:468]: Frame Package Start
+[04:40:41:468]: Frame Valid
+[04:40:41:468]: ====== powerOff finish ====== 
+Time: 2192500 elapsed: 516 (ms)
+[04:40:41:468]: Frame Package End
+[04:40:41:468]: 
+[04:40:41:468]: Frame Package Start
+[04:40:41:468]: Frame Valid
+[04:40:41:468]: Request: End Transaction
+[04:40:41:468]: Time: 2192500 elapsed: 0 (ms)
+[04:40:41:468]: Responses
+[04:40:41:468]: Frame Package End
+[04:40:50:429]: 
+[04:40:50:429]: Frame Package Start
+[04:40:50:429]: Frame Valid
+[04:40:50:429]: ====== powerOn start ====== 
+Time: 2201453 elapsed: 8953 (ms)
+[04:40:50:429]: Frame Package End
+[04:40:50:429]: 
+[04:40:50:429]: Frame Package Start
+[04:40:50:429]: Frame Valid
+[04:40:50:429]: Request: End Transaction
+[04:40:50:429]: Time: 2201453 elapsed: 0 (ms)
+[04:40:50:429]: Responses
+[04:40:50:429]: Frame Package End
+[04:40:50:973]: _AlpacaDevice::on_pinStateChanged(4, 1)
+[04:40:50:973]: 
+[04:40:50:973]: Frame Package Start
+[04:40:50:973]: Frame Valid
+[04:40:50:973]: Request: CONF:DIG:ON
+[04:40:50:973]: Time: 2202000 elapsed: 547 (ms)
+[04:40:50:973]: Synonym: Pin 4 on
+[04:40:50:973]: Responses
+[04:40:50:973]: Frame Package End
+[04:40:50:973]: 
+[04:40:50:973]: Frame Package Start
+[04:40:50:973]: Frame Valid
+[04:40:50:973]: Request: End Transaction
+[04:40:50:973]: Time: 2202000 elapsed: 0 (ms)
+[04:40:50:973]: Responses
+[04:40:50:973]: Frame Package End
+[04:40:52:389]: 
+[04:40:52:389]: Frame Package Start
+[04:40:52:389]: Frame Valid
+[04:40:52:389]: Delay 900 in msecsTime: 2203421 elapsed: 1421 (ms)
+[04:40:52:389]: Frame Package End
+[04:40:52:389]: 
+[04:40:52:389]: Frame Package Start
+[04:40:52:389]: Frame Valid
+[04:40:52:389]: Request: End Transaction
+[04:40:52:389]: Time: 2203421 elapsed: 0 (ms)
+[04:40:52:389]: Responses
+[04:40:52:389]: Frame Package End
+[04:40:52:915]: _AlpacaDevice::on_pinStateChanged(4, 0)
+[04:40:52:915]: 
+[04:40:52:915]: Frame Package Start
+[04:40:52:915]: Frame Valid
+[04:40:52:915]: Request: CONF:DIG:ON
+[04:40:52:915]: Time: 2203937 elapsed: 516 (ms)
+[04:40:52:915]: Synonym: Pin 4 off
+[04:40:52:915]: Responses
+[04:40:52:915]: Frame Package End
+[04:40:52:915]: 
+[04:40:52:915]: Frame Package Start
+[04:40:52:915]: Frame Valid
+[04:40:52:915]: Request: End Transaction
+[04:40:52:915]: Time: 2203937 elapsed: 0 (ms)
+[04:40:52:915]: Responses
+[04:40:52:915]: Frame Package End
+[04:40:53:426]: 
+[04:40:53:426]: Frame Package Start
+[04:40:53:426]: Frame Valid
+[04:40:53:426]: ====== powerOn finish ====== 
+Time: 2204453 elapsed: 516 (ms)
+[04:40:53:426]: Frame Package End
+[04:40:53:426]: 
+[04:40:53:426]: Frame Package Start
+[04:40:53:426]: Frame Valid
+[04:40:53:426]: Request: End Transaction
+[04:40:53:426]: Time: 2204453 elapsed: 0 (ms)
+[04:40:53:426]: Responses
+[04:40:53:426]: Frame Package End
+[04:40:56:040]: _AlpacaDevice::on_pinStateChanged(128, 0)
+[04:40:56:040]: 
+[04:40:56:040]: Frame Package Start
+[04:40:56:040]: Frame Valid
+[04:40:56:040]: Request: CONF:DIG:ON
+[04:40:56:040]: Time: 2207062 elapsed: 2609 (ms)
+[04:40:56:040]: Synonym: Pin 128 off
+[04:40:56:040]: Responses
+[04:40:56:040]: Frame Package End
+[04:40:56:040]: 
+[04:40:56:040]: Frame Package Start
+[04:40:56:040]: Frame Valid
+[04:40:56:040]: Request: End Transaction
+[04:40:56:040]: Time: 2207062 elapsed: 0 (ms)
+[04:40:56:040]: Responses
+[04:40:56:040]: Frame Package End
+[04:40:56:152]: _AlpacaDevice::setPinState(128)  Command:usb0
+[04:42:08:636]: _AlpacaDevice::on_pinStateChanged(128, 0)
+[04:42:08:636]: 
+[04:42:08:636]: Frame Package Start
+[04:42:08:636]: Frame Valid
+[04:42:08:636]: Request: CONF:DIG:ON
+[04:42:08:636]: Time: 2279656 elapsed: 72594 (ms)
+[04:42:08:636]: Synonym: Pin 128 off
+[04:42:08:636]: Responses
+[04:42:08:636]: Frame Package End
+[04:42:08:636]: 
+[04:42:08:636]: Frame Package Start
+[04:42:08:636]: Frame Valid
+[04:42:08:636]: Request: End Transaction
+[04:42:08:636]: Time: 2279656 elapsed: 0 (ms)
+[04:42:08:636]: Responses
+[04:42:08:636]: Frame Package End
+[04:42:08:654]: _AlpacaDevice::setPinState(128)  Command:usb0
+[04:42:09:683]: _AlpacaDevice::on_pinStateChanged(128, 0)
+[04:42:09:683]: 
+[04:42:09:683]: Frame Package Start
+[04:42:09:683]: Frame Valid
+[04:42:09:683]: Request: CONF:DIG:ON
+[04:42:09:683]: Time: 2280703 elapsed: 1047 (ms)
+[04:42:09:683]: Synonym: Pin 128 off
+[04:42:09:683]: Responses
+[04:42:09:683]: Frame Package End
+[04:42:09:683]: 
+[04:42:09:683]: Frame Package Start
+[04:42:09:683]: Frame Valid
+[04:42:09:683]: Request: End Transaction
+[04:42:09:683]: Time: 2280703 elapsed: 0 (ms)
+[04:42:09:683]: Responses
+[04:42:09:683]: Frame Package End
+[04:42:09:699]: _AlpacaDevice::setPinState(128)  Command:usb0
+[04:42:13:199]: _AlpacaDevice::on_pinStateChanged(128, 0)
+[04:42:13:199]: 
+[04:42:13:199]: Frame Package Start
+[04:42:13:199]: Frame Valid
+[04:42:13:199]: Request: CONF:DIG:ON
+[04:42:13:199]: Time: 2284218 elapsed: 3515 (ms)
+[04:42:13:199]: Synonym: Pin 128 off
+[04:42:13:199]: Responses
+[04:42:13:199]: Frame Package End
+[04:42:13:199]: 
+[04:42:13:199]: Frame Package Start
+[04:42:13:199]: Frame Valid
+[04:42:13:199]: Request: End Transaction
+[04:42:13:199]: Time: 2284218 elapsed: 0 (ms)
+[04:42:13:199]: Responses
+[04:42:13:199]: Frame Package End
+[04:42:13:215]: _AlpacaDevice::setPinState(128)  Command:usb0
+[04:43:12:260]: 
+[04:43:12:260]: Frame Package Start
+[04:43:12:260]: Frame Valid
+[04:43:12:260]: ====== powerOff start ====== 
+Time: 2343281 elapsed: 59063 (ms)
+[04:43:12:260]: Frame Package End
+[04:43:12:260]: 
+[04:43:12:260]: Frame Package Start
+[04:43:12:260]: Frame Valid
+[04:43:12:260]: Request: End Transaction
+[04:43:12:260]: Time: 2343281 elapsed: 0 (ms)
+[04:43:12:260]: Responses
+[04:43:12:260]: Frame Package End
+[04:43:12:788]: _AlpacaDevice::on_pinStateChanged(4, 1)
+[04:43:12:788]: 
+[04:43:12:788]: Frame Package Start
+[04:43:12:788]: Frame Valid
+[04:43:12:788]: Request: CONF:DIG:ON
+[04:43:12:788]: Time: 2343812 elapsed: 531 (ms)
+[04:43:12:788]: Synonym: Pin 4 on
+[04:43:12:788]: Responses
+[04:43:12:788]: Frame Package End
+[04:43:12:788]: 
+[04:43:12:788]: Frame Package Start
+[04:43:12:788]: Frame Valid
+[04:43:12:788]: Request: End Transaction
+[04:43:12:788]: Time: 2343812 elapsed: 0 (ms)
+[04:43:12:788]: Responses
+[04:43:12:788]: Frame Package End
+[04:43:13:296]: 
+[04:43:13:296]: Frame Package Start
+[04:43:13:296]: Frame Valid
+[04:43:13:296]: ====== powerOff finish ====== 
+Time: 2344312 elapsed: 500 (ms)
+[04:43:13:296]: Frame Package End
+[04:43:13:296]: 
+[04:43:13:296]: Frame Package Start
+[04:43:13:296]: Frame Valid
+[04:43:13:296]: Request: End Transaction
+[04:43:13:296]: Time: 2344312 elapsed: 0 (ms)
+[04:43:13:296]: Responses
+[04:43:13:296]: Frame Package End
+[04:43:22:271]: 
+[04:43:22:271]: Frame Package Start
+[04:43:22:271]: Frame Valid
+[04:43:22:271]: ====== powerOn start ====== 
+Time: 2353296 elapsed: 8984 (ms)
+[04:43:22:271]: Frame Package End
+[04:43:22:271]: 
+[04:43:22:271]: Frame Package Start
+[04:43:22:271]: Frame Valid
+[04:43:22:271]: Request: End Transaction
+[04:43:22:271]: Time: 2353296 elapsed: 0 (ms)
+[04:43:22:271]: Responses
+[04:43:22:271]: Frame Package End
+[04:43:22:797]: _AlpacaDevice::on_pinStateChanged(4, 1)
+[04:43:22:797]: 
+[04:43:22:797]: Frame Package Start
+[04:43:22:797]: Frame Valid
+[04:43:22:797]: Request: CONF:DIG:ON
+[04:43:22:797]: Time: 2353812 elapsed: 516 (ms)
+[04:43:22:797]: Synonym: Pin 4 on
+[04:43:22:797]: Responses
+[04:43:22:797]: Frame Package End
+[04:43:22:797]: 
+[04:43:22:797]: Frame Package Start
+[04:43:22:797]: Frame Valid
+[04:43:22:797]: Request: End Transaction
+[04:43:22:797]: Time: 2353812 elapsed: 0 (ms)
+[04:43:22:797]: Responses
+[04:43:22:797]: Frame Package End
+[04:43:24:233]: 
+[04:43:24:233]: Frame Package Start
+[04:43:24:233]: Frame Valid
+[04:43:24:233]: Delay 900 in msecsTime: 2355250 elapsed: 1438 (ms)
+[04:43:24:233]: Frame Package End
+[04:43:24:233]: 
+[04:43:24:233]: Frame Package Start
+[04:43:24:233]: Frame Valid
+[04:43:24:233]: Request: End Transaction
+[04:43:24:233]: Time: 2355250 elapsed: 0 (ms)
+[04:43:24:233]: Responses
+[04:43:24:233]: Frame Package End
+[04:43:24:757]: _AlpacaDevice::on_pinStateChanged(4, 0)
+[04:43:24:757]: 
+[04:43:24:757]: Frame Package Start
+[04:43:24:757]: Frame Valid
+[04:43:24:757]: Request: CONF:DIG:ON
+[04:43:24:757]: Time: 2355781 elapsed: 531 (ms)
+[04:43:24:757]: Synonym: Pin 4 off
+[04:43:24:757]: Responses
+[04:43:24:757]: Frame Package End
+[04:43:24:757]: 
+[04:43:24:757]: Frame Package Start
+[04:43:24:757]: Frame Valid
+[04:43:24:757]: Request: End Transaction
+[04:43:24:757]: Time: 2355781 elapsed: 0 (ms)
+[04:43:24:757]: Responses
+[04:43:24:757]: Frame Package End
+[04:43:25:267]: 
+[04:43:25:267]: Frame Package Start
+[04:43:25:267]: Frame Valid
+[04:43:25:267]: ====== powerOn finish ====== 
+Time: 2356281 elapsed: 500 (ms)
+[04:43:25:267]: Frame Package End
+[04:43:25:267]: 
+[04:43:25:267]: Frame Package Start
+[04:43:25:267]: Frame Valid
+[04:43:25:267]: Request: End Transaction
+[04:43:25:267]: Time: 2356281 elapsed: 0 (ms)
+[04:43:25:267]: Responses
+[04:43:25:267]: Frame Package End
+[04:43:27:868]: _AlpacaDevice::on_pinStateChanged(128, 0)
+[04:43:27:868]: 
+[04:43:27:868]: Frame Package Start
+[04:43:27:868]: Frame Valid
+[04:43:27:868]: Request: CONF:DIG:ON
+[04:43:27:868]: Time: 2358890 elapsed: 2609 (ms)
+[04:43:27:868]: Synonym: Pin 128 off
+[04:43:27:868]: Responses
+[04:43:27:868]: Frame Package End
+[04:43:27:868]: 
+[04:43:27:868]: Frame Package Start
+[04:43:27:868]: Frame Valid
+[04:43:27:868]: Request: End Transaction
+[04:43:27:868]: Time: 2358890 elapsed: 0 (ms)
+[04:43:27:868]: Responses
+[04:43:27:868]: Frame Package End
+[04:43:27:884]: _AlpacaDevice::setPinState(128)  Command:usb0
+[04:45:54:490]: 
+[04:45:54:490]: Frame Package Start
+[04:45:54:490]: Frame Valid
+[04:45:54:490]: ====== powerOff start ====== 
+Time: 2505484 elapsed: 146594 (ms)
+[04:45:54:490]: Frame Package End
+[04:45:54:490]: 
+[04:45:54:490]: Frame Package Start
+[04:45:54:490]: Frame Valid
+[04:45:54:490]: Request: End Transaction
+[04:45:54:490]: Time: 2505484 elapsed: 0 (ms)
+[04:45:54:490]: Responses
+[04:45:54:490]: Frame Package End
+[04:45:55:022]: _AlpacaDevice::on_pinStateChanged(4, 1)
+[04:45:55:022]: 
+[04:45:55:022]: Frame Package Start
+[04:45:55:022]: Frame Valid
+[04:45:55:022]: Request: CONF:DIG:ON
+[04:45:55:022]: Time: 2506015 elapsed: 531 (ms)
+[04:45:55:022]: Synonym: Pin 4 on
+[04:45:55:022]: Responses
+[04:45:55:022]: Frame Package End
+[04:45:55:022]: 
+[04:45:55:022]: Frame Package Start
+[04:45:55:022]: Frame Valid
+[04:45:55:022]: Request: End Transaction
+[04:45:55:022]: Time: 2506015 elapsed: 0 (ms)
+[04:45:55:022]: Responses
+[04:45:55:022]: Frame Package End
+[04:45:55:528]: 
+[04:45:55:528]: Frame Package Start
+[04:45:55:528]: Frame Valid
+[04:45:55:528]: ====== powerOff finish ====== 
+Time: 2506515 elapsed: 500 (ms)
+[04:45:55:528]: Frame Package End
+[04:45:55:528]: 
+[04:45:55:528]: Frame Package Start
+[04:45:55:528]: Frame Valid
+[04:45:55:528]: Request: End Transaction
+[04:45:55:528]: Time: 2506515 elapsed: 0 (ms)
+[04:45:55:528]: Responses
+[04:45:55:528]: Frame Package End
+[04:46:04:493]: 
+[04:46:04:493]: Frame Package Start
+[04:46:04:493]: Frame Valid
+[04:46:04:493]: ====== powerOn start ====== 
+Time: 2515484 elapsed: 8969 (ms)
+[04:46:04:493]: Frame Package End
+[04:46:04:493]: 
+[04:46:04:493]: Frame Package Start
+[04:46:04:493]: Frame Valid
+[04:46:04:493]: Request: End Transaction
+[04:46:04:493]: Time: 2515484 elapsed: 0 (ms)
+[04:46:04:493]: Responses
+[04:46:04:493]: Frame Package End
+[04:46:05:065]: _AlpacaDevice::on_pinStateChanged(4, 1)
+[04:46:05:065]: 
+[04:46:05:065]: Frame Package Start
+[04:46:05:065]: Frame Valid
+[04:46:05:065]: Request: CONF:DIG:ON
+[04:46:05:065]: Time: 2516046 elapsed: 562 (ms)
+[04:46:05:065]: Synonym: Pin 4 on
+[04:46:05:065]: Responses
+[04:46:05:065]: Frame Package End
+[04:46:05:065]: 
+[04:46:05:065]: Frame Package Start
+[04:46:05:065]: Frame Valid
+[04:46:05:065]: Request: End Transaction
+[04:46:05:065]: Time: 2516046 elapsed: 0 (ms)
+[04:46:05:065]: Responses
+[04:46:05:065]: Frame Package End
+[04:46:06:485]: 
+[04:46:06:485]: Frame Package Start
+[04:46:06:485]: Frame Valid
+[04:46:06:485]: Delay 900 in msecsTime: 2517468 elapsed: 1422 (ms)
+[04:46:06:485]: Frame Package End
+[04:46:06:485]: 
+[04:46:06:485]: Frame Package Start
+[04:46:06:485]: Frame Valid
+[04:46:06:485]: Request: End Transaction
+[04:46:06:485]: Time: 2517468 elapsed: 0 (ms)
+[04:46:06:485]: Responses
+[04:46:06:485]: Frame Package End
+[04:46:07:026]: _AlpacaDevice::on_pinStateChanged(4, 0)
+[04:46:07:026]: 
+[04:46:07:026]: Frame Package Start
+[04:46:07:026]: Frame Valid
+[04:46:07:026]: Request: CONF:DIG:ON
+[04:46:07:026]: Time: 2518015 elapsed: 547 (ms)
+[04:46:07:026]: Synonym: Pin 4 off
+[04:46:07:026]: Responses
+[04:46:07:026]: Frame Package End
+[04:46:07:026]: 
+[04:46:07:026]: Frame Package Start
+[04:46:07:026]: Frame Valid
+[04:46:07:026]: Request: End Transaction
+[04:46:07:026]: Time: 2518015 elapsed: 0 (ms)
+[04:46:07:026]: Responses
+[04:46:07:026]: Frame Package End
+[04:46:07:538]: 
+[04:46:07:538]: Frame Package Start
+[04:46:07:538]: Frame Valid
+[04:46:07:538]: ====== powerOn finish ====== 
+Time: 2518531 elapsed: 516 (ms)
+[04:46:07:538]: Frame Package End
+[04:46:07:538]: 
+[04:46:07:538]: Frame Package Start
+[04:46:07:538]: Frame Valid
+[04:46:07:538]: Request: End Transaction
+[04:46:07:538]: Time: 2518531 elapsed: 0 (ms)
+[04:46:07:538]: Responses
+[04:46:07:538]: Frame Package End
+[04:46:10:088]: _AlpacaDevice::on_pinStateChanged(128, 0)
+[04:46:10:088]: 
+[04:46:10:088]: Frame Package Start
+[04:46:10:088]: Frame Valid
+[04:46:10:088]: Request: CONF:DIG:ON
+[04:46:10:088]: Time: 2521078 elapsed: 2547 (ms)
+[04:46:10:088]: Synonym: Pin 128 off
+[04:46:10:088]: Responses
+[04:46:10:088]: Frame Package End
+[04:46:10:088]: 
+[04:46:10:088]: Frame Package Start
+[04:46:10:088]: Frame Valid
+[04:46:10:088]: Request: End Transaction
+[04:46:10:088]: Time: 2521078 elapsed: 0 (ms)
+[04:46:10:088]: Responses
+[04:46:10:088]: Frame Package End
+[04:46:10:200]: _AlpacaDevice::setPinState(128)  Command:usb0
+[04:47:22:950]: _AlpacaDevice::on_pinStateChanged(128, 0)
+[04:47:22:950]: 
+[04:47:22:950]: Frame Package Start
+[04:47:22:950]: Frame Valid
+[04:47:22:950]: Request: CONF:DIG:ON
+[04:47:22:950]: Time: 2593921 elapsed: 72843 (ms)
+[04:47:22:950]: Synonym: Pin 128 off
+[04:47:22:950]: Responses
+[04:47:22:950]: Frame Package End
+[04:47:22:950]: 
+[04:47:22:950]: Frame Package Start
+[04:47:22:950]: Frame Valid
+[04:47:22:950]: Request: End Transaction
+[04:47:22:950]: Time: 2593921 elapsed: 0 (ms)
+[04:47:22:950]: Responses
+[04:47:22:950]: Frame Package End
+[04:47:22:951]: _AlpacaDevice::setPinState(128)  Command:usb0
+[04:47:24:251]: _AlpacaDevice::on_pinStateChanged(128, 0)
+[04:47:24:251]: 
+[04:47:24:251]: Frame Package Start
+[04:47:24:251]: Frame Valid
+[04:47:24:251]: Request: CONF:DIG:ON
+[04:47:24:251]: Time: 2595234 elapsed: 1313 (ms)
+[04:47:24:251]: Synonym: Pin 128 off
+[04:47:24:251]: Responses
+[04:47:24:251]: Frame Package End
+[04:47:24:251]: 
+[04:47:24:251]: Frame Package Start
+[04:47:24:251]: Frame Valid
+[04:47:24:251]: Request: End Transaction
+[04:47:24:251]: Time: 2595234 elapsed: 0 (ms)
+[04:47:24:251]: Responses
+[04:47:24:251]: Frame Package End
+[04:47:24:266]: _AlpacaDevice::setPinState(128)  Command:usb0
+[04:49:04:622]: _AlpacaDevice::on_pinStateChanged(128, 0)
+[04:49:04:622]: 
+[04:49:04:622]: Frame Package Start
+[04:49:04:622]: Frame Valid
+[04:49:04:622]: Request: CONF:DIG:ON
+[04:49:04:622]: Time: 2695593 elapsed: 100359 (ms)
+[04:49:04:622]: Synonym: Pin 128 off
+[04:49:04:622]: Responses
+[04:49:04:622]: Frame Package End
+[04:49:04:622]: 
+[04:49:04:622]: Frame Package Start
+[04:49:04:622]: Frame Valid
+[04:49:04:622]: Request: End Transaction
+[04:49:04:622]: Time: 2695593 elapsed: 0 (ms)
+[04:49:04:622]: Responses
+[04:49:04:622]: Frame Package End
+[04:49:04:638]: _AlpacaDevice::setPinState(128)  Command:usb0
+[04:51:39:944]: _AlpacaDevice::on_pinStateChanged(128, 0)
+[04:51:39:944]: 
+[04:51:39:944]: Frame Package Start
+[04:51:39:944]: Frame Valid
+[04:51:39:944]: Request: CONF:DIG:ON
+[04:51:39:944]: Time: 2850921 elapsed: 155328 (ms)
+[04:51:39:944]: Synonym: Pin 128 off
+[04:51:39:944]: Responses
+[04:51:39:944]: Frame Package End
+[04:51:39:944]: 
+[04:51:39:944]: Frame Package Start
+[04:51:39:944]: Frame Valid
+[04:51:39:944]: Request: End Transaction
+[04:51:39:944]: Time: 2850921 elapsed: 0 (ms)
+[04:51:39:944]: Responses
+[04:51:39:944]: Frame Package End
+[04:51:39:960]: _AlpacaDevice::setPinState(128)  Command:usb0
+[04:51:41:155]: _AlpacaDevice::on_pinStateChanged(128, 0)
+[04:51:41:155]: 
+[04:51:41:155]: Frame Package Start
+[04:51:41:155]: Frame Valid
+[04:51:41:155]: Request: CONF:DIG:ON
+[04:51:41:155]: Time: 2852125 elapsed: 1204 (ms)
+[04:51:41:155]: Synonym: Pin 128 off
+[04:51:41:155]: Responses
+[04:51:41:155]: Frame Package End
+[04:51:41:155]: 
+[04:51:41:155]: Frame Package Start
+[04:51:41:155]: Frame Valid
+[04:51:41:155]: Request: End Transaction
+[04:51:41:155]: Time: 2852125 elapsed: 0 (ms)
+[04:51:41:155]: Responses
+[04:51:41:155]: Frame Package End
+[04:51:41:187]: _AlpacaDevice::setPinState(128)  Command:usb0
+[04:51:54:653]: _AlpacaDevice::on_pinStateChanged(128, 0)
+[04:51:54:653]: 
+[04:51:54:653]: Frame Package Start
+[04:51:54:653]: Frame Valid
+[04:51:54:653]: Request: CONF:DIG:ON
+[04:51:54:653]: Time: 2865625 elapsed: 13500 (ms)
+[04:51:54:653]: Synonym: Pin 128 off
+[04:51:54:653]: Responses
+[04:51:54:653]: Frame Package End
+[04:51:54:653]: 
+[04:51:54:653]: Frame Package Start
+[04:51:54:653]: Frame Valid
+[04:51:54:653]: Request: End Transaction
+[04:51:54:653]: Time: 2865625 elapsed: 0 (ms)
+[04:51:54:653]: Responses
+[04:51:54:653]: Frame Package End
+[04:51:54:765]: _AlpacaDevice::setPinState(128)  Command:usb0
+[04:53:54:664]: _AlpacaDevice::on_pinStateChanged(128, 0)
+[04:53:54:664]: 
+[04:53:54:664]: Frame Package Start
+[04:53:54:664]: Frame Valid
+[04:53:54:664]: Request: CONF:DIG:ON
+[04:53:54:664]: Time: 2985640 elapsed: 120015 (ms)
+[04:53:54:664]: Synonym: Pin 128 off
+[04:53:54:664]: Responses
+[04:53:54:664]: Frame Package End
+[04:53:54:664]: 
+[04:53:54:664]: Frame Package Start
+[04:53:54:664]: Frame Valid
+[04:53:54:664]: Request: End Transaction
+[04:53:54:664]: Time: 2985640 elapsed: 0 (ms)
+[04:53:54:664]: Responses
+[04:53:54:664]: Frame Package End
+[04:53:54:694]: _AlpacaDevice::setPinState(128)  Command:usb0
+[04:53:55:964]: _AlpacaDevice::on_pinStateChanged(128, 0)
+[04:53:55:964]: 
+[04:53:55:964]: Frame Package Start
+[04:53:55:964]: Frame Valid
+[04:53:55:964]: Request: CONF:DIG:ON
+[04:53:55:964]: Time: 2986937 elapsed: 1297 (ms)
+[04:53:55:964]: Synonym: Pin 128 off
+[04:53:55:964]: Responses
+[04:53:55:964]: Frame Package End
+[04:53:55:964]: 
+[04:53:55:964]: Frame Package Start
+[04:53:55:964]: Frame Valid
+[04:53:55:964]: Request: End Transaction
+[04:53:55:964]: Time: 2986937 elapsed: 0 (ms)
+[04:53:55:964]: Responses
+[04:53:55:964]: Frame Package End
+[04:53:55:980]: _AlpacaDevice::setPinState(128)  Command:usb0
+[04:54:19:350]: _AlpacaDevice::on_pinStateChanged(128, 0)
+[04:54:19:350]: 
+[04:54:19:350]: Frame Package Start
+[04:54:19:350]: Frame Valid
+[04:54:19:350]: Request: CONF:DIG:ON
+[04:54:19:350]: Time: 3010328 elapsed: 23391 (ms)
+[04:54:19:350]: Synonym: Pin 128 off
+[04:54:19:350]: Responses
+[04:54:19:350]: Frame Package End
+[04:54:19:350]: 
+[04:54:19:350]: Frame Package Start
+[04:54:19:350]: Frame Valid
+[04:54:19:350]: Request: End Transaction
+[04:54:19:350]: Time: 3010328 elapsed: 0 (ms)
+[04:54:19:350]: Responses
+[04:54:19:350]: Frame Package End
+[04:54:19:353]: _AlpacaDevice::setPinState(128)  Command:usb0
+[04:58:21:634]: _AlpacaDevice::on_pinStateChanged(128, 0)
+[04:58:21:634]: 
+[04:58:21:634]: Frame Package Start
+[04:58:21:634]: Frame Valid
+[04:58:21:634]: Request: CONF:DIG:ON
+[04:58:21:634]: Time: 3252609 elapsed: 242281 (ms)
+[04:58:21:634]: Synonym: Pin 128 off
+[04:58:21:634]: Responses
+[04:58:21:634]: Frame Package End
+[04:58:21:634]: 
+[04:58:21:634]: Frame Package Start
+[04:58:21:634]: Frame Valid
+[04:58:21:634]: Request: End Transaction
+[04:58:21:634]: Time: 3252609 elapsed: 0 (ms)
+[04:58:21:634]: Responses
+[04:58:21:634]: Frame Package End
+[04:58:21:650]: _AlpacaDevice::setPinState(128)  Command:usb0
+[04:58:22:862]: _AlpacaDevice::on_pinStateChanged(128, 0)
+[04:58:22:862]: 
+[04:58:22:862]: Frame Package Start
+[04:58:22:862]: Frame Valid
+[04:58:22:862]: Request: CONF:DIG:ON
+[04:58:22:862]: Time: 3253828 elapsed: 1219 (ms)
+[04:58:22:862]: Synonym: Pin 128 off
+[04:58:22:862]: Responses
+[04:58:22:862]: Frame Package End
+[04:58:22:862]: 
+[04:58:22:862]: Frame Package Start
+[04:58:22:862]: Frame Valid
+[04:58:22:862]: Request: End Transaction
+[04:58:22:862]: Time: 3253828 elapsed: 0 (ms)
+[04:58:22:862]: Responses
+[04:58:22:862]: Frame Package End
+[04:58:22:878]: _AlpacaDevice::setPinState(128)  Command:usb0
+[04:58:27:046]: _AlpacaDevice::on_pinStateChanged(128, 0)
+[04:58:27:046]: 
+[04:58:27:046]: Frame Package Start
+[04:58:27:046]: Frame Valid
+[04:58:27:046]: Request: CONF:DIG:ON
+[04:58:27:046]: Time: 3258015 elapsed: 4187 (ms)
+[04:58:27:046]: Synonym: Pin 128 off
+[04:58:27:046]: Responses
+[04:58:27:046]: Frame Package End
+[04:58:27:046]: 
+[04:58:27:046]: Frame Package Start
+[04:58:27:046]: Frame Valid
+[04:58:27:046]: Request: End Transaction
+[04:58:27:046]: Time: 3258015 elapsed: 0 (ms)
+[04:58:27:046]: Responses
+[04:58:27:046]: Frame Package End
+[04:58:27:046]: _AlpacaDevice::setPinState(128)  Command:usb0
+[05:01:23:275]: _AlpacaDevice::on_pinStateChanged(128, 0)
+[05:01:23:275]: 
+[05:01:23:275]: Frame Package Start
+[05:01:23:275]: Frame Valid
+[05:01:23:275]: Request: CONF:DIG:ON
+[05:01:23:275]: Time: 3434250 elapsed: 176235 (ms)
+[05:01:23:275]: Synonym: Pin 128 off
+[05:01:23:275]: Responses
+[05:01:23:275]: Frame Package End
+[05:01:23:275]: 
+[05:01:23:275]: Frame Package Start
+[05:01:23:275]: Frame Valid
+[05:01:23:275]: Request: End Transaction
+[05:01:23:275]: Time: 3434250 elapsed: 0 (ms)
+[05:01:23:275]: Responses
+[05:01:23:275]: Frame Package End
+[05:01:23:307]: _AlpacaDevice::setPinState(128)  Command:usb0
+[05:01:24:591]: _AlpacaDevice::on_pinStateChanged(128, 0)
+[05:01:24:591]: 
+[05:01:24:591]: Frame Package Start
+[05:01:24:591]: Frame Valid
+[05:01:24:591]: Request: CONF:DIG:ON
+[05:01:24:591]: Time: 3435562 elapsed: 1312 (ms)
+[05:01:24:591]: Synonym: Pin 128 off
+[05:01:24:591]: Responses
+[05:01:24:591]: Frame Package End
+[05:01:24:591]: 
+[05:01:24:591]: Frame Package Start
+[05:01:24:591]: Frame Valid
+[05:01:24:591]: Request: End Transaction
+[05:01:24:591]: Time: 3435562 elapsed: 0 (ms)
+[05:01:24:591]: Responses
+[05:01:24:591]: Frame Package End
+[05:01:24:623]: _AlpacaDevice::setPinState(128)  Command:usb0
+[05:01:43:450]: _AlpacaDevice::on_pinStateChanged(128, 0)
+[05:01:43:450]: 
+[05:01:43:450]: Frame Package Start
+[05:01:43:450]: Frame Valid
+[05:01:43:450]: Request: CONF:DIG:ON
+[05:01:43:450]: Time: 3454421 elapsed: 18859 (ms)
+[05:01:43:450]: Synonym: Pin 128 off
+[05:01:43:450]: Responses
+[05:01:43:450]: Frame Package End
+[05:01:43:450]: 
+[05:01:43:450]: Frame Package Start
+[05:01:43:450]: Frame Valid
+[05:01:43:450]: Request: End Transaction
+[05:01:43:450]: Time: 3454421 elapsed: 0 (ms)
+[05:01:43:450]: Responses
+[05:01:43:450]: Frame Package End
+[05:01:43:466]: _AlpacaDevice::setPinState(128)  Command:usb0
+[05:06:22:934]: _AlpacaDevice::on_pinStateChanged(128, 0)
+[05:06:22:934]: 
+[05:06:22:934]: Frame Package Start
+[05:06:22:934]: Frame Valid
+[05:06:22:934]: Request: CONF:DIG:ON
+[05:06:22:934]: Time: 3733875 elapsed: 279454 (ms)
+[05:06:22:934]: Synonym: Pin 128 off
+[05:06:22:934]: Responses
+[05:06:22:934]: Frame Package End
+[05:06:22:934]: 
+[05:06:22:934]: Frame Package Start
+[05:06:22:934]: Frame Valid
+[05:06:22:934]: Request: End Transaction
+[05:06:22:934]: Time: 3733875 elapsed: 0 (ms)
+[05:06:22:934]: Responses
+[05:06:22:934]: Frame Package End
+[05:06:22:950]: _AlpacaDevice::setPinState(128)  Command:usb0
+[05:06:24:164]: _AlpacaDevice::on_pinStateChanged(128, 0)
+[05:06:24:164]: 
+[05:06:24:164]: Frame Package Start
+[05:06:24:164]: Frame Valid
+[05:06:24:164]: Request: CONF:DIG:ON
+[05:06:24:164]: Time: 3735109 elapsed: 1234 (ms)
+[05:06:24:164]: Synonym: Pin 128 off
+[05:06:24:164]: Responses
+[05:06:24:164]: Frame Package End
+[05:06:24:164]: 
+[05:06:24:164]: Frame Package Start
+[05:06:24:164]: Frame Valid
+[05:06:24:164]: Request: End Transaction
+[05:06:24:164]: Time: 3735109 elapsed: 0 (ms)
+[05:06:24:164]: Responses
+[05:06:24:164]: Frame Package End
+[05:06:24:180]: _AlpacaDevice::setPinState(128)  Command:usb0
+[05:06:42:970]: _AlpacaDevice::on_pinStateChanged(128, 0)
+[05:06:42:970]: 
+[05:06:42:970]: Frame Package Start
+[05:06:42:970]: Frame Valid
+[05:06:42:970]: Request: CONF:DIG:ON
+[05:06:42:970]: Time: 3753906 elapsed: 18797 (ms)
+[05:06:42:970]: Synonym: Pin 128 off
+[05:06:42:970]: Responses
+[05:06:42:970]: Frame Package End
+[05:06:42:970]: 
+[05:06:42:970]: Frame Package Start
+[05:06:42:970]: Frame Valid
+[05:06:42:970]: Request: End Transaction
+[05:06:42:970]: Time: 3753906 elapsed: 0 (ms)
+[05:06:42:970]: Responses
+[05:06:42:970]: Frame Package End
+[05:06:42:986]: _AlpacaDevice::setPinState(128)  Command:usb0
+[05:09:57:887]: _AlpacaDevice::on_pinStateChanged(128, 0)
+[05:09:57:887]: 
+[05:09:57:887]: Frame Package Start
+[05:09:57:887]: Frame Valid
+[05:09:57:887]: Request: CONF:DIG:ON
+[05:09:57:887]: Time: 3948796 elapsed: 194890 (ms)
+[05:09:57:887]: Synonym: Pin 128 off
+[05:09:57:887]: Responses
+[05:09:57:887]: Frame Package End
+[05:09:57:887]: 
+[05:09:57:887]: Frame Package Start
+[05:09:57:887]: Frame Valid
+[05:09:57:887]: Request: End Transaction
+[05:09:57:887]: Time: 3948796 elapsed: 0 (ms)
+[05:09:57:887]: Responses
+[05:09:57:887]: Frame Package End
+[05:09:57:895]: _AlpacaDevice::setPinState(128)  Command:usb0
+[05:09:59:141]: _AlpacaDevice::on_pinStateChanged(128, 0)
+[05:09:59:141]: 
+[05:09:59:141]: Frame Package Start
+[05:09:59:141]: Frame Valid
+[05:09:59:141]: Request: CONF:DIG:ON
+[05:09:59:141]: Time: 3950046 elapsed: 1250 (ms)
+[05:09:59:141]: Synonym: Pin 128 off
+[05:09:59:141]: Responses
+[05:09:59:141]: Frame Package End
+[05:09:59:141]: 
+[05:09:59:141]: Frame Package Start
+[05:09:59:141]: Frame Valid
+[05:09:59:141]: Request: End Transaction
+[05:09:59:141]: Time: 3950046 elapsed: 0 (ms)
+[05:09:59:141]: Responses
+[05:09:59:141]: Frame Package End
+[05:09:59:301]: _AlpacaDevice::setPinState(128)  Command:usb0
+[05:10:09:496]: _AlpacaDevice::on_pinStateChanged(128, 0)
+[05:10:09:496]: 
+[05:10:09:496]: Frame Package Start
+[05:10:09:496]: Frame Valid
+[05:10:09:496]: Request: CONF:DIG:ON
+[05:10:09:496]: Time: 3960406 elapsed: 10360 (ms)
+[05:10:09:496]: Synonym: Pin 128 off
+[05:10:09:496]: Responses
+[05:10:09:496]: Frame Package End
+[05:10:09:496]: 
+[05:10:09:496]: Frame Package Start
+[05:10:09:496]: Frame Valid
+[05:10:09:496]: Request: End Transaction
+[05:10:09:496]: Time: 3960406 elapsed: 0 (ms)
+[05:10:09:496]: Responses
+[05:10:09:496]: Frame Package End
+[05:10:09:496]: _AlpacaDevice::setPinState(128)  Command:usb0
+[05:12:48:326]: _AlpacaDevice::on_pinStateChanged(128, 0)
+[05:12:48:326]: 
+[05:12:48:326]: Frame Package Start
+[05:12:48:326]: Frame Valid
+[05:12:48:326]: Request: CONF:DIG:ON
+[05:12:48:326]: Time: 4119234 elapsed: 158828 (ms)
+[05:12:48:326]: Synonym: Pin 128 off
+[05:12:48:326]: Responses
+[05:12:48:326]: Frame Package End
+[05:12:48:326]: 
+[05:12:48:326]: Frame Package Start
+[05:12:48:326]: Frame Valid
+[05:12:48:326]: Request: End Transaction
+[05:12:48:326]: Time: 4119234 elapsed: 0 (ms)
+[05:12:48:326]: Responses
+[05:12:48:326]: Frame Package End
+[05:12:48:337]: _AlpacaDevice::setPinState(128)  Command:usb0
+[05:12:49:675]: _AlpacaDevice::on_pinStateChanged(128, 0)
+[05:12:49:675]: 
+[05:12:49:675]: Frame Package Start
+[05:12:49:675]: Frame Valid
+[05:12:49:675]: Request: CONF:DIG:ON
+[05:12:49:675]: Time: 4120593 elapsed: 1359 (ms)
+[05:12:49:675]: Synonym: Pin 128 off
+[05:12:49:675]: Responses
+[05:12:49:675]: Frame Package End
+[05:12:49:675]: 
+[05:12:49:675]: Frame Package Start
+[05:12:49:675]: Frame Valid
+[05:12:49:675]: Request: End Transaction
+[05:12:49:675]: Time: 4120593 elapsed: 0 (ms)
+[05:12:49:675]: Responses
+[05:12:49:675]: Frame Package End
+[05:12:49:788]: _AlpacaDevice::setPinState(128)  Command:usb0
+[05:13:27:487]: _AlpacaDevice::on_pinStateChanged(128, 0)
+[05:13:27:487]: 
+[05:13:27:487]: Frame Package Start
+[05:13:27:487]: Frame Valid
+[05:13:27:487]: Request: CONF:DIG:ON
+[05:13:27:487]: Time: 4158406 elapsed: 37813 (ms)
+[05:13:27:487]: Synonym: Pin 128 off
+[05:13:27:487]: Responses
+[05:13:27:487]: Frame Package End
+[05:13:27:487]: 
+[05:13:27:487]: Frame Package Start
+[05:13:27:487]: Frame Valid
+[05:13:27:487]: Request: End Transaction
+[05:13:27:487]: Time: 4158406 elapsed: 0 (ms)
+[05:13:27:487]: Responses
+[05:13:27:487]: Frame Package End
+[05:13:27:503]: _AlpacaDevice::setPinState(128)  Command:usb0
+[05:15:17:077]: 
+[05:15:17:077]: Frame Package Start
+[05:15:17:077]: Frame Valid
+[05:15:17:077]: ====== powerOff start ====== 
+Time: 4267984 elapsed: 109578 (ms)
+[05:15:17:077]: Frame Package End
+[05:15:17:077]: 
+[05:15:17:077]: Frame Package Start
+[05:15:17:077]: Frame Valid
+[05:15:17:077]: Request: End Transaction
+[05:15:17:077]: Time: 4267984 elapsed: 0 (ms)
+[05:15:17:077]: Responses
+[05:15:17:077]: Frame Package End
+[05:15:17:611]: _AlpacaDevice::on_pinStateChanged(4, 1)
+[05:15:17:611]: 
+[05:15:17:611]: Frame Package Start
+[05:15:17:611]: Frame Valid
+[05:15:17:611]: Request: CONF:DIG:ON
+[05:15:17:611]: Time: 4268515 elapsed: 531 (ms)
+[05:15:17:611]: Synonym: Pin 4 on
+[05:15:17:611]: Responses
+[05:15:17:611]: Frame Package End
+[05:15:17:611]: 
+[05:15:17:611]: Frame Package Start
+[05:15:17:611]: Frame Valid
+[05:15:17:611]: Request: End Transaction
+[05:15:17:611]: Time: 4268515 elapsed: 0 (ms)
+[05:15:17:611]: Responses
+[05:15:17:611]: Frame Package End
+[05:15:18:120]: 
+[05:15:18:120]: Frame Package Start
+[05:15:18:120]: Frame Valid
+[05:15:18:120]: ====== powerOff finish ====== 
+Time: 4269031 elapsed: 516 (ms)
+[05:15:18:120]: Frame Package End
+[05:15:18:120]: 
+[05:15:18:120]: Frame Package Start
+[05:15:18:120]: Frame Valid
+[05:15:18:120]: Request: End Transaction
+[05:15:18:120]: Time: 4269031 elapsed: 0 (ms)
+[05:15:18:120]: Responses
+[05:15:18:120]: Frame Package End
+[05:15:27:083]: 
+[05:15:27:083]: Frame Package Start
+[05:15:27:083]: Frame Valid
+[05:15:27:083]: ====== powerOn start ====== 
+Time: 4278000 elapsed: 8969 (ms)
+[05:15:27:083]: Frame Package End
+[05:15:27:083]: 
+[05:15:27:083]: Frame Package Start
+[05:15:27:083]: Frame Valid
+[05:15:27:083]: Request: End Transaction
+[05:15:27:083]: Time: 4278000 elapsed: 0 (ms)
+[05:15:27:083]: Responses
+[05:15:27:083]: Frame Package End
+[05:15:27:608]: _AlpacaDevice::on_pinStateChanged(4, 1)
+[05:15:27:608]: 
+[05:15:27:608]: Frame Package Start
+[05:15:27:608]: Frame Valid
+[05:15:27:608]: Request: CONF:DIG:ON
+[05:15:27:608]: Time: 4278515 elapsed: 515 (ms)
+[05:15:27:608]: Synonym: Pin 4 on
+[05:15:27:608]: Responses
+[05:15:27:608]: Frame Package End
+[05:15:27:608]: 
+[05:15:27:608]: Frame Package Start
+[05:15:27:608]: Frame Valid
+[05:15:27:608]: Request: End Transaction
+[05:15:27:608]: Time: 4278515 elapsed: 0 (ms)
+[05:15:27:608]: Responses
+[05:15:27:608]: Frame Package End
+[05:15:29:028]: 
+[05:15:29:028]: Frame Package Start
+[05:15:29:028]: Frame Valid
+[05:15:29:028]: Delay 900 in msecsTime: 4279937 elapsed: 1422 (ms)
+[05:15:29:028]: Frame Package End
+[05:15:29:028]: 
+[05:15:29:028]: Frame Package Start
+[05:15:29:028]: Frame Valid
+[05:15:29:028]: Request: End Transaction
+[05:15:29:028]: Time: 4279937 elapsed: 0 (ms)
+[05:15:29:028]: Responses
+[05:15:29:028]: Frame Package End
+[05:15:29:555]: _AlpacaDevice::on_pinStateChanged(4, 0)
+[05:15:29:555]: 
+[05:15:29:555]: Frame Package Start
+[05:15:29:555]: Frame Valid
+[05:15:29:555]: Request: CONF:DIG:ON
+[05:15:29:555]: Time: 4280468 elapsed: 531 (ms)
+[05:15:29:555]: Synonym: Pin 4 off
+[05:15:29:555]: Responses
+[05:15:29:555]: Frame Package End
+[05:15:29:555]: 
+[05:15:29:555]: Frame Package Start
+[05:15:29:555]: Frame Valid
+[05:15:29:555]: Request: End Transaction
+[05:15:29:555]: Time: 4280468 elapsed: 0 (ms)
+[05:15:29:555]: Responses
+[05:15:29:555]: Frame Package End
+[05:15:30:065]: 
+[05:15:30:065]: Frame Package Start
+[05:15:30:065]: Frame Valid
+[05:15:30:065]: ====== powerOn finish ====== 
+Time: 4280968 elapsed: 500 (ms)
+[05:15:30:065]: Frame Package End
+[05:15:30:065]: 
+[05:15:30:065]: Frame Package Start
+[05:15:30:065]: Frame Valid
+[05:15:30:065]: Request: End Transaction
+[05:15:30:065]: Time: 4280968 elapsed: 0 (ms)
+[05:15:30:065]: Responses
+[05:15:30:065]: Frame Package End
+[05:15:32:676]: _AlpacaDevice::on_pinStateChanged(128, 0)
+[05:15:32:676]: 
+[05:15:32:676]: Frame Package Start
+[05:15:32:676]: Frame Valid
+[05:15:32:676]: Request: CONF:DIG:ON
+[05:15:32:676]: Time: 4283593 elapsed: 2625 (ms)
+[05:15:32:676]: Synonym: Pin 128 off
+[05:15:32:676]: Responses
+[05:15:32:676]: Frame Package End
+[05:15:32:676]: 
+[05:15:32:676]: Frame Package Start
+[05:15:32:676]: Frame Valid
+[05:15:32:676]: Request: End Transaction
+[05:15:32:676]: Time: 4283593 elapsed: 0 (ms)
+[05:15:32:676]: Responses
+[05:15:32:676]: Frame Package End
+[05:15:32:692]: _AlpacaDevice::setPinState(128)  Command:usb0
+[05:16:45:151]: _AlpacaDevice::on_pinStateChanged(128, 0)
+[05:16:45:151]: 
+[05:16:45:151]: Frame Package Start
+[05:16:45:151]: Frame Valid
+[05:16:45:151]: Request: CONF:DIG:ON
+[05:16:45:151]: Time: 4356062 elapsed: 72469 (ms)
+[05:16:45:151]: Synonym: Pin 128 off
+[05:16:45:151]: Responses
+[05:16:45:151]: Frame Package End
+[05:16:45:151]: 
+[05:16:45:151]: Frame Package Start
+[05:16:45:151]: Frame Valid
+[05:16:45:151]: Request: End Transaction
+[05:16:45:151]: Time: 4356062 elapsed: 0 (ms)
+[05:16:45:151]: Responses
+[05:16:45:151]: Frame Package End
+[05:16:45:168]: _AlpacaDevice::setPinState(128)  Command:usb0
+[05:16:46:474]: _AlpacaDevice::on_pinStateChanged(128, 0)
+[05:16:46:474]: 
+[05:16:46:474]: Frame Package Start
+[05:16:46:474]: Frame Valid
+[05:16:46:474]: Request: CONF:DIG:ON
+[05:16:46:474]: Time: 4357390 elapsed: 1328 (ms)
+[05:16:46:474]: Synonym: Pin 128 off
+[05:16:46:474]: Responses
+[05:16:46:474]: Frame Package End
+[05:16:46:475]: 
+[05:16:46:475]: Frame Package Start
+[05:16:46:475]: Frame Valid
+[05:16:46:475]: Request: End Transaction
+[05:16:46:475]: Time: 4357390 elapsed: 0 (ms)
+[05:16:46:475]: Responses
+[05:16:46:475]: Frame Package End
+[05:16:46:603]: _AlpacaDevice::setPinState(128)  Command:usb0
+[05:16:50:880]: _AlpacaDevice::on_pinStateChanged(128, 0)
+[05:16:50:880]: 
+[05:16:50:880]: Frame Package Start
+[05:16:50:880]: Frame Valid
+[05:16:50:880]: Request: CONF:DIG:ON
+[05:16:50:880]: Time: 4361796 elapsed: 4406 (ms)
+[05:16:50:880]: Synonym: Pin 128 off
+[05:16:50:880]: Responses
+[05:16:50:880]: Frame Package End
+[05:16:50:880]: 
+[05:16:50:880]: Frame Package Start
+[05:16:50:880]: Frame Valid
+[05:16:50:880]: Request: End Transaction
+[05:16:50:880]: Time: 4361796 elapsed: 0 (ms)
+[05:16:50:880]: Responses
+[05:16:50:880]: Frame Package End
+[05:16:50:896]: _AlpacaDevice::setPinState(128)  Command:usb0
+[05:25:33:744]: _AlpacaDevice::on_pinStateChanged(128, 0)
+[05:25:33:744]: 
+[05:25:33:744]: Frame Package Start
+[05:25:33:744]: Frame Valid
+[05:25:33:744]: Request: CONF:DIG:ON
+[05:25:33:744]: Time: 4884703 elapsed: 522907 (ms)
+[05:25:33:744]: Synonym: Pin 128 off
+[05:25:33:744]: Responses
+[05:25:33:744]: Frame Package End
+[05:25:33:744]: 
+[05:25:33:744]: Frame Package Start
+[05:25:33:744]: Frame Valid
+[05:25:33:744]: Request: End Transaction
+[05:25:33:744]: Time: 4884703 elapsed: 0 (ms)
+[05:25:33:744]: Responses
+[05:25:33:744]: Frame Package End
+[05:25:33:744]: _AlpacaDevice::setPinState(128)  Command:usb0
+[05:25:35:066]: _AlpacaDevice::on_pinStateChanged(128, 0)
+[05:25:35:066]: 
+[05:25:35:066]: Frame Package Start
+[05:25:35:066]: Frame Valid
+[05:25:35:066]: Request: CONF:DIG:ON
+[05:25:35:066]: Time: 4886031 elapsed: 1328 (ms)
+[05:25:35:066]: Synonym: Pin 128 off
+[05:25:35:066]: Responses
+[05:25:35:066]: Frame Package End
+[05:25:35:066]: 
+[05:25:35:066]: Frame Package Start
+[05:25:35:066]: Frame Valid
+[05:25:35:066]: Request: End Transaction
+[05:25:35:066]: Time: 4886031 elapsed: 0 (ms)
+[05:25:35:066]: Responses
+[05:25:35:066]: Frame Package End
+[05:25:35:178]: _AlpacaDevice::setPinState(128)  Command:usb0
+[05:26:21:231]: _AlpacaDevice::on_pinStateChanged(128, 0)
+[05:26:21:231]: 
+[05:26:21:231]: Frame Package Start
+[05:26:21:231]: Frame Valid
+[05:26:21:231]: Request: CONF:DIG:ON
+[05:26:21:231]: Time: 4932187 elapsed: 46156 (ms)
+[05:26:21:231]: Synonym: Pin 128 off
+[05:26:21:231]: Responses
+[05:26:21:231]: Frame Package End
+[05:26:21:231]: 
+[05:26:21:231]: Frame Package Start
+[05:26:21:231]: Frame Valid
+[05:26:21:231]: Request: End Transaction
+[05:26:21:231]: Time: 4932187 elapsed: 0 (ms)
+[05:26:21:231]: Responses
+[05:26:21:231]: Frame Package End
+[05:26:21:246]: _AlpacaDevice::setPinState(128)  Command:usb0
+[05:36:22:362]: _AlpacaDevice::on_pinStateChanged(128, 0)
+[05:36:22:362]: 
+[05:36:22:362]: Frame Package Start
+[05:36:22:362]: Frame Valid
+[05:36:22:362]: Request: CONF:DIG:ON
+[05:36:22:362]: Time: 5533328 elapsed: 601141 (ms)
+[05:36:22:362]: Synonym: Pin 128 off
+[05:36:22:362]: Responses
+[05:36:22:362]: Frame Package End
+[05:36:22:362]: 
+[05:36:22:362]: Frame Package Start
+[05:36:22:362]: Frame Valid
+[05:36:22:362]: Request: End Transaction
+[05:36:22:362]: Time: 5533328 elapsed: 0 (ms)
+[05:36:22:362]: Responses
+[05:36:22:362]: Frame Package End
+[05:36:22:472]: _AlpacaDevice::setPinState(128)  Command:usb0
+[05:38:21:860]: _AlpacaDevice::on_pinStateChanged(128, 0)
+[05:38:21:860]: 
+[05:38:21:860]: Frame Package Start
+[05:38:21:860]: Frame Valid
+[05:38:21:860]: Request: CONF:DIG:ON
+[05:38:21:860]: Time: 5652828 elapsed: 119500 (ms)
+[05:38:21:860]: Synonym: Pin 128 off
+[05:38:21:860]: Responses
+[05:38:21:860]: Frame Package End
+[05:38:21:860]: 
+[05:38:21:860]: Frame Package Start
+[05:38:21:860]: Frame Valid
+[05:38:21:860]: Request: End Transaction
+[05:38:21:860]: Time: 5652828 elapsed: 0 (ms)
+[05:38:21:860]: Responses
+[05:38:21:860]: Frame Package End
+[05:38:21:898]: _AlpacaDevice::setPinState(128)  Command:usb0
+[05:38:23:197]: _AlpacaDevice::on_pinStateChanged(128, 0)
+[05:38:23:197]: 
+[05:38:23:197]: Frame Package Start
+[05:38:23:197]: Frame Valid
+[05:38:23:197]: Request: CONF:DIG:ON
+[05:38:23:197]: Time: 5654171 elapsed: 1343 (ms)
+[05:38:23:197]: Synonym: Pin 128 off
+[05:38:23:197]: Responses
+[05:38:23:197]: Frame Package End
+[05:38:23:197]: 
+[05:38:23:197]: Frame Package Start
+[05:38:23:197]: Frame Valid
+[05:38:23:197]: Request: End Transaction
+[05:38:23:197]: Time: 5654171 elapsed: 0 (ms)
+[05:38:23:197]: Responses
+[05:38:23:197]: Frame Package End
+[05:38:23:309]: _AlpacaDevice::setPinState(128)  Command:usb0
+[05:38:27:412]: _AlpacaDevice::on_pinStateChanged(128, 0)
+[05:38:27:412]: 
+[05:38:27:412]: Frame Package Start
+[05:38:27:412]: Frame Valid
+[05:38:27:412]: Request: CONF:DIG:ON
+[05:38:27:412]: Time: 5658390 elapsed: 4219 (ms)
+[05:38:27:412]: Synonym: Pin 128 off
+[05:38:27:412]: Responses
+[05:38:27:412]: Frame Package End
+[05:38:27:412]: 
+[05:38:27:412]: Frame Package Start
+[05:38:27:412]: Frame Valid
+[05:38:27:412]: Request: End Transaction
+[05:38:27:412]: Time: 5658390 elapsed: 0 (ms)
+[05:38:27:412]: Responses
+[05:38:27:412]: Frame Package End
+[05:38:27:428]: _AlpacaDevice::setPinState(128)  Command:usb0
+[05:40:39:626]: _AlpacaDevice::on_pinStateChanged(128, 0)
+[05:40:39:626]: 
+[05:40:39:626]: Frame Package Start
+[05:40:39:626]: Frame Valid
+[05:40:39:626]: Request: CONF:DIG:ON
+[05:40:39:626]: Time: 5790593 elapsed: 132203 (ms)
+[05:40:39:626]: Synonym: Pin 128 off
+[05:40:39:626]: Responses
+[05:40:39:626]: Frame Package End
+[05:40:39:626]: 
+[05:40:39:626]: Frame Package Start
+[05:40:39:626]: Frame Valid
+[05:40:39:626]: Request: End Transaction
+[05:40:39:626]: Time: 5790593 elapsed: 0 (ms)
+[05:40:39:626]: Responses
+[05:40:39:626]: Frame Package End
+[05:40:39:626]: _AlpacaDevice::setPinState(128)  Command:usb0
+[05:40:40:901]: _AlpacaDevice::on_pinStateChanged(128, 0)
+[05:40:40:901]: 
+[05:40:40:901]: Frame Package Start
+[05:40:40:901]: Frame Valid
+[05:40:40:901]: Request: CONF:DIG:ON
+[05:40:40:901]: Time: 5791875 elapsed: 1282 (ms)
+[05:40:40:901]: Synonym: Pin 128 off
+[05:40:40:901]: Responses
+[05:40:40:901]: Frame Package End
+[05:40:40:901]: 
+[05:40:40:901]: Frame Package Start
+[05:40:40:901]: Frame Valid
+[05:40:40:901]: Request: End Transaction
+[05:40:40:901]: Time: 5791875 elapsed: 0 (ms)
+[05:40:40:901]: Responses
+[05:40:40:901]: Frame Package End
+[05:40:41:012]: _AlpacaDevice::setPinState(128)  Command:usb0
+[05:40:44:926]: _AlpacaDevice::on_pinStateChanged(128, 0)
+[05:40:44:926]: 
+[05:40:44:926]: Frame Package Start
+[05:40:44:926]: Frame Valid
+[05:40:44:926]: Request: CONF:DIG:ON
+[05:40:44:926]: Time: 5795890 elapsed: 4015 (ms)
+[05:40:44:926]: Synonym: Pin 128 off
+[05:40:44:926]: Responses
+[05:40:44:926]: Frame Package End
+[05:40:44:926]: 
+[05:40:44:926]: Frame Package Start
+[05:40:44:926]: Frame Valid
+[05:40:44:926]: Request: End Transaction
+[05:40:44:926]: Time: 5795890 elapsed: 0 (ms)
+[05:40:44:926]: Responses
+[05:40:44:926]: Frame Package End
+[05:40:44:942]: _AlpacaDevice::setPinState(128)  Command:usb0
+[05:42:55:069]: _AlpacaDevice::on_pinStateChanged(128, 0)
+[05:42:55:069]: 
+[05:42:55:069]: Frame Package Start
+[05:42:55:069]: Frame Valid
+[05:42:55:069]: Request: CONF:DIG:ON
+[05:42:55:069]: Time: 5926046 elapsed: 130156 (ms)
+[05:42:55:069]: Synonym: Pin 128 off
+[05:42:55:069]: Responses
+[05:42:55:069]: Frame Package End
+[05:42:55:069]: 
+[05:42:55:069]: Frame Package Start
+[05:42:55:069]: Frame Valid
+[05:42:55:069]: Request: End Transaction
+[05:42:55:069]: Time: 5926046 elapsed: 0 (ms)
+[05:42:55:069]: Responses
+[05:42:55:069]: Frame Package End
+[05:42:55:084]: _AlpacaDevice::setPinState(128)  Command:usb0
+[05:42:56:320]: _AlpacaDevice::on_pinStateChanged(128, 0)
+[05:42:56:320]: 
+[05:42:56:320]: Frame Package Start
+[05:42:56:320]: Frame Valid
+[05:42:56:320]: Request: CONF:DIG:ON
+[05:42:56:320]: Time: 5927296 elapsed: 1250 (ms)
+[05:42:56:320]: Synonym: Pin 128 off
+[05:42:56:320]: Responses
+[05:42:56:320]: Frame Package End
+[05:42:56:320]: 
+[05:42:56:320]: Frame Package Start
+[05:42:56:320]: Frame Valid
+[05:42:56:320]: Request: End Transaction
+[05:42:56:320]: Time: 5927296 elapsed: 0 (ms)
+[05:42:56:320]: Responses
+[05:42:56:320]: Frame Package End
+[05:42:56:336]: _AlpacaDevice::setPinState(128)  Command:usb0
+[05:43:04:246]: _AlpacaDevice::on_pinStateChanged(128, 0)
+[05:43:04:246]: 
+[05:43:04:246]: Frame Package Start
+[05:43:04:246]: Frame Valid
+[05:43:04:246]: Request: CONF:DIG:ON
+[05:43:04:246]: Time: 5935218 elapsed: 7922 (ms)
+[05:43:04:246]: Synonym: Pin 128 off
+[05:43:04:246]: Responses
+[05:43:04:246]: Frame Package End
+[05:43:04:246]: 
+[05:43:04:246]: Frame Package Start
+[05:43:04:246]: Frame Valid
+[05:43:04:246]: Request: End Transaction
+[05:43:04:246]: Time: 5935218 elapsed: 0 (ms)
+[05:43:04:246]: Responses
+[05:43:04:246]: Frame Package End
+[05:43:04:263]: _AlpacaDevice::setPinState(128)  Command:usb0
+[05:44:54:640]: 
+[05:44:54:640]: Frame Package Start
+[05:44:54:640]: Frame Valid
+[05:44:54:640]: ====== powerOff start ====== 
+Time: 6045609 elapsed: 110391 (ms)
+[05:44:54:640]: Frame Package End
+[05:44:54:640]: 
+[05:44:54:640]: Frame Package Start
+[05:44:54:640]: Frame Valid
+[05:44:54:640]: Request: End Transaction
+[05:44:54:640]: Time: 6045609 elapsed: 0 (ms)
+[05:44:54:640]: Responses
+[05:44:54:640]: Frame Package End
+[05:44:55:176]: _AlpacaDevice::on_pinStateChanged(4, 1)
+[05:44:55:176]: 
+[05:44:55:176]: Frame Package Start
+[05:44:55:176]: Frame Valid
+[05:44:55:176]: Request: CONF:DIG:ON
+[05:44:55:176]: Time: 6046140 elapsed: 531 (ms)
+[05:44:55:176]: Synonym: Pin 4 on
+[05:44:55:176]: Responses
+[05:44:55:176]: Frame Package End
+[05:44:55:176]: 
+[05:44:55:176]: Frame Package Start
+[05:44:55:176]: Frame Valid
+[05:44:55:176]: Request: End Transaction
+[05:44:55:176]: Time: 6046140 elapsed: 0 (ms)
+[05:44:55:176]: Responses
+[05:44:55:176]: Frame Package End
+[05:44:55:686]: 
+[05:44:55:686]: Frame Package Start
+[05:44:55:686]: Frame Valid
+[05:44:55:686]: ====== powerOff finish ====== 
+Time: 6046656 elapsed: 516 (ms)
+[05:44:55:686]: Frame Package End
+[05:44:55:686]: 
+[05:44:55:686]: Frame Package Start
+[05:44:55:686]: Frame Valid
+[05:44:55:686]: Request: End Transaction
+[05:44:55:686]: Time: 6046656 elapsed: 0 (ms)
+[05:44:55:686]: Responses
+[05:44:55:686]: Frame Package End
+[05:45:04:651]: 
+[05:45:04:651]: Frame Package Start
+[05:45:04:651]: Frame Valid
+[05:45:04:651]: ====== powerOn start ====== 
+Time: 6055625 elapsed: 8969 (ms)
+[05:45:04:651]: Frame Package End
+[05:45:04:651]: 
+[05:45:04:651]: Frame Package Start
+[05:45:04:651]: Frame Valid
+[05:45:04:651]: Request: End Transaction
+[05:45:04:651]: Time: 6055625 elapsed: 0 (ms)
+[05:45:04:651]: Responses
+[05:45:04:651]: Frame Package End
+[05:45:05:177]: _AlpacaDevice::on_pinStateChanged(4, 1)
+[05:45:05:177]: 
+[05:45:05:177]: Frame Package Start
+[05:45:05:177]: Frame Valid
+[05:45:05:177]: Request: CONF:DIG:ON
+[05:45:05:177]: Time: 6056140 elapsed: 515 (ms)
+[05:45:05:177]: Synonym: Pin 4 on
+[05:45:05:177]: Responses
+[05:45:05:177]: Frame Package End
+[05:45:05:177]: 
+[05:45:05:177]: Frame Package Start
+[05:45:05:177]: Frame Valid
+[05:45:05:177]: Request: End Transaction
+[05:45:05:177]: Time: 6056140 elapsed: 0 (ms)
+[05:45:05:177]: Responses
+[05:45:05:177]: Frame Package End
+[05:45:06:592]: 
+[05:45:06:592]: Frame Package Start
+[05:45:06:592]: Frame Valid
+[05:45:06:592]: Delay 900 in msecsTime: 6057562 elapsed: 1422 (ms)
+[05:45:06:592]: Frame Package End
+[05:45:06:592]: 
+[05:45:06:592]: Frame Package Start
+[05:45:06:592]: Frame Valid
+[05:45:06:592]: Request: End Transaction
+[05:45:06:592]: Time: 6057562 elapsed: 0 (ms)
+[05:45:06:592]: Responses
+[05:45:06:592]: Frame Package End
+[05:45:07:119]: _AlpacaDevice::on_pinStateChanged(4, 0)
+[05:45:07:119]: 
+[05:45:07:119]: Frame Package Start
+[05:45:07:119]: Frame Valid
+[05:45:07:119]: Request: CONF:DIG:ON
+[05:45:07:119]: Time: 6058093 elapsed: 531 (ms)
+[05:45:07:119]: Synonym: Pin 4 off
+[05:45:07:119]: Responses
+[05:45:07:119]: Frame Package End
+[05:45:07:119]: 
+[05:45:07:119]: Frame Package Start
+[05:45:07:119]: Frame Valid
+[05:45:07:119]: Request: End Transaction
+[05:45:07:119]: Time: 6058093 elapsed: 0 (ms)
+[05:45:07:119]: Responses
+[05:45:07:119]: Frame Package End
+[05:45:07:644]: 
+[05:45:07:644]: Frame Package Start
+[05:45:07:644]: Frame Valid
+[05:45:07:644]: ====== powerOn finish ====== 
+Time: 6058609 elapsed: 516 (ms)
+[05:45:07:644]: Frame Package End
+[05:45:07:644]: 
+[05:45:07:644]: Frame Package Start
+[05:45:07:644]: Frame Valid
+[05:45:07:644]: Request: End Transaction
+[05:45:07:644]: Time: 6058609 elapsed: 0 (ms)
+[05:45:07:644]: Responses
+[05:45:07:644]: Frame Package End
+[05:45:10:228]: _AlpacaDevice::on_pinStateChanged(128, 0)
+[05:45:10:228]: 
+[05:45:10:228]: Frame Package Start
+[05:45:10:228]: Frame Valid
+[05:45:10:228]: Request: CONF:DIG:ON
+[05:45:10:228]: Time: 6061203 elapsed: 2594 (ms)
+[05:45:10:228]: Synonym: Pin 128 off
+[05:45:10:228]: Responses
+[05:45:10:228]: Frame Package End
+[05:45:10:228]: 
+[05:45:10:228]: Frame Package Start
+[05:45:10:228]: Frame Valid
+[05:45:10:228]: Request: End Transaction
+[05:45:10:228]: Time: 6061203 elapsed: 0 (ms)
+[05:45:10:228]: Responses
+[05:45:10:228]: Frame Package End
+[05:45:10:244]: _AlpacaDevice::setPinState(128)  Command:usb0
+[05:46:21:905]: _AlpacaDevice::on_pinStateChanged(128, 0)
+[05:46:21:905]: 
+[05:46:21:905]: Frame Package Start
+[05:46:21:905]: Frame Valid
+[05:46:21:905]: Request: CONF:DIG:ON
+[05:46:21:905]: Time: 6132875 elapsed: 71672 (ms)
+[05:46:21:905]: Synonym: Pin 128 off
+[05:46:21:905]: Responses
+[05:46:21:905]: Frame Package End
+[05:46:21:905]: 
+[05:46:21:905]: Frame Package Start
+[05:46:21:905]: Frame Valid
+[05:46:21:905]: Request: End Transaction
+[05:46:21:905]: Time: 6132875 elapsed: 0 (ms)
+[05:46:21:905]: Responses
+[05:46:21:905]: Frame Package End
+[05:46:21:921]: _AlpacaDevice::setPinState(128)  Command:usb0
+[05:46:23:691]: _AlpacaDevice::on_pinStateChanged(311, 0)
+[05:46:23:691]: 
+[05:46:23:691]: Frame Package Start
+[05:46:23:691]: Frame Valid
+[05:46:23:691]: Request: CONF:DIG:ON
+[05:46:23:691]: Time: 6134656 elapsed: 1781 (ms)
+[05:46:23:691]: Synonym: Pin 311 off
+[05:46:23:691]: Responses
+[05:46:23:691]: Frame Package End
+[05:46:23:691]: 
+[05:46:23:691]: Frame Package Start
+[05:46:23:691]: Frame Valid
+[05:46:23:691]: Request: End Transaction
+[05:46:23:691]: Time: 6134656 elapsed: 0 (ms)
+[05:46:23:691]: Responses
+[05:46:23:691]: Frame Package End
+[05:46:23:707]: _AlpacaDevice::setPinState(311)  Command:eud
+[05:46:24:535]: 
+[05:46:24:535]: Frame Package Start
+[05:46:24:535]: Frame Valid
+[05:46:24:535]: ====== bootToEDL start ====== 
+Time: 6135500 elapsed: 844 (ms)
+[05:46:24:535]: Frame Package End
+[05:46:24:535]: 
+[05:46:24:535]: Frame Package Start
+[05:46:24:535]: Frame Valid
+[05:46:24:535]: Request: End Transaction
+[05:46:24:535]: Time: 6135500 elapsed: 0 (ms)
+[05:46:24:535]: Responses
+[05:46:24:535]: Frame Package End
+[05:46:25:077]: _AlpacaDevice::on_pinStateChanged(219, 0)
+[05:46:25:077]: 
+[05:46:25:077]: Frame Package Start
+[05:46:25:077]: Frame Valid
+[05:46:25:077]: Request: CONF:DIG:ON
+[05:46:25:077]: Time: 6136046 elapsed: 546 (ms)
+[05:46:25:077]: Synonym: Pin 219 off
+[05:46:25:077]: Responses
+[05:46:25:077]: Frame Package End
+[05:46:25:077]: 
+[05:46:25:077]: Frame Package Start
+[05:46:25:077]: Frame Valid
+[05:46:25:077]: Request: End Transaction
+[05:46:25:077]: Time: 6136046 elapsed: 0 (ms)
+[05:46:25:077]: Responses
+[05:46:25:077]: Frame Package End
+[05:46:26:114]: _AlpacaDevice::on_pinStateChanged(16, 0)
+[05:46:26:114]: 
+[05:46:26:114]: Frame Package Start
+[05:46:26:114]: Frame Valid
+[05:46:26:114]: Request: CONF:DIG:ON
+[05:46:26:114]: Time: 6137078 elapsed: 1032 (ms)
+[05:46:26:114]: Synonym: Pin 16 off
+[05:46:26:114]: Responses
+[05:46:26:114]: Frame Package End
+[05:46:26:114]: 
+[05:46:26:114]: Frame Package Start
+[05:46:26:114]: Frame Valid
+[05:46:26:114]: Request: End Transaction
+[05:46:26:114]: Time: 6137078 elapsed: 0 (ms)
+[05:46:26:114]: Responses
+[05:46:26:114]: Frame Package End
+[05:46:27:173]: _AlpacaDevice::on_pinStateChanged(4, 1)
+[05:46:27:173]: 
+[05:46:27:173]: Frame Package Start
+[05:46:27:173]: Frame Valid
+[05:46:27:173]: Request: CONF:DIG:ON
+[05:46:27:173]: Time: 6138140 elapsed: 1062 (ms)
+[05:46:27:173]: Synonym: Pin 4 on
+[05:46:27:173]: Responses
+[05:46:27:173]: Frame Package End
+[05:46:27:173]: 
+[05:46:27:173]: Frame Package Start
+[05:46:27:173]: Frame Valid
+[05:46:27:173]: Request: End Transaction
+[05:46:27:173]: Time: 6138140 elapsed: 0 (ms)
+[05:46:27:173]: Responses
+[05:46:27:173]: Frame Package End
+[05:46:28:206]: _AlpacaDevice::on_pinStateChanged(216, 1)
+[05:46:28:206]: 
+[05:46:28:206]: Frame Package Start
+[05:46:28:206]: Frame Valid
+[05:46:28:206]: Request: CONF:DIG:ON
+[05:46:28:206]: Time: 6139171 elapsed: 1031 (ms)
+[05:46:28:206]: Synonym: Pin 216 on
+[05:46:28:206]: Responses
+[05:46:28:206]: Frame Package End
+[05:46:28:206]: 
+[05:46:28:206]: Frame Package Start
+[05:46:28:206]: Frame Valid
+[05:46:28:206]: Request: End Transaction
+[05:46:28:206]: Time: 6139171 elapsed: 0 (ms)
+[05:46:28:206]: Responses
+[05:46:28:206]: Frame Package End
+[05:46:29:630]: 
+[05:46:29:630]: Frame Package Start
+[05:46:29:630]: Frame Valid
+[05:46:29:630]: Delay 900 in msecsTime: 6140593 elapsed: 1422 (ms)
+[05:46:29:630]: Frame Package End
+[05:46:29:630]: 
+[05:46:29:630]: Frame Package Start
+[05:46:29:630]: Frame Valid
+[05:46:29:630]: Request: End Transaction
+[05:46:29:630]: Time: 6140593 elapsed: 0 (ms)
+[05:46:29:630]: Responses
+[05:46:29:630]: Frame Package End
+[05:46:30:153]: _AlpacaDevice::on_pinStateChanged(4, 0)
+[05:46:30:153]: 
+[05:46:30:153]: Frame Package Start
+[05:46:30:153]: Frame Valid
+[05:46:30:153]: Request: CONF:DIG:ON
+[05:46:30:153]: Time: 6141125 elapsed: 532 (ms)
+[05:46:30:153]: Synonym: Pin 4 off
+[05:46:30:153]: Responses
+[05:46:30:153]: Frame Package End
+[05:46:30:153]: 
+[05:46:30:153]: Frame Package Start
+[05:46:30:153]: Frame Valid
+[05:46:30:153]: Request: End Transaction
+[05:46:30:153]: Time: 6141125 elapsed: 0 (ms)
+[05:46:30:153]: Responses
+[05:46:30:153]: Frame Package End
+[05:46:33:185]: 
+[05:46:33:185]: Frame Package Start
+[05:46:33:185]: Frame Valid
+[05:46:33:185]: Delay 2500 in msecsTime: 6144156 elapsed: 3031 (ms)
+[05:46:33:185]: Frame Package End
+[05:46:33:185]: 
+[05:46:33:185]: Frame Package Start
+[05:46:33:185]: Frame Valid
+[05:46:33:185]: Request: End Transaction
+[05:46:33:185]: Time: 6144156 elapsed: 0 (ms)
+[05:46:33:185]: Responses
+[05:46:33:185]: Frame Package End
+[05:46:33:725]: _AlpacaDevice::on_pinStateChanged(216, 0)
+[05:46:33:725]: 
+[05:46:33:725]: Frame Package Start
+[05:46:33:725]: Frame Valid
+[05:46:33:725]: Request: CONF:DIG:ON
+[05:46:33:725]: Time: 6144703 elapsed: 547 (ms)
+[05:46:33:725]: Synonym: Pin 216 off
+[05:46:33:725]: Responses
+[05:46:33:725]: Frame Package End
+[05:46:33:725]: 
+[05:46:33:725]: Frame Package Start
+[05:46:33:725]: Frame Valid
+[05:46:33:725]: Request: End Transaction
+[05:46:33:725]: Time: 6144703 elapsed: 0 (ms)
+[05:46:33:725]: Responses
+[05:46:33:725]: Frame Package End
+[05:46:34:232]: 
+[05:46:34:232]: Frame Package Start
+[05:46:34:232]: Frame Valid
+[05:46:34:232]: ====== bootToEDL finish ====== 
+Time: 6145203 elapsed: 500 (ms)
+[05:46:34:232]: Frame Package End
+[05:46:34:232]: 
+[05:46:34:232]: Frame Package Start
+[05:46:34:232]: Frame Valid
+[05:46:34:232]: Request: End Transaction
+[05:46:34:232]: Time: 6145203 elapsed: 0 (ms)
+[05:46:34:232]: Responses
+[05:46:34:232]: Frame Package End

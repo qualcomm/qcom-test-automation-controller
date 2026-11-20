@@ -1,0 +1,1537 @@
+[2026/11/18 12:54:08.827]: TAC Application log started
+[2026/11/18 12:54:08.827]: QTAC Version: 6.9.8
+[2026/11/18 12:54:08.827]: TAC Version: 6.9.8
+[2026/11/18 12:54:08.827]: Descriptor Load Path:C:/ProgramData/Qualcomm/QTAC/configurations/devicelist.json
+[2026/11/18 12:54:08.827]:    1 SPM V4
+[2026/11/18 12:54:08.827]:    2 EPM V4
+[2026/11/18 12:54:08.827]:    3 Alpaca V1
+[2026/11/18 12:54:08.827]:    4 MicroEPM TAC
+[2026/11/18 12:54:08.827]:    5 Alpaca V2
+[2026/11/18 12:54:08.827]:    6 Alpaca V3.0
+[2026/11/18 12:54:08.827]:    7 Alpaca V3.1
+[2026/11/18 12:54:08.827]:    8 MTP V3.2
+[2026/11/18 12:54:08.827]:    9 QRD V1.0
+[2026/11/18 12:54:08.827]:    10 IDP V1.0
+[2026/11/18 12:54:08.827]:    11 Dongle V3.0
+[2026/11/18 12:54:08.827]:    12 MTP V3.3
+[2026/11/18 12:54:08.827]:    13 ALPACA LITE (FTDI)
+[2026/11/18 12:54:08.827]:    14 CSM - PSoC version
+[2026/11/18 12:54:08.827]:    15 CSM - Lite
+[2026/11/18 12:54:08.827]:    16 CSM - X100
+[2026/11/18 12:54:08.827]:    17 Lemans ADP TAC PSOC
+[2026/11/18 12:54:08.827]:    18 FTDI TAC for RIDE MX 4.0
+[2026/11/18 12:54:08.827]:    19 Hamoa Lite
+[2026/11/18 12:54:08.827]:    20 FTDI-LITE SDX75 CPE
+[2026/11/18 12:54:08.827]:    21 ALPACA LITE  IDP35
+[2026/11/18 12:54:08.827]:    22 FTDI-LITE SDX75 QMP
+[2026/11/18 12:54:08.827]:    23 FTDI-LITE SDX75 M.2
+[2026/11/18 12:54:08.827]:    24 CSM - PSoC version
+[2026/11/18 12:54:08.827]:    25 ALPACA-LITE SDX35 M.2
+[2026/11/18 12:54:08.827]:    26 ALPACA-LITE KUNO DEBUG BOARD
+[2026/11/18 12:54:08.827]:    27 Lanai FTDI debug board
+[2026/11/18 12:54:08.827]:    28 ALPACA-LITE  CDPS35
+[2026/11/18 12:54:08.827]:    29 ALPACA-LITE  SWITCH CONTROL
+[2026/11/18 12:54:08.827]:    30 Disable UART to collect BootKPI
+[2026/11/18 12:54:08.827]:    31 CCARD525 PSoC
+[2026/11/18 12:54:08.827]:    32 ALPACA-LITE for Mobile/Compute/Modem_NS ATP debug board
+[2026/11/18 12:54:08.827]:    33 ALPACA-LITE QCX217
+[2026/11/18 12:54:08.827]:    35 RB5 
+[2026/11/18 12:54:08.827]:    36 XR TAC Config for Matrix v2
+[2026/11/18 12:54:08.827]:    37 FTDI TAC for RIDE MICRO 4.0
+[2026/11/18 12:54:08.827]:    38 PAKALA CDP with GG GPIOs
+[2026/11/18 12:54:08.827]:    39 FTDI TAC for RB8 IQ-9075-EVK
+[2026/11/18 12:54:08.827]:    40 KAANAPALI CDP with GG GPIOs
+[2026/11/18 12:54:08.827]:    41 ALPACA-LITE for AP-MDM Fusion ATP debug board
+[2026/11/18 12:54:08.827]:    42 ALPACA-LITE SMART LABEL
+[2026/11/18 12:54:08.827]:    44 Kanapali QRD
+[2026/11/18 12:54:08.827]:    45 Glymur SIP V2 Alpaca Lite
+[2026/11/18 12:54:08.827]:    48 MTP8850 FTDI IO
+[2026/11/18 12:54:08.827]:    49 Glymur COB CDPS
+[2026/11/18 12:54:08.827]:    50 Default Automotive (PIC32CX)
+[2026/11/18 12:54:08.827]:    51 ALPACA-LITE GLYMUR COB QCB
+[2026/11/18 12:54:08.827]:    52 Glymur QCB V1 Alpaca Lite With battery
+[2026/11/18 12:54:08.827]:    54 NordAu RIDE
+[2026/11/18 12:54:08.827]:    55 AR TAC config for Balsam
+[2026/11/18 12:54:08.827]:    56 MTP8845 FTDI IO
+[2026/11/18 12:54:08.827]:    57 Monaco/Lemans ADP Automotive
+[2026/11/18 12:54:08.827]:    60 Glymur Battery Enabled Device
+[2026/11/18 12:54:08.827]:    63 AR TAC config for BONSAI
+[2026/11/18 12:54:08.827]:    64 FTDI-LITE SDX95 QMP
+[2026/11/18 12:54:08.827]:    65 MTP8975 (Hawi) FTDI IO
+[2026/11/18 12:54:08.827]:    66 Hawi MTP8975 - PSoC
+[2026/11/18 12:54:08.827]:    67 TDP535 Platform Config
+[2026/11/18 12:54:08.827]:    69 FTDI-LITE SDX95 M.2
+[2026/11/18 12:54:08.827]:    70 ALPACA-LITE HAWI CDP
+[2026/11/18 12:54:08.827]:    71 FTDI TAC for RB4 IQ-8275-EVK
+[2026/11/18 12:54:08.827]:    72 JTAG MUX DC
+[2026/11/18 12:54:08.827]:    73 MTP8950 (Maili) FTDI IO
+[2026/11/18 12:54:08.827]:    74 30-P9415-2 Dongle for Aliso
+[2026/11/18 12:54:08.827]:    77 ALPACA-LITE KARNALI QCB DT
+[2026/11/18 12:54:08.827]:    78 ALPACA-LITE MAILI CDP
+[2026/11/18 12:54:08.827]:    80 Arduino BugHopper V1 (Default)
+[2026/11/18 12:54:08.827]:    81 Seca CoB STAR
+[2026/11/18 12:54:08.827]:    82 SHIKRA PSOC
+[2026/11/18 12:54:08.827]:    85 IQ10 RRD V1
+[2026/11/18 12:54:08.827]:    87 HAWI QRD PSOC
+[2026/11/18 12:54:08.827]:    92 Arduino Ventuno Q
+[2026/11/18 12:54:08.827]:    95 Arduino BugHopper V2 (Default)
+[2026/11/18 12:54:08.827]:    96 AR TAC config for BONSAI-TWILIGHT  V2
+[2026/11/18 12:54:08.849]: Found serial port with vendor id: 32902 and product id: 31467
+[2026/11/18 12:54:08.849]: Found serial port with vendor id: 1240 and product id: 10
+[2026/11/18 12:54:08.854]: Found serial port with vendor id: 32902 and product id: 31467
+[2026/11/18 12:54:08.854]: Found serial port with vendor id: 1240 and product id: 10
+[2026/11/18 12:54:08.855]: TACPlatformEntry::getConfiguration() Platform C:/ProgramData/Qualcomm/QTAC/configurations/TAC_PIC32CXAuto_54.tcnf loaded
+[2026/11/18 12:54:08.855]: Found a PIC32CX device with port name: 'COM6'
+[2026/11/18 12:54:08.976]: Found serial port with vendor id: 32902 and product id: 31467
+[2026/11/18 12:54:08.976]: Found serial port with vendor id: 1240 and product id: 10
+[2026/11/18 12:54:08.977]: Device KARUSSELLXXBANTAMTDC000035AQ0 opened
+[2026/11/18 12:54:08.977]: Com port COM6
+
+[2026/11/18 12:54:09.497]: 
+[2026/11/18 12:54:09.497]: Frame Package Start
+[2026/11/18 12:54:09.497]: Frame Valid
+[2026/11/18 12:54:09.497]: Request: echo 1
+[2026/11/18 12:54:09.497]: Time: 180656 elapsed: 0 (ms)
+[2026/11/18 12:54:09.497]: Responses
+[2026/11/18 12:54:09.497]: Frame Package End
+[2026/11/18 12:54:09.497]: 
+[2026/11/18 12:54:09.497]: Frame Package Start
+[2026/11/18 12:54:09.497]: Frame Valid
+[2026/11/18 12:54:09.497]: Request: End Transaction
+[2026/11/18 12:54:09.497]: Time: 180656 elapsed: 0 (ms)
+[2026/11/18 12:54:09.497]: Responses
+[2026/11/18 12:54:09.497]: Frame Package End
+[2026/11/18 12:54:10.005]: Buffer cleared before identifying PIC32CX board
+[2026/11/18 12:54:10.532]: PIC32CX board name: Karussell
+[2026/11/18 12:54:10.532]: PIC32CX board firmware version: Apr  8 2025
+[2026/11/18 12:54:10.532]: PIC32CX board MAC: 8C:FD:F0:C0:13:8C
+[2026/11/18 12:54:10.532]: Identified platform id: 54
+[2026/11/18 12:54:10.532]: PIC32CX board Serial Number: TDC000035AQ0
+[2026/11/18 12:54:10.532]: PIC32CX board MCN: 10-72521-1410
+[2026/11/18 12:54:10.532]: 
+[2026/11/18 12:54:10.532]: tacCommand.platformID()
+[2026/11/18 12:54:10.532]: 
+[2026/11/18 12:54:10.532]: Frame Package Start
+[2026/11/18 12:54:10.532]: Frame Valid
+[2026/11/18 12:54:10.532]: Request: *IDN?
+[2026/11/18 12:54:10.532]: Time: 181703 elapsed: 1047 (ms)
+[2026/11/18 12:54:10.532]: Responses
+[2026/11/18 12:54:10.532]:    Karussell,Apr  8 2025,08/04/2025,8C:FD:F0:C0:13:8C,54,TDC000035AQ0,10-72521-1410
+[2026/11/18 12:54:10.532]: Frame Package End
+[2026/11/18 12:54:10.532]: 
+[2026/11/18 12:54:10.532]: Frame Package Start
+[2026/11/18 12:54:10.532]: Frame Valid
+[2026/11/18 12:54:10.532]: Request: End Transaction
+[2026/11/18 12:54:10.532]: Time: 181703 elapsed: 0 (ms)
+[2026/11/18 12:54:10.532]: Responses
+[2026/11/18 12:54:10.532]: Frame Package End
+[2026/11/18 12:54:11.037]: Buffer cleared before identifying PIC32CX board
+[2026/11/18 12:54:11.563]: PIC32CX board name: Karussell
+[2026/11/18 12:54:11.563]: PIC32CX board firmware version: Apr  8 2025
+[2026/11/18 12:54:11.563]: PIC32CX board MAC: 8C:FD:F0:C0:13:8C
+[2026/11/18 12:54:11.563]: Identified platform id: 54
+[2026/11/18 12:54:11.563]: PIC32CX board Serial Number: TDC000035AQ0
+[2026/11/18 12:54:11.563]: PIC32CX board MCN: 10-72521-1410
+[2026/11/18 12:54:11.563]: 
+[2026/11/18 12:54:11.563]: Frame Package Start
+[2026/11/18 12:54:11.563]: Frame Valid
+[2026/11/18 12:54:11.563]: Request: *IDN?
+[2026/11/18 12:54:11.563]: Time: 182734 elapsed: 1031 (ms)
+[2026/11/18 12:54:11.563]: Responses
+[2026/11/18 12:54:11.563]:    Karussell,Apr  8 2025,08/04/2025,8C:FD:F0:C0:13:8C,54,TDC000035AQ0,10-72521-1410
+[2026/11/18 12:54:11.563]: Frame Package End
+[2026/11/18 12:54:11.564]: 
+[2026/11/18 12:54:11.564]: Frame Package Start
+[2026/11/18 12:54:11.564]: Frame Valid
+[2026/11/18 12:54:11.564]: Request: End Transaction
+[2026/11/18 12:54:11.564]: Time: 182734 elapsed: 0 (ms)
+[2026/11/18 12:54:11.564]: Responses
+[2026/11/18 12:54:11.564]: Frame Package End
+[2026/11/18 12:54:20.014]: _AlpacaDevice::on_pinStateChanged(128, 1)
+[2026/11/18 12:54:20.014]: 
+[2026/11/18 12:54:20.014]: Frame Package Start
+[2026/11/18 12:54:20.014]: Frame Valid
+[2026/11/18 12:54:20.014]: Request: CONF:DIG:ON
+[2026/11/18 12:54:20.014]: Time: 191171 elapsed: 8437 (ms)
+[2026/11/18 12:54:20.014]: Synonym: Pin 128 on
+[2026/11/18 12:54:20.014]: Responses
+[2026/11/18 12:54:20.014]: Frame Package End
+[2026/11/18 12:54:20.014]: 
+[2026/11/18 12:54:20.014]: Frame Package Start
+[2026/11/18 12:54:20.014]: Frame Valid
+[2026/11/18 12:54:20.014]: Request: End Transaction
+[2026/11/18 12:54:20.014]: Time: 191171 elapsed: 0 (ms)
+[2026/11/18 12:54:20.014]: Responses
+[2026/11/18 12:54:20.014]: Frame Package End
+[2026/11/18 12:54:20.029]: _AlpacaDevice::setPinState(128)  Command:usb0
+[2026/11/18 12:54:21.055]: _AlpacaDevice::on_pinStateChanged(312, 1)
+[2026/11/18 12:54:21.055]: 
+[2026/11/18 12:54:21.055]: Frame Package Start
+[2026/11/18 12:54:21.055]: Frame Valid
+[2026/11/18 12:54:21.055]: Request: CONF:DIG:ON
+[2026/11/18 12:54:21.055]: Time: 192218 elapsed: 1047 (ms)
+[2026/11/18 12:54:21.055]: Synonym: Pin 312 on
+[2026/11/18 12:54:21.055]: Responses
+[2026/11/18 12:54:21.055]: Frame Package End
+[2026/11/18 12:54:21.055]: 
+[2026/11/18 12:54:21.055]: Frame Package Start
+[2026/11/18 12:54:21.055]: Frame Valid
+[2026/11/18 12:54:21.055]: Request: End Transaction
+[2026/11/18 12:54:21.055]: Time: 192218 elapsed: 0 (ms)
+[2026/11/18 12:54:21.055]: Responses
+[2026/11/18 12:54:21.055]: Frame Package End
+[2026/11/18 12:54:21.133]: _AlpacaDevice::setPinState(312)  Command:usb1
+[2026/11/18 12:55:56.315]: _AlpacaDevice::on_pinStateChanged(128, 0)
+[2026/11/18 12:55:56.315]: 
+[2026/11/18 12:55:56.315]: Frame Package Start
+[2026/11/18 12:55:56.315]: Frame Valid
+[2026/11/18 12:55:56.315]: Request: CONF:DIG:ON
+[2026/11/18 12:55:56.315]: Time: 287484 elapsed: 95266 (ms)
+[2026/11/18 12:55:56.315]: Synonym: Pin 128 off
+[2026/11/18 12:55:56.315]: Responses
+[2026/11/18 12:55:56.315]: Frame Package End
+[2026/11/18 12:55:56.315]: 
+[2026/11/18 12:55:56.315]: Frame Package Start
+[2026/11/18 12:55:56.315]: Frame Valid
+[2026/11/18 12:55:56.315]: Request: End Transaction
+[2026/11/18 12:55:56.315]: Time: 287484 elapsed: 0 (ms)
+[2026/11/18 12:55:56.315]: Responses
+[2026/11/18 12:55:56.315]: Frame Package End
+[2026/11/18 12:55:56.332]: _AlpacaDevice::setPinState(128)  Command:usb0
+[2026/11/18 12:56:31.598]: _AlpacaDevice::quickCommand(powerOff): queueing 3 entries, completionArmed=yes
+[2026/11/18 12:56:31.614]: 
+[2026/11/18 12:56:31.614]: Frame Package Start
+[2026/11/18 12:56:31.614]: Frame Valid
+[2026/11/18 12:56:31.614]: ====== powerOff start ====== 
+Time: 322781 elapsed: 35297 (ms)
+[2026/11/18 12:56:31.614]: Frame Package End
+[2026/11/18 12:56:31.614]: 
+[2026/11/18 12:56:31.614]: Frame Package Start
+[2026/11/18 12:56:31.614]: Frame Valid
+[2026/11/18 12:56:31.614]: Request: End Transaction
+[2026/11/18 12:56:31.614]: Time: 322781 elapsed: 0 (ms)
+[2026/11/18 12:56:31.614]: Responses
+[2026/11/18 12:56:31.614]: Frame Package End
+[2026/11/18 12:56:31.710]: _AlpacaDevice::quickCommand(powerOff): completion confirmed
+[2026/11/18 12:56:32.148]: _AlpacaDevice::on_pinStateChanged(4, 1)
+[2026/11/18 12:56:32.148]: 
+[2026/11/18 12:56:32.148]: Frame Package Start
+[2026/11/18 12:56:32.148]: Frame Valid
+[2026/11/18 12:56:32.148]: Request: CONF:DIG:ON
+[2026/11/18 12:56:32.148]: Time: 323312 elapsed: 531 (ms)
+[2026/11/18 12:56:32.148]: Synonym: Pin 4 on
+[2026/11/18 12:56:32.148]: Responses
+[2026/11/18 12:56:32.148]: Frame Package End
+[2026/11/18 12:56:32.148]: 
+[2026/11/18 12:56:32.148]: Frame Package Start
+[2026/11/18 12:56:32.148]: Frame Valid
+[2026/11/18 12:56:32.148]: Request: End Transaction
+[2026/11/18 12:56:32.148]: Time: 323312 elapsed: 0 (ms)
+[2026/11/18 12:56:32.148]: Responses
+[2026/11/18 12:56:32.148]: Frame Package End
+[2026/11/18 12:56:32.663]: 
+[2026/11/18 12:56:32.663]: Frame Package Start
+[2026/11/18 12:56:32.663]: Frame Valid
+[2026/11/18 12:56:32.663]: ====== powerOff finish ====== 
+Time: 323828 elapsed: 516 (ms)
+[2026/11/18 12:56:32.663]: Frame Package End
+[2026/11/18 12:56:32.663]: 
+[2026/11/18 12:56:32.663]: Frame Package Start
+[2026/11/18 12:56:32.663]: Frame Valid
+[2026/11/18 12:56:32.663]: Request: End Transaction
+[2026/11/18 12:56:32.663]: Time: 323828 elapsed: 0 (ms)
+[2026/11/18 12:56:32.663]: Responses
+[2026/11/18 12:56:32.663]: Frame Package End
+[2026/11/18 12:56:46.723]: _AlpacaDevice::quickCommand(bootToEDL): queueing 10 entries, completionArmed=yes
+[2026/11/18 12:56:46.726]: 
+[2026/11/18 12:56:46.726]: Frame Package Start
+[2026/11/18 12:56:46.726]: Frame Valid
+[2026/11/18 12:56:46.726]: ====== bootToEDL start ====== 
+Time: 337890 elapsed: 14062 (ms)
+[2026/11/18 12:56:46.726]: Frame Package End
+[2026/11/18 12:56:46.726]: 
+[2026/11/18 12:56:46.726]: Frame Package Start
+[2026/11/18 12:56:46.726]: Frame Valid
+[2026/11/18 12:56:46.726]: Request: End Transaction
+[2026/11/18 12:56:46.726]: Time: 337890 elapsed: 0 (ms)
+[2026/11/18 12:56:46.726]: Responses
+[2026/11/18 12:56:46.726]: Frame Package End
+[2026/11/18 12:56:46.837]: _AlpacaDevice::quickCommand(bootToEDL): completion confirmed
+[2026/11/18 12:56:47.265]: _AlpacaDevice::on_pinStateChanged(219, 0)
+[2026/11/18 12:56:47.265]: 
+[2026/11/18 12:56:47.265]: Frame Package Start
+[2026/11/18 12:56:47.265]: Frame Valid
+[2026/11/18 12:56:47.265]: Request: CONF:DIG:ON
+[2026/11/18 12:56:47.265]: Time: 338421 elapsed: 531 (ms)
+[2026/11/18 12:56:47.265]: Synonym: Pin 219 off
+[2026/11/18 12:56:47.265]: Responses
+[2026/11/18 12:56:47.265]: Frame Package End
+[2026/11/18 12:56:47.265]: 
+[2026/11/18 12:56:47.265]: Frame Package Start
+[2026/11/18 12:56:47.265]: Frame Valid
+[2026/11/18 12:56:47.265]: Request: End Transaction
+[2026/11/18 12:56:47.265]: Time: 338421 elapsed: 0 (ms)
+[2026/11/18 12:56:47.265]: Responses
+[2026/11/18 12:56:47.265]: Frame Package End
+[2026/11/18 12:56:48.315]: _AlpacaDevice::on_pinStateChanged(16, 0)
+[2026/11/18 12:56:48.315]: 
+[2026/11/18 12:56:48.315]: Frame Package Start
+[2026/11/18 12:56:48.315]: Frame Valid
+[2026/11/18 12:56:48.315]: Request: CONF:DIG:ON
+[2026/11/18 12:56:48.315]: Time: 339484 elapsed: 1063 (ms)
+[2026/11/18 12:56:48.315]: Synonym: Pin 16 off
+[2026/11/18 12:56:48.315]: Responses
+[2026/11/18 12:56:48.315]: Frame Package End
+[2026/11/18 12:56:48.315]: 
+[2026/11/18 12:56:48.315]: Frame Package Start
+[2026/11/18 12:56:48.315]: Frame Valid
+[2026/11/18 12:56:48.315]: Request: End Transaction
+[2026/11/18 12:56:48.315]: Time: 339484 elapsed: 0 (ms)
+[2026/11/18 12:56:48.315]: Responses
+[2026/11/18 12:56:48.315]: Frame Package End
+[2026/11/18 12:56:49.346]: _AlpacaDevice::on_pinStateChanged(4, 1)
+[2026/11/18 12:56:49.346]: 
+[2026/11/18 12:56:49.346]: Frame Package Start
+[2026/11/18 12:56:49.346]: Frame Valid
+[2026/11/18 12:56:49.346]: Request: CONF:DIG:ON
+[2026/11/18 12:56:49.346]: Time: 340515 elapsed: 1031 (ms)
+[2026/11/18 12:56:49.346]: Synonym: Pin 4 on
+[2026/11/18 12:56:49.346]: Responses
+[2026/11/18 12:56:49.346]: Frame Package End
+[2026/11/18 12:56:49.346]: 
+[2026/11/18 12:56:49.346]: Frame Package Start
+[2026/11/18 12:56:49.346]: Frame Valid
+[2026/11/18 12:56:49.346]: Request: End Transaction
+[2026/11/18 12:56:49.346]: Time: 340515 elapsed: 0 (ms)
+[2026/11/18 12:56:49.346]: Responses
+[2026/11/18 12:56:49.346]: Frame Package End
+[2026/11/18 12:56:50.392]: _AlpacaDevice::on_pinStateChanged(216, 1)
+[2026/11/18 12:56:50.392]: 
+[2026/11/18 12:56:50.392]: Frame Package Start
+[2026/11/18 12:56:50.392]: Frame Valid
+[2026/11/18 12:56:50.392]: Request: CONF:DIG:ON
+[2026/11/18 12:56:50.392]: Time: 341562 elapsed: 1047 (ms)
+[2026/11/18 12:56:50.392]: Synonym: Pin 216 on
+[2026/11/18 12:56:50.392]: Responses
+[2026/11/18 12:56:50.392]: Frame Package End
+[2026/11/18 12:56:50.392]: 
+[2026/11/18 12:56:50.392]: Frame Package Start
+[2026/11/18 12:56:50.392]: Frame Valid
+[2026/11/18 12:56:50.392]: Request: End Transaction
+[2026/11/18 12:56:50.392]: Time: 341562 elapsed: 0 (ms)
+[2026/11/18 12:56:50.392]: Responses
+[2026/11/18 12:56:50.392]: Frame Package End
+[2026/11/18 12:56:52.029]: 
+[2026/11/18 12:56:52.029]: Frame Package Start
+[2026/11/18 12:56:52.029]: Frame Valid
+[2026/11/18 12:56:52.029]: Delay 900 in msecsTime: 343187 elapsed: 1625 (ms)
+[2026/11/18 12:56:52.029]: Frame Package End
+[2026/11/18 12:56:52.029]: 
+[2026/11/18 12:56:52.029]: Frame Package Start
+[2026/11/18 12:56:52.029]: Frame Valid
+[2026/11/18 12:56:52.029]: Request: End Transaction
+[2026/11/18 12:56:52.029]: Time: 343187 elapsed: 0 (ms)
+[2026/11/18 12:56:52.029]: Responses
+[2026/11/18 12:56:52.029]: Frame Package End
+[2026/11/18 12:56:52.565]: _AlpacaDevice::on_pinStateChanged(4, 0)
+[2026/11/18 12:56:52.565]: 
+[2026/11/18 12:56:52.565]: Frame Package Start
+[2026/11/18 12:56:52.565]: Frame Valid
+[2026/11/18 12:56:52.565]: Request: CONF:DIG:ON
+[2026/11/18 12:56:52.565]: Time: 343734 elapsed: 547 (ms)
+[2026/11/18 12:56:52.565]: Synonym: Pin 4 off
+[2026/11/18 12:56:52.565]: Responses
+[2026/11/18 12:56:52.565]: Frame Package End
+[2026/11/18 12:56:52.565]: 
+[2026/11/18 12:56:52.565]: Frame Package Start
+[2026/11/18 12:56:52.565]: Frame Valid
+[2026/11/18 12:56:52.565]: Request: End Transaction
+[2026/11/18 12:56:52.565]: Time: 343734 elapsed: 0 (ms)
+[2026/11/18 12:56:52.565]: Responses
+[2026/11/18 12:56:52.565]: Frame Package End
+[2026/11/18 12:56:56.221]: 
+[2026/11/18 12:56:56.221]: Frame Package Start
+[2026/11/18 12:56:56.221]: Frame Valid
+[2026/11/18 12:56:56.221]: Delay 2500 in msecsTime: 347390 elapsed: 3656 (ms)
+[2026/11/18 12:56:56.221]: Frame Package End
+[2026/11/18 12:56:56.221]: 
+[2026/11/18 12:56:56.221]: Frame Package Start
+[2026/11/18 12:56:56.221]: Frame Valid
+[2026/11/18 12:56:56.221]: Request: End Transaction
+[2026/11/18 12:56:56.221]: Time: 347390 elapsed: 0 (ms)
+[2026/11/18 12:56:56.221]: Responses
+[2026/11/18 12:56:56.221]: Frame Package End
+[2026/11/18 12:56:56.743]: _AlpacaDevice::on_pinStateChanged(216, 0)
+[2026/11/18 12:56:56.743]: 
+[2026/11/18 12:56:56.743]: Frame Package Start
+[2026/11/18 12:56:56.743]: Frame Valid
+[2026/11/18 12:56:56.743]: Request: CONF:DIG:ON
+[2026/11/18 12:56:56.743]: Time: 347906 elapsed: 516 (ms)
+[2026/11/18 12:56:56.743]: Synonym: Pin 216 off
+[2026/11/18 12:56:56.743]: Responses
+[2026/11/18 12:56:56.743]: Frame Package End
+[2026/11/18 12:56:56.743]: 
+[2026/11/18 12:56:56.743]: Frame Package Start
+[2026/11/18 12:56:56.743]: Frame Valid
+[2026/11/18 12:56:56.743]: Request: End Transaction
+[2026/11/18 12:56:56.743]: Time: 347906 elapsed: 0 (ms)
+[2026/11/18 12:56:56.743]: Responses
+[2026/11/18 12:56:56.743]: Frame Package End
+[2026/11/18 12:56:57.248]: 
+[2026/11/18 12:56:57.248]: Frame Package Start
+[2026/11/18 12:56:57.248]: Frame Valid
+[2026/11/18 12:56:57.248]: ====== bootToEDL finish ====== 
+Time: 348406 elapsed: 500 (ms)
+[2026/11/18 12:56:57.248]: Frame Package End
+[2026/11/18 12:56:57.248]: 
+[2026/11/18 12:56:57.248]: Frame Package Start
+[2026/11/18 12:56:57.248]: Frame Valid
+[2026/11/18 12:56:57.248]: Request: End Transaction
+[2026/11/18 12:56:57.248]: Time: 348406 elapsed: 0 (ms)
+[2026/11/18 12:56:57.248]: Responses
+[2026/11/18 12:56:57.248]: Frame Package End
+[2026/11/18 12:57:04.824]: _AlpacaDevice::on_pinStateChanged(128, 0)
+[2026/11/18 12:57:04.824]: 
+[2026/11/18 12:57:04.824]: Frame Package Start
+[2026/11/18 12:57:04.824]: Frame Valid
+[2026/11/18 12:57:04.824]: Request: CONF:DIG:ON
+[2026/11/18 12:57:04.824]: Time: 355984 elapsed: 7578 (ms)
+[2026/11/18 12:57:04.824]: Synonym: Pin 128 off
+[2026/11/18 12:57:04.824]: Responses
+[2026/11/18 12:57:04.824]: Frame Package End
+[2026/11/18 12:57:04.824]: 
+[2026/11/18 12:57:04.824]: Frame Package Start
+[2026/11/18 12:57:04.824]: Frame Valid
+[2026/11/18 12:57:04.824]: Request: End Transaction
+[2026/11/18 12:57:04.824]: Time: 355984 elapsed: 0 (ms)
+[2026/11/18 12:57:04.824]: Responses
+[2026/11/18 12:57:04.824]: Frame Package End
+[2026/11/18 12:57:04.856]: _AlpacaDevice::setPinState(128)  Command:usb0
+[2026/11/18 12:58:35.866]: _AlpacaDevice::on_pinStateChanged(128, 0)
+[2026/11/18 12:58:35.866]: 
+[2026/11/18 12:58:35.866]: Frame Package Start
+[2026/11/18 12:58:35.866]: Frame Valid
+[2026/11/18 12:58:35.866]: Request: CONF:DIG:ON
+[2026/11/18 12:58:35.866]: Time: 447078 elapsed: 91094 (ms)
+[2026/11/18 12:58:35.866]: Synonym: Pin 128 off
+[2026/11/18 12:58:35.866]: Responses
+[2026/11/18 12:58:35.866]: Frame Package End
+[2026/11/18 12:58:35.866]: 
+[2026/11/18 12:58:35.866]: Frame Package Start
+[2026/11/18 12:58:35.866]: Frame Valid
+[2026/11/18 12:58:35.866]: Request: End Transaction
+[2026/11/18 12:58:35.866]: Time: 447078 elapsed: 0 (ms)
+[2026/11/18 12:58:35.866]: Responses
+[2026/11/18 12:58:35.866]: Frame Package End
+[2026/11/18 12:58:35.866]: _AlpacaDevice::setPinState(128)  Command:usb0
+[2026/11/18 13:00:13.479]: _AlpacaDevice::on_pinStateChanged(128, 0)
+[2026/11/18 13:00:13.479]: 
+[2026/11/18 13:00:13.479]: Frame Package Start
+[2026/11/18 13:00:13.479]: Frame Valid
+[2026/11/18 13:00:13.479]: Request: CONF:DIG:ON
+[2026/11/18 13:00:13.479]: Time: 544765 elapsed: 97687 (ms)
+[2026/11/18 13:00:13.479]: Synonym: Pin 128 off
+[2026/11/18 13:00:13.479]: Responses
+[2026/11/18 13:00:13.479]: Frame Package End
+[2026/11/18 13:00:13.479]: 
+[2026/11/18 13:00:13.479]: Frame Package Start
+[2026/11/18 13:00:13.479]: Frame Valid
+[2026/11/18 13:00:13.479]: Request: End Transaction
+[2026/11/18 13:00:13.479]: Time: 544765 elapsed: 0 (ms)
+[2026/11/18 13:00:13.479]: Responses
+[2026/11/18 13:00:13.479]: Frame Package End
+[2026/11/18 13:00:13.587]: _AlpacaDevice::setPinState(128)  Command:usb0
+[2026/11/18 13:00:38.012]: _AlpacaDevice::on_pinStateChanged(311, 0)
+[2026/11/18 13:00:38.012]: 
+[2026/11/18 13:00:38.012]: Frame Package Start
+[2026/11/18 13:00:38.012]: Frame Valid
+[2026/11/18 13:00:38.012]: Request: CONF:DIG:ON
+[2026/11/18 13:00:38.012]: Time: 569312 elapsed: 24547 (ms)
+[2026/11/18 13:00:38.012]: Synonym: Pin 311 off
+[2026/11/18 13:00:38.012]: Responses
+[2026/11/18 13:00:38.012]: Frame Package End
+[2026/11/18 13:00:38.012]: 
+[2026/11/18 13:00:38.012]: Frame Package Start
+[2026/11/18 13:00:38.012]: Frame Valid
+[2026/11/18 13:00:38.012]: Request: End Transaction
+[2026/11/18 13:00:38.012]: Time: 569312 elapsed: 0 (ms)
+[2026/11/18 13:00:38.012]: Responses
+[2026/11/18 13:00:38.012]: Frame Package End
+[2026/11/18 13:00:38.107]: _AlpacaDevice::setPinState(311)  Command:eud
+[2026/11/18 13:04:20.168]: _AlpacaDevice::quickCommand(powerOff): queueing 3 entries, completionArmed=yes
+[2026/11/18 13:04:20.174]: 
+[2026/11/18 13:04:20.174]: Frame Package Start
+[2026/11/18 13:04:20.174]: Frame Valid
+[2026/11/18 13:04:20.174]: ====== powerOff start ====== 
+Time: 791531 elapsed: 222219 (ms)
+[2026/11/18 13:04:20.174]: Frame Package End
+[2026/11/18 13:04:20.174]: 
+[2026/11/18 13:04:20.174]: Frame Package Start
+[2026/11/18 13:04:20.174]: Frame Valid
+[2026/11/18 13:04:20.174]: Request: End Transaction
+[2026/11/18 13:04:20.174]: Time: 791531 elapsed: 0 (ms)
+[2026/11/18 13:04:20.174]: Responses
+[2026/11/18 13:04:20.174]: Frame Package End
+[2026/11/18 13:04:20.270]: _AlpacaDevice::quickCommand(powerOff): completion confirmed
+[2026/11/18 13:04:20.701]: _AlpacaDevice::on_pinStateChanged(4, 1)
+[2026/11/18 13:04:20.701]: 
+[2026/11/18 13:04:20.701]: Frame Package Start
+[2026/11/18 13:04:20.701]: Frame Valid
+[2026/11/18 13:04:20.701]: Request: CONF:DIG:ON
+[2026/11/18 13:04:20.701]: Time: 792062 elapsed: 531 (ms)
+[2026/11/18 13:04:20.701]: Synonym: Pin 4 on
+[2026/11/18 13:04:20.701]: Responses
+[2026/11/18 13:04:20.701]: Frame Package End
+[2026/11/18 13:04:20.701]: 
+[2026/11/18 13:04:20.701]: Frame Package Start
+[2026/11/18 13:04:20.701]: Frame Valid
+[2026/11/18 13:04:20.701]: Request: End Transaction
+[2026/11/18 13:04:20.701]: Time: 792062 elapsed: 0 (ms)
+[2026/11/18 13:04:20.701]: Responses
+[2026/11/18 13:04:20.701]: Frame Package End
+[2026/11/18 13:04:21.204]: 
+[2026/11/18 13:04:21.204]: Frame Package Start
+[2026/11/18 13:04:21.204]: Frame Valid
+[2026/11/18 13:04:21.204]: ====== powerOff finish ====== 
+Time: 792562 elapsed: 500 (ms)
+[2026/11/18 13:04:21.204]: Frame Package End
+[2026/11/18 13:04:21.204]: 
+[2026/11/18 13:04:21.204]: Frame Package Start
+[2026/11/18 13:04:21.204]: Frame Valid
+[2026/11/18 13:04:21.204]: Request: End Transaction
+[2026/11/18 13:04:21.204]: Time: 792562 elapsed: 0 (ms)
+[2026/11/18 13:04:21.204]: Responses
+[2026/11/18 13:04:21.204]: Frame Package End
+[2026/11/18 13:04:35.286]: _AlpacaDevice::quickCommand(bootToEDL): queueing 10 entries, completionArmed=yes
+[2026/11/18 13:04:35.302]: 
+[2026/11/18 13:04:35.302]: Frame Package Start
+[2026/11/18 13:04:35.302]: Frame Valid
+[2026/11/18 13:04:35.302]: ====== bootToEDL start ====== 
+Time: 806671 elapsed: 14109 (ms)
+[2026/11/18 13:04:35.302]: Frame Package End
+[2026/11/18 13:04:35.302]: 
+[2026/11/18 13:04:35.302]: Frame Package Start
+[2026/11/18 13:04:35.302]: Frame Valid
+[2026/11/18 13:04:35.302]: Request: End Transaction
+[2026/11/18 13:04:35.302]: Time: 806671 elapsed: 0 (ms)
+[2026/11/18 13:04:35.302]: Responses
+[2026/11/18 13:04:35.302]: Frame Package End
+[2026/11/18 13:04:35.398]: _AlpacaDevice::quickCommand(bootToEDL): completion confirmed
+[2026/11/18 13:04:35.830]: _AlpacaDevice::on_pinStateChanged(219, 0)
+[2026/11/18 13:04:35.830]: 
+[2026/11/18 13:04:35.830]: Frame Package Start
+[2026/11/18 13:04:35.830]: Frame Valid
+[2026/11/18 13:04:35.830]: Request: CONF:DIG:ON
+[2026/11/18 13:04:35.830]: Time: 807187 elapsed: 516 (ms)
+[2026/11/18 13:04:35.830]: Synonym: Pin 219 off
+[2026/11/18 13:04:35.830]: Responses
+[2026/11/18 13:04:35.830]: Frame Package End
+[2026/11/18 13:04:35.830]: 
+[2026/11/18 13:04:35.830]: Frame Package Start
+[2026/11/18 13:04:35.830]: Frame Valid
+[2026/11/18 13:04:35.830]: Request: End Transaction
+[2026/11/18 13:04:35.830]: Time: 807187 elapsed: 0 (ms)
+[2026/11/18 13:04:35.830]: Responses
+[2026/11/18 13:04:35.830]: Frame Package End
+[2026/11/18 13:04:36.882]: _AlpacaDevice::on_pinStateChanged(16, 0)
+[2026/11/18 13:04:36.882]: 
+[2026/11/18 13:04:36.882]: Frame Package Start
+[2026/11/18 13:04:36.882]: Frame Valid
+[2026/11/18 13:04:36.882]: Request: CONF:DIG:ON
+[2026/11/18 13:04:36.882]: Time: 808250 elapsed: 1063 (ms)
+[2026/11/18 13:04:36.882]: Synonym: Pin 16 off
+[2026/11/18 13:04:36.882]: Responses
+[2026/11/18 13:04:36.882]: Frame Package End
+[2026/11/18 13:04:36.882]: 
+[2026/11/18 13:04:36.882]: Frame Package Start
+[2026/11/18 13:04:36.882]: Frame Valid
+[2026/11/18 13:04:36.882]: Request: End Transaction
+[2026/11/18 13:04:36.882]: Time: 808250 elapsed: 0 (ms)
+[2026/11/18 13:04:36.882]: Responses
+[2026/11/18 13:04:36.882]: Frame Package End
+[2026/11/18 13:04:37.920]: _AlpacaDevice::on_pinStateChanged(4, 1)
+[2026/11/18 13:04:37.920]: 
+[2026/11/18 13:04:37.920]: Frame Package Start
+[2026/11/18 13:04:37.920]: Frame Valid
+[2026/11/18 13:04:37.920]: Request: CONF:DIG:ON
+[2026/11/18 13:04:37.920]: Time: 809281 elapsed: 1031 (ms)
+[2026/11/18 13:04:37.920]: Synonym: Pin 4 on
+[2026/11/18 13:04:37.920]: Responses
+[2026/11/18 13:04:37.920]: Frame Package End
+[2026/11/18 13:04:37.920]: 
+[2026/11/18 13:04:37.920]: Frame Package Start
+[2026/11/18 13:04:37.920]: Frame Valid
+[2026/11/18 13:04:37.920]: Request: End Transaction
+[2026/11/18 13:04:37.920]: Time: 809281 elapsed: 0 (ms)
+[2026/11/18 13:04:37.920]: Responses
+[2026/11/18 13:04:37.920]: Frame Package End
+[2026/11/18 13:04:38.961]: _AlpacaDevice::on_pinStateChanged(216, 1)
+[2026/11/18 13:04:38.961]: 
+[2026/11/18 13:04:38.961]: Frame Package Start
+[2026/11/18 13:04:38.961]: Frame Valid
+[2026/11/18 13:04:38.961]: Request: CONF:DIG:ON
+[2026/11/18 13:04:38.961]: Time: 810328 elapsed: 1047 (ms)
+[2026/11/18 13:04:38.961]: Synonym: Pin 216 on
+[2026/11/18 13:04:38.961]: Responses
+[2026/11/18 13:04:38.961]: Frame Package End
+[2026/11/18 13:04:38.961]: 
+[2026/11/18 13:04:38.961]: Frame Package Start
+[2026/11/18 13:04:38.961]: Frame Valid
+[2026/11/18 13:04:38.961]: Request: End Transaction
+[2026/11/18 13:04:38.961]: Time: 810328 elapsed: 0 (ms)
+[2026/11/18 13:04:38.961]: Responses
+[2026/11/18 13:04:38.961]: Frame Package End
+[2026/11/18 13:04:40.616]: 
+[2026/11/18 13:04:40.616]: Frame Package Start
+[2026/11/18 13:04:40.616]: Frame Valid
+[2026/11/18 13:04:40.616]: Delay 900 in msecsTime: 811984 elapsed: 1656 (ms)
+[2026/11/18 13:04:40.616]: Frame Package End
+[2026/11/18 13:04:40.616]: 
+[2026/11/18 13:04:40.616]: Frame Package Start
+[2026/11/18 13:04:40.616]: Frame Valid
+[2026/11/18 13:04:40.616]: Request: End Transaction
+[2026/11/18 13:04:40.616]: Time: 811984 elapsed: 0 (ms)
+[2026/11/18 13:04:40.616]: Responses
+[2026/11/18 13:04:40.616]: Frame Package End
+[2026/11/18 13:04:41.139]: _AlpacaDevice::on_pinStateChanged(4, 0)
+[2026/11/18 13:04:41.139]: 
+[2026/11/18 13:04:41.139]: Frame Package Start
+[2026/11/18 13:04:41.139]: Frame Valid
+[2026/11/18 13:04:41.139]: Request: CONF:DIG:ON
+[2026/11/18 13:04:41.139]: Time: 812500 elapsed: 516 (ms)
+[2026/11/18 13:04:41.139]: Synonym: Pin 4 off
+[2026/11/18 13:04:41.139]: Responses
+[2026/11/18 13:04:41.139]: Frame Package End
+[2026/11/18 13:04:41.139]: 
+[2026/11/18 13:04:41.139]: Frame Package Start
+[2026/11/18 13:04:41.139]: Frame Valid
+[2026/11/18 13:04:41.139]: Request: End Transaction
+[2026/11/18 13:04:41.139]: Time: 812500 elapsed: 0 (ms)
+[2026/11/18 13:04:41.139]: Responses
+[2026/11/18 13:04:41.139]: Frame Package End
+[2026/11/18 13:04:44.833]: 
+[2026/11/18 13:04:44.833]: Frame Package Start
+[2026/11/18 13:04:44.833]: Frame Valid
+[2026/11/18 13:04:44.833]: Delay 2500 in msecsTime: 816203 elapsed: 3703 (ms)
+[2026/11/18 13:04:44.833]: Frame Package End
+[2026/11/18 13:04:44.833]: 
+[2026/11/18 13:04:44.833]: Frame Package Start
+[2026/11/18 13:04:44.833]: Frame Valid
+[2026/11/18 13:04:44.833]: Request: End Transaction
+[2026/11/18 13:04:44.833]: Time: 816203 elapsed: 0 (ms)
+[2026/11/18 13:04:44.833]: Responses
+[2026/11/18 13:04:44.833]: Frame Package End
+[2026/11/18 13:04:45.360]: _AlpacaDevice::on_pinStateChanged(216, 0)
+[2026/11/18 13:04:45.360]: 
+[2026/11/18 13:04:45.360]: Frame Package Start
+[2026/11/18 13:04:45.360]: Frame Valid
+[2026/11/18 13:04:45.360]: Request: CONF:DIG:ON
+[2026/11/18 13:04:45.360]: Time: 816718 elapsed: 515 (ms)
+[2026/11/18 13:04:45.360]: Synonym: Pin 216 off
+[2026/11/18 13:04:45.360]: Responses
+[2026/11/18 13:04:45.360]: Frame Package End
+[2026/11/18 13:04:45.360]: 
+[2026/11/18 13:04:45.360]: Frame Package Start
+[2026/11/18 13:04:45.360]: Frame Valid
+[2026/11/18 13:04:45.360]: Request: End Transaction
+[2026/11/18 13:04:45.360]: Time: 816718 elapsed: 0 (ms)
+[2026/11/18 13:04:45.360]: Responses
+[2026/11/18 13:04:45.360]: Frame Package End
+[2026/11/18 13:04:45.869]: 
+[2026/11/18 13:04:45.869]: Frame Package Start
+[2026/11/18 13:04:45.869]: Frame Valid
+[2026/11/18 13:04:45.869]: ====== bootToEDL finish ====== 
+Time: 817234 elapsed: 516 (ms)
+[2026/11/18 13:04:45.869]: Frame Package End
+[2026/11/18 13:04:45.869]: 
+[2026/11/18 13:04:45.869]: Frame Package Start
+[2026/11/18 13:04:45.869]: Frame Valid
+[2026/11/18 13:04:45.869]: Request: End Transaction
+[2026/11/18 13:04:45.869]: Time: 817234 elapsed: 0 (ms)
+[2026/11/18 13:04:45.869]: Responses
+[2026/11/18 13:04:45.869]: Frame Package End
+[2026/11/18 13:06:55.192]: _AlpacaDevice::quickCommand(powerOff): queueing 3 entries, completionArmed=yes
+[2026/11/18 13:06:55.205]: 
+[2026/11/18 13:06:55.205]: Frame Package Start
+[2026/11/18 13:06:55.205]: Frame Valid
+[2026/11/18 13:06:55.205]: ====== powerOff start ====== 
+Time: 946562 elapsed: 129328 (ms)
+[2026/11/18 13:06:55.205]: Frame Package End
+[2026/11/18 13:06:55.205]: 
+[2026/11/18 13:06:55.205]: Frame Package Start
+[2026/11/18 13:06:55.205]: Frame Valid
+[2026/11/18 13:06:55.205]: Request: End Transaction
+[2026/11/18 13:06:55.205]: Time: 946562 elapsed: 0 (ms)
+[2026/11/18 13:06:55.205]: Responses
+[2026/11/18 13:06:55.205]: Frame Package End
+[2026/11/18 13:06:55.300]: _AlpacaDevice::quickCommand(powerOff): completion confirmed
+[2026/11/18 13:06:55.741]: _AlpacaDevice::on_pinStateChanged(4, 1)
+[2026/11/18 13:06:55.741]: 
+[2026/11/18 13:06:55.741]: Frame Package Start
+[2026/11/18 13:06:55.741]: Frame Valid
+[2026/11/18 13:06:55.741]: Request: CONF:DIG:ON
+[2026/11/18 13:06:55.741]: Time: 947109 elapsed: 547 (ms)
+[2026/11/18 13:06:55.741]: Synonym: Pin 4 on
+[2026/11/18 13:06:55.741]: Responses
+[2026/11/18 13:06:55.741]: Frame Package End
+[2026/11/18 13:06:55.741]: 
+[2026/11/18 13:06:55.741]: Frame Package Start
+[2026/11/18 13:06:55.741]: Frame Valid
+[2026/11/18 13:06:55.741]: Request: End Transaction
+[2026/11/18 13:06:55.741]: Time: 947109 elapsed: 0 (ms)
+[2026/11/18 13:06:55.741]: Responses
+[2026/11/18 13:06:55.741]: Frame Package End
+[2026/11/18 13:06:56.250]: 
+[2026/11/18 13:06:56.250]: Frame Package Start
+[2026/11/18 13:06:56.250]: Frame Valid
+[2026/11/18 13:06:56.250]: ====== powerOff finish ====== 
+Time: 947609 elapsed: 500 (ms)
+[2026/11/18 13:06:56.250]: Frame Package End
+[2026/11/18 13:06:56.250]: 
+[2026/11/18 13:06:56.250]: Frame Package Start
+[2026/11/18 13:06:56.250]: Frame Valid
+[2026/11/18 13:06:56.250]: Request: End Transaction
+[2026/11/18 13:06:56.250]: Time: 947609 elapsed: 0 (ms)
+[2026/11/18 13:06:56.250]: Responses
+[2026/11/18 13:06:56.250]: Frame Package End
+[2026/11/18 13:07:10.322]: _AlpacaDevice::quickCommand(bootToSecondaryEDL): queueing 10 entries, completionArmed=yes
+[2026/11/18 13:07:10.332]: 
+[2026/11/18 13:07:10.332]: Frame Package Start
+[2026/11/18 13:07:10.332]: Frame Valid
+[2026/11/18 13:07:10.332]: ====== bootToSecondaryEDL start ====== 
+Time: 961703 elapsed: 14094 (ms)
+[2026/11/18 13:07:10.332]: Frame Package End
+[2026/11/18 13:07:10.332]: 
+[2026/11/18 13:07:10.332]: Frame Package Start
+[2026/11/18 13:07:10.332]: Frame Valid
+[2026/11/18 13:07:10.332]: Request: End Transaction
+[2026/11/18 13:07:10.332]: Time: 961703 elapsed: 0 (ms)
+[2026/11/18 13:07:10.332]: Responses
+[2026/11/18 13:07:10.332]: Frame Package End
+[2026/11/18 13:07:10.426]: _AlpacaDevice::quickCommand(bootToSecondaryEDL): completion confirmed
+[2026/11/18 13:07:10.874]: _AlpacaDevice::on_pinStateChanged(216, 0)
+[2026/11/18 13:07:10.874]: 
+[2026/11/18 13:07:10.874]: Frame Package Start
+[2026/11/18 13:07:10.874]: Frame Valid
+[2026/11/18 13:07:10.874]: Request: CONF:DIG:ON
+[2026/11/18 13:07:10.874]: Time: 962234 elapsed: 531 (ms)
+[2026/11/18 13:07:10.874]: Synonym: Pin 216 off
+[2026/11/18 13:07:10.874]: Responses
+[2026/11/18 13:07:10.874]: Frame Package End
+[2026/11/18 13:07:10.874]: 
+[2026/11/18 13:07:10.874]: Frame Package Start
+[2026/11/18 13:07:10.874]: Frame Valid
+[2026/11/18 13:07:10.874]: Request: End Transaction
+[2026/11/18 13:07:10.874]: Time: 962234 elapsed: 0 (ms)
+[2026/11/18 13:07:10.874]: Responses
+[2026/11/18 13:07:10.874]: Frame Package End
+[2026/11/18 13:07:11.904]: _AlpacaDevice::on_pinStateChanged(16, 0)
+[2026/11/18 13:07:11.904]: 
+[2026/11/18 13:07:11.904]: Frame Package Start
+[2026/11/18 13:07:11.904]: Frame Valid
+[2026/11/18 13:07:11.904]: Request: CONF:DIG:ON
+[2026/11/18 13:07:11.904]: Time: 963265 elapsed: 1031 (ms)
+[2026/11/18 13:07:11.904]: Synonym: Pin 16 off
+[2026/11/18 13:07:11.904]: Responses
+[2026/11/18 13:07:11.904]: Frame Package End
+[2026/11/18 13:07:11.904]: 
+[2026/11/18 13:07:11.904]: Frame Package Start
+[2026/11/18 13:07:11.904]: Frame Valid
+[2026/11/18 13:07:11.904]: Request: End Transaction
+[2026/11/18 13:07:11.904]: Time: 963265 elapsed: 0 (ms)
+[2026/11/18 13:07:11.904]: Responses
+[2026/11/18 13:07:11.904]: Frame Package End
+[2026/11/18 13:07:12.944]: _AlpacaDevice::on_pinStateChanged(4, 1)
+[2026/11/18 13:07:12.944]: 
+[2026/11/18 13:07:12.944]: Frame Package Start
+[2026/11/18 13:07:12.944]: Frame Valid
+[2026/11/18 13:07:12.944]: Request: CONF:DIG:ON
+[2026/11/18 13:07:12.944]: Time: 964312 elapsed: 1047 (ms)
+[2026/11/18 13:07:12.944]: Synonym: Pin 4 on
+[2026/11/18 13:07:12.944]: Responses
+[2026/11/18 13:07:12.944]: Frame Package End
+[2026/11/18 13:07:12.944]: 
+[2026/11/18 13:07:12.944]: Frame Package Start
+[2026/11/18 13:07:12.944]: Frame Valid
+[2026/11/18 13:07:12.944]: Request: End Transaction
+[2026/11/18 13:07:12.944]: Time: 964312 elapsed: 0 (ms)
+[2026/11/18 13:07:12.944]: Responses
+[2026/11/18 13:07:12.944]: Frame Package End
+[2026/11/18 13:07:13.980]: _AlpacaDevice::on_pinStateChanged(219, 1)
+[2026/11/18 13:07:13.980]: 
+[2026/11/18 13:07:13.980]: Frame Package Start
+[2026/11/18 13:07:13.980]: Frame Valid
+[2026/11/18 13:07:13.980]: Request: CONF:DIG:ON
+[2026/11/18 13:07:13.980]: Time: 965343 elapsed: 1031 (ms)
+[2026/11/18 13:07:13.980]: Synonym: Pin 219 on
+[2026/11/18 13:07:13.980]: Responses
+[2026/11/18 13:07:13.980]: Frame Package End
+[2026/11/18 13:07:13.980]: 
+[2026/11/18 13:07:13.980]: Frame Package Start
+[2026/11/18 13:07:13.980]: Frame Valid
+[2026/11/18 13:07:13.980]: Request: End Transaction
+[2026/11/18 13:07:13.980]: Time: 965343 elapsed: 0 (ms)
+[2026/11/18 13:07:13.980]: Responses
+[2026/11/18 13:07:13.980]: Frame Package End
+[2026/11/18 13:07:15.630]: 
+[2026/11/18 13:07:15.630]: Frame Package Start
+[2026/11/18 13:07:15.630]: Frame Valid
+[2026/11/18 13:07:15.630]: Delay 900 in msecsTime: 967000 elapsed: 1657 (ms)
+[2026/11/18 13:07:15.630]: Frame Package End
+[2026/11/18 13:07:15.630]: 
+[2026/11/18 13:07:15.630]: Frame Package Start
+[2026/11/18 13:07:15.630]: Frame Valid
+[2026/11/18 13:07:15.630]: Request: End Transaction
+[2026/11/18 13:07:15.630]: Time: 967000 elapsed: 0 (ms)
+[2026/11/18 13:07:15.630]: Responses
+[2026/11/18 13:07:15.630]: Frame Package End
+[2026/11/18 13:07:16.169]: _AlpacaDevice::on_pinStateChanged(4, 0)
+[2026/11/18 13:07:16.169]: 
+[2026/11/18 13:07:16.169]: Frame Package Start
+[2026/11/18 13:07:16.169]: Frame Valid
+[2026/11/18 13:07:16.169]: Request: CONF:DIG:ON
+[2026/11/18 13:07:16.169]: Time: 967531 elapsed: 531 (ms)
+[2026/11/18 13:07:16.169]: Synonym: Pin 4 off
+[2026/11/18 13:07:16.169]: Responses
+[2026/11/18 13:07:16.169]: Frame Package End
+[2026/11/18 13:07:16.169]: 
+[2026/11/18 13:07:16.169]: Frame Package Start
+[2026/11/18 13:07:16.169]: Frame Valid
+[2026/11/18 13:07:16.169]: Request: End Transaction
+[2026/11/18 13:07:16.169]: Time: 967531 elapsed: 0 (ms)
+[2026/11/18 13:07:16.169]: Responses
+[2026/11/18 13:07:16.169]: Frame Package End
+[2026/11/18 13:07:19.848]: 
+[2026/11/18 13:07:19.848]: Frame Package Start
+[2026/11/18 13:07:19.848]: Frame Valid
+[2026/11/18 13:07:19.848]: Delay 2500 in msecsTime: 971218 elapsed: 3687 (ms)
+[2026/11/18 13:07:19.848]: Frame Package End
+[2026/11/18 13:07:19.848]: 
+[2026/11/18 13:07:19.848]: Frame Package Start
+[2026/11/18 13:07:19.848]: Frame Valid
+[2026/11/18 13:07:19.848]: Request: End Transaction
+[2026/11/18 13:07:19.848]: Time: 971218 elapsed: 0 (ms)
+[2026/11/18 13:07:19.848]: Responses
+[2026/11/18 13:07:19.848]: Frame Package End
+[2026/11/18 13:07:20.376]: _AlpacaDevice::on_pinStateChanged(219, 0)
+[2026/11/18 13:07:20.376]: 
+[2026/11/18 13:07:20.376]: Frame Package Start
+[2026/11/18 13:07:20.376]: Frame Valid
+[2026/11/18 13:07:20.376]: Request: CONF:DIG:ON
+[2026/11/18 13:07:20.376]: Time: 971734 elapsed: 516 (ms)
+[2026/11/18 13:07:20.376]: Synonym: Pin 219 off
+[2026/11/18 13:07:20.376]: Responses
+[2026/11/18 13:07:20.376]: Frame Package End
+[2026/11/18 13:07:20.376]: 
+[2026/11/18 13:07:20.376]: Frame Package Start
+[2026/11/18 13:07:20.376]: Frame Valid
+[2026/11/18 13:07:20.376]: Request: End Transaction
+[2026/11/18 13:07:20.376]: Time: 971734 elapsed: 0 (ms)
+[2026/11/18 13:07:20.376]: Responses
+[2026/11/18 13:07:20.376]: Frame Package End
+[2026/11/18 13:07:20.886]: 
+[2026/11/18 13:07:20.886]: Frame Package Start
+[2026/11/18 13:07:20.886]: Frame Valid
+[2026/11/18 13:07:20.886]: ====== bootToSecondaryEDL finish ====== 
+Time: 972250 elapsed: 516 (ms)
+[2026/11/18 13:07:20.886]: Frame Package End
+[2026/11/18 13:07:20.886]: 
+[2026/11/18 13:07:20.886]: Frame Package Start
+[2026/11/18 13:07:20.886]: Frame Valid
+[2026/11/18 13:07:20.886]: Request: End Transaction
+[2026/11/18 13:07:20.886]: Time: 972250 elapsed: 0 (ms)
+[2026/11/18 13:07:20.886]: Responses
+[2026/11/18 13:07:20.886]: Frame Package End
+[2026/11/18 13:11:01.409]: _AlpacaDevice::quickCommand(powerOff): queueing 3 entries, completionArmed=yes
+[2026/11/18 13:11:01.419]: 
+[2026/11/18 13:11:01.419]: Frame Package Start
+[2026/11/18 13:11:01.419]: Frame Valid
+[2026/11/18 13:11:01.419]: ====== powerOff start ====== 
+Time: 1192781 elapsed: 220531 (ms)
+[2026/11/18 13:11:01.419]: Frame Package End
+[2026/11/18 13:11:01.419]: 
+[2026/11/18 13:11:01.419]: Frame Package Start
+[2026/11/18 13:11:01.419]: Frame Valid
+[2026/11/18 13:11:01.419]: Request: End Transaction
+[2026/11/18 13:11:01.419]: Time: 1192781 elapsed: 0 (ms)
+[2026/11/18 13:11:01.419]: Responses
+[2026/11/18 13:11:01.419]: Frame Package End
+[2026/11/18 13:11:01.513]: _AlpacaDevice::quickCommand(powerOff): completion confirmed
+[2026/11/18 13:11:11.524]: _AlpacaDevice::quickCommand(powerOn): queueing 5 entries, completionArmed=yes
+[2026/11/18 13:11:18.334]: Wait for completion timed out. Board stopped acknowledging after 6100 ms (port=COM6, driveTrain=TAC PIC32CX Drive Train, lastCommand=sendCommandSequence(5 entries))
+[2026/11/18 13:11:18.334]: _AlpacaDevice::quickCommand(powerOn): completion timed out
+[2026/11/18 13:11:18.334]: _AlpacaDevice::quickCommand(powerOn): command timed out, attempting transport reset
+[2026/11/18 13:11:18.350]: TACPIC32CXDriveThread::performTransportReset: resetting serial transport
+[2026/11/18 13:11:20.067]: Found serial port with vendor id: 32902 and product id: 31467
+[2026/11/18 13:11:20.067]: Found serial port with vendor id: 1478 and product id: 36872
+[2026/11/18 13:11:20.067]: Found serial port with vendor id: 1240 and product id: 10
+[2026/11/18 13:11:20.069]: Device KARUSSELLXXBANTAMTDC000035AQ0 opened
+[2026/11/18 13:11:20.069]: Com port COM6
+
+[2026/11/18 13:11:20.588]: 
+[2026/11/18 13:11:20.588]: Frame Package Start
+[2026/11/18 13:11:20.588]: Frame Valid
+[2026/11/18 13:11:20.588]: Request: echo 1
+[2026/11/18 13:11:20.588]: Time: 1211953 elapsed: 19172 (ms)
+[2026/11/18 13:11:20.588]: Responses
+[2026/11/18 13:11:20.588]: Frame Package End
+[2026/11/18 13:11:20.588]: 
+[2026/11/18 13:11:20.588]: Frame Package Start
+[2026/11/18 13:11:20.588]: Frame Valid
+[2026/11/18 13:11:20.588]: Request: End Transaction
+[2026/11/18 13:11:20.588]: Time: 1211953 elapsed: 0 (ms)
+[2026/11/18 13:11:20.588]: Responses
+[2026/11/18 13:11:20.588]: Frame Package End
+[2026/11/18 13:11:21.628]: PIC32CX board name: Karussell
+[2026/11/18 13:11:21.628]: PIC32CX board firmware version: Apr  8 2025
+[2026/11/18 13:11:21.628]: PIC32CX board MAC: 8C:FD:F0:C0:13:8C
+[2026/11/18 13:11:21.628]: Identified platform id: 54
+[2026/11/18 13:11:21.628]: PIC32CX board Serial Number: TDC000035AQ0
+[2026/11/18 13:11:21.628]: PIC32CX board MCN: 10-72521-1410
+[2026/11/18 13:11:21.628]: 
+[2026/11/18 13:11:21.628]: tacCommand.platformID()
+[2026/11/18 13:11:21.628]: 
+[2026/11/18 13:11:21.628]: Frame Package Start
+[2026/11/18 13:11:21.628]: Frame Valid
+[2026/11/18 13:11:21.628]: Request: *IDN?
+[2026/11/18 13:11:21.628]: Time: 1212984 elapsed: 1031 (ms)
+[2026/11/18 13:11:21.628]: Responses
+[2026/11/18 13:11:21.628]:    Karussell,Apr  8 2025,08/04/2025,8C:FD:F0:C0:13:8C,54,TDC000035AQ0,10-72521-1410
+[2026/11/18 13:11:21.628]: Frame Package End
+[2026/11/18 13:11:21.628]: TACPIC32CXDriveThread::performTransportReset: succeeded (handshake acknowledged)
+[2026/11/18 13:11:21.628]: 
+[2026/11/18 13:11:21.628]: Frame Package Start
+[2026/11/18 13:11:21.628]: Frame Valid
+[2026/11/18 13:11:21.628]: Request: End Transaction
+[2026/11/18 13:11:21.628]: Time: 1212984 elapsed: 0 (ms)
+[2026/11/18 13:11:21.628]: Responses
+[2026/11/18 13:11:21.628]: Frame Package End
+[2026/11/18 13:11:21.740]: TIMEOUT RECOVERY: command=quickCommand(powerOn) reset=succeeded retry=succeeded port=COM6
+[2026/11/18 13:11:22.139]: Buffer cleared before identifying PIC32CX board
+[2026/11/18 13:11:22.666]: PIC32CX board name: Karussell
+[2026/11/18 13:11:22.666]: PIC32CX board firmware version: Apr  8 2025
+[2026/11/18 13:11:22.666]: PIC32CX board MAC: 8C:FD:F0:C0:13:8C
+[2026/11/18 13:11:22.666]: Identified platform id: 54
+[2026/11/18 13:11:22.666]: PIC32CX board Serial Number: TDC000035AQ0
+[2026/11/18 13:11:22.666]: PIC32CX board MCN: 10-72521-1410
+[2026/11/18 13:11:22.666]: 
+[2026/11/18 13:11:22.666]: Frame Package Start
+[2026/11/18 13:11:22.666]: Frame Valid
+[2026/11/18 13:11:22.666]: Request: *IDN?
+[2026/11/18 13:11:22.666]: Time: 1214031 elapsed: 1047 (ms)
+[2026/11/18 13:11:22.666]: Responses
+[2026/11/18 13:11:22.666]:    Karussell,Apr  8 2025,08/04/2025,8C:FD:F0:C0:13:8C,54,TDC000035AQ0,10-72521-1410
+[2026/11/18 13:11:22.666]: Frame Package End
+[2026/11/18 13:11:22.666]: 
+[2026/11/18 13:11:22.666]: Frame Package Start
+[2026/11/18 13:11:22.666]: Frame Valid
+[2026/11/18 13:11:22.666]: Request: End Transaction
+[2026/11/18 13:11:22.666]: Time: 1214031 elapsed: 0 (ms)
+[2026/11/18 13:11:22.666]: Responses
+[2026/11/18 13:11:22.666]: Frame Package End
+[2026/11/18 13:11:23.177]: 
+[2026/11/18 13:11:23.177]: Frame Package Start
+[2026/11/18 13:11:23.177]: Frame Valid
+[2026/11/18 13:11:23.177]: ====== powerOn start ====== 
+Time: 1214531 elapsed: 500 (ms)
+[2026/11/18 13:11:23.177]: Frame Package End
+[2026/11/18 13:11:23.177]: 
+[2026/11/18 13:11:23.177]: Frame Package Start
+[2026/11/18 13:11:23.177]: Frame Valid
+[2026/11/18 13:11:23.177]: Request: End Transaction
+[2026/11/18 13:11:23.177]: Time: 1214531 elapsed: 0 (ms)
+[2026/11/18 13:11:23.177]: Responses
+[2026/11/18 13:11:23.177]: Frame Package End
+[2026/11/18 13:11:23.713]: _AlpacaDevice::on_pinStateChanged(4, 1)
+[2026/11/18 13:11:23.713]: 
+[2026/11/18 13:11:23.713]: Frame Package Start
+[2026/11/18 13:11:23.713]: Frame Valid
+[2026/11/18 13:11:23.713]: Request: CONF:DIG:ON
+[2026/11/18 13:11:23.713]: Time: 1215078 elapsed: 547 (ms)
+[2026/11/18 13:11:23.713]: Synonym: Pin 4 on
+[2026/11/18 13:11:23.713]: Responses
+[2026/11/18 13:11:23.713]: Frame Package End
+[2026/11/18 13:11:23.713]: 
+[2026/11/18 13:11:23.713]: Frame Package Start
+[2026/11/18 13:11:23.713]: Frame Valid
+[2026/11/18 13:11:23.713]: Request: End Transaction
+[2026/11/18 13:11:23.713]: Time: 1215078 elapsed: 0 (ms)
+[2026/11/18 13:11:23.713]: Responses
+[2026/11/18 13:11:23.713]: Frame Package End
+[2026/11/18 13:11:25.359]: 
+[2026/11/18 13:11:25.359]: Frame Package Start
+[2026/11/18 13:11:25.359]: Frame Valid
+[2026/11/18 13:11:25.359]: Delay 900 in msecsTime: 1216718 elapsed: 1640 (ms)
+[2026/11/18 13:11:25.359]: Frame Package End
+[2026/11/18 13:11:25.359]: 
+[2026/11/18 13:11:25.359]: Frame Package Start
+[2026/11/18 13:11:25.359]: Frame Valid
+[2026/11/18 13:11:25.359]: Request: End Transaction
+[2026/11/18 13:11:25.359]: Time: 1216718 elapsed: 0 (ms)
+[2026/11/18 13:11:25.359]: Responses
+[2026/11/18 13:11:25.359]: Frame Package End
+[2026/11/18 13:11:25.896]: _AlpacaDevice::on_pinStateChanged(4, 0)
+[2026/11/18 13:11:25.896]: 
+[2026/11/18 13:11:25.896]: Frame Package Start
+[2026/11/18 13:11:25.896]: Frame Valid
+[2026/11/18 13:11:25.896]: Request: CONF:DIG:ON
+[2026/11/18 13:11:25.896]: Time: 1217250 elapsed: 532 (ms)
+[2026/11/18 13:11:25.896]: Synonym: Pin 4 off
+[2026/11/18 13:11:25.896]: Responses
+[2026/11/18 13:11:25.896]: Frame Package End
+[2026/11/18 13:11:25.896]: 
+[2026/11/18 13:11:25.896]: Frame Package Start
+[2026/11/18 13:11:25.896]: Frame Valid
+[2026/11/18 13:11:25.896]: Request: End Transaction
+[2026/11/18 13:11:25.896]: Time: 1217250 elapsed: 0 (ms)
+[2026/11/18 13:11:25.896]: Responses
+[2026/11/18 13:11:25.896]: Frame Package End
+[2026/11/18 13:11:26.399]: 
+[2026/11/18 13:11:26.399]: Frame Package Start
+[2026/11/18 13:11:26.399]: Frame Valid
+[2026/11/18 13:11:26.399]: ====== powerOn finish ====== 
+Time: 1217750 elapsed: 500 (ms)
+[2026/11/18 13:11:26.399]: Frame Package End
+[2026/11/18 13:11:26.399]: 
+[2026/11/18 13:11:26.399]: Frame Package Start
+[2026/11/18 13:11:26.399]: Frame Valid
+[2026/11/18 13:11:26.399]: Request: End Transaction
+[2026/11/18 13:11:26.399]: Time: 1217750 elapsed: 0 (ms)
+[2026/11/18 13:11:26.399]: Responses
+[2026/11/18 13:11:26.399]: Frame Package End
+[2026/11/18 13:12:25.355]: _AlpacaDevice::on_pinStateChanged(128, 0)
+[2026/11/18 13:12:25.355]: 
+[2026/11/18 13:12:25.355]: Frame Package Start
+[2026/11/18 13:12:25.355]: Frame Valid
+[2026/11/18 13:12:25.355]: Request: CONF:DIG:ON
+[2026/11/18 13:12:25.355]: Time: 1276718 elapsed: 58968 (ms)
+[2026/11/18 13:12:25.355]: Synonym: Pin 128 off
+[2026/11/18 13:12:25.355]: Responses
+[2026/11/18 13:12:25.355]: Frame Package End
+[2026/11/18 13:12:25.355]: 
+[2026/11/18 13:12:25.355]: Frame Package Start
+[2026/11/18 13:12:25.355]: Frame Valid
+[2026/11/18 13:12:25.355]: Request: End Transaction
+[2026/11/18 13:12:25.355]: Time: 1276718 elapsed: 0 (ms)
+[2026/11/18 13:12:25.355]: Responses
+[2026/11/18 13:12:25.355]: Frame Package End
+[2026/11/18 13:12:25.355]: _AlpacaDevice::setPinState(128)  Command:usb0
+[2026/11/18 13:14:45.127]: Wait for completion timed out. Board stopped acknowledging after 5200 ms (port=COM6, driveTrain=TAC PIC32CX Drive Train, lastCommand=setPinState(pin=128, state=off))
+[2026/11/18 13:14:45.127]: _AlpacaDevice::setPinState(128)  Command:usb0
+[2026/11/18 13:14:45.127]: _AlpacaDevice::setPinState(128): command timed out, attempting transport reset
+[2026/11/18 13:14:45.142]: TACPIC32CXDriveThread::performTransportReset: resetting serial transport
+[2026/11/18 13:14:45.684]: Found serial port with vendor id: 32902 and product id: 31467
+[2026/11/18 13:14:45.684]: Found serial port with vendor id: 1478 and product id: 36893
+[2026/11/18 13:14:45.684]: Found serial port with vendor id: 1240 and product id: 10
+[2026/11/18 13:14:45.687]: Device KARUSSELLXXBANTAMTDC000035AQ0 opened
+[2026/11/18 13:14:45.687]: Com port COM6
+
+[2026/11/18 13:14:53.619]: TACPIC32CXDriveThread::performTransportReset: failed (handshake no response)
+[2026/11/18 13:14:53.620]: TIMEOUT RECOVERY: command=setPinState(pin=128, state=off) reset=failed retry=skipped port=COM6
+[2026/11/18 13:14:58.845]: Found serial port with vendor id: 32902 and product id: 31467
+[2026/11/18 13:14:58.845]: Found serial port with vendor id: 1478 and product id: 36893
+[2026/11/18 13:14:58.845]: Found serial port with vendor id: 1240 and product id: 10
+[2026/11/18 13:14:58.873]: Found serial port with vendor id: 32902 and product id: 31467
+[2026/11/18 13:14:58.873]: Found serial port with vendor id: 1478 and product id: 36893
+[2026/11/18 13:14:58.873]: Found serial port with vendor id: 1240 and product id: 10
+[2026/11/18 13:14:58.874]: TACPlatformEntry::getConfiguration() Platform C:/ProgramData/Qualcomm/QTAC/configurations/TAC_PIC32CXAuto_54.tcnf loaded
+[2026/11/18 13:14:58.874]: Found a PIC32CX device with port name: 'COM6'
+[2026/11/18 13:14:59.000]: Found serial port with vendor id: 32902 and product id: 31467
+[2026/11/18 13:14:59.000]: Found serial port with vendor id: 1478 and product id: 36893
+[2026/11/18 13:14:59.000]: Found serial port with vendor id: 1240 and product id: 10
+[2026/11/18 13:14:59.003]: Device KARUSSELLXXBANTAMTDC000035AQ0 opened
+[2026/11/18 13:14:59.003]: Com port COM6
+
+[2026/11/18 13:15:04.769]: Wait for completion timed out. Board stopped acknowledging after 5200 ms (port=COM6, driveTrain=TAC PIC32CX Drive Train, lastCommand=setPinState(pin=128, state=off))
+[2026/11/18 13:15:04.769]: _AlpacaDevice::setPinState(128)  Command:usb0
+[2026/11/18 13:15:04.769]: _AlpacaDevice::setPinState(128): command timed out, attempting transport reset
+[2026/11/18 13:15:04.785]: TACPIC32CXDriveThread::performTransportReset: resetting serial transport
+[2026/11/18 13:15:05.319]: Found serial port with vendor id: 32902 and product id: 31467
+[2026/11/18 13:15:05.319]: Found serial port with vendor id: 1478 and product id: 36893
+[2026/11/18 13:15:05.319]: Found serial port with vendor id: 1240 and product id: 10
+[2026/11/18 13:15:05.321]: Device KARUSSELLXXBANTAMTDC000035AQ0 opened
+[2026/11/18 13:15:05.321]: Com port COM6
+
+[2026/11/18 13:15:13.232]: TACPIC32CXDriveThread::performTransportReset: failed (handshake no response)
+[2026/11/18 13:15:13.232]: TIMEOUT RECOVERY: command=setPinState(pin=128, state=off) reset=failed retry=skipped port=COM6
+[2026/11/18 13:16:31.118]: Wait for completion timed out. Board stopped acknowledging after 5200 ms (port=COM6, driveTrain=TAC PIC32CX Drive Train, lastCommand=setPinState(pin=311, state=off))
+[2026/11/18 13:16:31.118]: _AlpacaDevice::setPinState(311)  Command:eud
+[2026/11/18 13:16:31.118]: _AlpacaDevice::setPinState(311): command timed out, attempting transport reset
+[2026/11/18 13:16:31.134]: TACPIC32CXDriveThread::performTransportReset: resetting serial transport
+[2026/11/18 13:16:31.674]: Found serial port with vendor id: 32902 and product id: 31467
+[2026/11/18 13:16:31.674]: Found serial port with vendor id: 1478 and product id: 36893
+[2026/11/18 13:16:31.674]: Found serial port with vendor id: 1240 and product id: 10
+[2026/11/18 13:16:31.680]: Device KARUSSELLXXBANTAMTDC000035AQ0 opened
+[2026/11/18 13:16:31.680]: Com port COM6
+
+[2026/11/18 13:16:39.620]: TACPIC32CXDriveThread::performTransportReset: failed (handshake no response)
+[2026/11/18 13:16:39.620]: TIMEOUT RECOVERY: command=setPinState(pin=311, state=off) reset=failed retry=skipped port=COM6
+[2026/11/18 13:16:44.775]: Found serial port with vendor id: 32902 and product id: 31467
+[2026/11/18 13:16:44.775]: Found serial port with vendor id: 1478 and product id: 36893
+[2026/11/18 13:16:44.775]: Found serial port with vendor id: 1240 and product id: 10
+[2026/11/18 13:16:44.796]: Found serial port with vendor id: 32902 and product id: 31467
+[2026/11/18 13:16:44.796]: Found serial port with vendor id: 1478 and product id: 36893
+[2026/11/18 13:16:44.796]: Found serial port with vendor id: 1240 and product id: 10
+[2026/11/18 13:16:44.798]: TACPlatformEntry::getConfiguration() Platform C:/ProgramData/Qualcomm/QTAC/configurations/TAC_PIC32CXAuto_54.tcnf loaded
+[2026/11/18 13:16:44.798]: Found a PIC32CX device with port name: 'COM6'
+[2026/11/18 13:16:44.941]: Found serial port with vendor id: 32902 and product id: 31467
+[2026/11/18 13:16:44.941]: Found serial port with vendor id: 1478 and product id: 36893
+[2026/11/18 13:16:44.941]: Found serial port with vendor id: 1240 and product id: 10
+[2026/11/18 13:16:44.947]: Device KARUSSELLXXBANTAMTDC000035AQ0 opened
+[2026/11/18 13:16:44.947]: Com port COM6
+
+[2026/11/18 13:16:50.722]: Wait for completion timed out. Board stopped acknowledging after 5200 ms (port=COM6, driveTrain=TAC PIC32CX Drive Train, lastCommand=setPinState(pin=311, state=off))
+[2026/11/18 13:16:50.722]: _AlpacaDevice::setPinState(311)  Command:eud
+[2026/11/18 13:16:50.722]: _AlpacaDevice::setPinState(311): command timed out, attempting transport reset
+[2026/11/18 13:16:50.738]: TACPIC32CXDriveThread::performTransportReset: resetting serial transport
+[2026/11/18 13:16:51.293]: Found serial port with vendor id: 32902 and product id: 31467
+[2026/11/18 13:16:51.293]: Found serial port with vendor id: 1478 and product id: 36893
+[2026/11/18 13:16:51.293]: Found serial port with vendor id: 1240 and product id: 10
+[2026/11/18 13:16:51.297]: Device KARUSSELLXXBANTAMTDC000035AQ0 opened
+[2026/11/18 13:16:51.297]: Com port COM6
+
+[2026/11/18 13:16:59.232]: TACPIC32CXDriveThread::performTransportReset: failed (handshake no response)
+[2026/11/18 13:16:59.232]: TIMEOUT RECOVERY: command=setPinState(pin=311, state=off) reset=failed retry=skipped port=COM6
+[2026/11/18 13:17:00.162]: _AlpacaDevice::quickCommand(bootToEDL): queueing 10 entries, completionArmed=yes
+[2026/11/18 13:17:09.764]: Wait for completion timed out. Board stopped acknowledging after 8600 ms (port=COM6, driveTrain=TAC PIC32CX Drive Train, lastCommand=sendCommandSequence(10 entries))
+[2026/11/18 13:17:09.764]: _AlpacaDevice::quickCommand(bootToEDL): completion timed out
+[2026/11/18 13:17:09.764]: _AlpacaDevice::quickCommand(bootToEDL): command timed out, attempting transport reset
+[2026/11/18 13:17:09.764]: TACPIC32CXDriveThread::performTransportReset: resetting serial transport
+[2026/11/18 13:17:14.644]: Found serial port with vendor id: 32902 and product id: 31467
+[2026/11/18 13:17:14.644]: Found serial port with vendor id: 1478 and product id: 36893
+[2026/11/18 13:17:14.644]: Found serial port with vendor id: 1240 and product id: 10
+[2026/11/18 13:17:14.647]: Device KARUSSELLXXBANTAMTDC000035AQ0 opened
+[2026/11/18 13:17:14.647]: Com port COM6
+
+[2026/11/18 13:17:22.573]: TACPIC32CXDriveThread::performTransportReset: failed (handshake no response)
+[2026/11/18 13:17:22.573]: TIMEOUT RECOVERY: command=quickCommand(bootToEDL) reset=failed retry=skipped port=COM6
+[2026/11/18 13:17:27.667]: Found serial port with vendor id: 32902 and product id: 31467
+[2026/11/18 13:17:27.667]: Found serial port with vendor id: 1478 and product id: 36893
+[2026/11/18 13:17:27.667]: Found serial port with vendor id: 1240 and product id: 10
+[2026/11/18 13:17:27.689]: Found serial port with vendor id: 32902 and product id: 31467
+[2026/11/18 13:17:27.689]: Found serial port with vendor id: 1478 and product id: 36893
+[2026/11/18 13:17:27.689]: Found serial port with vendor id: 1240 and product id: 10
+[2026/11/18 13:17:27.691]: TACPlatformEntry::getConfiguration() Platform C:/ProgramData/Qualcomm/QTAC/configurations/TAC_PIC32CXAuto_54.tcnf loaded
+[2026/11/18 13:17:27.691]: Found a PIC32CX device with port name: 'COM6'
+[2026/11/18 13:17:27.803]: _AlpacaDevice::quickCommand(bootToEDL): queueing 10 entries, completionArmed=yes
+[2026/11/18 13:17:27.831]: Found serial port with vendor id: 32902 and product id: 31467
+[2026/11/18 13:17:27.831]: Found serial port with vendor id: 1478 and product id: 36893
+[2026/11/18 13:17:27.831]: Found serial port with vendor id: 1240 and product id: 10
+[2026/11/18 13:17:27.838]: Device KARUSSELLXXBANTAMTDC000035AQ0 opened
+[2026/11/18 13:17:27.838]: Com port COM6
+
+[2026/11/18 13:17:27.838]: 
+[2026/11/18 13:17:27.838]: Frame Package Start
+[2026/11/18 13:17:27.838]: Frame Valid
+[2026/11/18 13:17:27.838]: ====== bootToEDL start ====== 
+Time: 1579187 elapsed: 302469 (ms)
+[2026/11/18 13:17:27.838]: Frame Package End
+[2026/11/18 13:17:27.838]: 
+[2026/11/18 13:17:27.838]: Frame Package Start
+[2026/11/18 13:17:27.838]: Frame Valid
+[2026/11/18 13:17:27.838]: Request: End Transaction
+[2026/11/18 13:17:27.838]: Time: 1579187 elapsed: 0 (ms)
+[2026/11/18 13:17:27.838]: Responses
+[2026/11/18 13:17:27.838]: Frame Package End
+[2026/11/18 13:17:27.915]: _AlpacaDevice::quickCommand(bootToEDL): completion confirmed
+[2026/11/18 13:18:28.159]: _AlpacaDevice::quickCommand(bootToEDL): queueing 10 entries, completionArmed=yes
+[2026/11/18 13:18:37.760]: Wait for completion timed out. Board stopped acknowledging after 8600 ms (port=COM6, driveTrain=TAC PIC32CX Drive Train, lastCommand=sendCommandSequence(10 entries))
+[2026/11/18 13:18:37.760]: _AlpacaDevice::quickCommand(bootToEDL): completion timed out
+[2026/11/18 13:18:37.760]: _AlpacaDevice::quickCommand(bootToEDL): command timed out, attempting transport reset
+[2026/11/18 13:18:37.776]: TACPIC32CXDriveThread::performTransportReset: resetting serial transport
+[2026/11/18 13:18:46.995]: Found serial port with vendor id: 32902 and product id: 31467
+[2026/11/18 13:18:46.995]: Found serial port with vendor id: 1478 and product id: 36893
+[2026/11/18 13:18:46.995]: Found serial port with vendor id: 1240 and product id: 10
+[2026/11/18 13:18:47.003]: Device KARUSSELLXXBANTAMTDC000035AQ0 opened
+[2026/11/18 13:18:47.003]: Com port COM6
+
+[2026/11/18 13:18:52.764]: TACDriveThread::resetTransport: timed out waiting for drive thread to reset transport
+[2026/11/18 13:18:52.764]: TIMEOUT RECOVERY: command=quickCommand(bootToEDL) reset=failed retry=skipped port=COM6
+[2026/11/18 13:18:54.940]: TACPIC32CXDriveThread::performTransportReset: failed (handshake no response)
+[2026/11/18 13:19:00.090]: Found serial port with vendor id: 32902 and product id: 31467
+[2026/11/18 13:19:00.090]: Found serial port with vendor id: 1478 and product id: 36893
+[2026/11/18 13:19:00.090]: Found serial port with vendor id: 1240 and product id: 10
+[2026/11/18 13:19:00.116]: Found serial port with vendor id: 32902 and product id: 31467
+[2026/11/18 13:19:00.116]: Found serial port with vendor id: 1478 and product id: 36893
+[2026/11/18 13:19:00.116]: Found serial port with vendor id: 1240 and product id: 10
+[2026/11/18 13:19:00.118]: TACPlatformEntry::getConfiguration() Platform C:/ProgramData/Qualcomm/QTAC/configurations/TAC_PIC32CXAuto_54.tcnf loaded
+[2026/11/18 13:19:00.118]: Found a PIC32CX device with port name: 'COM6'
+[2026/11/18 13:19:00.219]: _AlpacaDevice::quickCommand(bootToEDL): queueing 10 entries, completionArmed=yes
+[2026/11/18 13:19:00.262]: Found serial port with vendor id: 32902 and product id: 31467
+[2026/11/18 13:19:00.262]: Found serial port with vendor id: 1478 and product id: 36893
+[2026/11/18 13:19:00.262]: Found serial port with vendor id: 1240 and product id: 10
+[2026/11/18 13:19:00.271]: Device KARUSSELLXXBANTAMTDC000035AQ0 opened
+[2026/11/18 13:19:00.271]: Com port COM6
+
+[2026/11/18 13:19:00.271]: 
+[2026/11/18 13:19:00.271]: Frame Package Start
+[2026/11/18 13:19:00.271]: Frame Valid
+[2026/11/18 13:19:00.271]: ====== bootToEDL start ====== 
+Time: 1671625 elapsed: 92438 (ms)
+[2026/11/18 13:19:00.272]: Frame Package End
+[2026/11/18 13:19:00.272]: 
+[2026/11/18 13:19:00.272]: Frame Package Start
+[2026/11/18 13:19:00.272]: Frame Valid
+[2026/11/18 13:19:00.272]: Request: End Transaction
+[2026/11/18 13:19:00.272]: Time: 1671625 elapsed: 0 (ms)
+[2026/11/18 13:19:00.272]: Responses
+[2026/11/18 13:19:00.272]: Frame Package End
+[2026/11/18 13:19:00.328]: _AlpacaDevice::quickCommand(bootToEDL): completion confirmed
+[2026/11/18 13:20:06.449]: Wait for completion timed out. Board stopped acknowledging after 5200 ms (port=COM6, driveTrain=TAC PIC32CX Drive Train, lastCommand=setPinState(pin=128, state=off))
+[2026/11/18 13:20:06.449]: _AlpacaDevice::setPinState(128)  Command:usb0
+[2026/11/18 13:20:06.449]: _AlpacaDevice::setPinState(128): command timed out, attempting transport reset
+[2026/11/18 13:20:06.465]: TACPIC32CXDriveThread::performTransportReset: resetting serial transport
+[2026/11/18 13:20:11.347]: Found serial port with vendor id: 32902 and product id: 31467
+[2026/11/18 13:20:11.347]: Found serial port with vendor id: 1478 and product id: 36893
+[2026/11/18 13:20:11.347]: Found serial port with vendor id: 1240 and product id: 10
+[2026/11/18 13:20:11.359]: Device KARUSSELLXXBANTAMTDC000035AQ0 opened
+[2026/11/18 13:20:11.359]: Com port COM6
+
+[2026/11/18 13:20:19.303]: TACPIC32CXDriveThread::performTransportReset: failed (handshake no response)
+[2026/11/18 13:20:19.303]: TIMEOUT RECOVERY: command=setPinState(pin=128, state=off) reset=failed retry=skipped port=COM6
+[2026/11/18 13:20:24.462]: Found serial port with vendor id: 32902 and product id: 31467
+[2026/11/18 13:20:24.462]: Found serial port with vendor id: 1478 and product id: 36893
+[2026/11/18 13:20:24.462]: Found serial port with vendor id: 1240 and product id: 10
+[2026/11/18 13:20:24.491]: Found serial port with vendor id: 32902 and product id: 31467
+[2026/11/18 13:20:24.491]: Found serial port with vendor id: 1478 and product id: 36893
+[2026/11/18 13:20:24.491]: Found serial port with vendor id: 1240 and product id: 10
+[2026/11/18 13:20:24.496]: TACPlatformEntry::getConfiguration() Platform C:/ProgramData/Qualcomm/QTAC/configurations/TAC_PIC32CXAuto_54.tcnf loaded
+[2026/11/18 13:20:24.496]: Found a PIC32CX device with port name: 'COM6'
+[2026/11/18 13:20:24.634]: Found serial port with vendor id: 32902 and product id: 31467
+[2026/11/18 13:20:24.634]: Found serial port with vendor id: 1478 and product id: 36893
+[2026/11/18 13:20:24.634]: Found serial port with vendor id: 1240 and product id: 10
+[2026/11/18 13:20:24.636]: Device KARUSSELLXXBANTAMTDC000035AQ0 opened
+[2026/11/18 13:20:24.636]: Com port COM6
+
+[2026/11/18 13:20:30.420]: Wait for completion timed out. Board stopped acknowledging after 5200 ms (port=COM6, driveTrain=TAC PIC32CX Drive Train, lastCommand=setPinState(pin=128, state=off))
+[2026/11/18 13:20:30.420]: _AlpacaDevice::setPinState(128)  Command:usb0
+[2026/11/18 13:20:30.420]: _AlpacaDevice::setPinState(128): command timed out, attempting transport reset
+[2026/11/18 13:20:30.420]: TACPIC32CXDriveThread::performTransportReset: resetting serial transport
+[2026/11/18 13:20:30.976]: Found serial port with vendor id: 32902 and product id: 31467
+[2026/11/18 13:20:30.976]: Found serial port with vendor id: 1478 and product id: 36893
+[2026/11/18 13:20:30.976]: Found serial port with vendor id: 1240 and product id: 10
+[2026/11/18 13:20:30.985]: Device KARUSSELLXXBANTAMTDC000035AQ0 opened
+[2026/11/18 13:20:30.985]: Com port COM6
+
+[2026/11/18 13:20:38.919]: TACPIC32CXDriveThread::performTransportReset: failed (handshake no response)
+[2026/11/18 13:20:38.919]: TIMEOUT RECOVERY: command=setPinState(pin=128, state=off) reset=failed retry=skipped port=COM6
+[2026/11/18 13:20:38.937]: _AlpacaDevice::quickCommand(bootToEDL): queueing 10 entries, completionArmed=yes
+[2026/11/18 13:20:48.537]: Wait for completion timed out. Board stopped acknowledging after 8600 ms (port=COM6, driveTrain=TAC PIC32CX Drive Train, lastCommand=sendCommandSequence(10 entries))
+[2026/11/18 13:20:48.537]: _AlpacaDevice::quickCommand(bootToEDL): completion timed out
+[2026/11/18 13:20:48.537]: _AlpacaDevice::quickCommand(bootToEDL): command timed out, attempting transport reset
+[2026/11/18 13:20:48.553]: TACPIC32CXDriveThread::performTransportReset: resetting serial transport
+[2026/11/18 13:20:53.432]: Found serial port with vendor id: 32902 and product id: 31467
+[2026/11/18 13:20:53.432]: Found serial port with vendor id: 1478 and product id: 36893
+[2026/11/18 13:20:53.432]: Found serial port with vendor id: 1240 and product id: 10
+[2026/11/18 13:20:53.440]: Device KARUSSELLXXBANTAMTDC000035AQ0 opened
+[2026/11/18 13:20:53.440]: Com port COM6
+
+[2026/11/18 13:21:01.361]: TACPIC32CXDriveThread::performTransportReset: failed (handshake no response)
+[2026/11/18 13:21:01.361]: TIMEOUT RECOVERY: command=quickCommand(bootToEDL) reset=failed retry=skipped port=COM6
+[2026/11/18 13:21:06.526]: Found serial port with vendor id: 32902 and product id: 31467
+[2026/11/18 13:21:06.526]: Found serial port with vendor id: 1478 and product id: 36893
+[2026/11/18 13:21:06.526]: Found serial port with vendor id: 1240 and product id: 10
+[2026/11/18 13:21:06.553]: Found serial port with vendor id: 32902 and product id: 31467
+[2026/11/18 13:21:06.553]: Found serial port with vendor id: 1478 and product id: 36893
+[2026/11/18 13:21:06.553]: Found serial port with vendor id: 1240 and product id: 10
+[2026/11/18 13:21:06.555]: TACPlatformEntry::getConfiguration() Platform C:/ProgramData/Qualcomm/QTAC/configurations/TAC_PIC32CXAuto_54.tcnf loaded
+[2026/11/18 13:21:06.555]: Found a PIC32CX device with port name: 'COM6'
+[2026/11/18 13:21:06.660]: _AlpacaDevice::quickCommand(bootToEDL): queueing 10 entries, completionArmed=yes
+[2026/11/18 13:21:06.689]: Found serial port with vendor id: 32902 and product id: 31467
+[2026/11/18 13:21:06.689]: Found serial port with vendor id: 1478 and product id: 36893
+[2026/11/18 13:21:06.689]: Found serial port with vendor id: 1240 and product id: 10
+[2026/11/18 13:21:06.704]: Device KARUSSELLXXBANTAMTDC000035AQ0 opened
+[2026/11/18 13:21:06.704]: Com port COM6
+
+[2026/11/18 13:21:06.704]: 
+[2026/11/18 13:21:06.704]: Frame Package Start
+[2026/11/18 13:21:06.704]: Frame Valid
+[2026/11/18 13:21:06.704]: ====== bootToEDL start ====== 
+Time: 1798062 elapsed: 126437 (ms)
+[2026/11/18 13:21:06.704]: Frame Package End
+[2026/11/18 13:21:06.704]: 
+[2026/11/18 13:21:06.704]: Frame Package Start
+[2026/11/18 13:21:06.704]: Frame Valid
+[2026/11/18 13:21:06.704]: Request: End Transaction
+[2026/11/18 13:21:06.704]: Time: 1798062 elapsed: 0 (ms)
+[2026/11/18 13:21:06.704]: Responses
+[2026/11/18 13:21:06.704]: Frame Package End
+[2026/11/18 13:21:06.771]: _AlpacaDevice::quickCommand(bootToEDL): completion confirmed
+[2026/11/18 13:22:12.858]: Wait for completion timed out. Board stopped acknowledging after 5200 ms (port=COM6, driveTrain=TAC PIC32CX Drive Train, lastCommand=setPinState(pin=128, state=off))
+[2026/11/18 13:22:12.858]: _AlpacaDevice::setPinState(128)  Command:usb0
+[2026/11/18 13:22:12.858]: _AlpacaDevice::setPinState(128): command timed out, attempting transport reset
+[2026/11/18 13:22:12.874]: TACPIC32CXDriveThread::performTransportReset: resetting serial transport
+[2026/11/18 13:22:17.769]: Found serial port with vendor id: 32902 and product id: 31467
+[2026/11/18 13:22:17.769]: Found serial port with vendor id: 1478 and product id: 36893
+[2026/11/18 13:22:17.769]: Found serial port with vendor id: 1240 and product id: 10
+[2026/11/18 13:22:17.781]: Device KARUSSELLXXBANTAMTDC000035AQ0 opened
+[2026/11/18 13:22:17.781]: Com port COM6
+
+[2026/11/18 13:22:25.732]: TACPIC32CXDriveThread::performTransportReset: failed (handshake no response)
+[2026/11/18 13:22:25.732]: TIMEOUT RECOVERY: command=setPinState(pin=128, state=off) reset=failed retry=skipped port=COM6
+[2026/11/18 13:22:30.833]: Found serial port with vendor id: 32902 and product id: 31467
+[2026/11/18 13:22:30.833]: Found serial port with vendor id: 1478 and product id: 36893
+[2026/11/18 13:22:30.833]: Found serial port with vendor id: 1240 and product id: 10
+[2026/11/18 13:22:30.863]: Found serial port with vendor id: 32902 and product id: 31467
+[2026/11/18 13:22:30.863]: Found serial port with vendor id: 1478 and product id: 36893
+[2026/11/18 13:22:30.863]: Found serial port with vendor id: 1240 and product id: 10
+[2026/11/18 13:22:30.864]: TACPlatformEntry::getConfiguration() Platform C:/ProgramData/Qualcomm/QTAC/configurations/TAC_PIC32CXAuto_54.tcnf loaded
+[2026/11/18 13:22:30.864]: Found a PIC32CX device with port name: 'COM6'
+[2026/11/18 13:22:31.008]: Found serial port with vendor id: 32902 and product id: 31467
+[2026/11/18 13:22:31.008]: Found serial port with vendor id: 1478 and product id: 36893
+[2026/11/18 13:22:31.008]: Found serial port with vendor id: 1240 and product id: 10
+[2026/11/18 13:22:31.018]: Device KARUSSELLXXBANTAMTDC000035AQ0 opened
+[2026/11/18 13:22:31.018]: Com port COM6
+
+[2026/11/18 13:22:36.789]: Wait for completion timed out. Board stopped acknowledging after 5200 ms (port=COM6, driveTrain=TAC PIC32CX Drive Train, lastCommand=setPinState(pin=128, state=off))
+[2026/11/18 13:22:36.789]: _AlpacaDevice::setPinState(128)  Command:usb0
+[2026/11/18 13:22:36.789]: _AlpacaDevice::setPinState(128): command timed out, attempting transport reset
+[2026/11/18 13:22:36.805]: TACPIC32CXDriveThread::performTransportReset: resetting serial transport
+[2026/11/18 13:22:37.359]: Found serial port with vendor id: 32902 and product id: 31467
+[2026/11/18 13:22:37.360]: Found serial port with vendor id: 1478 and product id: 36893
+[2026/11/18 13:22:37.360]: Found serial port with vendor id: 1240 and product id: 10
+[2026/11/18 13:22:37.361]: Device KARUSSELLXXBANTAMTDC000035AQ0 opened
+[2026/11/18 13:22:37.361]: Com port COM6
+
+[2026/11/18 13:22:45.303]: TACPIC32CXDriveThread::performTransportReset: failed (handshake no response)
+[2026/11/18 13:22:45.303]: TIMEOUT RECOVERY: command=setPinState(pin=128, state=off) reset=failed retry=skipped port=COM6
+[2026/11/18 13:32:45.346]: _AlpacaDevice::quickCommand(bootToEDL): queueing 10 entries, completionArmed=yes
+[2026/11/18 13:32:54.951]: Wait for completion timed out. Board stopped acknowledging after 8600 ms (port=COM6, driveTrain=TAC PIC32CX Drive Train, lastCommand=sendCommandSequence(10 entries))
+[2026/11/18 13:32:54.951]: _AlpacaDevice::quickCommand(bootToEDL): completion timed out
+[2026/11/18 13:32:54.951]: _AlpacaDevice::quickCommand(bootToEDL): command timed out, attempting transport reset
+[2026/11/18 13:32:54.966]: TACPIC32CXDriveThread::performTransportReset: resetting serial transport
+[2026/11/18 13:32:59.862]: Found serial port with vendor id: 32902 and product id: 31467
+[2026/11/18 13:32:59.862]: Found serial port with vendor id: 1478 and product id: 36893
+[2026/11/18 13:32:59.862]: Found serial port with vendor id: 1240 and product id: 10
+[2026/11/18 13:32:59.868]: Device KARUSSELLXXBANTAMTDC000035AQ0 opened
+[2026/11/18 13:32:59.868]: Com port COM6
+
+[2026/11/18 13:33:07.818]: TACPIC32CXDriveThread::performTransportReset: failed (handshake no response)
+[2026/11/18 13:33:07.818]: TIMEOUT RECOVERY: command=quickCommand(bootToEDL) reset=failed retry=skipped port=COM6
+[2026/11/18 13:33:12.984]: Found serial port with vendor id: 32902 and product id: 31467
+[2026/11/18 13:33:12.984]: Found serial port with vendor id: 1478 and product id: 36893
+[2026/11/18 13:33:12.984]: Found serial port with vendor id: 1240 and product id: 10
+[2026/11/18 13:33:13.021]: Found serial port with vendor id: 32902 and product id: 31467
+[2026/11/18 13:33:13.021]: Found serial port with vendor id: 1478 and product id: 36893
+[2026/11/18 13:33:13.021]: Found serial port with vendor id: 1240 and product id: 10
+[2026/11/18 13:33:13.023]: TACPlatformEntry::getConfiguration() Platform C:/ProgramData/Qualcomm/QTAC/configurations/TAC_PIC32CXAuto_54.tcnf loaded
+[2026/11/18 13:33:13.023]: Found a PIC32CX device with port name: 'COM6'
+[2026/11/18 13:33:13.131]: _AlpacaDevice::quickCommand(bootToEDL): queueing 10 entries, completionArmed=yes
+[2026/11/18 13:33:13.161]: Found serial port with vendor id: 32902 and product id: 31467
+[2026/11/18 13:33:13.161]: Found serial port with vendor id: 1478 and product id: 36893
+[2026/11/18 13:33:13.161]: Found serial port with vendor id: 1240 and product id: 10
+[2026/11/18 13:33:13.169]: Device KARUSSELLXXBANTAMTDC000035AQ0 opened
+[2026/11/18 13:33:13.169]: Com port COM6
+
+[2026/11/18 13:33:13.169]: 
+[2026/11/18 13:33:13.169]: Frame Package Start
+[2026/11/18 13:33:13.169]: Frame Valid
+[2026/11/18 13:33:13.169]: ====== bootToEDL start ====== 
+Time: 2524515 elapsed: 726453 (ms)
+[2026/11/18 13:33:13.169]: Frame Package End
+[2026/11/18 13:33:13.169]: 
+[2026/11/18 13:33:13.169]: Frame Package Start
+[2026/11/18 13:33:13.169]: Frame Valid
+[2026/11/18 13:33:13.169]: Request: End Transaction
+[2026/11/18 13:33:13.169]: Time: 2524515 elapsed: 0 (ms)
+[2026/11/18 13:33:13.169]: Responses
+[2026/11/18 13:33:13.169]: Frame Package End
+[2026/11/18 13:33:13.243]: _AlpacaDevice::quickCommand(bootToEDL): completion confirmed
+[2026/11/18 13:34:19.332]: Wait for completion timed out. Board stopped acknowledging after 5200 ms (port=COM6, driveTrain=TAC PIC32CX Drive Train, lastCommand=setPinState(pin=128, state=off))
+[2026/11/18 13:34:19.332]: _AlpacaDevice::setPinState(128)  Command:usb0
+[2026/11/18 13:34:19.332]: _AlpacaDevice::setPinState(128): command timed out, attempting transport reset
+[2026/11/18 13:34:19.332]: TACPIC32CXDriveThread::performTransportReset: resetting serial transport
+[2026/11/18 13:34:24.232]: Found serial port with vendor id: 32902 and product id: 31467
+[2026/11/18 13:34:24.232]: Found serial port with vendor id: 1478 and product id: 36893
+[2026/11/18 13:34:24.232]: Found serial port with vendor id: 1240 and product id: 10
+[2026/11/18 13:34:24.240]: Device KARUSSELLXXBANTAMTDC000035AQ0 opened
+[2026/11/18 13:34:24.240]: Com port COM6
+
+[2026/11/18 13:34:32.177]: TACPIC32CXDriveThread::performTransportReset: failed (handshake no response)
+[2026/11/18 13:34:32.177]: TIMEOUT RECOVERY: command=setPinState(pin=128, state=off) reset=failed retry=skipped port=COM6
+[2026/11/18 13:34:37.347]: Found serial port with vendor id: 32902 and product id: 31467
+[2026/11/18 13:34:37.347]: Found serial port with vendor id: 1478 and product id: 36893
+[2026/11/18 13:34:37.347]: Found serial port with vendor id: 1240 and product id: 10
+[2026/11/18 13:34:37.379]: Found serial port with vendor id: 32902 and product id: 31467
+[2026/11/18 13:34:37.379]: Found serial port with vendor id: 1478 and product id: 36893
+[2026/11/18 13:34:37.379]: Found serial port with vendor id: 1240 and product id: 10
+[2026/11/18 13:34:37.381]: TACPlatformEntry::getConfiguration() Platform C:/ProgramData/Qualcomm/QTAC/configurations/TAC_PIC32CXAuto_54.tcnf loaded
+[2026/11/18 13:34:37.381]: Found a PIC32CX device with port name: 'COM6'
+[2026/11/18 13:34:37.515]: Found serial port with vendor id: 32902 and product id: 31467
+[2026/11/18 13:34:37.515]: Found serial port with vendor id: 1478 and product id: 36893
+[2026/11/18 13:34:37.515]: Found serial port with vendor id: 1240 and product id: 10
+[2026/11/18 13:34:37.524]: Device KARUSSELLXXBANTAMTDC000035AQ0 opened
+[2026/11/18 13:34:37.524]: Com port COM6
+
+[2026/11/18 13:34:43.305]: Wait for completion timed out. Board stopped acknowledging after 5200 ms (port=COM6, driveTrain=TAC PIC32CX Drive Train, lastCommand=setPinState(pin=128, state=off))
+[2026/11/18 13:34:43.305]: _AlpacaDevice::setPinState(128)  Command:usb0
+[2026/11/18 13:34:43.305]: _AlpacaDevice::setPinState(128): command timed out, attempting transport reset
+[2026/11/18 13:34:43.321]: TACPIC32CXDriveThread::performTransportReset: resetting serial transport
+[2026/11/18 13:34:43.858]: Found serial port with vendor id: 32902 and product id: 31467
+[2026/11/18 13:34:43.858]: Found serial port with vendor id: 1478 and product id: 36893
+[2026/11/18 13:34:43.858]: Found serial port with vendor id: 1240 and product id: 10
+[2026/11/18 13:34:43.863]: Device KARUSSELLXXBANTAMTDC000035AQ0 opened
+[2026/11/18 13:34:43.863]: Com port COM6
+
+[2026/11/18 13:34:51.814]: TACPIC32CXDriveThread::performTransportReset: failed (handshake no response)
+[2026/11/18 13:34:51.814]: TIMEOUT RECOVERY: command=setPinState(pin=128, state=off) reset=failed retry=skipped port=COM6
+[2026/11/18 13:44:51.849]: _AlpacaDevice::quickCommand(bootToEDL): queueing 10 entries, completionArmed=yes
+[2026/11/18 13:45:01.459]: Wait for completion timed out. Board stopped acknowledging after 8600 ms (port=COM6, driveTrain=TAC PIC32CX Drive Train, lastCommand=sendCommandSequence(10 entries))
+[2026/11/18 13:45:01.459]: _AlpacaDevice::quickCommand(bootToEDL): completion timed out
+[2026/11/18 13:45:01.459]: _AlpacaDevice::quickCommand(bootToEDL): command timed out, attempting transport reset
+[2026/11/18 13:45:01.475]: TACPIC32CXDriveThread::performTransportReset: resetting serial transport
+[2026/11/18 13:45:06.397]: Found serial port with vendor id: 32902 and product id: 31467
+[2026/11/18 13:45:06.397]: Found serial port with vendor id: 1478 and product id: 36893
+[2026/11/18 13:45:06.397]: Found serial port with vendor id: 1240 and product id: 10
+[2026/11/18 13:45:06.399]: Device KARUSSELLXXBANTAMTDC000035AQ0 opened
+[2026/11/18 13:45:06.399]: Com port COM6
+
+[2026/11/18 13:45:14.346]: TACPIC32CXDriveThread::performTransportReset: failed (handshake no response)
+[2026/11/18 13:45:14.346]: TIMEOUT RECOVERY: command=quickCommand(bootToEDL) reset=failed retry=skipped port=COM6
+[2026/11/18 13:45:19.517]: Found serial port with vendor id: 32902 and product id: 31467
+[2026/11/18 13:45:19.517]: Found serial port with vendor id: 1478 and product id: 36893
+[2026/11/18 13:45:19.517]: Found serial port with vendor id: 1240 and product id: 10
+[2026/11/18 13:45:19.550]: Found serial port with vendor id: 32902 and product id: 31467
+[2026/11/18 13:45:19.550]: Found serial port with vendor id: 1478 and product id: 36893
+[2026/11/18 13:45:19.550]: Found serial port with vendor id: 1240 and product id: 10
+[2026/11/18 13:45:19.555]: TACPlatformEntry::getConfiguration() Platform C:/ProgramData/Qualcomm/QTAC/configurations/TAC_PIC32CXAuto_54.tcnf loaded
+[2026/11/18 13:45:19.555]: Found a PIC32CX device with port name: 'COM6'
+[2026/11/18 13:45:19.662]: _AlpacaDevice::quickCommand(bootToEDL): queueing 10 entries, completionArmed=yes
+[2026/11/18 13:45:19.690]: Found serial port with vendor id: 32902 and product id: 31467
+[2026/11/18 13:45:19.690]: Found serial port with vendor id: 1478 and product id: 36893
+[2026/11/18 13:45:19.690]: Found serial port with vendor id: 1240 and product id: 10
+[2026/11/18 13:45:19.698]: Device KARUSSELLXXBANTAMTDC000035AQ0 opened
+[2026/11/18 13:45:19.698]: Com port COM6
+
+[2026/11/18 13:45:19.698]: 
+[2026/11/18 13:45:19.698]: Frame Package Start
+[2026/11/18 13:45:19.698]: Frame Valid
+[2026/11/18 13:45:19.698]: ====== bootToEDL start ====== 
+Time: 3251031 elapsed: 726516 (ms)
+[2026/11/18 13:45:19.698]: Frame Package End
+[2026/11/18 13:45:19.698]: 
+[2026/11/18 13:45:19.698]: Frame Package Start
+[2026/11/18 13:45:19.698]: Frame Valid
+[2026/11/18 13:45:19.698]: Request: End Transaction
+[2026/11/18 13:45:19.698]: Time: 3251031 elapsed: 0 (ms)
+[2026/11/18 13:45:19.698]: Responses
+[2026/11/18 13:45:19.698]: Frame Package End
+[2026/11/18 13:45:19.774]: _AlpacaDevice::quickCommand(bootToEDL): completion confirmed
+[2026/11/18 13:46:25.865]: Wait for completion timed out. Board stopped acknowledging after 5200 ms (port=COM6, driveTrain=TAC PIC32CX Drive Train, lastCommand=setPinState(pin=128, state=off))
+[2026/11/18 13:46:25.865]: _AlpacaDevice::setPinState(128)  Command:usb0
+[2026/11/18 13:46:25.865]: _AlpacaDevice::setPinState(128): command timed out, attempting transport reset
+[2026/11/18 13:46:25.881]: TACPIC32CXDriveThread::performTransportReset: resetting serial transport
+[2026/11/18 13:46:30.734]: Found serial port with vendor id: 32902 and product id: 31467
+[2026/11/18 13:46:30.734]: Found serial port with vendor id: 1478 and product id: 36893
+[2026/11/18 13:46:30.734]: Found serial port with vendor id: 1240 and product id: 10
+[2026/11/18 13:46:30.739]: Device KARUSSELLXXBANTAMTDC000035AQ0 opened
+[2026/11/18 13:46:30.739]: Com port COM6
+
+[2026/11/18 13:46:38.681]: TACPIC32CXDriveThread::performTransportReset: failed (handshake no response)
+[2026/11/18 13:46:38.681]: TIMEOUT RECOVERY: command=setPinState(pin=128, state=off) reset=failed retry=skipped port=COM6
+[2026/11/18 13:46:43.918]: Found serial port with vendor id: 32902 and product id: 31467
+[2026/11/18 13:46:43.918]: Found serial port with vendor id: 1478 and product id: 36893
+[2026/11/18 13:46:43.918]: Found serial port with vendor id: 1240 and product id: 10
+[2026/11/18 13:46:43.950]: Found serial port with vendor id: 32902 and product id: 31467
+[2026/11/18 13:46:43.950]: Found serial port with vendor id: 1478 and product id: 36893
+[2026/11/18 13:46:43.950]: Found serial port with vendor id: 1240 and product id: 10
+[2026/11/18 13:46:43.952]: TACPlatformEntry::getConfiguration() Platform C:/ProgramData/Qualcomm/QTAC/configurations/TAC_PIC32CXAuto_54.tcnf loaded
+[2026/11/18 13:46:43.952]: Found a PIC32CX device with port name: 'COM6'
+[2026/11/18 13:46:44.096]: Found serial port with vendor id: 32902 and product id: 31467
+[2026/11/18 13:46:44.096]: Found serial port with vendor id: 1478 and product id: 36893
+[2026/11/18 13:46:44.096]: Found serial port with vendor id: 1240 and product id: 10
+[2026/11/18 13:46:44.109]: Device KARUSSELLXXBANTAMTDC000035AQ0 opened
+[2026/11/18 13:46:44.109]: Com port COM6
+
+[2026/11/18 13:46:49.876]: Wait for completion timed out. Board stopped acknowledging after 5200 ms (port=COM6, driveTrain=TAC PIC32CX Drive Train, lastCommand=setPinState(pin=128, state=off))
+[2026/11/18 13:46:49.877]: _AlpacaDevice::setPinState(128)  Command:usb0
+[2026/11/18 13:46:49.877]: _AlpacaDevice::setPinState(128): command timed out, attempting transport reset
+[2026/11/18 13:46:49.877]: TACPIC32CXDriveThread::performTransportReset: resetting serial transport
+[2026/11/18 13:46:50.435]: Found serial port with vendor id: 32902 and product id: 31467
+[2026/11/18 13:46:50.435]: Found serial port with vendor id: 1478 and product id: 36893
+[2026/11/18 13:46:50.435]: Found serial port with vendor id: 1240 and product id: 10
+[2026/11/18 13:46:50.446]: Device KARUSSELLXXBANTAMTDC000035AQ0 opened
+[2026/11/18 13:46:50.446]: Com port COM6
+
+[2026/11/18 13:46:58.386]: TACPIC32CXDriveThread::performTransportReset: failed (handshake no response)
+[2026/11/18 13:46:58.386]: TIMEOUT RECOVERY: command=setPinState(pin=128, state=off) reset=failed retry=skipped port=COM6
+[2026/11/18 13:56:58.420]: _AlpacaDevice::quickCommand(bootToEDL): queueing 10 entries, completionArmed=yes
+[2026/11/18 13:57:08.030]: Wait for completion timed out. Board stopped acknowledging after 8600 ms (port=COM6, driveTrain=TAC PIC32CX Drive Train, lastCommand=sendCommandSequence(10 entries))
+[2026/11/18 13:57:08.030]: _AlpacaDevice::quickCommand(bootToEDL): completion timed out
+[2026/11/18 13:57:08.030]: _AlpacaDevice::quickCommand(bootToEDL): command timed out, attempting transport reset
+[2026/11/18 13:57:08.046]: TACPIC32CXDriveThread::performTransportReset: resetting serial transport
+[2026/11/18 13:57:12.945]: Found serial port with vendor id: 32902 and product id: 31467
+[2026/11/18 13:57:12.945]: Found serial port with vendor id: 1478 and product id: 36893
+[2026/11/18 13:57:12.945]: Found serial port with vendor id: 1240 and product id: 10
+[2026/11/18 13:57:12.955]: Device KARUSSELLXXBANTAMTDC000035AQ0 opened
+[2026/11/18 13:57:12.955]: Com port COM6
+
+[2026/11/18 13:57:20.901]: TACPIC32CXDriveThread::performTransportReset: failed (handshake no response)
+[2026/11/18 13:57:20.901]: TIMEOUT RECOVERY: command=quickCommand(bootToEDL) reset=failed retry=skipped port=COM6
+[2026/11/18 13:57:26.010]: Found serial port with vendor id: 32902 and product id: 31467
+[2026/11/18 13:57:26.010]: Found serial port with vendor id: 1478 and product id: 36893
+[2026/11/18 13:57:26.010]: Found serial port with vendor id: 1240 and product id: 10
+[2026/11/18 13:57:26.039]: Found serial port with vendor id: 32902 and product id: 31467
+[2026/11/18 13:57:26.039]: Found serial port with vendor id: 1478 and product id: 36893
+[2026/11/18 13:57:26.039]: Found serial port with vendor id: 1240 and product id: 10
+[2026/11/18 13:57:26.043]: TACPlatformEntry::getConfiguration() Platform C:/ProgramData/Qualcomm/QTAC/configurations/TAC_PIC32CXAuto_54.tcnf loaded
+[2026/11/18 13:57:26.043]: Found a PIC32CX device with port name: 'COM6'
+[2026/11/18 13:57:26.155]: _AlpacaDevice::quickCommand(bootToEDL): queueing 10 entries, completionArmed=yes
+[2026/11/18 13:57:26.184]: Found serial port with vendor id: 32902 and product id: 31467
+[2026/11/18 13:57:26.184]: Found serial port with vendor id: 1478 and product id: 36893
+[2026/11/18 13:57:26.184]: Found serial port with vendor id: 1240 and product id: 10
+[2026/11/18 13:57:26.190]: Device KARUSSELLXXBANTAMTDC000035AQ0 opened
+[2026/11/18 13:57:26.190]: Com port COM6
+
+[2026/11/18 13:57:26.190]: 
+[2026/11/18 13:57:26.190]: Frame Package Start
+[2026/11/18 13:57:26.190]: Frame Valid
+[2026/11/18 13:57:26.190]: ====== bootToEDL start ====== 
+Time: 3977515 elapsed: 726484 (ms)
+[2026/11/18 13:57:26.190]: Frame Package End
+[2026/11/18 13:57:26.190]: 
+[2026/11/18 13:57:26.190]: Frame Package Start
+[2026/11/18 13:57:26.190]: Frame Valid
+[2026/11/18 13:57:26.191]: Request: End Transaction
+[2026/11/18 13:57:26.191]: Time: 3977515 elapsed: 0 (ms)
+[2026/11/18 13:57:26.191]: Responses
+[2026/11/18 13:57:26.191]: Frame Package End
+[2026/11/18 13:57:26.267]: _AlpacaDevice::quickCommand(bootToEDL): completion confirmed
+[2026/11/18 13:58:32.341]: Wait for completion timed out. Board stopped acknowledging after 5200 ms (port=COM6, driveTrain=TAC PIC32CX Drive Train, lastCommand=setPinState(pin=128, state=off))
+[2026/11/18 13:58:32.341]: _AlpacaDevice::setPinState(128)  Command:usb0
+[2026/11/18 13:58:32.341]: _AlpacaDevice::setPinState(128): command timed out, attempting transport reset
+[2026/11/18 13:58:32.357]: TACPIC32CXDriveThread::performTransportReset: resetting serial transport
+[2026/11/18 13:58:37.236]: Found serial port with vendor id: 32902 and product id: 31467
+[2026/11/18 13:58:37.236]: Found serial port with vendor id: 1478 and product id: 36893
+[2026/11/18 13:58:37.236]: Found serial port with vendor id: 1240 and product id: 10
+[2026/11/18 13:58:37.247]: Device KARUSSELLXXBANTAMTDC000035AQ0 opened
+[2026/11/18 13:58:37.247]: Com port COM6
+
+[2026/11/18 13:58:45.180]: TACPIC32CXDriveThread::performTransportReset: failed (handshake no response)
+[2026/11/18 13:58:45.180]: TIMEOUT RECOVERY: command=setPinState(pin=128, state=off) reset=failed retry=skipped port=COM6
+[2026/11/18 13:58:50.283]: Found serial port with vendor id: 32902 and product id: 31467
+[2026/11/18 13:58:50.283]: Found serial port with vendor id: 1478 and product id: 36893
+[2026/11/18 13:58:50.283]: Found serial port with vendor id: 1240 and product id: 10
+[2026/11/18 13:58:50.317]: Found serial port with vendor id: 32902 and product id: 31467
+[2026/11/18 13:58:50.317]: Found serial port with vendor id: 1478 and product id: 36893
+[2026/11/18 13:58:50.317]: Found serial port with vendor id: 1240 and product id: 10
+[2026/11/18 13:58:50.322]: TACPlatformEntry::getConfiguration() Platform C:/ProgramData/Qualcomm/QTAC/configurations/TAC_PIC32CXAuto_54.tcnf loaded
+[2026/11/18 13:58:50.322]: Found a PIC32CX device with port name: 'COM6'
+[2026/11/18 13:58:50.464]: Found serial port with vendor id: 32902 and product id: 31467
+[2026/11/18 13:58:50.464]: Found serial port with vendor id: 1478 and product id: 36893
+[2026/11/18 13:58:50.464]: Found serial port with vendor id: 1240 and product id: 10
+[2026/11/18 13:58:50.473]: Device KARUSSELLXXBANTAMTDC000035AQ0 opened
+[2026/11/18 13:58:50.473]: Com port COM6
+
+[2026/11/18 13:58:56.240]: Wait for completion timed out. Board stopped acknowledging after 5200 ms (port=COM6, driveTrain=TAC PIC32CX Drive Train, lastCommand=setPinState(pin=128, state=off))
+[2026/11/18 13:58:56.240]: _AlpacaDevice::setPinState(128)  Command:usb0
+[2026/11/18 13:58:56.240]: _AlpacaDevice::setPinState(128): command timed out, attempting transport reset
+[2026/11/18 13:58:56.256]: TACPIC32CXDriveThread::performTransportReset: resetting serial transport
+[2026/11/18 13:58:56.808]: Found serial port with vendor id: 32902 and product id: 31467
+[2026/11/18 13:58:56.808]: Found serial port with vendor id: 1478 and product id: 36893
+[2026/11/18 13:58:56.808]: Found serial port with vendor id: 1240 and product id: 10
+[2026/11/18 13:58:56.818]: Device KARUSSELLXXBANTAMTDC000035AQ0 opened
+[2026/11/18 13:58:56.818]: Com port COM6
+
+[2026/11/18 13:59:04.751]: TACPIC32CXDriveThread::performTransportReset: failed (handshake no response)
+[2026/11/18 13:59:04.751]: TIMEOUT RECOVERY: command=setPinState(pin=128, state=off) reset=failed retry=skipped port=COM6

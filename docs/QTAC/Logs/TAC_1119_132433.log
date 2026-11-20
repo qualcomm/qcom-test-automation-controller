@@ -1,0 +1,162 @@
+[2026/11/19 13:24:33.620]: TAC Application log started
+[2026/11/19 13:24:33.620]: QTAC Version: 6.9.8
+[2026/11/19 13:24:33.620]: TAC Version: 6.9.8
+[2026/11/19 13:24:33.620]: Descriptor Load Path:C:/ProgramData/Qualcomm/QTAC/configurations/devicelist.json
+[2026/11/19 13:24:33.620]:    1 SPM V4
+[2026/11/19 13:24:33.620]:    2 EPM V4
+[2026/11/19 13:24:33.620]:    3 Alpaca V1
+[2026/11/19 13:24:33.620]:    4 MicroEPM TAC
+[2026/11/19 13:24:33.620]:    5 Alpaca V2
+[2026/11/19 13:24:33.620]:    6 Alpaca V3.0
+[2026/11/19 13:24:33.620]:    7 Alpaca V3.1
+[2026/11/19 13:24:33.620]:    8 MTP V3.2
+[2026/11/19 13:24:33.620]:    9 QRD V1.0
+[2026/11/19 13:24:33.620]:    10 IDP V1.0
+[2026/11/19 13:24:33.620]:    11 Dongle V3.0
+[2026/11/19 13:24:33.620]:    12 MTP V3.3
+[2026/11/19 13:24:33.620]:    13 ALPACA LITE (FTDI)
+[2026/11/19 13:24:33.620]:    14 CSM - PSoC version
+[2026/11/19 13:24:33.620]:    15 CSM - Lite
+[2026/11/19 13:24:33.621]:    16 CSM - X100
+[2026/11/19 13:24:33.621]:    17 Lemans ADP TAC PSOC
+[2026/11/19 13:24:33.621]:    18 FTDI TAC for RIDE MX 4.0
+[2026/11/19 13:24:33.621]:    19 Hamoa Lite
+[2026/11/19 13:24:33.621]:    20 FTDI-LITE SDX75 CPE
+[2026/11/19 13:24:33.621]:    21 ALPACA LITE  IDP35
+[2026/11/19 13:24:33.621]:    22 FTDI-LITE SDX75 QMP
+[2026/11/19 13:24:33.621]:    23 FTDI-LITE SDX75 M.2
+[2026/11/19 13:24:33.621]:    24 CSM - PSoC version
+[2026/11/19 13:24:33.621]:    25 ALPACA-LITE SDX35 M.2
+[2026/11/19 13:24:33.621]:    26 ALPACA-LITE KUNO DEBUG BOARD
+[2026/11/19 13:24:33.621]:    27 Lanai FTDI debug board
+[2026/11/19 13:24:33.621]:    28 ALPACA-LITE  CDPS35
+[2026/11/19 13:24:33.621]:    29 ALPACA-LITE  SWITCH CONTROL
+[2026/11/19 13:24:33.621]:    30 Disable UART to collect BootKPI
+[2026/11/19 13:24:33.621]:    31 CCARD525 PSoC
+[2026/11/19 13:24:33.621]:    32 ALPACA-LITE for Mobile/Compute/Modem_NS ATP debug board
+[2026/11/19 13:24:33.621]:    33 ALPACA-LITE QCX217
+[2026/11/19 13:24:33.621]:    35 RB5 
+[2026/11/19 13:24:33.621]:    36 XR TAC Config for Matrix v2
+[2026/11/19 13:24:33.621]:    37 FTDI TAC for RIDE MICRO 4.0
+[2026/11/19 13:24:33.621]:    38 PAKALA CDP with GG GPIOs
+[2026/11/19 13:24:33.621]:    39 FTDI TAC for RB8 IQ-9075-EVK
+[2026/11/19 13:24:33.621]:    40 KAANAPALI CDP with GG GPIOs
+[2026/11/19 13:24:33.621]:    41 ALPACA-LITE for AP-MDM Fusion ATP debug board
+[2026/11/19 13:24:33.621]:    42 ALPACA-LITE SMART LABEL
+[2026/11/19 13:24:33.621]:    44 Kanapali QRD
+[2026/11/19 13:24:33.621]:    45 Glymur SIP V2 Alpaca Lite
+[2026/11/19 13:24:33.621]:    48 MTP8850 FTDI IO
+[2026/11/19 13:24:33.621]:    49 Glymur COB CDPS
+[2026/11/19 13:24:33.621]:    50 Default Automotive (PIC32CX)
+[2026/11/19 13:24:33.621]:    51 ALPACA-LITE GLYMUR COB QCB
+[2026/11/19 13:24:33.621]:    52 Glymur QCB V1 Alpaca Lite With battery
+[2026/11/19 13:24:33.621]:    54 NordAu RIDE
+[2026/11/19 13:24:33.621]:    55 AR TAC config for Balsam
+[2026/11/19 13:24:33.621]:    56 MTP8845 FTDI IO
+[2026/11/19 13:24:33.621]:    57 Monaco/Lemans ADP Automotive
+[2026/11/19 13:24:33.621]:    60 Glymur Battery Enabled Device
+[2026/11/19 13:24:33.621]:    63 AR TAC config for BONSAI
+[2026/11/19 13:24:33.621]:    64 FTDI-LITE SDX95 QMP
+[2026/11/19 13:24:33.621]:    65 MTP8975 (Hawi) FTDI IO
+[2026/11/19 13:24:33.621]:    66 Hawi MTP8975 - PSoC
+[2026/11/19 13:24:33.621]:    67 TDP535 Platform Config
+[2026/11/19 13:24:33.621]:    69 FTDI-LITE SDX95 M.2
+[2026/11/19 13:24:33.621]:    70 ALPACA-LITE HAWI CDP
+[2026/11/19 13:24:33.621]:    71 FTDI TAC for RB4 IQ-8275-EVK
+[2026/11/19 13:24:33.621]:    72 JTAG MUX DC
+[2026/11/19 13:24:33.621]:    73 MTP8950 (Maili) FTDI IO
+[2026/11/19 13:24:33.621]:    74 30-P9415-2 Dongle for Aliso
+[2026/11/19 13:24:33.621]:    77 ALPACA-LITE KARNALI QCB DT
+[2026/11/19 13:24:33.621]:    78 ALPACA-LITE MAILI CDP
+[2026/11/19 13:24:33.621]:    80 Arduino BugHopper V1 (Default)
+[2026/11/19 13:24:33.621]:    81 Seca CoB STAR
+[2026/11/19 13:24:33.621]:    82 SHIKRA PSOC
+[2026/11/19 13:24:33.621]:    85 IQ10 RRD V1
+[2026/11/19 13:24:33.621]:    87 HAWI QRD PSOC
+[2026/11/19 13:24:33.621]:    92 Arduino Ventuno Q
+[2026/11/19 13:24:33.621]:    95 Arduino BugHopper V2 (Default)
+[2026/11/19 13:24:33.621]:    96 AR TAC config for BONSAI-TWILIGHT  V2
+[2026/11/19 13:24:33.634]: Found serial port with vendor id: 32902 and product id: 31467
+[2026/11/19 13:24:33.634]: Found serial port with vendor id: 1478 and product id: 36872
+[2026/11/19 13:24:33.634]: Found serial port with vendor id: 1240 and product id: 10
+[2026/11/19 13:24:33.644]: Found serial port with vendor id: 32902 and product id: 31467
+[2026/11/19 13:24:33.644]: Found serial port with vendor id: 1478 and product id: 36872
+[2026/11/19 13:24:33.644]: Found serial port with vendor id: 1240 and product id: 10
+[2026/11/19 13:24:33.645]: TACPlatformEntry::getConfiguration() Platform C:/ProgramData/Qualcomm/QTAC/configurations/TAC_PIC32CXAuto_54.tcnf loaded
+[2026/11/19 13:24:33.645]: Found a PIC32CX device with port name: 'COM6'
+[2026/11/19 13:24:33.770]: Found serial port with vendor id: 32902 and product id: 31467
+[2026/11/19 13:24:33.770]: Found serial port with vendor id: 1478 and product id: 36872
+[2026/11/19 13:24:33.770]: Found serial port with vendor id: 1240 and product id: 10
+[2026/11/19 13:24:33.770]: Unable to open TAC Port. The device is already open in another process or the user does not have sufficient security credentials.
+[2026/11/19 13:24:50.373]: Wait for completion timed out. Board stopped acknowledging after 5200 ms (port=COM6, driveTrain=TAC PIC32CX Drive Train, lastCommand=setPinState(pin=128, state=on))
+[2026/11/19 13:24:50.373]: _AlpacaDevice::setPinState(128)  Command:usb0
+[2026/11/19 13:24:50.373]: _AlpacaDevice::setPinState(128): drive thread stopped, device lost
+[2026/11/19 13:24:55.406]: Found serial port with vendor id: 32902 and product id: 31467
+[2026/11/19 13:24:55.406]: Found serial port with vendor id: 1478 and product id: 36872
+[2026/11/19 13:24:55.406]: Found serial port with vendor id: 1240 and product id: 10
+[2026/11/19 13:24:55.432]: Found serial port with vendor id: 32902 and product id: 31467
+[2026/11/19 13:24:55.432]: Found serial port with vendor id: 1478 and product id: 36872
+[2026/11/19 13:24:55.432]: Found serial port with vendor id: 1240 and product id: 10
+[2026/11/19 13:24:55.435]: TACPlatformEntry::getConfiguration() Platform C:/ProgramData/Qualcomm/QTAC/configurations/TAC_PIC32CXAuto_54.tcnf loaded
+[2026/11/19 13:24:55.435]: Found a PIC32CX device with port name: 'COM6'
+[2026/11/19 13:24:55.561]: Found serial port with vendor id: 32902 and product id: 31467
+[2026/11/19 13:24:55.561]: Found serial port with vendor id: 1478 and product id: 36872
+[2026/11/19 13:24:55.561]: Found serial port with vendor id: 1240 and product id: 10
+[2026/11/19 13:24:55.561]: Unable to open TAC Port. The device is already open in another process or the user does not have sufficient security credentials.
+[2026/11/19 13:25:01.206]: Wait for completion timed out. Board stopped acknowledging after 5200 ms (port=COM6, driveTrain=TAC PIC32CX Drive Train, lastCommand=setPinState(pin=128, state=on))
+[2026/11/19 13:25:01.206]: _AlpacaDevice::setPinState(128)  Command:usb0
+[2026/11/19 13:25:01.206]: _AlpacaDevice::setPinState(128): drive thread stopped, device lost
+[2026/11/19 13:26:41.702]: Wait for completion timed out. Board stopped acknowledging after 5200 ms (port=COM6, driveTrain=TAC PIC32CX Drive Train, lastCommand=setPinState(pin=128, state=off))
+[2026/11/19 13:26:41.702]: _AlpacaDevice::setPinState(128)  Command:usb0
+[2026/11/19 13:26:41.702]: _AlpacaDevice::setPinState(128): drive thread stopped, device lost
+[2026/11/19 13:26:46.729]: Found serial port with vendor id: 32902 and product id: 31467
+[2026/11/19 13:26:46.729]: Found serial port with vendor id: 1478 and product id: 36872
+[2026/11/19 13:26:46.729]: Found serial port with vendor id: 1240 and product id: 10
+[2026/11/19 13:26:46.753]: Found serial port with vendor id: 32902 and product id: 31467
+[2026/11/19 13:26:46.753]: Found serial port with vendor id: 1478 and product id: 36872
+[2026/11/19 13:26:46.753]: Found serial port with vendor id: 1240 and product id: 10
+[2026/11/19 13:26:46.755]: TACPlatformEntry::getConfiguration() Platform C:/ProgramData/Qualcomm/QTAC/configurations/TAC_PIC32CXAuto_54.tcnf loaded
+[2026/11/19 13:26:46.755]: Found a PIC32CX device with port name: 'COM6'
+[2026/11/19 13:26:46.887]: Found serial port with vendor id: 32902 and product id: 31467
+[2026/11/19 13:26:46.887]: Found serial port with vendor id: 1478 and product id: 36872
+[2026/11/19 13:26:46.887]: Found serial port with vendor id: 1240 and product id: 10
+[2026/11/19 13:26:46.887]: Unable to open TAC Port. The device is already open in another process or the user does not have sufficient security credentials.
+[2026/11/19 13:26:52.532]: Wait for completion timed out. Board stopped acknowledging after 5200 ms (port=COM6, driveTrain=TAC PIC32CX Drive Train, lastCommand=setPinState(pin=128, state=off))
+[2026/11/19 13:26:52.532]: _AlpacaDevice::setPinState(128)  Command:usb0
+[2026/11/19 13:26:52.532]: _AlpacaDevice::setPinState(128): drive thread stopped, device lost
+[2026/11/19 13:26:58.198]: Wait for completion timed out. Board stopped acknowledging after 5200 ms (port=COM6, driveTrain=TAC PIC32CX Drive Train, lastCommand=setPinState(pin=128, state=on))
+[2026/11/19 13:26:58.198]: _AlpacaDevice::setPinState(128)  Command:usb0
+[2026/11/19 13:26:58.198]: _AlpacaDevice::setPinState(128): drive thread stopped, device lost
+[2026/11/19 13:27:03.233]: Found serial port with vendor id: 32902 and product id: 31467
+[2026/11/19 13:27:03.233]: Found serial port with vendor id: 1478 and product id: 36872
+[2026/11/19 13:27:03.233]: Found serial port with vendor id: 1240 and product id: 10
+[2026/11/19 13:27:03.265]: Found serial port with vendor id: 32902 and product id: 31467
+[2026/11/19 13:27:03.265]: Found serial port with vendor id: 1478 and product id: 36872
+[2026/11/19 13:27:03.265]: Found serial port with vendor id: 1240 and product id: 10
+[2026/11/19 13:27:03.267]: TACPlatformEntry::getConfiguration() Platform C:/ProgramData/Qualcomm/QTAC/configurations/TAC_PIC32CXAuto_54.tcnf loaded
+[2026/11/19 13:27:03.267]: Found a PIC32CX device with port name: 'COM6'
+[2026/11/19 13:27:03.407]: Found serial port with vendor id: 32902 and product id: 31467
+[2026/11/19 13:27:03.407]: Found serial port with vendor id: 1478 and product id: 36872
+[2026/11/19 13:27:03.407]: Found serial port with vendor id: 1240 and product id: 10
+[2026/11/19 13:27:03.407]: Unable to open TAC Port. The device is already open in another process or the user does not have sufficient security credentials.
+[2026/11/19 13:27:09.041]: Wait for completion timed out. Board stopped acknowledging after 5200 ms (port=COM6, driveTrain=TAC PIC32CX Drive Train, lastCommand=setPinState(pin=128, state=on))
+[2026/11/19 13:27:09.041]: _AlpacaDevice::setPinState(128)  Command:usb0
+[2026/11/19 13:27:09.041]: _AlpacaDevice::setPinState(128): drive thread stopped, device lost
+[2026/11/19 13:29:24.792]: Wait for completion timed out. Board stopped acknowledging after 5200 ms (port=COM6, driveTrain=TAC PIC32CX Drive Train, lastCommand=setPinState(pin=128, state=on))
+[2026/11/19 13:29:24.792]: _AlpacaDevice::setPinState(128)  Command:usb0
+[2026/11/19 13:29:24.792]: _AlpacaDevice::setPinState(128): drive thread stopped, device lost
+[2026/11/19 13:29:29.824]: Found serial port with vendor id: 32902 and product id: 31467
+[2026/11/19 13:29:29.824]: Found serial port with vendor id: 1478 and product id: 36872
+[2026/11/19 13:29:29.824]: Found serial port with vendor id: 1240 and product id: 10
+[2026/11/19 13:29:29.850]: Found serial port with vendor id: 32902 and product id: 31467
+[2026/11/19 13:29:29.850]: Found serial port with vendor id: 1478 and product id: 36872
+[2026/11/19 13:29:29.850]: Found serial port with vendor id: 1240 and product id: 10
+[2026/11/19 13:29:29.854]: TACPlatformEntry::getConfiguration() Platform C:/ProgramData/Qualcomm/QTAC/configurations/TAC_PIC32CXAuto_54.tcnf loaded
+[2026/11/19 13:29:29.854]: Found a PIC32CX device with port name: 'COM6'
+[2026/11/19 13:29:29.989]: Found serial port with vendor id: 32902 and product id: 31467
+[2026/11/19 13:29:29.989]: Found serial port with vendor id: 1478 and product id: 36872
+[2026/11/19 13:29:29.989]: Found serial port with vendor id: 1240 and product id: 10
+[2026/11/19 13:29:29.989]: Unable to open TAC Port. The device is already open in another process or the user does not have sufficient security credentials.
+[2026/11/19 13:29:35.634]: Wait for completion timed out. Board stopped acknowledging after 5200 ms (port=COM6, driveTrain=TAC PIC32CX Drive Train, lastCommand=setPinState(pin=128, state=on))
+[2026/11/19 13:29:35.634]: _AlpacaDevice::setPinState(128)  Command:usb0
+[2026/11/19 13:29:35.634]: _AlpacaDevice::setPinState(128): drive thread stopped, device lost

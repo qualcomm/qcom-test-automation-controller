@@ -1,0 +1,204 @@
+[14:21:52:760]: TAC Application log started
+[14:21:52:760]: QTAC Version: 6.8.2
+[14:21:52:760]: TAC Version: 6.8.2
+[14:21:52:760]: Descriptor Load Path:C:/ProgramData/Qualcomm/QTAC/configurations/devicelist.json
+[14:21:52:760]:    1 SPM V4
+[14:21:52:760]:    2 EPM V4
+[14:21:52:760]:    3 Alpaca V1
+[14:21:52:760]:    4 MicroEPM TAC
+[14:21:52:760]:    5 Alpaca V2
+[14:21:52:760]:    6 Alpaca V3.0
+[14:21:52:760]:    7 Alpaca V3.1
+[14:21:52:760]:    8 MTP V3.2
+[14:21:52:760]:    9 QRD V1.0
+[14:21:52:760]:    10 IDP V1.0
+[14:21:52:760]:    11 Dongle V3.0
+[14:21:52:760]:    12 MTP V3.3
+[14:21:52:760]:    13 ALPACA LITE (FTDI)
+[14:21:52:760]:    14 CSM - PSoC version
+[14:21:52:760]:    15 CSM - Lite
+[14:21:52:760]:    16 CSM - X100
+[14:21:52:760]:    17 Lemans ADP TAC PSOC
+[14:21:52:760]:    18 FTDI TAC for RIDE MX 4.0
+[14:21:52:760]:    19 Hamoa Lite
+[14:21:52:760]:    20 FTDI-LITE SDX75 CPE
+[14:21:52:760]:    21 ALPACA LITE  IDP35
+[14:21:52:760]:    22 FTDI-LITE SDX75 QMP
+[14:21:52:760]:    23 FTDI-LITE SDX75 M.2
+[14:21:52:760]:    24 CSM - PSoC version
+[14:21:52:760]:    25 ALPACA-LITE SDX35 M.2
+[14:21:52:760]:    26 ALPACA-LITE KUNO DEBUG BOARD
+[14:21:52:760]:    27 Lanai FTDI debug board
+[14:21:52:760]:    28 ALPACA-LITE  CDPS35
+[14:21:52:760]:    29 ALPACA-LITE  SWITCH CONTROL
+[14:21:52:760]:    30 Disable UART to collect BootKPI
+[14:21:52:760]:    31 CCARD525 PSoC
+[14:21:52:760]:    32 ALPACA-LITE for Mobile/Compute/Modem_NS ATP debug board
+[14:21:52:760]:    33 ALPACA-LITE QCX217
+[14:21:52:760]:    35 RB5 
+[14:21:52:760]:    36 XR TAC Config for Matrix v2
+[14:21:52:760]:    37 FTDI TAC for RIDE MICRO 4.0
+[14:21:52:760]:    38 PAKALA CDP with GG GPIOs
+[14:21:52:760]:    39 FTDI TAC for RB8 IQ-9075-EVK
+[14:21:52:760]:    40 KAANAPALI CDP with GG GPIOs
+[14:21:52:760]:    41 ALPACA-LITE for AP-MDM Fusion ATP debug board
+[14:21:52:760]:    42 ALPACA-LITE SMART LABEL
+[14:21:52:760]:    44 Kanapali QRD
+[14:21:52:760]:    45 Glymur SIP V2 Alpaca Lite
+[14:21:52:760]:    48 MTP8850 FTDI IO
+[14:21:52:760]:    49 Glymur COB CDPS
+[14:21:52:760]:    50 Default Automotive (PIC32CX)
+[14:21:52:760]:    51 ALPACA-LITE GLYMUR COB QCB
+[14:21:52:760]:    52 Glymur QCB V1 Alpaca Lite With battery
+[14:21:52:760]:    54 NordAu RIDE
+[14:21:52:760]:    55 AR TAC config for Balsam
+[14:21:52:760]:    56 MTP8845 FTDI IO
+[14:21:52:760]:    57 Monaco/Lemans ADP Automotive
+[14:21:52:760]:    60 Glymur Battery Enabled Device
+[14:21:52:760]:    63 AR TAC config for BONSAI
+[14:21:52:760]:    64 FTDI-LITE SDX95 QMP
+[14:21:52:760]:    65 MTP8975 (Hawi) FTDI IO
+[14:21:52:760]:    66 Hawi MTP8975 - PSoC
+[14:21:52:760]:    67 TDP535 Platform Config
+[14:21:52:760]:    69 FTDI-LITE SDX95 M.2
+[14:21:52:760]:    70 ALPACA-LITE HAWI CDP
+[14:21:52:760]:    71 FTDI TAC for RB4 IQ-8275-EVK
+[14:21:52:760]:    72 JTAG MUX DC
+[14:21:52:760]:    73 MTP8950 (Maili) FTDI IO
+[14:21:52:760]:    74 30-P9415-2 Dongle for Aliso
+[14:21:52:760]:    77 ALPACA-LITE KARNALI QCB DT
+[14:21:52:760]:    78 ALPACA-LITE MAILI CDP
+[14:21:52:760]:    80 Arduino BugHopper V1 (Default)
+[14:21:52:760]:    81 Arduino Ventuno Q
+[14:21:52:760]:    82 SHIKRA PSOC
+[14:21:52:760]:    85 IQ10 RRD V1
+[14:21:52:760]:    87 HAWI QRD PSOC
+[14:21:52:760]:    95 Arduino BugHopper V2 (Default)
+[14:21:52:830]: Found serial port with vendor id: 32902 and product id: 31467
+[14:21:52:830]: Found serial port with vendor id: 1027 and product id: 24593
+[14:21:52:830]: Found serial port with vendor id: 1027 and product id: 24593
+[14:21:52:830]: Found serial port with vendor id: 1478 and product id: 36872
+[14:21:52:830]: Found serial port with vendor id: 1027 and product id: 24593
+[14:21:52:830]: Found serial port with vendor id: 1240 and product id: 10
+[14:21:52:950]: Found serial port with vendor id: 32902 and product id: 31467
+[14:21:52:950]: Found serial port with vendor id: 1027 and product id: 24593
+[14:21:52:950]: Found serial port with vendor id: 1027 and product id: 24593
+[14:21:52:950]: Found serial port with vendor id: 1478 and product id: 36872
+[14:21:52:950]: Found serial port with vendor id: 1027 and product id: 24593
+[14:21:52:950]: Found serial port with vendor id: 1240 and product id: 10
+[14:21:52:951]: TACPlatformEntry::getConfiguration() Platform C:/ProgramData/Qualcomm/QTAC/configurations/TAC_PIC32CXAuto_54.tcnf loaded
+[14:21:52:951]: Found a PIC32CX device with port name: 'COM6'
+[14:21:53:090]: Found serial port with vendor id: 32902 and product id: 31467
+[14:21:53:090]: Found serial port with vendor id: 1027 and product id: 24593
+[14:21:53:090]: Found serial port with vendor id: 1027 and product id: 24593
+[14:21:53:090]: Found serial port with vendor id: 1478 and product id: 36872
+[14:21:53:090]: Found serial port with vendor id: 1027 and product id: 24593
+[14:21:53:090]: Found serial port with vendor id: 1240 and product id: 10
+[14:21:53:092]: Device KARUSSELLXXBANTAMTDC000035AQ0 opened
+[14:21:53:092]: Com port COM6
+
+[14:21:53:620]: 
+[14:21:53:620]: Frame Package Start
+[14:21:53:620]: Frame Valid
+[14:21:53:620]: Request: echo 1
+[14:21:53:620]: Time: 852218 elapsed: 0 (ms)
+[14:21:53:620]: Responses
+[14:21:53:620]: Frame Package End
+[14:21:53:620]: 
+[14:21:53:620]: Frame Package Start
+[14:21:53:620]: Frame Valid
+[14:21:53:620]: Request: End Transaction
+[14:21:53:620]: Time: 852218 elapsed: 0 (ms)
+[14:21:53:620]: Responses
+[14:21:53:620]: Frame Package End
+[14:21:54:131]: Buffer cleared before identifying PIC32CX board
+[14:21:54:658]: PIC32CX board name: Karussell
+[14:21:54:658]: PIC32CX board firmware version: Apr  8 2025
+[14:21:54:658]: PIC32CX board MAC: 8C:FD:F0:C0:13:8C
+[14:21:54:658]: Identified platform id: 54
+[14:21:54:658]: PIC32CX board Serial Number: TDC000035AQ0
+[14:21:54:658]: PIC32CX board MCN: 10-72521-1410
+[14:21:54:658]: 
+[14:21:54:658]: tacCommand.platformID()
+[14:21:54:658]: 
+[14:21:54:658]: Frame Package Start
+[14:21:54:658]: Frame Valid
+[14:21:54:658]: Request: *IDN?
+[14:21:54:658]: Time: 853265 elapsed: 1047 (ms)
+[14:21:54:658]: Responses
+[14:21:54:658]:    Karussell,Apr  8 2025,08/04/2025,8C:FD:F0:C0:13:8C,54,TDC000035AQ0,10-72521-1410
+[14:21:54:658]: Frame Package End
+[14:21:54:658]: 
+[14:21:54:658]: Frame Package Start
+[14:21:54:658]: Frame Valid
+[14:21:54:658]: Request: End Transaction
+[14:21:54:658]: Time: 853265 elapsed: 0 (ms)
+[14:21:54:658]: Responses
+[14:21:54:658]: Frame Package End
+[14:21:55:170]: Buffer cleared before identifying PIC32CX board
+[14:21:55:697]: PIC32CX board name: Karussell
+[14:21:55:697]: PIC32CX board firmware version: Apr  8 2025
+[14:21:55:697]: PIC32CX board MAC: 8C:FD:F0:C0:13:8C
+[14:21:55:697]: Identified platform id: 54
+[14:21:55:697]: PIC32CX board Serial Number: TDC000035AQ0
+[14:21:55:697]: PIC32CX board MCN: 10-72521-1410
+[14:21:55:697]: 
+[14:21:55:697]: Frame Package Start
+[14:21:55:697]: Frame Valid
+[14:21:55:697]: Request: *IDN?
+[14:21:55:697]: Time: 854296 elapsed: 1031 (ms)
+[14:21:55:697]: Responses
+[14:21:55:697]:    Karussell,Apr  8 2025,08/04/2025,8C:FD:F0:C0:13:8C,54,TDC000035AQ0,10-72521-1410
+[14:21:55:697]: Frame Package End
+[14:21:55:697]: 
+[14:21:55:697]: Frame Package Start
+[14:21:55:697]: Frame Valid
+[14:21:55:697]: Request: End Transaction
+[14:21:55:697]: Time: 854296 elapsed: 0 (ms)
+[14:21:55:697]: Responses
+[14:21:55:697]: Frame Package End
+[14:25:44:545]: _AlpacaDevice::on_pinStateChanged(128, 0)
+[14:25:44:545]: 
+[14:25:44:545]: Frame Package Start
+[14:25:44:545]: Frame Valid
+[14:25:44:545]: Request: CONF:DIG:ON
+[14:25:44:545]: Time: 1083156 elapsed: 228860 (ms)
+[14:25:44:545]: Synonym: Pin 128 off
+[14:25:44:545]: Responses
+[14:25:44:545]: Frame Package End
+[14:25:44:545]: 
+[14:25:44:545]: Frame Package Start
+[14:25:44:545]: Frame Valid
+[14:25:44:545]: Request: End Transaction
+[14:25:44:545]: Time: 1083156 elapsed: 0 (ms)
+[14:25:44:545]: Responses
+[14:25:44:545]: Frame Package End
+[14:25:44:560]: _AlpacaDevice::setPinState(128)  Command:usb0
+[14:36:00:677]: Wait for completion timed out.
+[14:36:00:677]: _AlpacaDevice::setPinState(128)  Command:usb0
+[14:46:16:995]: Wait for completion timed out.
+[14:46:16:995]: _AlpacaDevice::setPinState(128)  Command:usb0
+[14:56:32:932]: Wait for completion timed out.
+[14:56:32:932]: _AlpacaDevice::setPinState(128)  Command:usb0
+[15:06:48:931]: Wait for completion timed out.
+[15:06:48:931]: _AlpacaDevice::setPinState(128)  Command:usb0
+[15:17:04:858]: Wait for completion timed out.
+[15:17:04:858]: _AlpacaDevice::setPinState(128)  Command:usb0
+[15:27:20:831]: Wait for completion timed out.
+[15:27:20:831]: _AlpacaDevice::setPinState(128)  Command:usb0
+[15:37:36:852]: Wait for completion timed out.
+[15:37:36:852]: _AlpacaDevice::setPinState(128)  Command:usb0
+[15:47:52:818]: Wait for completion timed out.
+[15:47:52:818]: _AlpacaDevice::setPinState(128)  Command:usb0
+[15:58:08:779]: Wait for completion timed out.
+[15:58:08:779]: _AlpacaDevice::setPinState(128)  Command:usb0
+[16:08:24:817]: Wait for completion timed out.
+[16:08:24:817]: _AlpacaDevice::setPinState(128)  Command:usb0
+[16:18:40:908]: Wait for completion timed out.
+[16:18:40:908]: _AlpacaDevice::setPinState(128)  Command:usb0
+[16:19:18:002]: Wait for completion timed out.
+[16:19:18:002]: _AlpacaDevice::setPinState(128)  Command:usb0
+[16:19:57:779]: Wait for completion timed out.
+[16:19:57:779]: _AlpacaDevice::setPinState(311)  Command:eud
+[16:32:47:962]: Wait for completion timed out.
+[16:32:47:962]: _AlpacaDevice::setPinState(311)  Command:eud

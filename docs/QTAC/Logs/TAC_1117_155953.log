@@ -1,0 +1,92 @@
+[2026/11/17 15:59:53.402]: TAC Application log started
+[2026/11/17 15:59:53.402]: QTAC Version: 6.9.8
+[2026/11/17 15:59:53.402]: TAC Version: 6.9.8
+[2026/11/17 15:59:53.402]: Descriptor Load Path:C:/ProgramData/Qualcomm/QTAC/configurations/devicelist.json
+[2026/11/17 15:59:53.402]:    1 SPM V4
+[2026/11/17 15:59:53.402]:    2 EPM V4
+[2026/11/17 15:59:53.402]:    3 Alpaca V1
+[2026/11/17 15:59:53.402]:    4 MicroEPM TAC
+[2026/11/17 15:59:53.402]:    5 Alpaca V2
+[2026/11/17 15:59:53.402]:    6 Alpaca V3.0
+[2026/11/17 15:59:53.402]:    7 Alpaca V3.1
+[2026/11/17 15:59:53.402]:    8 MTP V3.2
+[2026/11/17 15:59:53.402]:    9 QRD V1.0
+[2026/11/17 15:59:53.402]:    10 IDP V1.0
+[2026/11/17 15:59:53.402]:    11 Dongle V3.0
+[2026/11/17 15:59:53.402]:    12 MTP V3.3
+[2026/11/17 15:59:53.402]:    13 ALPACA LITE (FTDI)
+[2026/11/17 15:59:53.402]:    14 CSM - PSoC version
+[2026/11/17 15:59:53.402]:    15 CSM - Lite
+[2026/11/17 15:59:53.402]:    16 CSM - X100
+[2026/11/17 15:59:53.402]:    17 Lemans ADP TAC PSOC
+[2026/11/17 15:59:53.402]:    18 FTDI TAC for RIDE MX 4.0
+[2026/11/17 15:59:53.402]:    19 Hamoa Lite
+[2026/11/17 15:59:53.402]:    20 FTDI-LITE SDX75 CPE
+[2026/11/17 15:59:53.402]:    21 ALPACA LITE  IDP35
+[2026/11/17 15:59:53.402]:    22 FTDI-LITE SDX75 QMP
+[2026/11/17 15:59:53.402]:    23 FTDI-LITE SDX75 M.2
+[2026/11/17 15:59:53.402]:    24 CSM - PSoC version
+[2026/11/17 15:59:53.402]:    25 ALPACA-LITE SDX35 M.2
+[2026/11/17 15:59:53.402]:    26 ALPACA-LITE KUNO DEBUG BOARD
+[2026/11/17 15:59:53.402]:    27 Lanai FTDI debug board
+[2026/11/17 15:59:53.402]:    28 ALPACA-LITE  CDPS35
+[2026/11/17 15:59:53.402]:    29 ALPACA-LITE  SWITCH CONTROL
+[2026/11/17 15:59:53.402]:    30 Disable UART to collect BootKPI
+[2026/11/17 15:59:53.402]:    31 CCARD525 PSoC
+[2026/11/17 15:59:53.402]:    32 ALPACA-LITE for Mobile/Compute/Modem_NS ATP debug board
+[2026/11/17 15:59:53.402]:    33 ALPACA-LITE QCX217
+[2026/11/17 15:59:53.402]:    35 RB5 
+[2026/11/17 15:59:53.402]:    36 XR TAC Config for Matrix v2
+[2026/11/17 15:59:53.402]:    37 FTDI TAC for RIDE MICRO 4.0
+[2026/11/17 15:59:53.402]:    38 PAKALA CDP with GG GPIOs
+[2026/11/17 15:59:53.402]:    39 FTDI TAC for RB8 IQ-9075-EVK
+[2026/11/17 15:59:53.402]:    40 KAANAPALI CDP with GG GPIOs
+[2026/11/17 15:59:53.402]:    41 ALPACA-LITE for AP-MDM Fusion ATP debug board
+[2026/11/17 15:59:53.402]:    42 ALPACA-LITE SMART LABEL
+[2026/11/17 15:59:53.402]:    44 Kanapali QRD
+[2026/11/17 15:59:53.402]:    45 Glymur SIP V2 Alpaca Lite
+[2026/11/17 15:59:53.402]:    48 MTP8850 FTDI IO
+[2026/11/17 15:59:53.402]:    49 Glymur COB CDPS
+[2026/11/17 15:59:53.402]:    50 Default Automotive (PIC32CX)
+[2026/11/17 15:59:53.402]:    51 ALPACA-LITE GLYMUR COB QCB
+[2026/11/17 15:59:53.402]:    52 Glymur QCB V1 Alpaca Lite With battery
+[2026/11/17 15:59:53.402]:    54 NordAu RIDE
+[2026/11/17 15:59:53.402]:    55 AR TAC config for Balsam
+[2026/11/17 15:59:53.402]:    56 MTP8845 FTDI IO
+[2026/11/17 15:59:53.402]:    57 Monaco/Lemans ADP Automotive
+[2026/11/17 15:59:53.402]:    60 Glymur Battery Enabled Device
+[2026/11/17 15:59:53.402]:    63 AR TAC config for BONSAI
+[2026/11/17 15:59:53.402]:    64 FTDI-LITE SDX95 QMP
+[2026/11/17 15:59:53.402]:    65 MTP8975 (Hawi) FTDI IO
+[2026/11/17 15:59:53.402]:    66 Hawi MTP8975 - PSoC
+[2026/11/17 15:59:53.402]:    67 TDP535 Platform Config
+[2026/11/17 15:59:53.402]:    69 FTDI-LITE SDX95 M.2
+[2026/11/17 15:59:53.402]:    70 ALPACA-LITE HAWI CDP
+[2026/11/17 15:59:53.402]:    71 FTDI TAC for RB4 IQ-8275-EVK
+[2026/11/17 15:59:53.402]:    72 JTAG MUX DC
+[2026/11/17 15:59:53.402]:    73 MTP8950 (Maili) FTDI IO
+[2026/11/17 15:59:53.402]:    74 30-P9415-2 Dongle for Aliso
+[2026/11/17 15:59:53.402]:    77 ALPACA-LITE KARNALI QCB DT
+[2026/11/17 15:59:53.402]:    78 ALPACA-LITE MAILI CDP
+[2026/11/17 15:59:53.403]:    80 Arduino BugHopper V1 (Default)
+[2026/11/17 15:59:53.403]:    81 Seca CoB STAR
+[2026/11/17 15:59:53.403]:    82 SHIKRA PSOC
+[2026/11/17 15:59:53.403]:    85 IQ10 RRD V1
+[2026/11/17 15:59:53.403]:    87 HAWI QRD PSOC
+[2026/11/17 15:59:53.403]:    92 Arduino Ventuno Q
+[2026/11/17 15:59:53.403]:    95 Arduino BugHopper V2 (Default)
+[2026/11/17 15:59:53.403]:    96 AR TAC config for BONSAI-TWILIGHT  V2
+[2026/11/17 15:59:53.416]: Found serial port with vendor id: 32902 and product id: 31467
+[2026/11/17 15:59:53.416]: Found serial port with vendor id: 1478 and product id: 36872
+[2026/11/17 15:59:53.416]: Found serial port with vendor id: 1240 and product id: 10
+[2026/11/17 15:59:53.427]: Found serial port with vendor id: 32902 and product id: 31467
+[2026/11/17 15:59:53.427]: Found serial port with vendor id: 1478 and product id: 36872
+[2026/11/17 15:59:53.427]: Found serial port with vendor id: 1240 and product id: 10
+[2026/11/17 15:59:53.428]: TACPlatformEntry::getConfiguration() Platform C:/ProgramData/Qualcomm/QTAC/configurations/TAC_PIC32CXAuto_54.tcnf loaded
+[2026/11/17 15:59:53.428]: Found a PIC32CX device with port name: 'COM6'
+[2026/11/17 15:59:53.541]: Found serial port with vendor id: 32902 and product id: 31467
+[2026/11/17 15:59:53.541]: Found serial port with vendor id: 1478 and product id: 36872
+[2026/11/17 15:59:53.541]: Found serial port with vendor id: 1240 and product id: 10
+[2026/11/17 15:59:53.542]: Device KARUSSELLXXBANTAMTDC000035AQ0 opened
+[2026/11/17 15:59:53.542]: Com port COM6
+

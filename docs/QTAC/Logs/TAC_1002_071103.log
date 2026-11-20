@@ -1,0 +1,101 @@
+[07:11:04:106]: TAC Application log started
+[07:11:04:106]: QTAC Version: 6.8.2
+[07:11:04:106]: TAC Version: 6.8.2
+[07:11:04:106]: Descriptor Load Path:C:/ProgramData/Qualcomm/QTAC/configurations/devicelist.json
+[07:11:04:106]:    1 SPM V4
+[07:11:04:106]:    2 EPM V4
+[07:11:04:106]:    3 Alpaca V1
+[07:11:04:106]:    4 MicroEPM TAC
+[07:11:04:106]:    5 Alpaca V2
+[07:11:04:106]:    6 Alpaca V3.0
+[07:11:04:106]:    7 Alpaca V3.1
+[07:11:04:106]:    8 MTP V3.2
+[07:11:04:106]:    9 QRD V1.0
+[07:11:04:106]:    10 IDP V1.0
+[07:11:04:106]:    11 Dongle V3.0
+[07:11:04:106]:    12 MTP V3.3
+[07:11:04:106]:    13 ALPACA LITE (FTDI)
+[07:11:04:106]:    14 CSM - PSoC version
+[07:11:04:106]:    15 CSM - Lite
+[07:11:04:106]:    16 CSM - X100
+[07:11:04:106]:    17 Lemans ADP TAC PSOC
+[07:11:04:106]:    18 FTDI TAC for RIDE MX 4.0
+[07:11:04:106]:    19 Hamoa Lite
+[07:11:04:106]:    20 FTDI-LITE SDX75 CPE
+[07:11:04:106]:    21 ALPACA LITE  IDP35
+[07:11:04:106]:    22 FTDI-LITE SDX75 QMP
+[07:11:04:106]:    23 FTDI-LITE SDX75 M.2
+[07:11:04:106]:    24 CSM - PSoC version
+[07:11:04:106]:    25 ALPACA-LITE SDX35 M.2
+[07:11:04:106]:    26 ALPACA-LITE KUNO DEBUG BOARD
+[07:11:04:106]:    27 Lanai FTDI debug board
+[07:11:04:106]:    28 ALPACA-LITE  CDPS35
+[07:11:04:106]:    29 ALPACA-LITE  SWITCH CONTROL
+[07:11:04:106]:    30 Disable UART to collect BootKPI
+[07:11:04:106]:    31 CCARD525 PSoC
+[07:11:04:106]:    32 ALPACA-LITE for Mobile/Compute/Modem_NS ATP debug board
+[07:11:04:106]:    33 ALPACA-LITE QCX217
+[07:11:04:106]:    35 RB5 
+[07:11:04:106]:    36 XR TAC Config for Matrix v2
+[07:11:04:106]:    37 FTDI TAC for RIDE MICRO 4.0
+[07:11:04:106]:    38 PAKALA CDP with GG GPIOs
+[07:11:04:106]:    39 FTDI TAC for RB8 IQ-9075-EVK
+[07:11:04:106]:    40 KAANAPALI CDP with GG GPIOs
+[07:11:04:106]:    41 ALPACA-LITE for AP-MDM Fusion ATP debug board
+[07:11:04:106]:    42 ALPACA-LITE SMART LABEL
+[07:11:04:106]:    44 Kanapali QRD
+[07:11:04:106]:    45 Glymur SIP V2 Alpaca Lite
+[07:11:04:106]:    48 MTP8850 FTDI IO
+[07:11:04:106]:    49 Glymur COB CDPS
+[07:11:04:106]:    50 Default Automotive (PIC32CX)
+[07:11:04:106]:    51 ALPACA-LITE GLYMUR COB QCB
+[07:11:04:106]:    52 Glymur QCB V1 Alpaca Lite With battery
+[07:11:04:106]:    54 NordAu RIDE
+[07:11:04:106]:    55 AR TAC config for Balsam
+[07:11:04:106]:    56 MTP8845 FTDI IO
+[07:11:04:106]:    57 Monaco/Lemans ADP Automotive
+[07:11:04:106]:    60 Glymur Battery Enabled Device
+[07:11:04:106]:    63 AR TAC config for BONSAI
+[07:11:04:106]:    64 FTDI-LITE SDX95 QMP
+[07:11:04:106]:    65 MTP8975 (Hawi) FTDI IO
+[07:11:04:106]:    66 Hawi MTP8975 - PSoC
+[07:11:04:106]:    67 TDP535 Platform Config
+[07:11:04:106]:    69 FTDI-LITE SDX95 M.2
+[07:11:04:106]:    70 ALPACA-LITE HAWI CDP
+[07:11:04:106]:    71 FTDI TAC for RB4 IQ-8275-EVK
+[07:11:04:106]:    72 JTAG MUX DC
+[07:11:04:106]:    73 MTP8950 (Maili) FTDI IO
+[07:11:04:106]:    74 30-P9415-2 Dongle for Aliso
+[07:11:04:106]:    77 ALPACA-LITE KARNALI QCB DT
+[07:11:04:106]:    78 ALPACA-LITE MAILI CDP
+[07:11:04:106]:    80 Arduino BugHopper V1 (Default)
+[07:11:04:106]:    81 Arduino Ventuno Q
+[07:11:04:106]:    82 SHIKRA PSOC
+[07:11:04:106]:    85 IQ10 RRD V1
+[07:11:04:106]:    87 HAWI QRD PSOC
+[07:11:04:106]:    95 Arduino BugHopper V2 (Default)
+[07:11:04:173]: Found serial port with vendor id: 32902 and product id: 31467
+[07:11:04:173]: Found serial port with vendor id: 1027 and product id: 24593
+[07:11:04:173]: Found serial port with vendor id: 1027 and product id: 24593
+[07:11:04:173]: Found serial port with vendor id: 1478 and product id: 36872
+[07:11:04:173]: Found serial port with vendor id: 1027 and product id: 24593
+[07:11:04:173]: Found serial port with vendor id: 1240 and product id: 10
+[07:11:04:294]: Found serial port with vendor id: 32902 and product id: 31467
+[07:11:04:294]: Found serial port with vendor id: 1027 and product id: 24593
+[07:11:04:294]: Found serial port with vendor id: 1027 and product id: 24593
+[07:11:04:294]: Found serial port with vendor id: 1478 and product id: 36872
+[07:11:04:294]: Found serial port with vendor id: 1027 and product id: 24593
+[07:11:04:294]: Found serial port with vendor id: 1240 and product id: 10
+[07:11:04:295]: TACPlatformEntry::getConfiguration() Platform C:/ProgramData/Qualcomm/QTAC/configurations/TAC_PIC32CXAuto_54.tcnf loaded
+[07:11:04:295]: Found a PIC32CX device with port name: 'COM6'
+[07:11:04:579]: Found serial port with vendor id: 32902 and product id: 31467
+[07:11:04:579]: Found serial port with vendor id: 1027 and product id: 24593
+[07:11:04:579]: Found serial port with vendor id: 1027 and product id: 24593
+[07:11:04:579]: Found serial port with vendor id: 1478 and product id: 36872
+[07:11:04:579]: Found serial port with vendor id: 1027 and product id: 24593
+[07:11:04:579]: Found serial port with vendor id: 1240 and product id: 10
+[07:11:04:579]: Unable to open TAC Port. The device is already open in another process or the user does not have sufficient security credentials.
+[07:15:40:217]: Wait for completion timed out.
+[07:15:40:217]: _AlpacaDevice::setPinState(128)  Command:usb0
+[07:25:56:243]: Wait for completion timed out.
+[07:25:56:243]: _AlpacaDevice::setPinState(128)  Command:usb0

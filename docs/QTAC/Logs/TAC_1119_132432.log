@@ -1,0 +1,152 @@
+[2026/11/19 13:24:32.560]: TAC Application log started
+[2026/11/19 13:24:32.560]: QTAC Version: 6.9.8
+[2026/11/19 13:24:32.560]: TAC Version: 6.9.8
+[2026/11/19 13:24:32.560]: Descriptor Load Path:C:/ProgramData/Qualcomm/QTAC/configurations/devicelist.json
+[2026/11/19 13:24:32.560]:    1 SPM V4
+[2026/11/19 13:24:32.560]:    2 EPM V4
+[2026/11/19 13:24:32.560]:    3 Alpaca V1
+[2026/11/19 13:24:32.560]:    4 MicroEPM TAC
+[2026/11/19 13:24:32.560]:    5 Alpaca V2
+[2026/11/19 13:24:32.560]:    6 Alpaca V3.0
+[2026/11/19 13:24:32.560]:    7 Alpaca V3.1
+[2026/11/19 13:24:32.560]:    8 MTP V3.2
+[2026/11/19 13:24:32.560]:    9 QRD V1.0
+[2026/11/19 13:24:32.560]:    10 IDP V1.0
+[2026/11/19 13:24:32.560]:    11 Dongle V3.0
+[2026/11/19 13:24:32.560]:    12 MTP V3.3
+[2026/11/19 13:24:32.560]:    13 ALPACA LITE (FTDI)
+[2026/11/19 13:24:32.560]:    14 CSM - PSoC version
+[2026/11/19 13:24:32.560]:    15 CSM - Lite
+[2026/11/19 13:24:32.560]:    16 CSM - X100
+[2026/11/19 13:24:32.560]:    17 Lemans ADP TAC PSOC
+[2026/11/19 13:24:32.560]:    18 FTDI TAC for RIDE MX 4.0
+[2026/11/19 13:24:32.560]:    19 Hamoa Lite
+[2026/11/19 13:24:32.560]:    20 FTDI-LITE SDX75 CPE
+[2026/11/19 13:24:32.560]:    21 ALPACA LITE  IDP35
+[2026/11/19 13:24:32.560]:    22 FTDI-LITE SDX75 QMP
+[2026/11/19 13:24:32.560]:    23 FTDI-LITE SDX75 M.2
+[2026/11/19 13:24:32.560]:    24 CSM - PSoC version
+[2026/11/19 13:24:32.560]:    25 ALPACA-LITE SDX35 M.2
+[2026/11/19 13:24:32.560]:    26 ALPACA-LITE KUNO DEBUG BOARD
+[2026/11/19 13:24:32.560]:    27 Lanai FTDI debug board
+[2026/11/19 13:24:32.560]:    28 ALPACA-LITE  CDPS35
+[2026/11/19 13:24:32.560]:    29 ALPACA-LITE  SWITCH CONTROL
+[2026/11/19 13:24:32.560]:    30 Disable UART to collect BootKPI
+[2026/11/19 13:24:32.561]:    31 CCARD525 PSoC
+[2026/11/19 13:24:32.561]:    32 ALPACA-LITE for Mobile/Compute/Modem_NS ATP debug board
+[2026/11/19 13:24:32.561]:    33 ALPACA-LITE QCX217
+[2026/11/19 13:24:32.561]:    35 RB5 
+[2026/11/19 13:24:32.561]:    36 XR TAC Config for Matrix v2
+[2026/11/19 13:24:32.561]:    37 FTDI TAC for RIDE MICRO 4.0
+[2026/11/19 13:24:32.561]:    38 PAKALA CDP with GG GPIOs
+[2026/11/19 13:24:32.561]:    39 FTDI TAC for RB8 IQ-9075-EVK
+[2026/11/19 13:24:32.561]:    40 KAANAPALI CDP with GG GPIOs
+[2026/11/19 13:24:32.561]:    41 ALPACA-LITE for AP-MDM Fusion ATP debug board
+[2026/11/19 13:24:32.561]:    42 ALPACA-LITE SMART LABEL
+[2026/11/19 13:24:32.561]:    44 Kanapali QRD
+[2026/11/19 13:24:32.561]:    45 Glymur SIP V2 Alpaca Lite
+[2026/11/19 13:24:32.561]:    48 MTP8850 FTDI IO
+[2026/11/19 13:24:32.561]:    49 Glymur COB CDPS
+[2026/11/19 13:24:32.561]:    50 Default Automotive (PIC32CX)
+[2026/11/19 13:24:32.561]:    51 ALPACA-LITE GLYMUR COB QCB
+[2026/11/19 13:24:32.561]:    52 Glymur QCB V1 Alpaca Lite With battery
+[2026/11/19 13:24:32.561]:    54 NordAu RIDE
+[2026/11/19 13:24:32.561]:    55 AR TAC config for Balsam
+[2026/11/19 13:24:32.561]:    56 MTP8845 FTDI IO
+[2026/11/19 13:24:32.561]:    57 Monaco/Lemans ADP Automotive
+[2026/11/19 13:24:32.561]:    60 Glymur Battery Enabled Device
+[2026/11/19 13:24:32.561]:    63 AR TAC config for BONSAI
+[2026/11/19 13:24:32.561]:    64 FTDI-LITE SDX95 QMP
+[2026/11/19 13:24:32.561]:    65 MTP8975 (Hawi) FTDI IO
+[2026/11/19 13:24:32.561]:    66 Hawi MTP8975 - PSoC
+[2026/11/19 13:24:32.561]:    67 TDP535 Platform Config
+[2026/11/19 13:24:32.561]:    69 FTDI-LITE SDX95 M.2
+[2026/11/19 13:24:32.561]:    70 ALPACA-LITE HAWI CDP
+[2026/11/19 13:24:32.561]:    71 FTDI TAC for RB4 IQ-8275-EVK
+[2026/11/19 13:24:32.561]:    72 JTAG MUX DC
+[2026/11/19 13:24:32.561]:    73 MTP8950 (Maili) FTDI IO
+[2026/11/19 13:24:32.561]:    74 30-P9415-2 Dongle for Aliso
+[2026/11/19 13:24:32.561]:    77 ALPACA-LITE KARNALI QCB DT
+[2026/11/19 13:24:32.561]:    78 ALPACA-LITE MAILI CDP
+[2026/11/19 13:24:32.561]:    80 Arduino BugHopper V1 (Default)
+[2026/11/19 13:24:32.561]:    81 Seca CoB STAR
+[2026/11/19 13:24:32.561]:    82 SHIKRA PSOC
+[2026/11/19 13:24:32.561]:    85 IQ10 RRD V1
+[2026/11/19 13:24:32.561]:    87 HAWI QRD PSOC
+[2026/11/19 13:24:32.561]:    92 Arduino Ventuno Q
+[2026/11/19 13:24:32.561]:    95 Arduino BugHopper V2 (Default)
+[2026/11/19 13:24:32.561]:    96 AR TAC config for BONSAI-TWILIGHT  V2
+[2026/11/19 13:24:32.602]: Found serial port with vendor id: 32902 and product id: 31467
+[2026/11/19 13:24:32.602]: Found serial port with vendor id: 1478 and product id: 36872
+[2026/11/19 13:24:32.602]: Found serial port with vendor id: 1240 and product id: 10
+[2026/11/19 13:24:32.612]: Found serial port with vendor id: 32902 and product id: 31467
+[2026/11/19 13:24:32.612]: Found serial port with vendor id: 1478 and product id: 36872
+[2026/11/19 13:24:32.612]: Found serial port with vendor id: 1240 and product id: 10
+[2026/11/19 13:24:32.613]: TACPlatformEntry::getConfiguration() Platform C:/ProgramData/Qualcomm/QTAC/configurations/TAC_PIC32CXAuto_54.tcnf loaded
+[2026/11/19 13:24:32.613]: Found a PIC32CX device with port name: 'COM6'
+[2026/11/19 13:24:32.727]: Found serial port with vendor id: 32902 and product id: 31467
+[2026/11/19 13:24:32.727]: Found serial port with vendor id: 1478 and product id: 36872
+[2026/11/19 13:24:32.727]: Found serial port with vendor id: 1240 and product id: 10
+[2026/11/19 13:24:32.728]: Device KARUSSELLXXBANTAMTDC000035AQ0 opened
+[2026/11/19 13:24:32.728]: Com port COM6
+
+[2026/11/19 13:24:33.245]: 
+[2026/11/19 13:24:33.245]: Frame Package Start
+[2026/11/19 13:24:33.245]: Frame Valid
+[2026/11/19 13:24:33.245]: Request: echo 1
+[2026/11/19 13:24:33.245]: Time: 88403812 elapsed: 0 (ms)
+[2026/11/19 13:24:33.245]: Responses
+[2026/11/19 13:24:33.245]: Frame Package End
+[2026/11/19 13:24:33.245]: 
+[2026/11/19 13:24:33.245]: Frame Package Start
+[2026/11/19 13:24:33.245]: Frame Valid
+[2026/11/19 13:24:33.245]: Request: End Transaction
+[2026/11/19 13:24:33.245]: Time: 88403812 elapsed: 0 (ms)
+[2026/11/19 13:24:33.245]: Responses
+[2026/11/19 13:24:33.245]: Frame Package End
+[2026/11/19 13:24:33.760]: Buffer cleared before identifying PIC32CX board
+[2026/11/19 13:24:34.273]: PIC32CX board name: Karussell
+[2026/11/19 13:24:34.273]: PIC32CX board firmware version: Apr  8 2025
+[2026/11/19 13:24:34.273]: PIC32CX board MAC: 8C:FD:F0:C0:13:8C
+[2026/11/19 13:24:34.273]: Identified platform id: 54
+[2026/11/19 13:24:34.273]: PIC32CX board Serial Number: TDC000035AQ0
+[2026/11/19 13:24:34.273]: PIC32CX board MCN: 10-72521-1410
+[2026/11/19 13:24:34.273]: 
+[2026/11/19 13:24:34.273]: tacCommand.platformID()
+[2026/11/19 13:24:34.273]: 
+[2026/11/19 13:24:34.273]: Frame Package Start
+[2026/11/19 13:24:34.273]: Frame Valid
+[2026/11/19 13:24:34.273]: Request: *IDN?
+[2026/11/19 13:24:34.273]: Time: 88404843 elapsed: 1031 (ms)
+[2026/11/19 13:24:34.273]: Responses
+[2026/11/19 13:24:34.273]:    Karussell,Apr  8 2025,08/04/2025,8C:FD:F0:C0:13:8C,54,TDC000035AQ0,10-72521-1410
+[2026/11/19 13:24:34.273]: Frame Package End
+[2026/11/19 13:24:34.273]: 
+[2026/11/19 13:24:34.273]: Frame Package Start
+[2026/11/19 13:24:34.273]: Frame Valid
+[2026/11/19 13:24:34.273]: Request: End Transaction
+[2026/11/19 13:24:34.273]: Time: 88404843 elapsed: 0 (ms)
+[2026/11/19 13:24:34.273]: Responses
+[2026/11/19 13:24:34.273]: Frame Package End
+[2026/11/19 13:24:34.789]: Buffer cleared before identifying PIC32CX board
+[2026/11/19 13:24:35.317]: PIC32CX board name: Karussell
+[2026/11/19 13:24:35.317]: PIC32CX board firmware version: Apr  8 2025
+[2026/11/19 13:24:35.317]: PIC32CX board MAC: 8C:FD:F0:C0:13:8C
+[2026/11/19 13:24:35.317]: Identified platform id: 54
+[2026/11/19 13:24:35.317]: PIC32CX board Serial Number: TDC000035AQ0
+[2026/11/19 13:24:35.317]: PIC32CX board MCN: 10-72521-1410
+[2026/11/19 13:24:35.317]: 
+[2026/11/19 13:24:35.317]: Frame Package Start
+[2026/11/19 13:24:35.317]: Frame Valid
+[2026/11/19 13:24:35.317]: Request: *IDN?
+[2026/11/19 13:24:35.317]: Time: 88405875 elapsed: 1032 (ms)
+[2026/11/19 13:24:35.317]: Responses
+[2026/11/19 13:24:35.317]:    Karussell,Apr  8 2025,08/04/2025,8C:FD:F0:C0:13:8C,54,TDC000035AQ0,10-72521-1410
+[2026/11/19 13:24:35.317]: Frame Package End
+[2026/11/19 13:24:35.317]: 
+[2026/11/19 13:24:35.317]: Frame Package Start
+[2026/11/19 13:24:35.317]: Frame Valid
+[2026/11/19 13:24:35.317]: Request: End Transaction
+[2026/11/19 13:24:35.317]: Time: 88405875 elapsed: 0 (ms)
+[2026/11/19 13:24:35.317]: Responses
+[2026/11/19 13:24:35.317]: Frame Package End
