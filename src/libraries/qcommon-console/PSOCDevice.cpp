@@ -239,6 +239,7 @@ bool PSOCDevice::open()
 
 			for (const auto& initializationPin: initialPins)
 			{
+				_driveThread->setWaitForCompletion();
 				_driveThread->setPinState(initializationPin._pin, true);
 				if (AppCore::getAppCore()->appLoggingActive())
 				{

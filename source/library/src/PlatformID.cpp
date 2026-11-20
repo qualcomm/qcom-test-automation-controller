@@ -292,7 +292,20 @@ static std::string findDeviceList()
             }
         }
 
-        // Installed Alpaca layout: C:/ProgramData/Qualcomm/Alpaca/tac_configs/
+        // QTAC installer layout: C:/ProgramData/Qualcomm/QTAC/configurations/
+        {
+            char programData[MAX_PATH]{};
+            if (::GetEnvironmentVariableA("ProgramData", programData, MAX_PATH) > 0)
+            {
+                fs_compat::Path configs =
+                    fs_compat::Path(programData) / "Qualcomm" / "QTAC" / "configurations";
+                auto candidate = configs / "devicelist.json";
+                if (fs_compat::exists(candidate))
+                    return candidate.string();
+            }
+        }
+
+        // Legacy Alpaca installer layout: C:/ProgramData/Qualcomm/Alpaca/tac_configs/
         {
             char programData[MAX_PATH]{};
             if (::GetEnvironmentVariableA("ProgramData", programData, MAX_PATH) > 0)
@@ -325,6 +338,51 @@ void PlatformContainer::initialize()
     if (!_platformIds.isEmpty())
         return;
 
+    // Hardcoded fallback entries — mirrors qcommon-console PlatformContainer::initialize().
+    // These ensure basic device recognition even when devicelist.json cannot be found.
+
+    // PSoC devices (platform IDs 1-12)
+    _platformIds.insert( 1, std::make_shared<_PlatformEntry>( 1, ePSOC, "SPM V4"));
+    _platformIds.insert( 2, std::make_shared<_PlatformEntry>( 2, ePSOC, "EPM V4"));
+    _platformIds.insert( 3, std::make_shared<_PlatformEntry>( 3, ePSOC, "Alpaca V1"));
+    _platformIds.insert( 4, std::make_shared<_PlatformEntry>( 4, ePSOC, "MicroEPM TAC"));
+    _platformIds.insert( 5, std::make_shared<_PlatformEntry>( 5, ePSOC, "Alpaca V2"));
+    _platformIds.insert( 6, std::make_shared<_PlatformEntry>( 6, ePSOC, "Alpaca V3.0"));
+    _platformIds.insert( 7, std::make_shared<_PlatformEntry>( 7, ePSOC, "Alpaca V3.1"));
+    _platformIds.insert( 8, std::make_shared<_PlatformEntry>( 8, ePSOC, "MTP V3.2"));
+    _platformIds.insert( 9, std::make_shared<_PlatformEntry>( 9, ePSOC, "QRD V1.0"));
+    _platformIds.insert(10, std::make_shared<_PlatformEntry>(10, ePSOC, "IDP V1.0"));
+    _platformIds.insert(11, std::make_shared<_PlatformEntry>(11, ePSOC, "Dongle V3.0"));
+    _platformIds.insert(12, std::make_shared<_PlatformEntry>(12, ePSOC, "MTP V3.3"));
+
+    // FTDI generic fallback (ALPACA_LITE_ID = 13): C+D buses active
+    {
+        auto entry = std::make_shared<_PlatformEntry>(
+            ALPACA_LITE_ID, eFTDI, "ALPACA LITE (FTDI)",
+            qtac::String(), qtac::ByteArray("ALPACA-LITE MTP DEBUG BOARD"));
+        entry->_pinSets[0] = eC | eD;
+        _platformIds.insert(ALPACA_LITE_ID, entry);
+    }
+
+    // PIC32CX automotive fallback (ALPACA_PIC32CX_ID = 50)
+    _platformIds.insert(ALPACA_PIC32CX_ID,
+        std::make_shared<_PlatformEntry>(ALPACA_PIC32CX_ID, ePIC32CXAuto,
+                                         "Default Automotive (PIC32CX)"));
+
+    // Arduino BugHopper V1 / FT232H fallback (ALPACA_BUGHOPPER_ID = 80): C bus active
+    {
+        auto entry = std::make_shared<_PlatformEntry>(
+            ALPACA_BUGHOPPER_ID, eFT232H, "Arduino BugHopper V1 (Default)",
+            qtac::String(), kBugHopperUSBDescriptor);
+        entry->_pinSets[0] = eC;
+        _platformIds.insert(ALPACA_BUGHOPPER_ID, entry);
+    }
+
+    // Arduino BugHopper V2 / STM32 fallback (ALPACA_STM32_ID = 95)
+    _platformIds.insert(ALPACA_STM32_ID,
+        std::make_shared<_PlatformEntry>(ALPACA_STM32_ID, eSTM32,
+                                         "Arduino BugHopper V2 (Default)"));
+
     initializeDynamic();
 }
 
@@ -341,36 +399,35 @@ void PlatformContainer::initializeDynamic()
     std::string fileContents((std::istreambuf_iterator<char>(file)),
                               std::istreambuf_iterator<char>());
 
-    json_t root;
-    try { root = boost::json::parse(fileContents); }
-    catch (...) { return; }
+    json_t root = json_t::parse(fileContents);
+    if (root.isNull()) return;
 
-    const auto* rootObj = root.if_object();
-    if (!rootObj || !rootObj->contains(kCatalog))
-        return;
-    const auto* catalog = rootObj->at(kCatalog).if_array();
-    if (!catalog)
-        return;
+    if (!root.isObject()) return;
+    qtac::JsonObject rootObj = root.asObject();
+    if (!rootObj.contains(kCatalog)) return;
+    if (!rootObj.at(kCatalog).isArray()) return;
+    qtac::JsonArray catalog = rootObj.at(kCatalog).asArray();
 
     // Resolve the directory that contains devicelist.json so that relative
     // configPath values can be resolved against it.
     fs_compat::Path deviceListDir =
         fs_compat::Path(deviceListPath).parent_path();
 
-    for (const auto& entryVal : *catalog)
+    for (const auto& entryVal : catalog)
     {
-        const auto* entry = entryVal.if_object();
-        if (!entry || !entry->contains(kPlatformId))
+        if (!entryVal.isObject()) continue;
+        qtac::JsonObject entry = entryVal.asObject();
+        if (!entry.contains(kPlatformId))
             continue;
 
-        PlatformID pid = static_cast<PlatformID>(qtac::json_util::toInt(entry->at(kPlatformId)));
+        PlatformID pid = static_cast<PlatformID>(qtac::json_util::toInt(entry.at(kPlatformId)));
 
-        int boardTypeInt = qtac::json_util::valueInt(*entry, kDebugBoardType, 0);
+        int boardTypeInt = qtac::json_util::valueInt(entry, kDebugBoardType, 0);
         DebugBoardType boardType = static_cast<DebugBoardType>(boardTypeInt);
 
-        std::string description = qtac::json_util::valueString(*entry, kDescription, "");
-        std::string usbDesc     = qtac::json_util::valueString(*entry, kUsbDescriptor, "");
-        std::string configPath  = qtac::json_util::valueString(*entry, kConfigPath, "");
+        std::string description = qtac::json_util::valueString(entry, kDescription, "");
+        std::string usbDesc     = qtac::json_util::valueString(entry, kUsbDescriptor, "");
+        std::string configPath  = qtac::json_util::valueString(entry, kConfigPath, "");
 
         // Resolve configPath relative to devicelist.json location when it is
         // a relative path.
@@ -406,8 +463,8 @@ void PlatformContainer::initializeDynamic()
             qtac::ByteArray(usbDesc.c_str())
         );
 
-        platformEntry->_revision     = static_cast<uint32_t>(qtac::json_util::valueInt(*entry, kRevision, 0));
-        platformEntry->_firmwareChip = static_cast<uint32_t>(qtac::json_util::valueInt(*entry, kFirmwareChip, 0));
+        platformEntry->_revision     = static_cast<uint32_t>(qtac::json_util::valueInt(entry, kRevision, 0));
+        platformEntry->_firmwareChip = static_cast<uint32_t>(qtac::json_util::valueInt(entry, kFirmwareChip, 0));
 
         // FTDI bus set bitmasks (chip1..chip4, 0-indexed internally as [0..3])
         static const char* kBusSets[kMaxPinSetCount] = {
@@ -415,9 +472,9 @@ void PlatformContainer::initializeDynamic()
         };
         for (int i = 0; i < kMaxPinSetCount; ++i)
         {
-            if (entry->contains(kBusSets[i]))
+            if (entry.contains(kBusSets[i]))
                 platformEntry->_pinSets[i] =
-                    static_cast<FTDIPinSets>(qtac::json_util::toInt(entry->at(kBusSets[i])));
+                    static_cast<FTDIPinSets>(qtac::json_util::toInt(entry.at(kBusSets[i])));
         }
 
         _platformIds.insert(pid, platformEntry);

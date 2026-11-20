@@ -157,6 +157,8 @@ add_library(qtac-core STATIC
     src/AlpacaScript.cpp
     # boost::json header-only compilation unit
     src/boost_json_src.cpp
+    # Opaque JSON abstraction (hides boost::json from all other source files)
+    src/Json.cpp
     # STM32 (BugHopper V2) drive thread — HID transport
     src/TACSTM32Command.cpp
     src/TACSTM32Coder.cpp

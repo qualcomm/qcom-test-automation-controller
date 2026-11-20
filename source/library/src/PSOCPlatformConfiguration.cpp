@@ -310,34 +310,34 @@ void _PSOCPlatformConfiguration::cascadeTabRename(const qtac::String& oldName,
 
 bool _PSOCPlatformConfiguration::read(json_t& j)
 {
-    const auto* jobj = j.if_object();
-    if (!jobj) return false;
+    if (!j.isObject()) return false;
+    qtac::JsonObject jobj = j.asObject();
 
-    if (jobj->contains(kPlatformEntries) && jobj->at(kPlatformEntries).is_array())
+    if (jobj.contains(kPlatformEntries) && jobj.at(kPlatformEntries).isArray())
     {
-        for (const auto& peVal : jobj->at(kPlatformEntries).as_array())
+        for (const auto& peVal : jobj.at(kPlatformEntries).asArray())
         {
-            const auto* pe = peVal.if_object();
-            if (!pe) continue;
+            if (!peVal.isObject()) continue;
+            qtac::JsonObject pe = peVal.asObject();
             PSOCPinData pinData;
 
-            if (pe->contains(kPinNumber))
-                pinData._pin = static_cast<PinID>(std::stoull(qtac::json_util::toString(pe->at(kPinNumber))));
+            if (pe.contains(kPinNumber))
+                pinData._pin = static_cast<PinID>(std::stoull(qtac::json_util::toString(pe.at(kPinNumber))));
 
             pinData._hash = strHash(qtac::String::number(static_cast<unsigned long long>(pinData._pin)));
 
-            if (pe->contains(kEnabled))       pinData._enabled                = qtac::json_util::toBool(pe->at(kEnabled));
-            if (pe->contains(kInitialValue))  pinData._initialValue           = qtac::json_util::toBool(pe->at(kInitialValue));
-            if (pe->contains(kPriority))      pinData._initializationPriority = qtac::json_util::toInt(pe->at(kPriority));
-            if (pe->contains(kInverted))      pinData._inverted               = qtac::json_util::toBool(pe->at(kInverted));
-            if (pe->contains(kName))          pinData._pinLabel               = qtac::json_util::toString(pe->at(kName));
-            if (pe->contains(kToolTip))       pinData._pinTooltip             = qtac::json_util::toString(pe->at(kToolTip));
-            if (pe->contains(kCommand))       pinData._pinCommand             = qtac::json_util::toString(pe->at(kCommand));
-            if (pe->contains(kCommandGroup))  pinData._commandGroup           = static_cast<CommandGroups>(qtac::json_util::toInt(pe->at(kCommandGroup)));
-            if (pe->contains(kClassicAction)) pinData._classicAction          = qtac::json_util::toString(pe->at(kClassicAction));
-            if (pe->contains(kTabName))       pinData._tabName                = qtac::json_util::toString(pe->at(kTabName));
-            if (pe->contains(kRunPriority))
-                pinData._cellLocation = toPoint(qtac::String(qtac::json_util::toString(pe->at(kRunPriority))));
+            if (pe.contains(kEnabled))       pinData._enabled                = qtac::json_util::toBool(pe.at(kEnabled));
+            if (pe.contains(kInitialValue))  pinData._initialValue           = qtac::json_util::toBool(pe.at(kInitialValue));
+            if (pe.contains(kPriority))      pinData._initializationPriority = qtac::json_util::toInt(pe.at(kPriority));
+            if (pe.contains(kInverted))      pinData._inverted               = qtac::json_util::toBool(pe.at(kInverted));
+            if (pe.contains(kName))          pinData._pinLabel               = qtac::json_util::toString(pe.at(kName));
+            if (pe.contains(kToolTip))       pinData._pinTooltip             = qtac::json_util::toString(pe.at(kToolTip));
+            if (pe.contains(kCommand))       pinData._pinCommand             = qtac::json_util::toString(pe.at(kCommand));
+            if (pe.contains(kCommandGroup))  pinData._commandGroup           = static_cast<CommandGroups>(qtac::json_util::toInt(pe.at(kCommandGroup)));
+            if (pe.contains(kClassicAction)) pinData._classicAction          = qtac::json_util::toString(pe.at(kClassicAction));
+            if (pe.contains(kTabName))       pinData._tabName                = qtac::json_util::toString(pe.at(kTabName));
+            if (pe.contains(kRunPriority))
+                pinData._cellLocation = toPoint(qtac::String(qtac::json_util::toString(pe.at(kRunPriority))));
 
             _pinEntries[pinData._pin] = pinData;
         }
@@ -345,21 +345,21 @@ bool _PSOCPlatformConfiguration::read(json_t& j)
 
     // --- Load buttons ---
     _buttons.clear();
-    if (jobj->contains(kButtons) && jobj->at(kButtons).is_array())
+    if (jobj.contains(kButtons) && jobj.at(kButtons).isArray())
     {
-        for (const auto& jbVal : jobj->at(kButtons).as_array())
+        for (const auto& jbVal : jobj.at(kButtons).asArray())
         {
-            const auto* jb = jbVal.if_object();
-            if (!jb) continue;
+            if (!jbVal.isObject()) continue;
+            qtac::JsonObject jb = jbVal.asObject();
             qtac::ButtonEntry btn;
-            if (jb->contains(kName))         btn._name         = qtac::json_util::toString(jb->at(kName));
-            if (jb->contains(kCommand))      btn._command      = qtac::json_util::toString(jb->at(kCommand));
-            if (jb->contains(kCommandGroup)) btn._commandGroup = qtac::json_util::toInt(jb->at(kCommandGroup));
-            if (jb->contains(kTab))          btn._tab          = qtac::json_util::toString(jb->at(kTab));
-            if (jb->contains(kButtonTooltip)) btn._tooltip     = qtac::json_util::toString(jb->at(kButtonTooltip));
-            if (jb->contains(kCellLocation))
+            if (jb.contains(kName))         btn._name         = qtac::json_util::toString(jb.at(kName));
+            if (jb.contains(kCommand))      btn._command      = qtac::json_util::toString(jb.at(kCommand));
+            if (jb.contains(kCommandGroup)) btn._commandGroup = qtac::json_util::toInt(jb.at(kCommandGroup));
+            if (jb.contains(kTab))          btn._tab          = qtac::json_util::toString(jb.at(kTab));
+            if (jb.contains(kButtonTooltip)) btn._tooltip     = qtac::json_util::toString(jb.at(kButtonTooltip));
+            if (jb.contains(kCellLocation))
             {
-                qtac::Point pt = toPoint(qtac::String(qtac::json_util::toString(jb->at(kCellLocation))));
+                qtac::Point pt = toPoint(qtac::String(qtac::json_util::toString(jb.at(kCellLocation))));
                 btn._cellX = pt.x();
                 btn._cellY = pt.y();
             }
@@ -396,20 +396,20 @@ bool _PSOCPlatformConfiguration::read(json_t& j)
 
     // --- Load variables ---
     _variables.clear();
-    if (jobj->contains(kVariables) && jobj->at(kVariables).is_array())
+    if (jobj.contains(kVariables) && jobj.at(kVariables).isArray())
     {
-        for (const auto& jvVal : jobj->at(kVariables).as_array())
+        for (const auto& jvVal : jobj.at(kVariables).asArray())
         {
-            const auto* jv = jvVal.if_object();
-            if (!jv) continue;
+            if (!jvVal.isObject()) continue;
+            qtac::JsonObject jv = jvVal.asObject();
             qtac::VariableEntry var;
-            if (jv->contains(kName))    var._name    = qtac::json_util::toString(jv->at(kName));
-            if (jv->contains(kLabel))   var._label   = qtac::json_util::toString(jv->at(kLabel));
-            if (jv->contains(kButtonTooltip)) var._tooltip = qtac::json_util::toString(jv->at(kButtonTooltip));
-            if (jv->contains(kType))    var._type    = static_cast<qtac::VariableType>(qtac::json_util::toInt(jv->at(kType)));
-            if (jv->contains(kDefaultValue))
+            if (jv.contains(kName))    var._name    = qtac::json_util::toString(jv.at(kName));
+            if (jv.contains(kLabel))   var._label   = qtac::json_util::toString(jv.at(kLabel));
+            if (jv.contains(kButtonTooltip)) var._tooltip = qtac::json_util::toString(jv.at(kButtonTooltip));
+            if (jv.contains(kType))    var._type    = static_cast<qtac::VariableType>(qtac::json_util::toInt(jv.at(kType)));
+            if (jv.contains(kDefaultValue))
             {
-                std::string dv = qtac::json_util::toString(jv->at(kDefaultValue));
+                std::string dv = qtac::json_util::toString(jv.at(kDefaultValue));
                 if (var._type == qtac::VariableType::Boolean)
                     var._defaultValue = (dv == "1" || dv == "true");
                 else if (var._type == qtac::VariableType::Float)
@@ -422,9 +422,9 @@ bool _PSOCPlatformConfiguration::read(json_t& j)
                     catch (...) { var._defaultValue = 0u; }
                 }
             }
-            if (jv->contains(kCellLocation))
+            if (jv.contains(kCellLocation))
             {
-                qtac::Point pt = toPoint(qtac::String(qtac::json_util::toString(jv->at(kCellLocation))));
+                qtac::Point pt = toPoint(qtac::String(qtac::json_util::toString(jv.at(kCellLocation))));
                 var._cellX = pt.x();
                 var._cellY = pt.y();
             }
@@ -455,9 +455,9 @@ bool _PSOCPlatformConfiguration::read(json_t& j)
     ensureVar("fastboot", "Fastboot timing (ms)", "Configurable Boot to fastboot timing in milliseconds", 8000, 1, 0);
 
     // --- Load and parse script ---
-    if (jobj->contains(kScript) && jobj->at(kScript).is_string())
+    if (jobj.contains(kScript) && jobj.at(kScript).isString())
     {
-        qtac::String scriptText = qtac::json_util::toString(jobj->at(kScript));
+        qtac::String scriptText = qtac::json_util::toString(jobj.at(kScript));
         TACCommands cmds;
         PSOCPinList activePins = getActivePins();
         for (const auto& p : activePins)
@@ -471,16 +471,16 @@ bool _PSOCPlatformConfiguration::read(json_t& j)
         _script.parseScript(scriptText, _variables, cmds);
     }
 
-    if (jobj->contains(kModificationDate) && jobj->at(kModificationDate).is_string())
-        _modificationDate = qtac::String(qtac::json_util::toString(jobj->at(kModificationDate)));
-    if (jobj->contains(kFileVersion) && (jobj->at(kFileVersion).is_int64() || jobj->at(kFileVersion).is_uint64()))
-        _fileVersion = qtac::json_util::toInt(jobj->at(kFileVersion));
-    if (jobj->contains(kName) && jobj->at(kName).is_string())
-        _name = qtac::String(qtac::json_util::toString(jobj->at(kName)));
-    if (jobj->contains(kAuthor) && jobj->at(kAuthor).is_string())
-        _author = qtac::String(qtac::json_util::toString(jobj->at(kAuthor)));
-    if (jobj->contains(kDescription) && jobj->at(kDescription).is_string())
-        _description = qtac::String(qtac::json_util::toString(jobj->at(kDescription)));
+    if (jobj.contains(kModificationDate) && jobj.at(kModificationDate).isString())
+        _modificationDate = qtac::String(qtac::json_util::toString(jobj.at(kModificationDate)));
+    if (jobj.contains(kFileVersion) && jobj.at(kFileVersion).isInt())
+        _fileVersion = qtac::json_util::toInt(jobj.at(kFileVersion));
+    if (jobj.contains(kName) && jobj.at(kName).isString())
+        _name = qtac::String(qtac::json_util::toString(jobj.at(kName)));
+    if (jobj.contains(kAuthor) && jobj.at(kAuthor).isString())
+        _author = qtac::String(qtac::json_util::toString(jobj.at(kAuthor)));
+    if (jobj.contains(kDescription) && jobj.at(kDescription).isString())
+        _description = qtac::String(qtac::json_util::toString(jobj.at(kDescription)));
 
     return true;
 }
@@ -505,26 +505,27 @@ void _PSOCPlatformConfiguration::loadDefaultScript(const qtac::String& scriptTex
 
 void _PSOCPlatformConfiguration::write(json_t& j)
 {
-    boost::json::array pinsArray;
+    j = json_t::makeObject();
+    json_t pinsArray = json_t::makeArray();
     for (const auto& kv : _pinEntries)
     {
         const PSOCPinData& p = kv.second;
-        boost::json::object entry;
-        entry[kPinNumber]     = qtac::String::number(static_cast<unsigned long long>(p._pin)).toStdString();
-        entry[kEnabled]       = p._enabled;
-        entry[kInitialValue]  = p._initialValue;
-        entry[kPriority]      = p._initializationPriority;
-        entry[kInverted]      = p._inverted;
-        entry[kName]          = p._pinLabel.toStdString();
-        entry[kToolTip]       = p._pinTooltip.toStdString();
-        entry[kCommand]       = p._pinCommand.toStdString();
-        entry[kCommandGroup]  = static_cast<int>(p._commandGroup);
-        entry[kClassicAction] = p._classicAction.toStdString();
-        entry[kRunPriority]   = fromPoint(p._cellLocation).toStdString();
-        entry[kTabName]       = p._tabName.toStdString();
-        pinsArray.push_back(entry);
+        json_t entry = json_t::makeObject();
+        entry.setKey(kPinNumber,     qtac::String::number(static_cast<unsigned long long>(p._pin)).toStdString());
+        entry.setKey(kEnabled,       p._enabled);
+        entry.setKey(kInitialValue,  p._initialValue);
+        entry.setKey(kPriority,      p._initializationPriority);
+        entry.setKey(kInverted,      p._inverted);
+        entry.setKey(kName,          p._pinLabel.toStdString());
+        entry.setKey(kToolTip,       p._pinTooltip.toStdString());
+        entry.setKey(kCommand,       p._pinCommand.toStdString());
+        entry.setKey(kCommandGroup,  static_cast<int>(p._commandGroup));
+        entry.setKey(kClassicAction, p._classicAction.toStdString());
+        entry.setKey(kRunPriority,   fromPoint(p._cellLocation).toStdString());
+        entry.setKey(kTabName,       p._tabName.toStdString());
+        pinsArray.append(entry);
     }
-    j.as_object()[kPlatformEntries] = pinsArray;
+    j.setKey(kPlatformEntries, pinsArray);
 }
 
 // ---------------------------------------------------------------------------

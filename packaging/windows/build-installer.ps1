@@ -114,6 +114,7 @@ if ($MockPayload) {
     if ($NoGui -or $RustOnly) {
         Set-Content (Join-Path $data 'app\TACDev.dll') 'placeholder'
         Set-Content (Join-Path $data 'app\TACDev.lib') 'placeholder'
+        if ($NoGui) { Set-Content (Join-Path $data 'app\taccl.exe') 'placeholder' }
     } else {
         Set-Content (Join-Path $data 'app\TAC.exe') 'placeholder'
         Set-Content (Join-Path $data 'app\FTDICheck.exe') 'placeholder'
@@ -135,6 +136,12 @@ if ($MockPayload) {
             $src = Join-Path $libDir $f
             if (Test-Path $src) { Copy-Item $src (Join-Path $data 'app') -Force }
             else { Write-Warning "$f not found in $libDir" }
+        }
+        if ($NoGui) {
+            # NoGui also ships the taccl CLI tool.
+            $src = Join-Path $BinDir 'taccl.exe'
+            if (Test-Path $src) { Copy-Item $src (Join-Path $data 'app') -Force }
+            else { Write-Warning "taccl.exe not found in $BinDir" }
         }
     } else {
         Copy-Item (Join-Path $BinDir '*') (Join-Path $data 'app') -Recurse -Force

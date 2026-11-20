@@ -130,6 +130,7 @@ public:
     // promptly when the drive thread is being stopped.
     void requestStop() override;
 
+
     // Request a transport reset from outside the drive thread.
     // Blocks until the reset is complete; returns true on success.
     bool resetTransport();
