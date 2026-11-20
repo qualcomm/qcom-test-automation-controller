@@ -190,8 +190,6 @@ bool TACWindow::closeDevice()
 		QObject::disconnect(_alpacaDevice.data(), Q_NULLPTR, _nwgt, Q_NULLPTR);
 		QObject::disconnect(_alpacaDevice.data(), &_AlpacaDevice::commandBusyChanged,
 			this, &TACWindow::onCommandBusyChanged);
-		QObject::disconnect(_alpacaDevice.data(), &_AlpacaDevice::quickCommandStarted,
-			this, &TACWindow::onQuickCommandStarted);
 		QObject::disconnect(_alpacaDevice.data(), &_AlpacaDevice::deferredCloseDone,
 			this, &TACWindow::onDeferredCloseDone);
 
@@ -217,30 +215,6 @@ void TACWindow::onDeferredCloseDone()
 		_closeWindowWhenDone = false;
 		close();
 	}
-}
-
-void TACWindow::onQuickCommandStarted(quint32 scriptDelayMs)
-{
-	// Short commands (Power On and the like) finish before a hint is useful.
-	const quint32 kHintThresholdMs{5000};
-
-	// waitForCompletion() allows the script's delays plus its normal ~5 s
-	// completion timeout, so that is the most the lock should last. A real
-	// timeout triggers one transport reset and replay, which can run past
-	// it; hence a fixed "up to" figure rather than a countdown.
-	const quint32 kCompletionAllowanceMs{5000};
-
-	if (_closeDeferred || scriptDelayMs < kHintThresholdMs)
-		return;
-
-	const quint32 upToSeconds = (scriptDelayMs + kCompletionAllowanceMs + 999) / 1000;
-
-	// Shown as the normal status message, in place of the generic
-	// "Operation in progress..." text, so it reads like every other message.
-	// Kept short: the message area left of NotificationWidget's progress bar
-	// holds only about 50 characters at the default window width.
-	_quickCommandHint = QString("Operation in progress (up to ~%1 s)").arg(upToSeconds);
-	_statusbar->showMessage(_quickCommandHint);
 }
 
 void TACWindow::onStatusMessageChanged(const QString& message)
@@ -457,10 +431,6 @@ void TACWindow::openPort
 
 	QObject::connect(_alpacaDevice.data(), &_AlpacaDevice::progress, _nwgt, &NotificationWidget::progress);
 
-	// A long quick command (e.g. a 120 s UEFI hold) keeps the controls locked
-	// for its whole run; say how long, so the lock does not look like a hang.
-	QObject::connect(_alpacaDevice.data(), &_AlpacaDevice::quickCommandStarted,
-		this, &TACWindow::onQuickCommandStarted, Qt::UniqueConnection);
 	QObject::connect(_alpacaDevice.data(), &_AlpacaDevice::commandBusyChanged,
 		this, &TACWindow::onCommandBusyChanged, Qt::UniqueConnection);
 

@@ -95,11 +95,7 @@ public:
 
 	QByteArray getHelp();
 
-	virtual bool setPinState(PinID pin, bool state);
-
-	// Attempts to recover a wedged host-side transport in place. Returns false
-	// when the active drive thread does not support being reset.
-	bool resetTransport();
+	virtual void setPinState(PinID pin, bool state);
 	virtual void setAddressPinState(const QString& i2cAddress, quint16 pin, bool state);
 
 	void setWaitForCompletion();
@@ -163,11 +159,6 @@ signals:
 	// Emitted when a command starts (true) and when the outermost one ends
 	// (false), so the UI can lock the controls that would re-enter it.
 	void commandBusyChanged(bool busy);
-
-	// Emitted by quickCommand() before it starts waiting, with the total of
-	// the script's own delay steps. The wait allows that much on top of the
-	// normal completion timeout, so the UI can say how long it may take.
-	void quickCommandStarted(quint32 scriptDelayMs);
 
 	// Emitted once a close() that was deferred by a running command has been
 	// completed. Connect queued: it fires while the command's caller is still

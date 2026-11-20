@@ -122,9 +122,6 @@ TAC_RESULT _quickCommand
 	{
 		try
 		{
-			// The completion flag is armed inside quickCommand() itself, so
-			// both this entry point and the exported SendCommand() get the
-			// timeout detection without each caller having to remember.
 			bool completed = alpacaDevice->quickCommand(command);
 
 			// quickCommand() returns false without throwing in two cases:

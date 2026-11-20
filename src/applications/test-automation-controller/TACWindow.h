@@ -60,8 +60,6 @@ private slots:
 	// quick command was still running; see closeDevice().
 	void onDeferredCloseDone();
 
-	// Show and hide the "up to ~N s" hint for long quick commands.
-	void onQuickCommandStarted(quint32 scriptDelayMs);
 	void onCommandBusyChanged(bool busy);
 
 	// Keeps the hint in place of NotificationWidget's generic

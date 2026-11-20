@@ -123,6 +123,11 @@ bool PIC32CXDevice::open()
 
 	if (result == true)
 	{
+		const QByteArray openError = _driveThread->lastErrorMessage();
+
+		if (openError.isEmpty() == false)
+			AppCore::writeToApplicationLogLine("PIC32CXDevice::open(): " + openError);
+
 		_pic32cxPlatformConfiguration = static_cast<_PIC32CXPlatformConfiguration*>(_platformConfiguration.data());
 
 		buildMapping();

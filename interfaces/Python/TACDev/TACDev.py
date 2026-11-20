@@ -105,7 +105,6 @@ TAC_BAD_TAC_HANDLE = 2
 TACDEV_COMMAND_NOT_FOUND = 3
 TACDEV_BAD_INDEX = 4
 TACDEV_INIT_FAILED = 5
-TACDEV_COMMAND_TIMEOUT = 7
 TACDEV_DEVICE_BUSY = 8
 
 
@@ -119,7 +118,6 @@ def GetErrorString(errorCode: int) -> str:
         # 5 is both TACDEV_INIT_FAILED and TAC_DEVICE_INACTIVE (TACException.h)
         5: "TAC initialization failed or TAC device inactive (closed or disconnected during the command)",
         6: "TAC Script variable was not found",
-        7: "TAC command timed out waiting for completion",
         8: "TAC device busy: another command is still in progress",
     }
     return errorDict.get(errorCode, f"Error string cannot be determined. Error code: {errorCode}")
