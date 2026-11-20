@@ -141,4 +141,3 @@ void TACPIC32CXProtocol::triggerElapsed()
 {
 	_tickCount = 0;
 }
-

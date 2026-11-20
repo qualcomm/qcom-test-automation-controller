@@ -47,6 +47,7 @@ private:
 	TACDriveThread*				_tacDriveTrain;
 	quint64						_tickCount;
 	QByteArray					_currentCommand;
+	QList<QByteArray>			_frames;
 
 	void triggerElapsed();
 

@@ -231,6 +231,19 @@ bool TACPIC32CXDriveThread::performTransportReset()
 			.arg(handshook ? "succeeded" : "failed")
 			.arg(handshook ? "acknowledged" : "no response"));
 
+	if (handshook == false)
+	{
+		if (_serialPort != Q_NULLPTR)
+		{
+			disconnect(_serialPort, Q_NULLPTR, this, Q_NULLPTR);
+			_serialPort->clear();
+			_serialPort->close();
+			delete _serialPort;
+			_serialPort = Q_NULLPTR;
+		}
+		stopRunning();
+	}
+
 	// Report failure when the board never answered. Claiming success on a
 	// reopened-but-silent port is what made the previous attempt look like the
 	// reset had worked when the retry was always going to fail.
@@ -281,6 +294,13 @@ bool TACPIC32CXDriveThread::drainHandshake()
 					AppCore::writeToApplicationLogLine(
 						"TACPIC32CXDriveThread::drainHandshake: write failed, " + _serialPort->errorString().toLatin1());
 					return false;
+				}
+
+				if (framePackage->_requestHash == kPIC32CXClearBufferHash)
+				{
+					_serialPort->waitForReadyRead(100);
+					readSerialData();
+					_protocolInterface->clearPendingFrame();
 				}
 			}
 		}
@@ -658,6 +678,12 @@ void TACPIC32CXDriveThread::run()
 							}
 
 							stopRunning();
+						}
+						else if (framePackage->_requestHash == kPIC32CXClearBufferHash)
+						{
+							_serialPort->waitForReadyRead(100);
+							readSerialData();
+							_protocolInterface->clearPendingFrame();
 						}
 					}
 				}

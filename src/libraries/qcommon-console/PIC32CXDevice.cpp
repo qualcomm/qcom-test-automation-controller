@@ -103,8 +103,11 @@ bool PIC32CXDevice::open()
 		return false;
 	}
 
+	bool startedDriveThread{false};
+
 	if (_driveThread == Q_NULLPTR)
 	{
+		startedDriveThread = true;
 		_driveThread = new TACPIC32CXDriveThread(_hash);
 		_driveThread->setThreadDelay(300);
 		_driveThread->start();
@@ -119,6 +122,45 @@ bool PIC32CXDevice::open()
 			else
 				QThread::msleep(300);
 		}
+
+		TACPIC32CXDriveThread* pic32cxDriveThread = dynamic_cast<TACPIC32CXDriveThread*>(_driveThread);
+		result = false;
+
+		for (int i{0}; i < 50; i++)
+		{
+			if (pic32cxDriveThread != Q_NULLPTR && pic32cxDriveThread->isConnected())
+			{
+				result = true;
+				break;
+			}
+
+			if (_driveThread->isRunning() == false && _driveThread->weAreRunning() == false)
+				break;
+
+			QThread::msleep(100);
+		}
+
+		if (result == false && _lastError.isEmpty())
+		{
+			const QByteArray portError = _driveThread->lastErrorMessage();
+			if (portError.isEmpty() == false)
+				_lastError = portError;
+			else
+				_lastError = "The board did not respond to identification request";
+
+			AppCore::writeToApplicationLogLine(QString("%1: %2").arg(QString::fromLatin1(_portName), QString::fromLatin1(_lastError)));
+		}
+	}
+	else
+	{
+		result = _driveThread->weAreRunning();
+	}
+
+	if (result == false && startedDriveThread == true)
+	{
+		_chipVersion = _driveThread->chipVersion();
+		close();
+		return false;
 	}
 
 	if (result == true)
@@ -130,9 +172,12 @@ bool PIC32CXDevice::open()
 		connect(_driveThread, &TACPIC32CXDriveThread::pinStateChanged, this, &PIC32CXDevice::on_pinStateChanged, Qt::DirectConnection);
 	}
 
-	_macAddress = _driveThread->macAddress();
-	_chipVersion = _driveThread->chipVersion();
-	_driveThread->setThreadDelay(0);
+	if (_driveThread != Q_NULLPTR)
+	{
+		_macAddress = _driveThread->macAddress();
+		_chipVersion = _driveThread->chipVersion();
+		_driveThread->setThreadDelay(0);
+	}
 
 	return result;
 }

@@ -30,6 +30,11 @@ public:
 		return QString();
 	}
 
+	bool isConnected() const
+	{
+		return _connected;
+	}
+
 	void run();
 
 	void sendCommand(const QByteArray& command, bool console = false,

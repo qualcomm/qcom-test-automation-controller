@@ -38,19 +38,16 @@ void TACPIC32CXCoder::decode(const QByteArray& decodeMe)
 		_recieveBuffer.clear();
 	}
 
-	else if (_recieveBuffer.size() > kValidPIC32CXResponseSize)
+	else if (_recieveBuffer.endsWith(kDelimiter.toLatin1()))
 	{
-		if (frames.size() > 1)
-			_frameFunction(frames[1].toLatin1(), _protocolInterface);
-		else if (frames.size() == 1)
-			_frameFunction(frames[0].toLatin1(), _protocolInterface);
+		if (_recieveBuffer.size() > kValidPIC32CXResponseSize)
+		{
+			if (frames.size() > 1)
+				_frameFunction(frames[1].toLatin1(), _protocolInterface);
+			else if (frames.size() == 1)
+				_frameFunction(frames[0].toLatin1(), _protocolInterface);
+		}
 
-		_frameFunction(QByteArray(), _protocolInterface);
-
-		_recieveBuffer.clear();
-	}
-	else
-	{
 		_frameFunction(QByteArray(), _protocolInterface);
 
 		_recieveBuffer.clear();
