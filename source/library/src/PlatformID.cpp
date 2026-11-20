@@ -338,6 +338,51 @@ void PlatformContainer::initialize()
     if (!_platformIds.isEmpty())
         return;
 
+    // Hardcoded fallback entries — mirrors qcommon-console PlatformContainer::initialize().
+    // These ensure basic device recognition even when devicelist.json cannot be found.
+
+    // PSoC devices (platform IDs 1-12)
+    _platformIds.insert( 1, std::make_shared<_PlatformEntry>( 1, ePSOC, "SPM V4"));
+    _platformIds.insert( 2, std::make_shared<_PlatformEntry>( 2, ePSOC, "EPM V4"));
+    _platformIds.insert( 3, std::make_shared<_PlatformEntry>( 3, ePSOC, "Alpaca V1"));
+    _platformIds.insert( 4, std::make_shared<_PlatformEntry>( 4, ePSOC, "MicroEPM TAC"));
+    _platformIds.insert( 5, std::make_shared<_PlatformEntry>( 5, ePSOC, "Alpaca V2"));
+    _platformIds.insert( 6, std::make_shared<_PlatformEntry>( 6, ePSOC, "Alpaca V3.0"));
+    _platformIds.insert( 7, std::make_shared<_PlatformEntry>( 7, ePSOC, "Alpaca V3.1"));
+    _platformIds.insert( 8, std::make_shared<_PlatformEntry>( 8, ePSOC, "MTP V3.2"));
+    _platformIds.insert( 9, std::make_shared<_PlatformEntry>( 9, ePSOC, "QRD V1.0"));
+    _platformIds.insert(10, std::make_shared<_PlatformEntry>(10, ePSOC, "IDP V1.0"));
+    _platformIds.insert(11, std::make_shared<_PlatformEntry>(11, ePSOC, "Dongle V3.0"));
+    _platformIds.insert(12, std::make_shared<_PlatformEntry>(12, ePSOC, "MTP V3.3"));
+
+    // FTDI generic fallback (ALPACA_LITE_ID = 13): C+D buses active
+    {
+        auto entry = std::make_shared<_PlatformEntry>(
+            ALPACA_LITE_ID, eFTDI, "ALPACA LITE (FTDI)",
+            qtac::String(), qtac::ByteArray("ALPACA-LITE MTP DEBUG BOARD"));
+        entry->_pinSets[0] = eC | eD;
+        _platformIds.insert(ALPACA_LITE_ID, entry);
+    }
+
+    // PIC32CX automotive fallback (ALPACA_PIC32CX_ID = 50)
+    _platformIds.insert(ALPACA_PIC32CX_ID,
+        std::make_shared<_PlatformEntry>(ALPACA_PIC32CX_ID, ePIC32CXAuto,
+                                         "Default Automotive (PIC32CX)"));
+
+    // Arduino BugHopper V1 / FT232H fallback (ALPACA_BUGHOPPER_ID = 80): C bus active
+    {
+        auto entry = std::make_shared<_PlatformEntry>(
+            ALPACA_BUGHOPPER_ID, eFT232H, "Arduino BugHopper V1 (Default)",
+            qtac::String(), kBugHopperUSBDescriptor);
+        entry->_pinSets[0] = eC;
+        _platformIds.insert(ALPACA_BUGHOPPER_ID, entry);
+    }
+
+    // Arduino BugHopper V2 / STM32 fallback (ALPACA_STM32_ID = 95)
+    _platformIds.insert(ALPACA_STM32_ID,
+        std::make_shared<_PlatformEntry>(ALPACA_STM32_ID, eSTM32,
+                                         "Arduino BugHopper V2 (Default)"));
+
     initializeDynamic();
 }
 
