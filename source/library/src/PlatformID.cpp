@@ -292,7 +292,20 @@ static std::string findDeviceList()
             }
         }
 
-        // Installed Alpaca layout: C:/ProgramData/Qualcomm/Alpaca/tac_configs/
+        // QTAC installer layout: C:/ProgramData/Qualcomm/QTAC/configurations/
+        {
+            char programData[MAX_PATH]{};
+            if (::GetEnvironmentVariableA("ProgramData", programData, MAX_PATH) > 0)
+            {
+                fs_compat::Path configs =
+                    fs_compat::Path(programData) / "Qualcomm" / "QTAC" / "configurations";
+                auto candidate = configs / "devicelist.json";
+                if (fs_compat::exists(candidate))
+                    return candidate.string();
+            }
+        }
+
+        // Legacy Alpaca installer layout: C:/ProgramData/Qualcomm/Alpaca/tac_configs/
         {
             char programData[MAX_PATH]{};
             if (::GetEnvironmentVariableA("ProgramData", programData, MAX_PATH) > 0)
