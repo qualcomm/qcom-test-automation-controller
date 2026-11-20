@@ -3,7 +3,7 @@ cmake_minimum_required(VERSION 3.16)
 # Allow standalone invocation (build_test/) or inclusion from root.
 if(NOT TARGET qtac-core)
     project(qtac-tests LANGUAGES CXX)
-    set(CMAKE_CXX_STANDARD 20)
+    set(CMAKE_CXX_STANDARD 11)
     set(CMAKE_CXX_STANDARD_REQUIRED ON)
     add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/../library ${CMAKE_CURRENT_BINARY_DIR}/library)
 endif()
