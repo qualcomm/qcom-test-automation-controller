@@ -241,6 +241,74 @@ std::string JsonValue::serialize() const
 }
 
 // ---------------------------------------------------------------------------
+// Pretty-print helper (boost::json has no built-in pretty-printer in 1.78)
+// ---------------------------------------------------------------------------
+
+static void prettyPrintValue(std::string& out,
+                             const boost::json::value& v,
+                             int indent,
+                             int depth)
+{
+    const std::string pad(static_cast<size_t>(depth * indent), ' ');
+    const std::string childPad(static_cast<size_t>((depth + 1) * indent), ' ');
+
+    switch (v.kind())
+    {
+    case boost::json::kind::object:
+    {
+        const auto& obj = v.as_object();
+        if (obj.empty()) { out += "{}"; return; }
+        out += "{\n";
+        bool first = true;
+        for (const auto& kv : obj)
+        {
+            if (!first) out += ",\n";
+            first = false;
+            out += childPad;
+            // Serialize the key as a JSON string (handles escaping)
+            out += boost::json::serialize(boost::json::value(kv.key()));
+            out += ": ";
+            prettyPrintValue(out, kv.value(), indent, depth + 1);
+        }
+        out += "\n";
+        out += pad;
+        out += "}";
+        break;
+    }
+    case boost::json::kind::array:
+    {
+        const auto& arr = v.as_array();
+        if (arr.empty()) { out += "[]"; return; }
+        out += "[\n";
+        bool first = true;
+        for (const auto& elem : arr)
+        {
+            if (!first) out += ",\n";
+            first = false;
+            out += childPad;
+            prettyPrintValue(out, elem, indent, depth + 1);
+        }
+        out += "\n";
+        out += pad;
+        out += "]";
+        break;
+    }
+    default:
+        out += boost::json::serialize(v);
+        break;
+    }
+}
+
+std::string JsonValue::serializePretty(int indent) const
+{
+    if (!_d) return "null\n";
+    std::string result;
+    prettyPrintValue(result, _d->v, indent, 0);
+    result += "\n";
+    return result;
+}
+
+// ---------------------------------------------------------------------------
 // JsonObject
 // ---------------------------------------------------------------------------
 

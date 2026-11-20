@@ -4,7 +4,7 @@
 
 #include <iostream>
 
-#include <nlohmann/json.hpp>
+#include <qtac/Json.h>
 
 namespace taccl {
 
@@ -14,9 +14,9 @@ void printState(bool state, const OutputOptions& opts)
         return;
 
     if (opts.json) {
-        nlohmann::json j;
-        j["state"] = state;
-        std::cout << j.dump() << std::endl;
+        qtac::JsonValue j = qtac::JsonValue::makeObject();
+        j.setKey("state", state);
+        std::cout << j.serialize() << std::endl;
     } else {
         std::cout << (state ? "on" : "off") << std::endl;
     }
@@ -25,9 +25,9 @@ void printState(bool state, const OutputOptions& opts)
 void printError(const std::string& message, const OutputOptions& opts)
 {
     if (opts.json) {
-        nlohmann::json j;
-        j["error"] = message;
-        std::cerr << j.dump() << std::endl;
+        qtac::JsonValue j = qtac::JsonValue::makeObject();
+        j.setKey("error", message);
+        std::cerr << j.serialize() << std::endl;
     } else {
         std::cerr << "taccl: " << message << std::endl;
     }

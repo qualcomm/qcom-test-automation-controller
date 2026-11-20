@@ -9,7 +9,7 @@
 #include <string>
 
 #include <CLI/CLI.hpp>
-#include <nlohmann/json.hpp>
+#include <qtac/Json.h>
 
 #include "Device.h"
 #include "Errors.h"
@@ -74,8 +74,9 @@ void runHelpText(const HelpTextOptions& opts, const OutputOptions& out, int& exi
         return;
 
     if (out.json) {
-        nlohmann::json j = {{"text", text}};
-        std::cout << j.dump() << "\n";
+        qtac::JsonValue j = qtac::JsonValue::makeObject();
+        j.setKey("text", text);
+        std::cout << j.serialize() << "\n";
     } else {
         std::cout << text << "\n";
     }

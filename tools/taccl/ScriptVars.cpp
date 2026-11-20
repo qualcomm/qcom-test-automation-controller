@@ -11,7 +11,7 @@
 #include <vector>
 
 #include <CLI/CLI.hpp>
-#include <nlohmann/json.hpp>
+#include <qtac/Json.h>
 
 #include "Device.h"
 #include "Errors.h"
@@ -104,10 +104,10 @@ void runVars(const VarsOptions& opts, const OutputOptions& out, int& exitCode)
         return;
 
     if (out.json) {
-        nlohmann::json j = nlohmann::json::object();
+        qtac::JsonValue j = qtac::JsonValue::makeObject();
         for (const auto& v : vars)
-            j[v.name] = v.value;
-        std::cout << j.dump() << "\n";
+            j.setKey(v.name, v.value);
+        std::cout << j.serialize() << "\n";
     } else {
         for (const auto& v : vars)
             std::cout << v.name << "=" << v.value << "\n";
@@ -166,8 +166,12 @@ void runVar(const VarOptions& opts, const OutputOptions& out, int& exitCode)
             if (v.name == opts.name) {
                 if (out.quiet)
                     return;
-                if (out.json)
-                    std::cout << nlohmann::json({{"name", v.name}, {"value", v.value}}).dump() << "\n";
+                if (out.json) {
+                    qtac::JsonValue jv = qtac::JsonValue::makeObject();
+                    jv.setKey("name",  v.name);
+                    jv.setKey("value", v.value);
+                    std::cout << jv.serialize() << "\n";
+                }
                 else
                     std::cout << v.value << "\n";
                 return;
@@ -184,8 +188,12 @@ void runVar(const VarOptions& opts, const OutputOptions& out, int& exitCode)
             return;
         }
         if (!out.quiet) {
-            if (out.json)
-                std::cout << nlohmann::json({{"name", opts.name}, {"value", opts.value}}).dump() << "\n";
+            if (out.json) {
+                qtac::JsonValue jv = qtac::JsonValue::makeObject();
+                jv.setKey("name",  opts.name);
+                jv.setKey("value", opts.value);
+                std::cout << jv.serialize() << "\n";
+            }
             else
                 std::cout << opts.value << "\n";
         }

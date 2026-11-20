@@ -110,6 +110,10 @@ public:
     // Serialise to compact JSON text
     std::string serialize() const;
 
+    // Serialise to indented (human-readable) JSON text.
+    // indent is the number of spaces per level (default 4).
+    std::string serializePretty(int indent = 4) const;
+
     struct Impl;
 
 private:

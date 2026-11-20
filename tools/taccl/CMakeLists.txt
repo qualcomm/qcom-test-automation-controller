@@ -54,13 +54,6 @@ FetchContent_Declare(
 )
 FetchContent_MakeAvailable(cli11)
 
-FetchContent_Declare(
-    json
-    GIT_REPOSITORY https://github.com/nlohmann/json.git
-    GIT_TAG        v3.11.3
-)
-FetchContent_MakeAvailable(json)
-
 # ---------------------------------------------------------------------------
 # Executable
 # ---------------------------------------------------------------------------
@@ -98,7 +91,7 @@ endif()
 
 target_link_libraries(taccl PRIVATE
     CLI11::CLI11
-    nlohmann_json::nlohmann_json
+    qtac-core
     ${TACDEV_LIBRARY_NAME}
 )
 

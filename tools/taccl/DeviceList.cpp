@@ -10,7 +10,7 @@
 #include <string>
 
 #include <CLI/CLI.hpp>
-#include <nlohmann/json.hpp>
+#include <qtac/Json.h>
 
 #include "Device.h"
 #include "Errors.h"
@@ -41,11 +41,14 @@ void runList(const OutputOptions& out, int& exitCode)
         return;
 
     if (out.json) {
-        nlohmann::json j = nlohmann::json::array();
+        qtac::JsonValue j = qtac::JsonValue::makeArray();
         for (const auto& d : devices) {
-            j.push_back({{"port", d.port}, {"serial", d.serial}});
+            qtac::JsonValue entry = qtac::JsonValue::makeObject();
+            entry.setKey("port",   d.port);
+            entry.setKey("serial", d.serial);
+            j.append(entry);
         }
-        std::cout << j.dump() << "\n";
+        std::cout << j.serialize() << "\n";
     } else {
         if (devices.empty()) {
             std::cout << "(no TAC devices found)\n";
@@ -76,8 +79,10 @@ void runVersion(const OutputOptions& out)
         return;
 
     if (out.json) {
-        nlohmann::json j = {{"qtac", alpaca}, {"tac", tac}};
-        std::cout << j.dump() << "\n";
+        qtac::JsonValue j = qtac::JsonValue::makeObject();
+        j.setKey("qtac", alpaca);
+        j.setKey("tac",  tac);
+        std::cout << j.serialize() << "\n";
     } else {
         std::cout << "QTAC: " << alpaca << "\n";
         std::cout << "TAC:  " << tac    << "\n";
@@ -149,14 +154,14 @@ void runInfo(const InfoOptions& opts, const OutputOptions& out, int& exitCode)
         return;
 
     if (out.json) {
-        nlohmann::json j = nlohmann::json::object();
-        if (showAll || opts.showName)            j["name"]            = name;
-        if (showAll || opts.showFirmware)        j["firmware"]        = firmware;
-        if (showAll || opts.showHardware)        j["hardware"]        = hardware;
-        if (showAll || opts.showHardwareVersion) j["hardwareVersion"] = hwVersion;
-        if (showAll || opts.showUUID)            j["uuid"]            = uuid;
-        if (showAll || opts.showResetCount)      j["resetCount"]      = resetCount;
-        std::cout << j.dump() << "\n";
+        qtac::JsonValue j = qtac::JsonValue::makeObject();
+        if (showAll || opts.showName)            j.setKey("name",            name);
+        if (showAll || opts.showFirmware)        j.setKey("firmware",        firmware);
+        if (showAll || opts.showHardware)        j.setKey("hardware",        hardware);
+        if (showAll || opts.showHardwareVersion) j.setKey("hardwareVersion", hwVersion);
+        if (showAll || opts.showUUID)            j.setKey("uuid",            uuid);
+        if (showAll || opts.showResetCount)      j.setKey("resetCount",      resetCount);
+        std::cout << j.serialize() << "\n";
     } else {
         if (showAll || opts.showName)            std::cout << "name: "             << name      << "\n";
         if (showAll || opts.showFirmware)        std::cout << "firmware: "         << firmware  << "\n";

@@ -10,7 +10,6 @@
 #include <unordered_map>
 
 #include <CLI/CLI.hpp>
-#include <nlohmann/json.hpp>
 
 #include "Device.h"
 #include "Errors.h"

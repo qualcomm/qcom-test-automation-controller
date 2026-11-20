@@ -7,7 +7,7 @@
 #include <vector>
 
 #include <CLI/CLI.hpp>
-#include <nlohmann/json.hpp>
+#include <qtac/Json.h>
 
 #include "Device.h"
 #include "Errors.h"
@@ -75,8 +75,10 @@ void runQuickCommands(const QuickCommandsOptions& opts,
         return;
 
     if (out.json) {
-        nlohmann::json j = commands;
-        std::cout << j.dump() << std::endl;
+        qtac::JsonValue j = qtac::JsonValue::makeArray();
+        for (const auto& cmd : commands)
+            j.append(qtac::JsonValue::fromString(cmd));
+        std::cout << j.serialize() << "\n";
     } else {
         for (const auto& cmd : commands)
             std::cout << cmd << "\n";

@@ -416,6 +416,10 @@ jobs:
     - name: Build
       run: cmake --build build/source/Release
 
+    - name: Generate devicelist.json
+      run: |
+        source/__Builds/Linux/Release/bin/update-device-list --dir configurations
+
     - name: Run tests
       run: |
         cd build/source/Release
@@ -578,6 +582,11 @@ jobs:
         $env:QTDIR = "C:\Qt\${{ matrix.qt_version }}\msvc2022_64"
         .\build_app.ps1
 
+    - name: Generate devicelist.json
+      shell: pwsh
+      run: |
+        & "source\__Builds\x64\Release\bin\update-device-list.exe" --dir configurations
+
     - name: Run tests
       shell: pwsh
       run: |
@@ -693,6 +702,11 @@ jobs:
         if ($LASTEXITCODE -ne 0) { throw "Configure failed" }
         cmake --build build\Release
         if ($LASTEXITCODE -ne 0) { throw "Build failed" }
+
+    - name: Generate devicelist.json
+      shell: pwsh
+      run: |
+        & "source\__Builds\ARM64\Release\bin\update-device-list.exe" --dir configurations
 
     - name: Run tests
       shell: pwsh
