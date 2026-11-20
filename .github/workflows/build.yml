@@ -585,7 +585,7 @@ jobs:
     - name: Generate devicelist.json
       shell: pwsh
       run: |
-        & "source\__Builds\x64\Release\bin\update-device-list.exe" --dir configurations
+        & ".\source\__Builds\x64\Release\bin\update-device-list.exe" --dir configurations
 
     - name: Run tests
       shell: pwsh
@@ -706,7 +706,7 @@ jobs:
     - name: Generate devicelist.json
       shell: pwsh
       run: |
-        & "source\__Builds\ARM64\Release\bin\update-device-list.exe" --dir configurations
+        & ".\source\__Builds\ARM64\Release\bin\update-device-list.exe" --dir configurations
 
     - name: Run tests
       shell: pwsh
