@@ -612,7 +612,7 @@ jobs:
         $binDir = "source\__Builds\x64\Release\bin"
         $env:PATH = "$qtBin;$env:PATH"
         & "$qtBin\windeployqt.exe" --release --no-translations --no-system-d3d-compiler `
-          (Get-ChildItem $binDir -Filter "*.exe" | Select-Object -First 1 -ExpandProperty FullName)
+          "$binDir\qtac-app.exe"
 
     - name: Build installer (QTAC-source-windows-x64.exe)
       shell: pwsh
@@ -733,7 +733,7 @@ jobs:
         $binDir = "source\__Builds\ARM64\Release\bin"
         $env:PATH = "$qtBin;$env:PATH"
         & "$qtBin\windeployqt.exe" --release --no-translations --no-system-d3d-compiler `
-          (Get-ChildItem $binDir -Filter "*.exe" | Select-Object -First 1 -ExpandProperty FullName)
+          "$binDir\qtac-app.exe"
 
     - name: Build installer (QTAC-source-windows-arm64.exe)
       shell: pwsh
