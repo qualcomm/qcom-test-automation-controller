@@ -54,6 +54,7 @@
 #include <QCheckBox>
 #include <QTabWidget>
 #include <QVBoxLayout>
+#include <QtConcurrent/QtConcurrent>
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -587,7 +588,16 @@ void TACPinFrame::onQuickButtonClicked()
     if (!btn) return;
 
     QByteArray cmd = btn->objectName().toLatin1();
-    _bridge->quickCommand(cmd);
+    btn->setEnabled(false);
+    auto* bridge = _bridge;
+    auto* future = new QFutureWatcher<void>(this);
+    connect(future, &QFutureWatcher<void>::finished, this, [btn, future]() {
+        btn->setEnabled(true);
+        future->deleteLater();
+    });
+    future->setFuture(QtConcurrent::run([bridge, cmd]() {
+        bridge->quickCommand(cmd);
+    }));
 }
 
 void TACPinFrame::onLogLine(const QByteArray& line)
