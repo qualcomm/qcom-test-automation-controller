@@ -69,75 +69,6 @@ TAC_RESULT _getCommandState
 	return result;
 }
 
-TAC_RESULT _setCommandState
-(
-	TAC_HANDLE tacHandle,
-	const QByteArray& command,
-	bool state
-)
-{
-	TAC_RESULT result{NO_TAC_ERROR};
-	bool valid{false};
-
-	AlpacaDevice alpacaDevice = gDevTACCore.getAlpacaDevice(tacHandle);
-	if (alpacaDevice.isNull() == false)
-	{
-		try
-		{
-			alpacaDevice->setWaitForCompletion();
-			valid = alpacaDevice->sendCommand(command, state);
-
-			if (valid == false)
-			{
-				result = TACDEV_BAD_TAC_HANDLE;
-				gDevTACCore.setLastError(kTACDevHandleNotOpen);
-			}
-		}
-		catch (const TACException& e)
-		{
-			result = e.errorCode();
-			gDevTACCore.setLastError(e.getMessage());
-		}
-	}
-	else
-	{
-		result = TACDEV_BAD_TAC_HANDLE;
-		gDevTACCore.setLastError(kTACDevHandleNotOpen);
-	}
-
-	return result;
-}
-
-TAC_RESULT _quickCommand
-(
-	TAC_HANDLE tacHandle,
-	const QByteArray& command
-)
-{
-	TAC_RESULT result{NO_TAC_ERROR};
-
-	AlpacaDevice alpacaDevice = gDevTACCore.getAlpacaDevice(tacHandle);
-	if (alpacaDevice.isNull() == false)
-	{
-		try
-		{
-			alpacaDevice->quickCommand(command);
-		}
-		catch (const TACException& e)
-		{
-			result = e.errorCode();
-			gDevTACCore.setLastError(e.getMessage());
-		}
-	}
-	else
-	{
-		result = TACDEV_BAD_TAC_HANDLE;
-		gDevTACCore.setLastError(kTACDevHandleNotOpen);
-	}
-
-	return result;
-}
-
 TAC_RESULT GetAlpacaVersion
 (
 	char* alpacaVersion,
@@ -460,7 +391,7 @@ TAC_RESULT SetBatteryState
 	bool state
 )
 {
-	return _setCommandState(tacHandle, "battery", state);
+	return SendCommand(tacHandle, "battery", state);
 }
 
 TAC_RESULT GetBatteryState(TAC_HANDLE tacHandle, bool *state)
@@ -474,7 +405,7 @@ TAC_RESULT Usb0
 	bool state
 )
 {
-	return _setCommandState(tacHandle, "usb0", state);
+	return SendCommand(tacHandle, "usb0", state);
 }
 
 TAC_RESULT GetUsb0State
@@ -492,7 +423,7 @@ TAC_RESULT Usb1
 	bool state
 )
 {
-	return _setCommandState(tacHandle, "usb1", state);
+	return SendCommand(tacHandle, "usb1", state);
 }
 
 TAC_RESULT GetUsb1State
@@ -510,7 +441,7 @@ TAC_RESULT PowerKey
 	bool state
 )
 {
-	return _setCommandState(tacHandle, "pkey", state);
+	return SendCommand(tacHandle, "pkey", state);
 }
 
 TAC_RESULT GetPowerKeyState
@@ -528,7 +459,7 @@ TAC_RESULT VolumeUp
 	bool state
 )
 {
-	return _setCommandState(tacHandle, "volup", state);
+	return SendCommand(tacHandle, "volup", state);
 }
 
 TAC_RESULT GetVolumeUpState
@@ -546,7 +477,7 @@ TAC_RESULT VolumeDown
 	bool state
 )
 {
-	return _setCommandState(tacHandle, "voldn", state);
+	return SendCommand(tacHandle, "voldn", state);
 }
 
 TAC_RESULT GetVolumeDownState
@@ -564,7 +495,7 @@ TAC_RESULT DisconnectUIM1
 	bool state
 )
 {
-	return _setCommandState(tacHandle, "uim1", state);
+	return SendCommand(tacHandle, "uim1", state);
 }
 
 TAC_RESULT GetDisconnectUIM1State
@@ -582,7 +513,7 @@ TAC_RESULT DisconnectUIM2
 	bool state
 )
 {
-	return _setCommandState(tacHandle, "uim2", state);
+	return SendCommand(tacHandle, "uim2", state);
 }
 
 TAC_RESULT GetDisconnectUIM2State
@@ -600,7 +531,7 @@ TAC_RESULT DisconnectSDCard
 	bool state
 )
 {
-	return _setCommandState(tacHandle, "sdcard", state);
+	return SendCommand(tacHandle, "sdcard", state);
 }
 
 TAC_RESULT GetDisconnectSDCardState
@@ -618,7 +549,7 @@ TAC_RESULT PrimaryEDL
 	bool state
 )
 {
-	return _setCommandState(tacHandle, "pedl", state);
+	return SendCommand(tacHandle, "pedl", state);
 }
 
 TAC_RESULT GetPrimaryEDLState
@@ -636,7 +567,7 @@ TAC_RESULT ForcePSHoldHigh
 	bool state
 )
 {
-	return _setCommandState(tacHandle, "pshold", state);
+	return SendCommand(tacHandle, "pshold", state);
 }
 
 TAC_RESULT GetForcePSHoldHighState
@@ -654,7 +585,7 @@ TAC_RESULT SecondaryEDL
 	bool state
 )
 {
-	return _setCommandState(tacHandle, "sedl", state);
+	return SendCommand(tacHandle, "sedl", state);
 }
 
 TAC_RESULT GetSecondaryEDLState
@@ -672,7 +603,7 @@ TAC_RESULT SecondaryPmResinN
 	bool state
 )
 {
-	return _setCommandState(tacHandle, "sresn", state);
+	return SendCommand(tacHandle, "sresn", state);
 }
 
 TAC_RESULT GetSecondaryPmResinNState
@@ -690,7 +621,7 @@ TAC_RESULT Eud
 	bool state
 )
 {
-	return _setCommandState(tacHandle, "eud", state);
+	return SendCommand(tacHandle, "eud", state);
 }
 
 TAC_RESULT GetEUDState
@@ -708,7 +639,7 @@ TAC_RESULT HeadsetDisconnect
 	bool state
 )
 {
-	return _setCommandState(tacHandle, "headset", state);
+	return SendCommand(tacHandle, "headset", state);
 }
 
 TAC_RESULT GetHeadsetDisconnectState
@@ -790,7 +721,7 @@ TAC_RESULT PowerOnButton
 	TAC_HANDLE tacHandle
 )
 {
-	return _quickCommand(tacHandle, "powerOn");
+	return SendCommand(tacHandle, "powerOn", true);
 }
 
 TAC_RESULT PowerOffButton
@@ -798,7 +729,7 @@ TAC_RESULT PowerOffButton
 	TAC_HANDLE tacHandle
 )
 {
-	return _quickCommand(tacHandle, "powerOff");
+	return SendCommand(tacHandle, "powerOff", true);
 }
 
 TAC_RESULT BootToFastBootButton
@@ -806,7 +737,7 @@ TAC_RESULT BootToFastBootButton
 	TAC_HANDLE tacHandle
 )
 {
-	return _quickCommand(tacHandle, "bootToFastboot");
+	return SendCommand(tacHandle, "bootToFastboot", true);
 }
 
 TAC_RESULT BootToUEFIMenuButton
@@ -814,7 +745,7 @@ TAC_RESULT BootToUEFIMenuButton
 	TAC_HANDLE tacHandle
 )
 {
-	return _quickCommand(tacHandle, "bootToUEFI");
+	return SendCommand(tacHandle, "bootToUEFI", true);
 }
 
 TAC_RESULT BootToEDLButton
@@ -822,7 +753,7 @@ TAC_RESULT BootToEDLButton
 	TAC_HANDLE tacHandle
 )
 {
-	return _quickCommand(tacHandle, "bootToEDL");
+	return SendCommand(tacHandle, "bootToEDL", true);
 }
 
 TAC_RESULT BootToSecondaryEDLButton
@@ -830,7 +761,7 @@ TAC_RESULT BootToSecondaryEDLButton
 	TAC_HANDLE tacHandle
 )
 {
-	return _quickCommand(tacHandle, "bootToSecondaryEDL");
+	return SendCommand(tacHandle, "bootToSecondaryEDL", true);
 }
 
 TAC_ERROR SetPinState

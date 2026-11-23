@@ -123,6 +123,8 @@ void TACPIC32CXDriveThread::sendCommand
 
 void TACPIC32CXDriveThread::setPinState(quint16 pin, bool state)
 {
+	setWaitForCompletion();
+
 	{
 		TACPIC32CXCommand tacCommand(this, this);
 
@@ -144,6 +146,8 @@ void TACPIC32CXDriveThread::sendCommandSequence(CommandEntries& commandEntries)
 {
 	for (const auto& commandEntry: commandEntries)
 	{
+		setWaitForCompletion();
+
         {
             TACPIC32CXCommand tacCommand(this, this);
 
@@ -168,6 +172,8 @@ void TACPIC32CXDriveThread::sendCommandSequence(CommandEntries& commandEntries)
                 break;
             }
         }
+
+		waitForCompletion();
 
 		emit progress(kProgressActive);
 	}
@@ -272,7 +278,9 @@ void TACPIC32CXDriveThread::handleError(QSerialPort::SerialPortError error)
 		_lastErrorMessage = "Unknown Error.";
 		break;
 	case QSerialPort::TimeoutError:
-		_lastErrorMessage = "Timeout Error.";
+		// We dont handle this error as this particular board is slow to respond
+		// and creates frequent timeouts which needs to be ignored.
+		// _lastErrorMessage = "Timeout Error.";
 		return;
 	case QSerialPort::NotOpenError:
 		_lastErrorMessage = "Not Open Error.";

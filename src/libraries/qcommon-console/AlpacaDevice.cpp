@@ -375,24 +375,27 @@ bool _AlpacaDevice::sendCommand
 		{
 			_driveThread->clearWaitForCompletion();
 
-			if (_driveThread->lastErrorMessage().isEmpty() == false)
+			QByteArray error = _driveThread->lastErrorMessage();
+			if (error.isEmpty() == false)
 			{
-				AppCore::writeToApplicationLogLine(QString("_AlpacaDevice::setPinState(%1, %2) failed. Possibly USB disconnected").arg(QString::number(_commands[command]._pin)).arg(state));
+				_lastError = QString("_AlpacaDevice::setPinState(%1, %2) failed. Please check USB power supply").arg(command).arg(state).toLatin1() + " Serial returned: " + error;
+				AppCore::writeToApplicationLogLine(_lastError);
 				throw TACException(TAC_DEVICE_INACTIVE, kSetPinError);
 			}
 		}
 
 		if (result == false)
 		{
-			AppCore::writeToApplicationLogLine(command + " is not found in Alpaca Script.");
-
+			_lastError = command + " is not found in Alpaca Script.";
+			AppCore::writeToApplicationLogLine(_lastError);
 			throw TACException(TAC_COMMAND_NOT_FOUND, QString("sendCommand error: Command %1 not found.").arg(command.data()));
 		}
 		else
 		{
 			if (active() == false)
 			{
-				AppCore::writeToApplicationLogLine(QString("_AlpacaDevice::sendCommand(%1, %2) failed. Operation on inactive device").arg(command).arg(state));
+				_lastError = QString("_AlpacaDevice::sendCommand(%1, %2) failed. Operation on inactive device").arg(command).arg(state).toLatin1();
+				AppCore::writeToApplicationLogLine(_lastError);
 				throw TACException(TAC_DEVICE_INACTIVE, kSendCommandError);
 			}
 		}

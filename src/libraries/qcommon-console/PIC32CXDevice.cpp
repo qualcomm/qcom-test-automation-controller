@@ -104,7 +104,7 @@ bool PIC32CXDevice::open()
 		QByteArray error = _driveThread->lastErrorMessage();
 
 		if (error.isEmpty() == false)
-			AppCore::writeToApplicationLogLine(error);
+			AppCore::writeToApplicationLogLine("[PIC32CXDevice::open]: '" + error + "'");
 
 		_pic32cxPlatformConfiguration = static_cast<_PIC32CXPlatformConfiguration*>(_platformConfiguration.data());
 
@@ -113,9 +113,12 @@ bool PIC32CXDevice::open()
 		connect(_driveThread, &TACPIC32CXDriveThread::pinStateChanged, this, &PIC32CXDevice::on_pinStateChanged, Qt::DirectConnection);
 	}
 
+	_driveThread->setWaitForCompletion();
+
 	_macAddress = _driveThread->macAddress();
 	_chipVersion = _driveThread->chipVersion();
-	_driveThread->setThreadDelay(0);
+
+	_driveThread->waitForCompletion();
 
 	return result;
 }

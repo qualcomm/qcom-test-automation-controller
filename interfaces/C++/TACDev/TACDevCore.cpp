@@ -111,7 +111,7 @@ TAC_HANDLE DevTACCore::OpenHandleByDescription(const char *portName)
 			{
 				QByteArray lastError = alpacaDevice->getLastError();
 				if (lastError.isEmpty())
-					setLastError(QByteArray(portName) + " can't be opened.");
+					setLastError(QByteArray(portName) + " can't be opened. Please close the connection and reopen the device." );
 				else
 					_lastError = lastError;
 
@@ -138,6 +138,7 @@ TAC_RESULT DevTACCore::CloseTACHandle(TAC_HANDLE tacHandle)
 	AlpacaDevice alpacaDevice = getAlpacaDevice(tacHandle);
 	if (alpacaDevice.isNull() == false)
 	{
+		AppCore::writeToApplicationLogLine("[DevTACCore::CloseTACHandle]: " + alpacaDevice->portName());
 		alpacaDevice->close();
 		_openDevices.remove(tacHandle);
 	}
