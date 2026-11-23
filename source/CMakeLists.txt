@@ -259,6 +259,10 @@ add_subdirectory(../tools/taccl ${CMAKE_BINARY_DIR}/taccl-build)
 add_subdirectory(../tools/update-device-list ${CMAKE_BINARY_DIR}/update-device-list-build)
 add_subdirectory(test)
 
+if(WIN32)
+    add_subdirectory(ftdi-check)
+endif()
+
 if(QTAC_BUILD_QT_TARGETS)
     add_subdirectory(libraries/qt-adapter)
     add_subdirectory(app)
