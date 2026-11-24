@@ -30,6 +30,10 @@
 
 const QString kAppName("QTAC");
 
+const QString kConfigurationsFolderName("configurations");
+const QString kDeviceListJson("devicelist.json");
+const QString kDevelopmentRootRelativePath("../../../..");
+
 QString applicationBinPath()
 {
 	const QString result = QDir::cleanPath(QCoreApplication::applicationDirPath())
@@ -326,20 +330,16 @@ QString expandPath(const QString &filePath)
 }
 QString tacConfigRoot()
 {
-	QString result = applicationDataPath();
-	
-	QString deviceListJsonPath = result + "/configurations/devicelist.json";
-	bool isdeviceListJsonPathPresent = QFile(deviceListJsonPath).exists();
-	if (isdeviceListJsonPathPresent == false)
-	{
-		result = "../../../../configurations/";		
-	}
-	else
-	{
-		result += "/configurations/";
-	}
+	const QString installedConfigRoot = QDir::cleanPath(applicationDataPath() + QDir::separator() + kConfigurationsFolderName);
+	const QString deviceListJsonPath = QDir::cleanPath(installedConfigRoot + QDir::separator() + kDeviceListJson);
 
-	return result;
+	QString result;
+	if (QFileInfo::exists(deviceListJsonPath))
+		result = installedConfigRoot;
+	else
+		result = QDir::cleanPath(kDevelopmentRootRelativePath + QDir::separator() + kConfigurationsFolderName);
+
+	return result + QDir::separator();
 }
 
 // Writes the resolved install and data locations to the debug output once at
