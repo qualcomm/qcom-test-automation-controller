@@ -53,6 +53,19 @@ public:
 	bool isOpen();
 	void close();
 
+	// Compatibility with the UI from develop (TACFrame/TACWindow). This branch
+	// has no command-depth tracking or deferred close: close() always closes
+	// immediately, so both of these are always false.
+	bool commandInProgress() const
+	{
+		return false;
+	}
+
+	bool closePending() const
+	{
+		return false;
+	}
+
 	virtual void buildMapping() = 0;
 	void buildQuickSettings();
 
@@ -136,6 +149,12 @@ signals:
 	void pinStateChanged(/*PinID*/ quint64 pin, bool state);
 	void progress(const quint8 value=10, NotificationLevel level=eInfoNotification);
 	void errorEvent(const QByteArray& message);
+
+	// Declared for the UI from develop; not emitted on this branch (see
+	// commandInProgress()/closePending() above).
+	void commandBusyChanged(bool busy);
+	void deferredCloseDone();
+	void quickCommandStarted(quint32 scriptDelayMs);
 
 public slots:
 	void on_pinStateChanged(/*PinID*/ quint64 pin, bool state);

@@ -13,6 +13,10 @@
 QString QCOMMONCONSOLE_EXPORT applicationBinPath();
 QString QCOMMONCONSOLE_EXPORT applicationDataPath();
 QString QCOMMONCONSOLE_EXPORT documentsDataPath(const QString& append);
+
+// True when the per-user configuration folder exists and is writable.
+// Callers such as TACDump use it to fail early instead of continuing.
+bool QCOMMONCONSOLE_EXPORT documentsDataPathAvailable();
 QString QCOMMONCONSOLE_EXPORT defaultGlobalLoggingPath();
 QString QCOMMONCONSOLE_EXPORT defaultLoggingPath(const QString& appName);
 
@@ -34,4 +38,3 @@ bool QCOMMONCONSOLE_EXPORT isUserPrivileged();
 bool QCOMMONCONSOLE_EXPORT executeBinaryAsAdministrator(const QString &binary, const QString &cmdArgs);
 
 #endif
-

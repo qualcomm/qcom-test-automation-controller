@@ -80,6 +80,18 @@ QString documentsDataPath
 	return result;
 }
 
+bool documentsDataPathAvailable()
+{
+	// documentsDataPath() on this branch always returns a path and ignores
+	// whether mkpath() succeeded, so check that the folder is really usable.
+	const QString path = documentsDataPath(QString());
+	if (path.isEmpty())
+		return false;
+
+	const QFileInfo info(path);
+	return info.isDir() && info.isWritable();
+}
+
 QString toCamelCase
 (
 	const QString& s
