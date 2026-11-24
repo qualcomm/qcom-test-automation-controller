@@ -26,13 +26,6 @@ void PinLED::setEnabled(bool enabled)
 {
 	_ui->_led->setEnabled(enabled);
 	_ui->_label->setEnabled(enabled);
-
-	if (enabled == false)
-	{
-		_pinNumber = 0;
-		_ui->_label->setToolTip("");
-		_ui->_led->setLedColor(LEDWidget::eOff);
-	}
 }
 
 bool PinLED::getState()
@@ -88,11 +81,10 @@ void PinLED::ledMouseRelease
 	bool state
 )
 {
+	Q_UNUSED(state);
+
 	if (isEnabled())
 	{
 		emit pinTriggered(_pinNumber, _state);
 	}
-
-	_state = state;
 }
-

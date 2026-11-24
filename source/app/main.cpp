@@ -40,22 +40,27 @@
 #ifdef _WIN32
 #include <windows.h>
 #include <dbghelp.h>
-#include <cstdio>
-#include <ctime>
-
 #pragma comment(lib, "dbghelp.lib")
-
-FILE* gCrashLog = nullptr;
-#else
-// Stub for non-Windows platforms
+#endif
 #include <cstdio>
 #include <ctime>
+
+#include "qtac_log_dir.h"
+
 FILE* gCrashLog = nullptr;
-#endif
 
 static void crashLogOpen()
 {
-    gCrashLog = fopen("qtac_crash.log", "w");
+    std::string dir = qtacLogDir("qtac-app");
+    std::string path = dir.empty() ? "qtac_crash.log"
+                                   : dir +
+#ifdef _WIN32
+                                     "\\"
+#else
+                                     "/"
+#endif
+                                     + "qtac_crash.log";
+    gCrashLog = fopen(path.c_str(), "w");
     if (!gCrashLog) return;
     std::time_t t = std::time(nullptr);
     fprintf(gCrashLog, "qtac-app started: %s\n", std::ctime(&t));

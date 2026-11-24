@@ -29,6 +29,7 @@
     "fileVersion": 1,
     "modification_date": "Mon Jul  7 00:00:00 2026",
     "name": "ALPACA LITE (FTDI)",
+    "usb_descriptor": "ALPACA-LITE MTP DEBUG BOARD",
     "pins": [
         {
             "bus": "A",

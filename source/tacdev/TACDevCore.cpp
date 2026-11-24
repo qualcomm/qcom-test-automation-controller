@@ -39,6 +39,8 @@
 #include <qtac/TACPSOCDriveThread.h>
 #include <qtac/TACPIC32CXDriveThread.h>
 
+#include "qtac_log_dir.h"
+
 // ---------------------------------------------------------------------------
 
 TAC_RESULT DevTACCore::getDeviceCount(int* deviceCount)
@@ -128,7 +130,24 @@ TAC_HANDLE DevTACCore::openHandleByDescription(const char* portName)
 void DevTACCore::attachLog(TAC_HANDLE handle, qtac::TACDriveThread* dt)
 {
     qtac::ThreadedLog log = qtac::_ThreadedLog::createThreadedLog();
-    const qtac::ByteArray logPath = qtac::_ThreadedLog::createLogName("TACDev");
+    // Build an absolute path matching the legacy TAC.exe Documents layout:
+    //   Windows: %USERPROFILE%\Documents\QTAC\TACDev\logs\TACDevMMdd_HHmmss.log
+    //   Linux:   ~/Documents/QTAC/TACDev/logs/TACDevMMdd_HHmmss.log
+    std::string dir = qtacLogDir("TACDev");
+    qtac::ByteArray logFileName = qtac::_ThreadedLog::createLogName("TACDev");
+    qtac::ByteArray logPath;
+    if (!dir.empty())
+    {
+#ifdef _WIN32
+        logPath = qtac::ByteArray((dir + "\\" ).c_str()) + logFileName;
+#else
+        logPath = qtac::ByteArray((dir + "/").c_str()) + logFileName;
+#endif
+    }
+    else
+    {
+        logPath = logFileName; // CWD fallback
+    }
     log->open(logPath);
     dt->onLogLine.connect([log](const qtac::ByteArray& line) {
         log->addLogEntry(line);

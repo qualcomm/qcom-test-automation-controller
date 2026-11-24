@@ -30,79 +30,40 @@
 // OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN
 // IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-// Thin helpers over boost::json.
+// Compatibility shim for code that used to include this header directly.
+// All types and helpers are now in <qtac/Json.h>; this header just re-exports
+// them under the legacy qtac::json_util namespace.
+//
+// New code should include <qtac/Json.h> and use qtac::json::* directly.
 
 #pragma once
 
-#include <boost/json.hpp>
+#include <qtac/Json.h>
 #include <string>
 
-using json_t = boost::json::value;
+// Legacy type alias — previously this was boost::json::value.
+using json_t = qtac::JsonValue;
 
 namespace qtac {
 namespace json_util {
 
-// Returns default if key absent or wrong type.
-inline std::string valueString(const boost::json::object& obj,
+// Object key accessors (match old signatures exactly)
+inline std::string valueString(const JsonObject& obj,
                                const std::string& key,
                                const std::string& def = "")
-{
-    auto it = obj.find(key);
-    if (it == obj.end()) return def;
-    if (const auto* s = it->value().if_string())
-        return std::string(s->data(), s->size());
-    return def;
-}
+{ return json::getString(obj, key, def); }
 
-inline int valueInt(const boost::json::object& obj, const std::string& key, int def = 0)
-{
-    auto it = obj.find(key);
-    if (it == obj.end()) return def;
-    const auto& v = it->value();
-    if (v.is_int64())  return static_cast<int>(v.as_int64());
-    if (v.is_uint64()) return static_cast<int>(v.as_uint64());
-    return def;
-}
+inline int valueInt(const JsonObject& obj, const std::string& key, int def = 0)
+{ return json::getInt(obj, key, def); }
 
-inline bool valueBool(const boost::json::object& obj, const std::string& key, bool def = false)
-{
-    auto it = obj.find(key);
-    if (it == obj.end()) return def;
-    if (const auto* b = it->value().if_bool())
-        return *b;
-    return def;
-}
+inline bool valueBool(const JsonObject& obj, const std::string& key, bool def = false)
+{ return json::getBool(obj, key, def); }
 
-// Safe string extraction from a json value
-inline std::string toString(const boost::json::value& v)
-{
-    if (const auto* s = v.if_string())
-        return std::string(s->data(), s->size());
-    return {};
-}
-
-// Safe int extraction from a json value
-inline int toInt(const boost::json::value& v)
-{
-    if (v.is_int64())  return static_cast<int>(v.as_int64());
-    if (v.is_uint64()) return static_cast<int>(v.as_uint64());
-    return 0;
-}
-
-// Safe bool extraction from a json value
-inline bool toBool(const boost::json::value& v)
-{
-    if (const auto* b = v.if_bool()) return *b;
-    return false;
-}
-
-// Safe uint32 extraction from a json value
-inline unsigned int toUInt(const boost::json::value& v)
-{
-    if (v.is_int64())  return static_cast<unsigned int>(v.as_int64());
-    if (v.is_uint64()) return static_cast<unsigned int>(v.as_uint64());
-    return 0u;
-}
+// Value-level extractors
+inline std::string toString(const JsonValue& v) { return json::toString(v); }
+inline int         toInt   (const JsonValue& v) { return json::toInt(v);    }
+inline bool        toBool  (const JsonValue& v) { return json::toBool(v);   }
+inline unsigned    toUInt  (const JsonValue& v) { return json::toUInt(v);   }
 
 } // namespace json_util
 } // namespace qtac

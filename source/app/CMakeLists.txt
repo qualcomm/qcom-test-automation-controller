@@ -39,7 +39,7 @@ set(CMAKE_AUTOUIC ON)
 set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTORCC ON)
 
-find_package(Qt6 REQUIRED COMPONENTS Core Gui Widgets)
+find_package(Qt6 REQUIRED COMPONENTS Concurrent Core Gui Widgets)
 qt_standard_project_setup()
 
 qt_add_resources(QTAC_APP_RESOURCES resources/TAC.qrc)
@@ -70,6 +70,7 @@ target_include_directories(qtac-app PRIVATE
 )
 
 target_link_libraries(qtac-app PRIVATE
+    Qt6::Concurrent
     Qt6::Core
     Qt6::Gui
     Qt6::Widgets

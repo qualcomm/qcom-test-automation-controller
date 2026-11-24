@@ -169,6 +169,7 @@ void TACDriveThread::requestStop()
     clearWaitForCompletion();
 }
 
+
 void TACDriveThread::setLastCommandDescription(const qtac::String& description)
 {
     _lastCommandDescription = description;
@@ -204,6 +205,7 @@ qtac::String TACDriveThread::uuidFromResponse(const qtac::ByteArray& response)
             lower.find("not supported")  != std::string::npos)
             return kUUIDNotSupported;
     }
+
 
     if (s.size() >= 36)
     {

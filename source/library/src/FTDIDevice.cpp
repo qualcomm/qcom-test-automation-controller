@@ -179,11 +179,18 @@ bool FTDIDevice::programDevice(AlpacaDevice alpacaDevice,
 uint32_t FTDIDevice::updateAlpacaDevices()
 {
 	std::lock_guard<std::recursive_mutex> lock(_mutex);
+
+	for (auto& dev : _alpacaDevices)
+		if (dynamic_cast<FTDIDevice*>(dev.get()) != nullptr)
+			dev->setActive(false);
+
 	uint32_t deviceCount = _FTDIChipset::getDeviceCount();
 
 	for (uint32_t deviceIndex = 0; deviceIndex < deviceCount; ++deviceIndex)
 	{
 		FTDIChipset ftdiChipset = _FTDIChipset::getDevice(deviceIndex);
+		if (!ftdiChipset->active())
+			continue;
 
 		HashType hash = ftdiChipset->hash();
 
@@ -331,7 +338,10 @@ bool FTDIDevice::open()
 				});
 
 			for (const auto& initPin : initialFtdiPins)
+			{
+				_driveThread->setWaitForCompletion();
 				_driveThread->setPinState(initPin._setPin, initPin._initialValue);
+			}
 		}
 	}
 

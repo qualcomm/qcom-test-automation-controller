@@ -352,7 +352,7 @@ C:\ProdTools\qcom-test-automation-controller\
 ├── deploy_app.ps1              windeployqt + copy configs
 ├── __Builds\x64\               ftd2xx.lib / ftd2xx.dll (auto-bootstrapped)
 ├── configurations\             devicelist.json, *.tcnf
-├── third-party\                boost, hidapi, libserialport, nlohmann/json
+├── third-party\                boost, hidapi, libserialport
 └── build\Release\              cmake build output
 ```
 

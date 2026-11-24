@@ -1,8 +1,14 @@
 . "$PSScriptRoot\env_setup.ps1"
 
 $appDir  = "$PSScriptRoot\build\Release"
-$ftdiBin = "$PSScriptRoot\__Builds\x64\Release\bin"
+$ftdiBin = "$PSScriptRoot\source\__Builds\x64\Release\bin"
 $confDir = "$PSScriptRoot\configurations"
+
+# Copy freshly built binaries
+Copy-Item "$ftdiBin\qtac-app.exe" $appDir -Force
+Write-Output "Copied qtac-app.exe"
+Copy-Item "$ftdiBin\TACDev.dll"   $appDir -Force
+Write-Output "Copied TACDev.dll"
 
 # Copy ftd2xx.dll next to exe
 Copy-Item "$ftdiBin\ftd2xx.dll" $appDir -Force
