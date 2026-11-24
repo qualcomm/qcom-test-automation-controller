@@ -42,20 +42,66 @@
 #include <dbghelp.h>
 #include <cstdio>
 #include <ctime>
+#include <string>
 
 #pragma comment(lib, "dbghelp.lib")
 
 FILE* gCrashLog = nullptr;
 #else
-// Stub for non-Windows platforms
 #include <cstdio>
 #include <ctime>
+#include <string>
+#include <sys/stat.h>
 FILE* gCrashLog = nullptr;
 #endif
 
+// Return the same log directory used by TACWindow::openLogFile(), but using
+// only C/Win32 APIs so it can be called before Qt is initialized.
+//   Windows: %USERPROFILE%\Documents\QTAC\qtac-app\logs
+//   Linux:   ~/Documents/QTAC/qtac-app/logs
+// Returns empty string on failure (caller falls back to CWD).
+static std::string appLogDir()
+{
+#ifdef _WIN32
+    char buf[MAX_PATH] = {};
+    if (GetEnvironmentVariableA("USERPROFILE", buf, MAX_PATH) == 0)
+        return {};
+    std::string dir = std::string(buf) + "\\Documents\\QTAC\\qtac-app\\logs";
+    for (size_t pos = std::string(buf).size() + 1; ; )
+    {
+        pos = dir.find('\\', pos);
+        std::string sub = (pos == std::string::npos) ? dir : dir.substr(0, pos);
+        CreateDirectoryA(sub.c_str(), nullptr);
+        if (pos == std::string::npos) break;
+        ++pos;
+    }
+    return dir;
+#else
+    const char* home = getenv("HOME");
+    if (!home) return {};
+    std::string dir = std::string(home) + "/Documents/QTAC/qtac-app/logs";
+    std::string cur;
+    for (char c : dir + "/")
+    {
+        if (c == '/') { if (!cur.empty()) mkdir(cur.c_str(), 0755); }
+        cur += c;
+    }
+    return dir;
+#endif
+}
+
 static void crashLogOpen()
 {
-    gCrashLog = fopen("qtac_crash.log", "w");
+    std::string dir = appLogDir();
+    std::string path = dir.empty() ? "qtac_crash.log"
+                                   : dir +
+#ifdef _WIN32
+                                     "\\"
+#else
+                                     "/"
+#endif
+                                     + "qtac_crash.log";
+    gCrashLog = fopen(path.c_str(), "w");
     if (!gCrashLog) return;
     std::time_t t = std::time(nullptr);
     fprintf(gCrashLog, "qtac-app started: %s\n", std::ctime(&t));
