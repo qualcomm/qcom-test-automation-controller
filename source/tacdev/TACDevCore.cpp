@@ -39,6 +39,66 @@
 #include <qtac/TACPSOCDriveThread.h>
 #include <qtac/TACPIC32CXDriveThread.h>
 
+#include <string>
+#include <sys/stat.h>
+#ifdef _WIN32
+#  include <windows.h>
+#  include <shlobj.h>
+#else
+#  include <cstdlib>
+#  include <unistd.h>
+#  include <pwd.h>
+#endif
+
+// ---------------------------------------------------------------------------
+// Return the platform log directory for TACDev, creating it as needed.
+// Mirrors the legacy AppCore path logic (without Qt):
+//   Windows: %USERPROFILE%\Documents\QTAC\TACDev\logs
+//   Linux:   ~/Documents/QTAC/TACDev/logs
+// Falls back to an empty string on failure (caller writes to CWD instead).
+// ---------------------------------------------------------------------------
+static std::string tacDevLogDir()
+{
+    std::string docs;
+
+#ifdef _WIN32
+    // Avoid QStandardPaths / OneDrive redirection — same workaround as AppCore.cpp.
+    char buf[MAX_PATH] = {};
+    if (GetEnvironmentVariableA("USERPROFILE", buf, MAX_PATH) > 0)
+        docs = std::string(buf) + "\\Documents";
+    if (docs.empty())
+        return {};
+    std::string dir = docs + "\\QTAC\\TACDev\\logs";
+    // Create each path component.
+    for (size_t pos = docs.size() + 1; ; )
+    {
+        pos = dir.find('\\', pos);
+        std::string sub = (pos == std::string::npos) ? dir : dir.substr(0, pos);
+        CreateDirectoryA(sub.c_str(), nullptr); // OK if already exists
+        if (pos == std::string::npos) break;
+        ++pos;
+    }
+    return dir;
+#else
+    const char* home = getenv("HOME");
+    if (!home)
+    {
+        struct passwd* pw = getpwuid(getuid());
+        if (pw) home = pw->pw_dir;
+    }
+    if (!home) return {};
+    docs = std::string(home) + "/Documents";
+    std::string dir = docs + "/QTAC/TACDev/logs";
+    std::string cur;
+    for (char c : dir + "/")
+    {
+        if (c == '/') { if (!cur.empty()) mkdir(cur.c_str(), 0755); }
+        cur += c;
+    }
+    return dir;
+#endif
+}
+
 // ---------------------------------------------------------------------------
 
 TAC_RESULT DevTACCore::getDeviceCount(int* deviceCount)
@@ -128,7 +188,24 @@ TAC_HANDLE DevTACCore::openHandleByDescription(const char* portName)
 void DevTACCore::attachLog(TAC_HANDLE handle, qtac::TACDriveThread* dt)
 {
     qtac::ThreadedLog log = qtac::_ThreadedLog::createThreadedLog();
-    const qtac::ByteArray logPath = qtac::_ThreadedLog::createLogName("TACDev");
+    // Build an absolute path matching the legacy TAC.exe Documents layout:
+    //   Windows: %USERPROFILE%\Documents\QTAC\TACDev\logs\TACDevMMdd_HHmmss.log
+    //   Linux:   ~/Documents/QTAC/TACDev/logs/TACDevMMdd_HHmmss.log
+    std::string dir = tacDevLogDir();
+    qtac::ByteArray logFileName = qtac::_ThreadedLog::createLogName("TACDev");
+    qtac::ByteArray logPath;
+    if (!dir.empty())
+    {
+#ifdef _WIN32
+        logPath = qtac::ByteArray((dir + "\\" ).c_str()) + logFileName;
+#else
+        logPath = qtac::ByteArray((dir + "/").c_str()) + logFileName;
+#endif
+    }
+    else
+    {
+        logPath = logFileName; // CWD fallback
+    }
     log->open(logPath);
     dt->onLogLine.connect([log](const qtac::ByteArray& line) {
         log->addLogEntry(line);
