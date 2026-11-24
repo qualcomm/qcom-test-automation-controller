@@ -612,6 +612,9 @@ border: none;</string>
     </property>
     <addaction name="_actionNew"/>
     <addaction name="_actionOpen"/>
+    <addaction name="_actionSave"/>
+    <addaction name="_actionSave_As"/>
+    <addaction name="separator"/>
     <addaction name="_actionPreview"/>
     <addaction name="_actionOpen_Script_Editor"/>
     <addaction name="separator"/>
@@ -706,6 +709,20 @@ border: none;</string>
    </property>
    <property name="shortcut">
     <string>Ctrl+S</string>
+   </property>
+  </action>
+  <action name="_actionSave_As">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
+   <property name="text">
+    <string>Save As...</string>
+   </property>
+   <property name="toolTip">
+    <string>Save the configuration to a location you choose</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+Shift+S</string>
    </property>
   </action>
   <action name="_actionContents">

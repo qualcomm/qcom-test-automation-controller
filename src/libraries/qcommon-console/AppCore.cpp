@@ -9,7 +9,9 @@
 
 // Qt
 #include <QDate>
+#include <QDateTime>
 #include <QDir>
+#include <QFile>
 #include <QJsonDocument>
 #include <QJsonObject>
 
@@ -252,7 +254,7 @@ void AppCore::postMetric
 void AppCore::writeToAppLog(const QString &writeMe)
 {
 	if (_appThreadedLog.isNull() == false)
-		_appThreadedLog->addLogEntry("[" + QTime::currentTime().toString("hh:mm:ss:zzz") + "]: " + writeMe);
+		_appThreadedLog->addLogEntry("[" + QDateTime::currentDateTime().toString("yyyy/MM/dd hh:mm:ss.zzz") + "]: " + writeMe);
 }
 
 void AppCore::writeToApplicationLog(const QString& writeMe)

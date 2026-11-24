@@ -13,11 +13,15 @@
 #include <iostream>
 #include <iomanip>
 
-const QString kUSBDescriptorPath = tacConfigRoot() + "devicelist.json";
-
 int main(int argc, char *argv[])
 {
 	QCoreApplication a(argc, argv);
+
+	// Resolve the path at runtime rather than at file scope. tacConfigRoot()
+	// relies on globals defined in another translation unit, and the order in
+	// which globals in different translation units are initialized is
+	// unspecified, so a file-scope initializer can observe them still empty.
+	const QString kUSBDescriptorPath = tacConfigRoot() + "devicelist.json";
 
 	USBDescriptors usbDescriptors;
 

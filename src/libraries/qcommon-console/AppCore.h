@@ -41,17 +41,8 @@ public:
 	void setAppLogging(bool loggingState);
 	bool appLoggingActive();
 
-	QString currentAppLog()
-	{
-		return _appThreadedLog->currentLogPath();
-	}
-
 	void setRunLogging(bool loggingState);
 	bool runLoggingActive();
-	QString currentRunLog()
-	{
-		return _runThreadedLog->currentLogPath();
-	}
 
 	QString loggingPath();
 

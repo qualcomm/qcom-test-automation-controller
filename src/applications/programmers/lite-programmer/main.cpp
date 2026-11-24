@@ -136,6 +136,8 @@ int main(int argc, char *argv[])
 	InitializeQCommonConsole();
 	ProgrammerCommandLine parser(a.arguments());
 
+	int exitCode{0};
+
 	if (parser.helpRequested() == false)
 	{
 		bool earlyReturn{false}; // if the user asks for information items, don't program the device
@@ -164,7 +166,10 @@ int main(int argc, char *argv[])
 		{
 			if (parser.programSet())
 			{
-				programDevice(parser);
+				if (programDevice(parser) == false)
+				{
+					exitCode = 1;
+				}
 			}
 		}
 	}
@@ -173,4 +178,6 @@ int main(int argc, char *argv[])
 		QString helpText = parser.helpText();
 		std::cout << helpText.toLatin1().data();
 	}
+
+	return exitCode;
 }

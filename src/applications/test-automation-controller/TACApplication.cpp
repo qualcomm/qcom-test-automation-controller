@@ -147,14 +147,12 @@ void TACApplication::on_preferencesChanged()
 
 void TACApplication::shutDown()
 {
-	auto tacWindow = _tacWindows.begin();
-	while (tacWindow != _tacWindows.end())
-	{
-		(*tacWindow)->shutDown();
-		tacWindow++;
-	}
-
+	// Work on a copy: a window may leave the list while it shuts down.
+	const QList<TACWindow*> tacWindows{_tacWindows};
 	_tacWindows.clear();
+
+	for (TACWindow* tacWindow: tacWindows)
+		tacWindow->shutDown();
 
 	AppCore::getAppCore()->setAppLogging(false);
 	quit();
@@ -174,10 +172,14 @@ bool TACApplication::disconnectTACWindow
 		result = true;
 	}
 
-	if (_tacWindows.count() == 0)
-		tacAppInstance()->shutDown();
-
+	// Only removes the window from the list. Disconnecting a device must not
+	// end the application; closing the last window does (TACWindow::closeEvent).
 	return result;
+}
+
+int TACApplication::windowCount()
+{
+	return _tacWindows.count();
 }
 
 bool TACApplication::openLastDevice()
@@ -190,26 +192,38 @@ bool TACApplication::openLastDevice()
 
 		if (_preferences.openLastStart())
 		{
-			QByteArray lastDevice = _preferences.lastDevice().toLatin1();
+			// Older versions saved the port with a leading space (" COM7").
+			QByteArray lastDevice = _preferences.lastDevice().trimmed().toLatin1();
 			if (lastDevice.isEmpty() == false)
 			{
+				// Nothing has enumerated the boards yet at startup; without this
+				// the search below always fails.
+				_AlpacaDevice::updateAlpacaDevices();
+
 				AlpacaDevice alpacaDevice = _AlpacaDevice::findAlpacaDevice(lastDevice);
 				if (alpacaDevice.isNull())
 				{
+					// The board may simply be unplugged today, so keep the
+					// preference and the saved device for the next start.
 					AppCore::writeToApplicationLogLine(QString("LastDevice %1 not found").arg(QString(lastDevice)));
-					_preferences.saveLastDevice("");
-					_preferences.setOpenLastStart(false);
 				}
 				else
 				{
 					AppCore::writeToApplicationLogLine(QString("LastDevice: %1").arg(QString(lastDevice)));
 
 					TACWindow* tacWindow = openByName(lastDevice);
-					if (tacWindow != Q_NULLPTR)
+					if (tacWindow != Q_NULLPTR && tacWindow->inUse())
 					{
 						tacWindow->show();
 
 						result = true;
+					}
+					else if (tacWindow != Q_NULLPTR)
+					{
+						// The board was found but could not be opened; main()
+						// creates the normal empty window instead.
+						disconnectTACWindow(tacWindow);
+						tacWindow->deleteLater();
 					}
 				}
 			}

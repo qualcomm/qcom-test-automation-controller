@@ -51,7 +51,7 @@ QTAC is a software suite that enables users to control Qualcomm devices remotely
 | :-- | :-- | :-- |
 | **OS** | Windows / Debian | Windows 10+ / Ubuntu 22.04+ |
 | **Compiler** | [MSVC 2022](https://aka.ms/vs/17/release/vs_community.exe) / GCC | MSVC 2022 / GCC-11, G++-11, GLIBC-2.35 |
-| **Build System** | [CMake](https://cmake.org/download/) | 3.22+ |
+| **Build System** | [CMake](https://cmake.org/download/) | 3.24+ |
 | **Build Tool** | [Ninja](https://ninja-build.org/) (via Qt installer, system package manager, or direct download) | 1.10+ |
 | **UI Framework** | [Qt Open-source](https://www.qt.io/download-qt-installer-oss) | 6.9.0+ |
 
@@ -136,20 +136,21 @@ __Builds\ARM64\Release\QTAC.exe
 > - If you're frequently working with Qt on Linux, consider adding the environment variables to `.bashrc`.
 > - Using `sudo apt install <package>` will update setup packages. Review command usage to prevent issues with other applications.
 
-1. **Qt Installation** (choose one):
-   
-   **Option A**: Qt Online Installer
+1. **Qt Installation**:
    - Install Qt 6.9+ for **GCC 64-bit** and **Qt Serial Port** and **Qt Multimedia** components using [Qt Online Installer](https://www.qt.io/download-qt-installer-oss)
-   
-   **Option B**: Quick Installation via apt
-   ```bash
-   sudo apt install qt6-base-dev qt6-serialport-dev qt6-multimedia-dev
-   ```
+
+   > [!NOTE]
+   > Distribution Qt packages (for example `apt install qt6-base-dev`) are not supported. Ubuntu 24.04 ships Qt 6.4, which is below the 6.9 minimum. `build.sh` also requires `QTBIN` to point to a Qt Online Installer `gcc_64/bin` directory.
 2. **Build Dependencies**:
    ```bash
-   sudo apt install libudev-dev
+   sudo apt install build-essential ninja-build libudev-dev uuid-dev libgl1-mesa-dev libfontconfig1 libfreetype6
    ```
-   Required by `hidapi` (used for Arduino BugHopper V2 HID support) when configuring with CMake.
+   `libudev-dev` is required by `hidapi` (used for Arduino BugHopper V2 HID support); `uuid-dev` is required to link QTAC and the configuration editor; `libfontconfig1` and `libfreetype6` are required by Qt GUI (preinstalled on Ubuntu desktop).
+
+   CMake 3.24 or later is required. Ubuntu 22.04's `apt` package is CMake 3.22, which is too old; install a newer one, for example:
+   ```bash
+   pip install --user "cmake>=3.24,<4"
+   ```
 3. **Runtime Dependencies**:
    ```bash
    sudo cp udev-rules/99-QTAC-USB.rules /etc/udev/rules.d/

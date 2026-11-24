@@ -29,6 +29,7 @@ public:
 	bool openLastDevice();
 
 	static bool disconnectTACWindow(TACWindow* tacWindow);
+	static int windowCount();
 
 	static bool checkToSeeIfPortIsInUse(const QByteArray& portName);
 

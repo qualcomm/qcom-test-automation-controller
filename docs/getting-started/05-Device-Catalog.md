@@ -22,9 +22,13 @@ The FTDI debug board does not have firmware so firmware programming is not requi
 
 ## Update the debug board firmware (PSOC only)
 
-Select a platform of PSOC platform type. The `Update firmware` button gets activated. Click on `Update firmware` to program the debug board.
+Select a platform of PSOC platform type. The `Update firmware` button gets activated. Choose the firmware version in `Choose firmware`, then click on `Update firmware` to program the debug board.
 
 ![Device-Catalog Firmware Update](../resources/dc-firmware-programming.png)
+
+> Firmware update uses the separate `FWUpdate` utility, which is not included in every installation. When `FWUpdate` is not installed next to Device Catalog, the `Update firmware` button stays disabled and its tooltip explains why.
+
+Close TAC and any other application that has the debug board open before updating the firmware. If the update fails, Device Catalog shows the error reported by `FWUpdate` for each firmware variant it tried.
 
 
 ## FAQ

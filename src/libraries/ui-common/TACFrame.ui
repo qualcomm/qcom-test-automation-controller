@@ -488,6 +488,9 @@
                 <layout class="QVBoxLayout" name="verticalLayout_3">
                  <item>
                   <widget class="QLabel" name="_hardwareType">
+                   <property name="textInteractionFlags">
+                    <set>Qt::TextInteractionFlag::TextSelectableByMouse</set>
+                   </property>
                    <property name="text">
                     <string>-</string>
                    </property>
@@ -498,6 +501,9 @@
                  </item>
                  <item>
                   <widget class="QLabel" name="_hardwareVersion">
+                   <property name="textInteractionFlags">
+                    <set>Qt::TextInteractionFlag::TextSelectableByMouse</set>
+                   </property>
                    <property name="text">
                     <string>-</string>
                    </property>
@@ -508,6 +514,9 @@
                  </item>
                  <item>
                   <widget class="QLabel" name="_firmwareVersion">
+                   <property name="textInteractionFlags">
+                    <set>Qt::TextInteractionFlag::TextSelectableByMouse</set>
+                   </property>
                    <property name="text">
                     <string>-</string>
                    </property>
@@ -518,6 +527,9 @@
                  </item>
                  <item>
                   <widget class="QLabel" name="_chipset">
+                   <property name="textInteractionFlags">
+                    <set>Qt::TextInteractionFlag::TextSelectableByMouse</set>
+                   </property>
                    <property name="text">
                     <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;-&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                    </property>
@@ -528,6 +540,9 @@
                  </item>
                  <item>
                   <widget class="QLabel" name="_deviceName">
+                   <property name="textInteractionFlags">
+                    <set>Qt::TextInteractionFlag::TextSelectableByMouse</set>
+                   </property>
                    <property name="minimumSize">
                     <size>
                      <width>124</width>
@@ -544,6 +559,9 @@
                  </item>
                  <item>
                   <widget class="QLabel" name="_deviceUUID">
+                   <property name="textInteractionFlags">
+                    <set>Qt::TextInteractionFlag::TextSelectableByMouse</set>
+                   </property>
                    <property name="text">
                     <string>-</string>
                    </property>
@@ -554,6 +572,9 @@
                  </item>
                  <item>
                   <widget class="QLabel" name="_serialNumber">
+                   <property name="textInteractionFlags">
+                    <set>Qt::TextInteractionFlag::TextSelectableByMouse</set>
+                   </property>
                    <property name="text">
                     <string>-</string>
                    </property>
@@ -564,6 +585,9 @@
                  </item>
                  <item>
                   <widget class="QLabel" name="_platformID">
+                   <property name="textInteractionFlags">
+                    <set>Qt::TextInteractionFlag::TextSelectableByMouse</set>
+                   </property>
                    <property name="text">
                     <string>-</string>
                    </property>
@@ -574,6 +598,9 @@
                  </item>
                  <item>
                   <widget class="QLabel" name="_macAddress">
+                   <property name="textInteractionFlags">
+                    <set>Qt::TextInteractionFlag::TextSelectableByMouse</set>
+                   </property>
                    <property name="text">
                     <string>-</string>
                    </property>
@@ -584,6 +611,9 @@
                  </item>
                  <item>
                   <widget class="QLabel" name="_configurationFile">
+                   <property name="textInteractionFlags">
+                    <set>Qt::TextInteractionFlag::TextSelectableByMouse</set>
+                   </property>
                    <property name="text">
                     <string>-</string>
                    </property>
@@ -594,6 +624,9 @@
                  </item>
                  <item>
                   <widget class="QLabel" name="_configurationDate">
+                   <property name="textInteractionFlags">
+                    <set>Qt::TextInteractionFlag::TextSelectableByMouse</set>
+                   </property>
                    <property name="text">
                     <string>-</string>
                    </property>
@@ -604,6 +637,9 @@
                  </item>
                  <item>
                   <widget class="QLabel" name="_configurationFileVersion">
+                   <property name="textInteractionFlags">
+                    <set>Qt::TextInteractionFlag::TextSelectableByMouse</set>
+                   </property>
                    <property name="text">
                     <string>-</string>
                    </property>
