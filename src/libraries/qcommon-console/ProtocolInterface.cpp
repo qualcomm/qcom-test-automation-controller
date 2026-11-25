@@ -119,7 +119,6 @@ FramePackage ProtocolInterface::getNextFramePackage()
 {
 	FramePackage result;
 	bool noPendingFrame;
-	quint32 delayMs{0};
 
 	{
 		QMutexLocker lock(&_pendingFramePackageMutex);
@@ -137,12 +136,7 @@ FramePackage ProtocolInterface::getNextFramePackage()
 
 			if (framePackage->_delayInMilliSeconds != 0)
 			{
-				// Slept below, after the queue lock is released. Sleeping here
-				// held _outQueueMutex for the whole delay (up to 120 s for a
-				// quick command with a large timing variable), so a UI thread
-				// queueing anything blocked for that long, and the delay could
-				// not be cut short when the device was being closed.
-				delayMs = framePackage->_delayInMilliSeconds;
+				QThread::currentThread()->msleep(framePackage->_delayInMilliSeconds);
 				result = framePackage;
 			}
 			else if (framePackage->_endTransaction)
@@ -161,20 +155,6 @@ FramePackage ProtocolInterface::getNextFramePackage()
 				QMutexLocker lock(&_pendingFramePackageMutex);
 				_pendingFramePackage = framePackage;
 			}
-		}
-	}
-
-	if (delayMs != 0)
-	{
-		// Sliced so a disconnect (setSkipDelays) ends the wait promptly.
-		const quint32 kSliceMs{50};
-		quint32 remaining{delayMs};
-
-		while (remaining > 0 && _skipDelays.load() == false)
-		{
-			const quint32 slice = (remaining < kSliceMs) ? remaining : kSliceMs;
-			QThread::msleep(slice);
-			remaining -= slice;
 		}
 	}
 

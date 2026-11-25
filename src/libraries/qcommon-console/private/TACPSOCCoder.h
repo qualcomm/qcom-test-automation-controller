@@ -13,8 +13,6 @@
 #include <QByteArray>
 #include <QVariant>
 
-class PSOCLegacyCommands;
-
 const QByteArray kCommand("CMD >> ");
 const QByteArray kCommandNotRecognized("CMD: Command not recognized.");
 
@@ -31,16 +29,9 @@ public:
 
 	virtual QByteArray encode(const QByteArray& encodeMe, const Arguments& arguments);
 
-	// Optional legacy firmware translation (see TACPSOCLegacyCommands.h). Not owned.
-	void setLegacyCommands(PSOCLegacyCommands* legacyCommands)
-	{
-		_legacyCommands = legacyCommands;
-	}
-
 private:
 	Q_DISABLE_COPY(TACPSOCCoder)
 	QByteArray					_recieveBuffer;
-	PSOCLegacyCommands*			_legacyCommands{Q_NULLPTR};
 };
 
 #endif // TACPSOCCODER_H

@@ -88,21 +88,12 @@ TAC_HANDLE DevTACCore::OpenHandleByDescription(const char *portName)
 
 	if (licenseIsValid() == true)
 	{
-		// Reuse an already open handle only on an exact identifier match. A
-		// substring test here would hand back the handle of a different device
-		// whenever one identifier is a prefix of another, for example "VTP1"
-		// and "VTP12".
-		const QByteArray requestedName{QByteArray(portName).trimmed()};
-
 		for (auto [tacHandle, openDevice]: RangedContainer(_openDevices))
 		{
-			if (openDevice.isNull() || requestedName.isEmpty())
-				continue;
-
-			if (openDevice->portName().trimmed().compare(requestedName, Qt::CaseInsensitive) == 0)
+			if (openDevice->portName() == portName)
 				return tacHandle;
 
-			if (openDevice->serialNumber().trimmed().compare(requestedName, Qt::CaseInsensitive) == 0)
+			if (openDevice->serialNumber().contains(portName))
 				return tacHandle;
 		}
 
@@ -120,7 +111,7 @@ TAC_HANDLE DevTACCore::OpenHandleByDescription(const char *portName)
 			{
 				QByteArray lastError = alpacaDevice->getLastError();
 				if (lastError.isEmpty())
-					setLastError(QByteArray(portName) + " can't be opened.");
+					setLastError(QByteArray(portName) + " can't be opened. Please close the connection and reopen the device." );
 				else
 					_lastError = lastError;
 
@@ -147,6 +138,7 @@ TAC_RESULT DevTACCore::CloseTACHandle(TAC_HANDLE tacHandle)
 	AlpacaDevice alpacaDevice = getAlpacaDevice(tacHandle);
 	if (alpacaDevice.isNull() == false)
 	{
+		AppCore::writeToApplicationLogLine("[DevTACCore::CloseTACHandle]: " + alpacaDevice->portName());
 		alpacaDevice->close();
 		_openDevices.remove(tacHandle);
 	}

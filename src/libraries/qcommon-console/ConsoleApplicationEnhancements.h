@@ -12,13 +12,10 @@
 
 QString QCOMMONCONSOLE_EXPORT applicationBinPath();
 QString QCOMMONCONSOLE_EXPORT applicationDataPath();
-// Returns the per user configuration directory, or an empty string when no
-// writable location could be established. An empty result means configuration
-// cannot be read or written and callers must fail rather than continue.
 QString QCOMMONCONSOLE_EXPORT documentsDataPath(const QString& append);
 
-// Convenience check for callers that only need to know whether configuration
-// storage is usable before they begin work.
+// True when the per-user configuration folder exists and is writable.
+// Callers such as TACDump use it to fail early instead of continuing.
 bool QCOMMONCONSOLE_EXPORT documentsDataPathAvailable();
 QString QCOMMONCONSOLE_EXPORT defaultGlobalLoggingPath();
 QString QCOMMONCONSOLE_EXPORT defaultLoggingPath(const QString& appName);
@@ -34,10 +31,6 @@ QString QCOMMONCONSOLE_EXPORT getModuleFilePath(const QString& moduleFileName);
 QString QCOMMONCONSOLE_EXPORT expandPath(const QString& filePath);
 
 QString QCOMMONCONSOLE_EXPORT tacConfigRoot();
-
-// Logs the executable, data, configuration and documents folders once, so
-// path problems in a given install layout can be diagnosed from the log.
-void QCOMMONCONSOLE_EXPORT logInstallLayout();
 
 void cleanIt(const QString& pathToClean);
 

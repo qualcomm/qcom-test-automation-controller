@@ -32,7 +32,6 @@ TACPSOCDriveThread::TACPSOCDriveThread
 	_driveTrainName = kTACSerialDriveTrainName;
 	setProtocolInterface(&_tacProtocol);
 	_tacProtocol.setTACDriveTrain(this);
-	_tacProtocol.setLegacyCommands(&_legacyCommands);
 
 	AlpacaDevices alpacaDevices;
 
@@ -89,11 +88,6 @@ bool TACPSOCDriveThread::openSerialDevice()
 		{
 			_lastErrorMessage = "Unable to open TAC Port. " + serialPortError().toLatin1();
 
-			{
-				QMutexLocker lock(&_portOpenErrorMutex);
-				_portOpenError = _lastErrorMessage;
-			}
-
 			AppCore::writeToApplicationLogLine(_lastErrorMessage);
 
 			emit errorOnOpen("PSOC Device Open Failed, Check the Application Log");
@@ -131,7 +125,7 @@ void TACPSOCDriveThread::endTransaction
 	_tacProtocol.endTransaction(receiveInterface);
 }
 
-bool TACPSOCDriveThread::setPinState
+void TACPSOCDriveThread::setPinState
 (
 	quint16 pin,
 	bool state
@@ -143,7 +137,7 @@ bool TACPSOCDriveThread::setPinState
 		tacCommand.setPinState(pin, state);
 	}
 
-	return waitForCompletion();
+	waitForCompletion();
 }
 
 void TACPSOCDriveThread::setAddressPinState
@@ -383,11 +377,6 @@ void TACPSOCDriveThread::setName
 		{
 			if (isAlphaNumeric(newName) == true)
 			{
-				// Arm the wait here: the GUI Rename path does not, and an
-				// unarmed wait returns at once, before the board's reply has
-				// updated the cached name.
-				setWaitForCompletion();
-
 				{
 					TACPSOCCommand tacCommand(this, this);
 
@@ -724,7 +713,7 @@ void TACPSOCDriveThread::handleUUIDResponse
 	if (framePackage->_responses.count() > 1)
 	{
 		QByteArray response = framePackage->_responses.at(1);
-		_uuid = uuidFromResponse(response);
+		_uuid = response;
 
 		emit uuidUpdate(_uuid);
 	}
@@ -786,11 +775,8 @@ void TACPSOCDriveThread::handleVersionResponse
 						_firmwareMinor = firmwareVersionParts.at(2).toUInt();
 						_firmwareRevision = firmwareVersionParts.at(3).toUInt();
 
-						// Compare major before minor so a later major release (2.0.1) is not "old".
-						if (PSOCLegacyCommands::firmwarePredatesPin(_firmwareMajor, _firmwareMinor))
-						{
+						if (_firmwareMinor < 15)
 							_oldFirmware = true;
-						}
 					}
 
 					emit firmwareVersionUpdate(firmwareString);
