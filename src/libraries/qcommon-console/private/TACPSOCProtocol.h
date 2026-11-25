@@ -7,7 +7,6 @@
 #include "QCommonConsoleGlobal.h"
 
 class TACDriveThread;
-class PSOCLegacyCommands;
 
 // QCommon
 #include "ProtocolInterface.h"
@@ -27,9 +26,6 @@ public:
 	virtual ~TACPSOCProtocol();
 
 	void setTACDriveTrain(TACDriveThread* tacDriveTrain);
-
-	// Forwards the optional legacy firmware translation to the PSoC coder. Not owned.
-	void setLegacyCommands(PSOCLegacyCommands* legacyCommands);
 
 	quint32 sendCommand(const QByteArray& command, const Arguments& arguments, bool console = false,
 		ReceiveInterface* receiveInterface = Q_NULLPTR, bool shouldStore = true);

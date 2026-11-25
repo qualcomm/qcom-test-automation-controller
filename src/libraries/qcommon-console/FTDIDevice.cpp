@@ -16,16 +16,7 @@
 #include <QThread>
 
 // FTDI
-// ftd2xx.h is the vendor FTDI header; its copyright line is Latin-1, which MSVC
-// reports as C4828 under /utf-8. Keep the vendor file unchanged and silence it here.
-#ifdef _MSC_VER
-#pragma warning(push)
-#pragma warning(disable: 4828)
-#endif
 #include "ftd2xx.h"
-#ifdef _MSC_VER
-#pragma warning(pop)
-#endif
 
 class FTDIInitializer
 {
@@ -60,51 +51,27 @@ bool FTDIDevice::programDevice
 	bool result{false};
 
 	TACPlatformEntry tacPlatformEntry = _PlatformConfiguration::getEntry(platformID);
-	if (tacPlatformEntry._platformEntry.isNull())
-	{
-		errorMessage = QString("No configuration found for platform %1").arg(platformID).toLatin1();
-		return false;
-	}
-
 	if (tacPlatformEntry._platformEntry->_platformID == platformID)
 	{
 		FT_STATUS ftStatus;
 		FT_HANDLE ftHandle{Q_NULLPTR};
 
+		QByteArray serialNumber = alpacaDevice->serialNumber() + "A";
 		QByteArray usbDescriptor = tacPlatformEntry._platformEntry->_usbDescriptor;
 
-		// The EEPROM belongs to the whole chip, so any channel's handle can
-		// program it. Try the channels in order and use the first one that
-		// opens. On Linux the ftdi_sio driver may hold channels A and B, while
-		// the udev rules leave C and D free for D2XX.
-		// FT232H has a single interface and no channel suffix.
-		QList<QByteArray> serialNumbers;
+		// For FT232H devices, no need to append bus info in serial number
 		if (tacPlatformEntry._platformEntry->_boardtype == eFT232H)
-		{
-			serialNumbers.append(alpacaDevice->serialNumber());
-		}
-		else
-		{
-			for (const char channel : {'A', 'B', 'C', 'D'})
-				serialNumbers.append(alpacaDevice->serialNumber() + channel);
-		}
+			serialNumber = alpacaDevice->serialNumber();
 
 		if (usbDescriptor.isEmpty())
 		{
 			if (tacPlatformEntry._platformEntry->_boardtype == eFTDI)
 				usbDescriptor = "ALPACA-LITE MTP DEBUG BOARD";
 			else
-				usbDescriptor = kBugHopperUSBDescriptor;
+				usbDescriptor = "BugHopper";
 		}
 
-		ftStatus = FT_DEVICE_NOT_FOUND;
-		for (const auto& serialNumber : std::as_const(serialNumbers))
-		{
-			ftStatus = FT_OpenEx(const_cast<char*>(serialNumber.constData()), FT_OPEN_BY_SERIAL_NUMBER, &ftHandle);
-			if (ftStatus == FT_OK)
-				break;
-		}
-
+		ftStatus = FT_OpenEx(serialNumber.data(), FT_OPEN_BY_SERIAL_NUMBER, &ftHandle);
 		if (ftStatus == FT_OK)
 		{
 			FT_PROGRAM_DATA ftData;
@@ -194,19 +161,9 @@ quint32 FTDIDevice::updateAlpacaDevices()
 			ftdiDevice->_platformID = ftdiChipset->platformID();
 
 			TACPlatformEntry platformEntry = _PlatformConfiguration::getEntry(ftdiDevice->_platformID);
-
-			// Without a loaded configuration the entry is empty. List the device
-			// but leave its configuration unset; open() then fails cleanly.
-			if (platformEntry._platformEntry.isNull() == false)
-			{
-				ftdiDevice->_description = platformEntry._platformEntry->_description.toLatin1();
-				ftdiDevice->_platformConfiguration = platformEntry.getConfiguration();
-				ftdiDevice->_boardType = platformEntry._platformEntry->_boardtype;
-			}
-			else
-			{
-				AppCore::writeToApplicationLogLine(QString("FTDIDevice: no configuration found for platform %1").arg(ftdiDevice->_platformID));
-			}
+			ftdiDevice->_description = platformEntry._platformEntry->_description.toLatin1();
+			ftdiDevice->_platformConfiguration = platformEntry.getConfiguration();
+			ftdiDevice->_boardType = platformEntry._platformEntry->_boardtype;
 
 			alpacaDevice = AlpacaDevice(ftdiDevice);
 			_AlpacaDevice::_alpacaDevices.push_back(alpacaDevice);
@@ -297,7 +254,6 @@ bool FTDIDevice::open()
 
 					for (const auto& initializationPin: initialPins)
 					{
-						_driveThread->setWaitForCompletion();
 						_driveThread->setPinState(initializationPin._pin, initializationPin._initialValue);
 
 						if (AppCore::getAppCore()->appLoggingActive())

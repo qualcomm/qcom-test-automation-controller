@@ -9,7 +9,6 @@
 #include "TACException.h"
 
 // QCommon
-#include "AppCore.h"
 #include "mymemcpy.h"
 #include "version.h"
 
@@ -59,108 +58,6 @@ TAC_RESULT _getCommandState
 		catch (const TACException& e)
 		{
 			result = e.errorCode();
-		}
-	}
-	else
-	{
-		result = TACDEV_BAD_TAC_HANDLE;
-		gDevTACCore.setLastError(kTACDevHandleNotOpen);
-	}
-
-	return result;
-}
-
-TAC_RESULT _setCommandState
-(
-	TAC_HANDLE tacHandle,
-	const QByteArray& command,
-	bool state
-)
-{
-	TAC_RESULT result{NO_TAC_ERROR};
-	bool valid{false};
-
-	AlpacaDevice alpacaDevice = gDevTACCore.getAlpacaDevice(tacHandle);
-	if (alpacaDevice.isNull() == false)
-	{
-		try
-		{
-			alpacaDevice->setWaitForCompletion();
-			valid = alpacaDevice->sendCommand(command, state);
-
-			if (valid == false)
-			{
-				result = TACDEV_BAD_TAC_HANDLE;
-				gDevTACCore.setLastError(kTACDevHandleNotOpen);
-			}
-		}
-		catch (const TACException& e)
-		{
-			result = e.errorCode();
-			gDevTACCore.setLastError(e.getMessage());
-		}
-	}
-	else
-	{
-		result = TACDEV_BAD_TAC_HANDLE;
-		gDevTACCore.setLastError(kTACDevHandleNotOpen);
-	}
-
-	return result;
-}
-
-TAC_RESULT _quickCommand
-(
-	TAC_HANDLE tacHandle,
-	const QByteArray& command
-)
-{
-	TAC_RESULT result{NO_TAC_ERROR};
-
-	AlpacaDevice alpacaDevice = gDevTACCore.getAlpacaDevice(tacHandle);
-	if (alpacaDevice.isNull() == false)
-	{
-		try
-		{
-			// The completion flag is armed inside quickCommand() itself, so
-			// both this entry point and the exported SendCommand() get the
-			// timeout detection without each caller having to remember.
-			bool completed = alpacaDevice->quickCommand(command);
-
-			// quickCommand() returns false without throwing in two cases:
-			//  - the device was closed while the command was waiting. The
-			//    deferred close has already run when the call unwinds, so the
-			//    device is no longer open (same check sendCommand() uses).
-			//    Reporting success here would tell the caller the board was
-			//    sequenced when it was not.
-			//  - the command is not in the board's script. That has always
-			//    returned success through this entry point; keep it that way.
-			if (completed == false)
-			{
-				if (alpacaDevice->isOpen() == false)
-				{
-					result = TAC_DEVICE_INACTIVE;
-					gDevTACCore.setLastError("_quickCommand(" + command + "): device was closed before the command completed");
-					AppCore::writeToApplicationLogLine(
-						QString("_quickCommand(%1): abandoned, device closed during the command").arg(command));
-				}
-				else
-				{
-					AppCore::writeToApplicationLogLine(
-						QString("_quickCommand(%1): command not run (not in script)").arg(command));
-				}
-			}
-		}
-		catch (const TACException& e)
-		{
-			result = e.errorCode();
-			gDevTACCore.setLastError(e.getMessage());
-
-			AppCore::writeToApplicationLogLine(
-				QString("_quickCommand(%1): failed with result %2, %3")
-					.arg(command)
-					.arg(result)
-					.arg(e.getMessage()));
 		}
 	}
 	else
@@ -271,7 +168,7 @@ unsigned long GetPortData
 	int result{0};
 
 	const AlpacaDevices& alpacaDevices = gDevTACCore.GetAlpacaDevices();
-	if (deviceIndex >= 0 && deviceIndex < alpacaDevices.count())
+	if (deviceIndex < alpacaDevices.count())
 	{
 		AlpacaDevice alpacaDevice =  alpacaDevices.at(deviceIndex);
 		QByteArray portData2;
@@ -477,15 +374,7 @@ TAC_ERROR SetExternalPowerControl
 	AlpacaDevice alpacaDevice = gDevTACCore.getAlpacaDevice(tacHandle);
 	if (alpacaDevice.isNull() == false)
 	{
-		try
-		{
-			alpacaDevice->externalPowerControl(state);
-		}
-		catch (const TACException& e)
-		{
-			result = e.errorCode();
-			gDevTACCore.setLastError(e.getMessage());
-		}
+		alpacaDevice->externalPowerControl(state);
 	}
 	else
 	{
@@ -502,7 +391,7 @@ TAC_RESULT SetBatteryState
 	bool state
 )
 {
-	return _setCommandState(tacHandle, "battery", state);
+	return SendCommand(tacHandle, "battery", state);
 }
 
 TAC_RESULT GetBatteryState(TAC_HANDLE tacHandle, bool *state)
@@ -516,7 +405,7 @@ TAC_RESULT Usb0
 	bool state
 )
 {
-	return _setCommandState(tacHandle, "usb0", state);
+	return SendCommand(tacHandle, "usb0", state);
 }
 
 TAC_RESULT GetUsb0State
@@ -534,7 +423,7 @@ TAC_RESULT Usb1
 	bool state
 )
 {
-	return _setCommandState(tacHandle, "usb1", state);
+	return SendCommand(tacHandle, "usb1", state);
 }
 
 TAC_RESULT GetUsb1State
@@ -552,7 +441,7 @@ TAC_RESULT PowerKey
 	bool state
 )
 {
-	return _setCommandState(tacHandle, "pkey", state);
+	return SendCommand(tacHandle, "pkey", state);
 }
 
 TAC_RESULT GetPowerKeyState
@@ -570,7 +459,7 @@ TAC_RESULT VolumeUp
 	bool state
 )
 {
-	return _setCommandState(tacHandle, "volup", state);
+	return SendCommand(tacHandle, "volup", state);
 }
 
 TAC_RESULT GetVolumeUpState
@@ -588,7 +477,7 @@ TAC_RESULT VolumeDown
 	bool state
 )
 {
-	return _setCommandState(tacHandle, "voldn", state);
+	return SendCommand(tacHandle, "voldn", state);
 }
 
 TAC_RESULT GetVolumeDownState
@@ -606,7 +495,7 @@ TAC_RESULT DisconnectUIM1
 	bool state
 )
 {
-	return _setCommandState(tacHandle, "uim1", state);
+	return SendCommand(tacHandle, "uim1", state);
 }
 
 TAC_RESULT GetDisconnectUIM1State
@@ -624,7 +513,7 @@ TAC_RESULT DisconnectUIM2
 	bool state
 )
 {
-	return _setCommandState(tacHandle, "uim2", state);
+	return SendCommand(tacHandle, "uim2", state);
 }
 
 TAC_RESULT GetDisconnectUIM2State
@@ -642,7 +531,7 @@ TAC_RESULT DisconnectSDCard
 	bool state
 )
 {
-	return _setCommandState(tacHandle, "sdcard", state);
+	return SendCommand(tacHandle, "sdcard", state);
 }
 
 TAC_RESULT GetDisconnectSDCardState
@@ -660,7 +549,7 @@ TAC_RESULT PrimaryEDL
 	bool state
 )
 {
-	return _setCommandState(tacHandle, "pedl", state);
+	return SendCommand(tacHandle, "pedl", state);
 }
 
 TAC_RESULT GetPrimaryEDLState
@@ -678,7 +567,7 @@ TAC_RESULT ForcePSHoldHigh
 	bool state
 )
 {
-	return _setCommandState(tacHandle, "pshold", state);
+	return SendCommand(tacHandle, "pshold", state);
 }
 
 TAC_RESULT GetForcePSHoldHighState
@@ -696,7 +585,7 @@ TAC_RESULT SecondaryEDL
 	bool state
 )
 {
-	return _setCommandState(tacHandle, "sedl", state);
+	return SendCommand(tacHandle, "sedl", state);
 }
 
 TAC_RESULT GetSecondaryEDLState
@@ -714,7 +603,7 @@ TAC_RESULT SecondaryPmResinN
 	bool state
 )
 {
-	return _setCommandState(tacHandle, "sresn", state);
+	return SendCommand(tacHandle, "sresn", state);
 }
 
 TAC_RESULT GetSecondaryPmResinNState
@@ -732,7 +621,7 @@ TAC_RESULT Eud
 	bool state
 )
 {
-	return _setCommandState(tacHandle, "eud", state);
+	return SendCommand(tacHandle, "eud", state);
 }
 
 TAC_RESULT GetEUDState
@@ -750,7 +639,7 @@ TAC_RESULT HeadsetDisconnect
 	bool state
 )
 {
-	return _setCommandState(tacHandle, "headset", state);
+	return SendCommand(tacHandle, "headset", state);
 }
 
 TAC_RESULT GetHeadsetDisconnectState
@@ -832,7 +721,7 @@ TAC_RESULT PowerOnButton
 	TAC_HANDLE tacHandle
 )
 {
-	return _quickCommand(tacHandle, "powerOn");
+	return SendCommand(tacHandle, "powerOn", true);
 }
 
 TAC_RESULT PowerOffButton
@@ -840,7 +729,7 @@ TAC_RESULT PowerOffButton
 	TAC_HANDLE tacHandle
 )
 {
-	return _quickCommand(tacHandle, "powerOff");
+	return SendCommand(tacHandle, "powerOff", true);
 }
 
 TAC_RESULT BootToFastBootButton
@@ -848,7 +737,7 @@ TAC_RESULT BootToFastBootButton
 	TAC_HANDLE tacHandle
 )
 {
-	return _quickCommand(tacHandle, "bootToFastboot");
+	return SendCommand(tacHandle, "bootToFastboot", true);
 }
 
 TAC_RESULT BootToUEFIMenuButton
@@ -856,7 +745,7 @@ TAC_RESULT BootToUEFIMenuButton
 	TAC_HANDLE tacHandle
 )
 {
-	return _quickCommand(tacHandle, "bootToUEFI");
+	return SendCommand(tacHandle, "bootToUEFI", true);
 }
 
 TAC_RESULT BootToEDLButton
@@ -864,7 +753,7 @@ TAC_RESULT BootToEDLButton
 	TAC_HANDLE tacHandle
 )
 {
-	return _quickCommand(tacHandle, "bootToEDL");
+	return SendCommand(tacHandle, "bootToEDL", true);
 }
 
 TAC_RESULT BootToSecondaryEDLButton
@@ -872,7 +761,7 @@ TAC_RESULT BootToSecondaryEDLButton
 	TAC_HANDLE tacHandle
 )
 {
-	return _quickCommand(tacHandle, "bootToSecondaryEDL");
+	return SendCommand(tacHandle, "bootToSecondaryEDL", true);
 }
 
 TAC_ERROR SetPinState
@@ -887,12 +776,12 @@ TAC_ERROR SetPinState
 	AlpacaDevice alpacaDevice = gDevTACCore.getAlpacaDevice(tacHandle);
 	if (alpacaDevice.isNull() == false)
 	{
+		alpacaDevice->setWaitForCompletion();
 		try
 		{
-			alpacaDevice->setWaitForCompletion();
 			alpacaDevice->setPinState(pin, state);
 		}
-		catch (TACException& e)
+		catch (const TACException& e)
 		{
 			result = e.errorCode();
 			gDevTACCore.setLastError(e.getMessage());
@@ -943,13 +832,8 @@ TAC_ERROR GetCommand
 	AlpacaDevice alpacaDevice = gDevTACCore.getAlpacaDevice(tacHandle);
 	if (alpacaDevice.isNull() == false)
 	{
-		// commandEntry() returns a default entry (pin == -1) for an out-of-range index,
-		// so check the range explicitly instead of relying on the pin value.
-		TACCommand commandEntry;
-		const bool inRange = commandIndex < alpacaDevice->commandCount();
-		if (inRange)
-			commandEntry = alpacaDevice->commandEntry(commandIndex);
-		if (inRange && commandEntry._pin != 0)
+		TACCommand commandEntry = alpacaDevice->commandEntry(commandIndex);
+		if (commandEntry._pin != 0)
 		{
 			QByteArray commandData;
 
@@ -1122,26 +1006,21 @@ TAC_ERROR GetHelpText
 	AlpacaDevice alpacaDevice = gDevTACCore.getAlpacaDevice(tacHandle);
 	if (alpacaDevice.isNull() == false)
 	{
+		// todo
 		QByteArray helpText = alpacaDevice->getHelp();
 		if (helpText.size() >= bufferSize)
 		{
 			result = TACDEV_BUFFER_TOO_SMALL;
 			gDevTACCore.setLastError(kTACDevBufferTooSmall);
-			if (actualSize != nullptr)
-				*actualSize = helpText.size();
+			*actualSize = helpText.size();
 		}
 		else
-		{
 			my_memcpy(helpBuffer, bufferSize, helpText, helpText.size());
-			if (actualSize != nullptr)
-				*actualSize = helpText.size();
-		}
 	}
 	else
 	{
 		my_memcpy(helpBuffer, bufferSize, "\0", 1);
-		if (actualSize != nullptr)
-			*actualSize = 0;
+		*actualSize = 0;
 
 		result = TACDEV_BAD_TAC_HANDLE;
 		gDevTACCore.setLastError(kTACDevHandleNotOpen);
@@ -1174,23 +1053,14 @@ TAC_ERROR GetScriptVariable(TAC_HANDLE tacHandle, unsigned long scriptVariableIn
 
 	if (alpacaDevice.isNull() == false)
 	{
-		if (scriptVariableIndex >= alpacaDevice->scriptVariableCount())
+		QByteArray variableData = alpacaDevice->getScriptVariable(scriptVariableIndex);
+		if (variableData.size() >= bufferSize)
 		{
-			my_memcpy(scriptVariableBuffer, bufferSize, "\0", 1);
-			result = TAC_BAD_INDEX;
-			gDevTACCore.setLastError(kTACBadIndex);
+			result = TACDEV_BUFFER_TOO_SMALL;
+			gDevTACCore.setLastError(kTACDevBufferTooSmall);
 		}
 		else
-		{
-			QByteArray variableData = alpacaDevice->getScriptVariable(scriptVariableIndex);
-			if (variableData.size() >= bufferSize)
-			{
-				result = TACDEV_BUFFER_TOO_SMALL;
-				gDevTACCore.setLastError(kTACDevBufferTooSmall);
-			}
-			else
-				my_memcpy(scriptVariableBuffer, bufferSize, variableData, variableData.size());
-		}
+			my_memcpy(scriptVariableBuffer, bufferSize, variableData, variableData.size());
 	}
 	else
 	{

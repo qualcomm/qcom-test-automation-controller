@@ -72,7 +72,7 @@ bool TACSTM32DriveThread::openSTM32Device()
 	return result;
 }
 
-bool TACSTM32DriveThread::setPinState(quint16 pin, bool state)
+void TACSTM32DriveThread::setPinState(quint16 pin, bool state)
 {
 	{
 		TACSTM32Command tacCommand(this, this);
@@ -80,7 +80,7 @@ bool TACSTM32DriveThread::setPinState(quint16 pin, bool state)
 		tacCommand.setPinState(pin, state);
 	}
 
-	return waitForCompletion();
+	waitForCompletion();
 }
 
 void TACSTM32DriveThread::sendCommandSequence
@@ -118,10 +118,7 @@ void TACSTM32DriveThread::sendCommandSequence
 		}
 	}
 
-	// No wait here: _AlpacaDevice::quickCommand waits with an allowance for
-	// the script's delays. A default-length wait here ended first after ~5 s,
-	// cleared the shared completion flag and made a long script look done.
-	// receive() clears the flag at End Transaction.
+	waitForCompletion();
 }
 
 int TACSTM32DriveThread::getResetCount()
