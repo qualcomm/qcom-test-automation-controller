@@ -671,6 +671,19 @@
             "chip2BusSet": 0,
             "chip3BusSet": 0,
             "chip4BusSet": 0,
+            "configPath": "../../../../configurations/TAC_FTDI_68.tcnf",
+            "debugBoardType": 3,
+            "description": "FTDI-LITE SDX95 QMP5",
+            "name": "SDX95 QMP5",
+            "platform_id": 68,
+            "revision": 3,
+            "usb_descriptor": "ALPACA-LITE SDX95 QMP5"
+        },
+        {
+            "chip1BusSet": 12,
+            "chip2BusSet": 0,
+            "chip3BusSet": 0,
+            "chip4BusSet": 0,
             "configPath": "../../../../configurations/TAC_FTDI_69.tcnf",
             "debugBoardType": 3,
             "description": "FTDI-LITE SDX95 M.2",
@@ -750,7 +763,7 @@
             "description": "ALPACA-LITE KARNALI QCB DT",
             "name": "KARNALI QCB DT",
             "platform_id": 77,
-            "revision": 84,
+            "revision": 111,
             "usb_descriptor": "ALPACA-LITE KARNALI QCB DT"
         },
         {
@@ -812,6 +825,32 @@
             "usb_descriptor": ""
         },
         {
+            "chip1BusSet": 12,
+            "chip2BusSet": 0,
+            "chip3BusSet": 0,
+            "chip4BusSet": 0,
+            "configPath": "../../../../configurations/TAC_FTDI_90.tcnf",
+            "debugBoardType": 3,
+            "description": "MTP7950 (Mavros) FTDI IO",
+            "name": "Mavros MTP7950",
+            "platform_id": 90,
+            "revision": 33,
+            "usb_descriptor": "ALPACA-LITE MTP7950"
+        },
+        {
+            "chip1BusSet": 12,
+            "chip2BusSet": 0,
+            "chip3BusSet": 0,
+            "chip4BusSet": 0,
+            "configPath": "../../../../configurations/TAC_FTDI_91.tcnf",
+            "debugBoardType": 3,
+            "description": "FTDI-LITE SDX85 QMP",
+            "name": "SDX85 QMP",
+            "platform_id": 91,
+            "revision": 10,
+            "usb_descriptor": "ALPACA-LITE SDX85 QMP"
+        },
+        {
             "configPath": "../../../../configurations/TAC_FT232H_92.tcnf",
             "debugBoardType": 5,
             "description": "Arduino Ventuno Q",
@@ -819,6 +858,28 @@
             "platform_id": 92,
             "revision": 16,
             "usb_descriptor": "VentunoQ BugHopper"
+        },
+        {
+            "configPath": "../../../../configurations/TAC_PSOC_93.tcnf",
+            "debugBoardType": 2,
+            "description": "DRACO_LEMANS_IOT_PSOC",
+            "name": "DRACO_LEMANS_IOT_PSOC",
+            "platform_id": 93,
+            "revision": 3,
+            "usb_descriptor": ""
+        },
+        {
+            "chip1BusSet": 12,
+            "chip2BusSet": 0,
+            "chip3BusSet": 0,
+            "chip4BusSet": 0,
+            "configPath": "../../../../configurations/TAC_FTDI_94.tcnf",
+            "debugBoardType": 3,
+            "description": "ALPACA-LITE HONU CDP",
+            "name": "Honu CDP",
+            "platform_id": 94,
+            "revision": 27,
+            "usb_descriptor": "ALPACA-LITE HONU CDP"
         },
         {
             "configPath": "",
@@ -841,7 +902,20 @@
             "platform_id": 96,
             "revision": 38,
             "usb_descriptor": "ALPACA-LITE FOR BONSAI-TWILIGHT V2"
+        },
+        {
+            "chip1BusSet": 12,
+            "chip2BusSet": 0,
+            "chip3BusSet": 0,
+            "chip4BusSet": 0,
+            "configPath": "../../../../configurations/TAC_FTDI_99.tcnf",
+            "debugBoardType": 3,
+            "description": "AR TAC config",
+            "name": "CACAO (XRV5100/XRV5105)",
+            "platform_id": 99,
+            "revision": 34,
+            "usb_descriptor": "ALPACA-LITE FOR AR"
         }
     ],
-    "modification_date": "Wed Oct 7 01:49:31 2026"
+    "modification_date": "Wed Nov 25 19:27:30 2026"
 }
