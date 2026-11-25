@@ -304,17 +304,3 @@ QString tacConfigRoot()
 
 	return result + QDir::separator();
 }
-
-// Writes the resolved install and data locations to the debug output once at
-// startup, so a wrong path in the field can be diagnosed from the log alone.
-void logInstallLayout()
-{
-	const QString exeDir = QCoreApplication::instance() != Q_NULLPTR
-		? QDir::cleanPath(QCoreApplication::applicationDirPath())
-		: QStringLiteral("<no application>");
-
-	qInfo().noquote() << "Install layout: executable folder =" << exeDir;
-	qInfo().noquote() << "Install layout: data folder       =" << applicationDataPath();
-	qInfo().noquote() << "Install layout: configurations    =" << tacConfigRoot();
-	qInfo().noquote() << "Install layout: documents folder  =" << documentsDataPath(QString());
-}
