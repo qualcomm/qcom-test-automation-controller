@@ -8,14 +8,12 @@
 // Qt
 #include <QCoreApplication>
 #include <QDateTime>
-#include <QDebug>
 #include <QDir>
 #include <QFileInfo>
 #include <QLibrary>
 #include <QProcess>
 #include <QSettings>
 #include <QStandardPaths>
-#include <QTemporaryFile>
 
 #ifdef Q_OS_WINDOWS
 	#include <windows.h>
@@ -24,7 +22,6 @@
 	#pragma comment(lib, "shell32")
 #endif
 #ifdef Q_OS_LINUX
-	#include <pwd.h>
 	#include <unistd.h>
 #endif
 
@@ -33,33 +30,6 @@ const QString kAppName("QTAC");
 const QString kConfigurationsFolderName("configurations");
 const QString kDeviceListJson("devicelist.json");
 const QString kDevelopmentRootRelativePath("../../../..");
-
-namespace
-{
-
-// Confirms a directory exists and actually accepts writes.
-//
-// Existence alone is not enough. A home directory can be present but read
-// only, full, or over its storage quota, and in those cases every later write
-// fails. Probing with a real file is the only reliable test.
-bool directoryIsWritable(const QString& path)
-{
-	QDir dir(path);
-
-	if (path.isEmpty() || dir.exists() == false)
-	{
-		return false;
-	}
-
-	// The unique name template keeps concurrent processes from colliding, and
-	// the probe removes itself when it goes out of scope.
-	QTemporaryFile probe(dir.filePath(QStringLiteral("qtac-probe-XXXXXX.tmp")));
-	probe.setAutoRemove(true);
-
-	return probe.open();
-}
-
-} // namespace
 
 QString applicationBinPath()
 {
@@ -83,22 +53,12 @@ QString applicationDataPath()
 	return result;
 }
 
-// Returns the per user directory that holds configuration, or an empty string
-// when no such directory can be established.
-//
-// Callers must treat an empty return value as "configuration storage is not
-// available" and fail rather than carry on, because continuing without
-// configuration means device settings cannot be read or written.
-//
-// Diagnostics here deliberately use qWarning() rather than the application log.
-// The application log location is itself derived from this function, so logging
-// through it would recurse.
 QString documentsDataPath
 (
 	const QString& append
 )
 {
-	QString base;
+	QString result;
 	QString appName;
 
 	appName = QCoreApplication::applicationName();
@@ -107,62 +67,33 @@ QString documentsDataPath
 
 #ifdef Q_OS_WIN
 	// QStandardPaths would return the "One Drive" location. Excel documents don't like living here
-	base = QDir::homePath() + QDir::separator() + "Documents";
+	result = QDir::homePath() + QDir::separator() + "Documents";
 #else
-	base = QStandardPaths::writableLocation(QStandardPaths::DocumentsLocation);
+	result = QStandardPaths::writableLocation(QStandardPaths::DocumentsLocation);
 #endif
 
-	// QStandardPaths yields an empty string when it cannot resolve a location.
-	// Concatenating onto that would silently produce a relative path rooted at
-	// the working directory, so reject it instead.
-	if (base.isEmpty())
-	{
-		qWarning() << "Alpaca: no documents location is available for the current user."
-			<< "Configuration cannot be read or written.";
-		return QString();
-	}
-
-	// QDir::homePath() falls back to the root directory when HOME is not set.
-	// That is worth reporting, because configuration then lands somewhere the
-	// user almost certainly did not intend. Whether it is usable is decided by
-	// the writability check below rather than assumed here.
-	if (QDir::cleanPath(QDir::homePath()) == QDir::rootPath())
-	{
-		qWarning() << "Alpaca: the home directory resolves to the root directory."
-			<< "HOME is probably not set for this process.";
-	}
-
-	QString result = QDir::cleanPath(base + QDir::separator() + appName);
+	result = QDir::cleanPath(result + QDir::separator() + appName);
 	if (append.isEmpty() == false)
 	{
 		result = QDir::cleanPath(result + QDir::separator() + append);
 	}
 
 	if (QDir(result).exists() == false)
-	{
-		if (QDir().mkpath(result) == false)
-		{
-			qWarning() << "Alpaca: unable to create the configuration directory" << result
-				<< "- the location may be missing, read only, or out of space.";
-			return QString();
-		}
-	}
-
-	// The directory can exist and still refuse writes, for example when the
-	// volume is full or the user is over quota.
-	if (directoryIsWritable(result) == false)
-	{
-		qWarning() << "Alpaca: the configuration directory" << result
-			<< "is not writable - the location may be read only, full, or over quota.";
-		return QString();
-	}
+		QDir().mkpath(result);
 
 	return result;
 }
 
 bool documentsDataPathAvailable()
 {
-	return documentsDataPath(QString()).isEmpty() == false;
+	// documentsDataPath() on this branch always returns a path and ignores
+	// whether mkpath() succeeded, so check that the folder is really usable.
+	const QString path = documentsDataPath(QString());
+	if (path.isEmpty())
+		return false;
+
+	const QFileInfo info(path);
+	return info.isDir() && info.isWritable();
 }
 
 QString toCamelCase
@@ -179,22 +110,10 @@ QString toCamelCase
 
 QString defaultGlobalLoggingPath()
 {
-	// An empty base means there is nowhere to log. Returning empty keeps the
-	// caller from building a path rooted at the filesystem root.
 	QString result = documentsDataPath("global");
-	if (result.isEmpty())
-	{
-		return QString();
-	}
-
 	result = QDir::cleanPath(result);
 	if (QDir(result).exists() == false)
-	{
-		if (QDir().mkpath(result) == false)
-		{
-			return QString();
-		}
-	}
+		QDir().mkpath(result);
 
 	return result;
 }
@@ -204,20 +123,10 @@ QString defaultLoggingPath
 	const QString& appName
 )
 {
-	QString base = documentsDataPath(appName);
-	if (base.isEmpty())
-	{
-		return QString();
-	}
-
-	QString result = QDir::cleanPath(base + QDir::separator() + "logs");
+	QString result = documentsDataPath(appName) + QDir::separator() + "logs";
+	result = QDir::cleanPath(result);
 	if (QDir(result).exists() == false)
-	{
-		if (QDir().mkpath(result) == false)
-		{
-			return QString();
-		}
-	}
+		QDir().mkpath(result);
 
 	return result;
 }
@@ -373,19 +282,10 @@ QString expandPath(const QString &filePath)
 	if (result.startsWith("~"))
 	{
 		QString homePath = QDir::homePath();
-		if (homePath.compare(QDir::separator()) == 0)
-		{
-			// HOME is not set. Ask the password database for the real home of
-			// the current user instead of assuming /root, which is wrong for
-			// every non-root user.
-			const struct passwd* pw = getpwuid(getuid());
-			if (pw != Q_NULLPTR && pw->pw_dir != Q_NULLPTR && pw->pw_dir[0] != '\0')
-			{
-				homePath = QString::fromLocal8Bit(pw->pw_dir);
-			}
-			qWarning() << "expandPath: HOME is not set, using" << homePath << "for ~";
-		}
-		result.replace(0, 1, homePath);
+		if (homePath.compare(QDir::separator()) != 0)
+			result.replace("~", homePath);
+		else
+			result.replace("~", "/root");
 	}
 #endif
 

@@ -17,7 +17,6 @@
 #include "RecentFiles.h"
 
 // Qt
-#include <QLabel>
 #include <QTableWidgetItem>
 #include <QTimer>
 
@@ -47,7 +46,6 @@ private slots:
 	void on__actionOpen_triggered();
 
 	void on__actionSave_triggered();
-	void on__actionSave_As_triggered();
 	void on__actionQuit_triggered();
 	void on__actionBugWriter_triggered();
 
@@ -98,8 +96,6 @@ private:
 	CodeEditor*					_codeEditor{Q_NULLPTR};
 	QTimer                      _timer;
 	NotificationWidget*         _nwgt{Q_NULLPTR};
-	QLabel*						_saveLocationLabel{Q_NULLPTR};
-	QString						_loadedFilePath;
 
 	void restoreSettings();
 	void saveSettings();
@@ -108,10 +104,6 @@ private:
 	bool open();
 
 	bool save();
-	bool saveAs();
-	void runPostSaveActions();
-	void onSaveSucceeded();
-	void updateSaveLocation();
 
 	void populateFields();
 	bool testForTACFile();

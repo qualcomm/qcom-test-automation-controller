@@ -38,16 +38,6 @@ void TACPSOCProtocol::setTACDriveTrain
 	_tacDriveTrain = tacDriveTrain;
 }
 
-void TACPSOCProtocol::setLegacyCommands
-(
-	PSOCLegacyCommands* legacyCommands
-)
-{
-	TACPSOCCoder* coder = dynamic_cast<TACPSOCCoder*>(_frameCoder);
-	if (coder != Q_NULLPTR)
-		coder->setLegacyCommands(legacyCommands);
-}
-
 quint32 TACPSOCProtocol::sendCommand
 (
 	const QByteArray& command,
